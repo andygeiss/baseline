@@ -38,7 +38,9 @@ baseline/
 ├── README.md                       ← you are here: navigation protocol
 ├── VERSIONS.md                     ← pinned versions, dated, with sources
 ├── project-types/                  ← entry point per kind of project
-│   └── web-application.md
+│   ├── web-application.md
+│   ├── cli-tool.md
+│   └── library.md
 ├── stack/                          ← per-technology conventions
 │   ├── go.md
 │   ├── htmx.md
@@ -52,12 +54,16 @@ baseline/
 │   ├── go-errors-logging.md
 │   ├── go-testing.md
 │   ├── go-performance.md
+│   ├── go-cli.md
 │   └── htmx-server-rendering.md
 ├── operations/                     ← how projects run in production
 │   ├── web-application.md
+│   ├── cli-release.md
 │   └── ci.md
 └── checklists/                     ← definition of done per project type
-    └── web-application.md
+    ├── web-application.md
+    ├── cli-tool.md
+    └── library.md
 ```
 
 ## Core engineering values

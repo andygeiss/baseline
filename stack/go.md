@@ -65,7 +65,8 @@ Everything else requires an explicit, written justification in the project READM
 | `golang.org/x/vuln` (govulncheck) | CVE scanning, dev-only (run via `go run`) |
 
 Explicitly banned: ORMs (GORM etc. — write SQL), web frameworks, dependency-injection
-frameworks, viper/cobra for web apps (use `flag` + env vars).
+frameworks, viper/cobra everywhere — CLIs included (stdlib `flag` + env vars, see
+[patterns/go-cli.md](../patterns/go-cli.md)).
 
 ## Module hygiene
 
