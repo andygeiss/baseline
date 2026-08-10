@@ -9,6 +9,7 @@ when updating this file.
 | Go | **1.26.5** | 2026-07-07 | Latest stable patch of the 1.26 line. Go 1.27 expected Aug 2026 — re-verify after release. |
 | htmx | **2.0.9** | 2026-04-20 | The 2.x line is stable and feature-complete. |
 | htmx 4.x | ❌ do not use | beta | 4.0.0-beta5 (June 2026). MUST NOT be used until stable *and* adopted here deliberately (breaking changes: fetch-based, new swap model). |
+| scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` banned (CGO) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
 | CSS | Baseline "Widely available" | rolling | No preprocessor, no framework. Allowed feature set defined in [stack/css.md](stack/css.md). |
 | HTML | Living Standard | rolling | Semantic HTML5, validated. |
 | JavaScript | ❌ none | — | No hand-written JS, no bundlers, no npm. htmx is the only script tag. |

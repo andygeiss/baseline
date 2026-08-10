@@ -15,8 +15,8 @@ or explicitly waived by the user in writing.
 
 ## Code quality
 
-- [ ] `gofmt`/`goimports` clean, `go vet ./...` clean, `staticcheck ./...` clean
-- [ ] `go mod tidy` leaves no diff
+- [ ] CI workflow from [operations/ci.md](../operations/ci.md) is in place and green
+      (covers gofmt, vet, staticcheck, **govulncheck**, tidy, race tests, static build)
 - [ ] Routes registered in one file; mutations are POST/PUT/DELETE only
 - [ ] Server has read/write/idle timeouts and graceful shutdown
 - [ ] Errors wrapped with `%w`; internal error text never rendered to the browser
@@ -40,11 +40,20 @@ or explicitly waived by the user in writing.
 ## Security
 
 - [ ] CSP `default-src 'self'` active; headers middleware in place (nosniff, frame DENY, referrer)
-- [ ] CSRF token on every mutation; verified server-side
-- [ ] Session cookies: `Secure`, `HttpOnly`, `SameSite=Lax`
+- [ ] `http.CrossOriginProtection` wraps the mux (CSRF)
+- [ ] Session cookies: `Secure`, `HttpOnly`, `SameSite=Lax`; `RenewToken` on login/logout/password change
+- [ ] Auth endpoints rate limited; login timing identical for unknown user vs wrong password
 - [ ] All user input escaped via `html/template` (no `template.HTML` on user data)
 - [ ] SQL only via parameterized queries
-- [ ] Passwords (if any) hashed with argon2id or bcrypt
+- [ ] Passwords (if any) hashed with argon2id (OWASP params, PHC-encoded)
+- [ ] `/debug/pprof` and `/healthz` on the localhost-only ops listener, never proxied
+
+## Database (SQLite)
+
+- [ ] Pragmas per [patterns/go-sqlite.md](../patterns/go-sqlite.md): WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)`
+- [ ] Two pools: reads pooled, writes `SetMaxOpenConns(1)` + `_txlock=immediate`
+- [ ] Migrations embedded, forward-only, applied at boot inside a transaction
+- [ ] Backups running (Litestream or `VACUUM INTO`) **and the restore was rehearsed once**
 
 ## HTML/CSS/A11y
 
@@ -57,5 +66,8 @@ or explicitly waived by the user in writing.
 ## Ship
 
 - [ ] README links to this baseline and records any waived rules
-- [ ] Binary runs with only env vars/flags (`PORT`, `DATABASE_URL`, `LOG_LEVEL`)
-- [ ] HTTPS-only in production; HTTP redirects
+- [ ] Binary runs with only the env contract from [operations/web-application.md](../operations/web-application.md)
+- [ ] Deployed per the ops doc: Caddy in front (auto-HTTPS + compression), app on localhost, hardened systemd unit
+- [ ] `GOMEMLIMIT` set; version visible in `/healthz` and boot log (`debug.ReadBuildInfo`)
+- [ ] Static assets served with `immutable` cache headers + version-busting query string
+- [ ] Previous binary kept as instant rollback

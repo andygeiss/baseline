@@ -44,7 +44,7 @@ func (a *App) handleGameShow(w http.ResponseWriter, r *http.Request) {
 		a.serverError(w, r, err) // logs with slog, renders 500 page
 		return
 	}
-	a.render(w, r, http.StatusOK, "game.html", game)
+	a.render(w, r, http.StatusOK, "game.html", "", game) // "" = full page; a mutation handler passes its fragment block, e.g. "board"
 }
 ```
 
@@ -63,7 +63,23 @@ Plain `func(http.Handler) http.Handler`, composed innermost-first at the end of
 3. `secureHeaders` — `Content-Security-Policy: default-src 'self'`,
    `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin`,
    `X-Frame-Options: DENY`.
-4. `session` / `csrf` on routes that need them.
+4. **CSRF: `http.NewCrossOriginProtection()`** (stdlib, Go 1.25+) — rejects unsafe
+   cross-origin requests via the `Sec-Fetch-Site` header (falling back to
+   Origin-vs-Host comparison). No tokens, no per-form wiring:
+
+   ```go
+   csrf := http.NewCrossOriginProtection()
+   ```
+
+   wrap the mux with `csrf.Handler(...)`. Only pre-2020 browsers lack these headers;
+   `SameSite=Lax` session cookies are the independent second layer. Do not add a
+   token library on top.
+5. `sessions.LoadAndSave` (see [go-auth-sessions.md](go-auth-sessions.md)), then
+   `requireAuth` on protected route groups.
+
+```go
+return a.logRequests(a.recoverPanic(a.secureHeaders(csrf.Handler(a.sessions.LoadAndSave(mux)))))
+```
 
 ## Server lifecycle
 

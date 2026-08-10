@@ -41,9 +41,15 @@ baseline/
 ├── patterns/                       ← concrete, copyable implementation patterns
 │   ├── go-project-layout.md
 │   ├── go-http-server.md
+│   ├── go-sqlite.md
+│   ├── go-auth-sessions.md
 │   ├── go-errors-logging.md
 │   ├── go-testing.md
+│   ├── go-performance.md
 │   └── htmx-server-rendering.md
+├── operations/                     ← how projects run in production
+│   ├── web-application.md
+│   └── ci.md
 └── checklists/                     ← definition of done per project type
     └── web-application.md
 ```

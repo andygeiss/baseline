@@ -16,7 +16,9 @@ with a UI — from a tic-tac-toe game to a SaaS dashboard.
 | Markup | Semantic HTML | MUST. Forms and links are the API of the UI. |
 | Client-side JS | — | MUST NOT write any. htmx is the only script. |
 | Persistence | SQLite (`modernc.org/sqlite`) first | SHOULD. Postgres (`pgx`) only when concurrency/scale demands it. |
-| Deployment | Single static binary | MUST. Templates, CSS, htmx all embedded. |
+| Sessions | `alexedwards/scs/v2`, server-side in SQLite | MUST when there are users. Cookie carries a random token only. |
+| CSRF | stdlib `http.CrossOriginProtection` | MUST. No token libraries. |
+| Deployment | Single static binary behind Caddy | MUST. Templates, CSS, htmx all embedded. |
 
 Versions: see [VERSIONS.md](../VERSIONS.md).
 
@@ -27,17 +29,23 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 3. [stack/css.md](../stack/css.md) — styling architecture
 4. [stack/htmx.md](../stack/htmx.md) — hypermedia interactivity
 5. [patterns/go-project-layout.md](../patterns/go-project-layout.md) — directory structure
-6. [patterns/go-http-server.md](../patterns/go-http-server.md) — server, routing, middleware
+6. [patterns/go-http-server.md](../patterns/go-http-server.md) — server, routing, middleware, CSRF
 7. [patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md) — full pages vs fragments
-8. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
-9. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
+8. [patterns/go-sqlite.md](../patterns/go-sqlite.md) — production SQLite: pragmas, pools, migrations, backups
+9. [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, login, password hashing (when there are users)
+10. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
+11. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
+12. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
+13. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
+14. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
 
 ## Architecture defaults
 
 - **One binary, one process.** HTTP server, background jobs, and static assets in a
   single Go binary. No sidecars, no reverse-proxy requirements for correctness.
-- **Server-side state.** Sessions via secure cookies (encrypted, `HttpOnly`, `SameSite=Lax`).
-  The browser holds a session ID and rendered HTML, nothing else.
+- **Server-side state.** Session data lives in SQLite; the cookie (`Secure`, `HttpOnly`,
+  `SameSite=Lax`) carries only a random token. The browser holds a session token and
+  rendered HTML, nothing else.
 - **Progressive enhancement.** Every feature MUST work with plain HTML forms and links
   if htmx fails to load. htmx upgrades the experience; it is not a dependency for correctness.
 - **HTTPS everywhere**, HTTP only as a redirect. Security headers set in middleware

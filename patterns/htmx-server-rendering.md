@@ -42,24 +42,34 @@ block; a handler renders either the full page or just the block, depending on
 ## The dual-mode render helper
 
 ```go
+// render writes page as a full document, or only its named block when the request
+// came from an htmx interaction. block == "" always renders the full page.
 func (a *App) render(w http.ResponseWriter, r *http.Request, status int, page, block string, data any) {
-	ts := a.templates[page]
-	if r.Header.Get("HX-Request") == "true" && block != "" {
-		name = block          // fragment only
-	} else {
-		name = "layout"       // full page
+	name := "layout" // full page
+	if block != "" &&
+		r.Header.Get("HX-Request") == "true" &&
+		r.Header.Get("HX-Boosted") != "true" {
+		name = block // fragment only
 	}
 	var buf bytes.Buffer
-	if err := ts.ExecuteTemplate(&buf, name, data); err != nil {
+	if err := a.templates[page].ExecuteTemplate(&buf, name, data); err != nil {
 		a.serverError(w, r, err)
 		return
 	}
+	w.Header().Add("Vary", "HX-Request")
 	w.WriteHeader(status)
 	buf.WriteTo(w)
 }
 ```
 
-Render to a buffer first — a template error after `WriteHeader` corrupts the response.
+Three details are load-bearing:
+
+- **`HX-Boosted` check:** boosted links/forms send `HX-Request: true` but swap the
+  whole `<body>` — they need the full page. Without this check, `hx-boost` navigation
+  renders bare fragments into empty pages.
+- **Buffer first** — a template error after `WriteHeader` corrupts the response.
+- **`Vary: HX-Request`** set here, once, so no dual-mode handler can forget it.
+
 This helper is why progressive enhancement is free: the same handler serves the
 no-htmx full page and the htmx fragment.
 

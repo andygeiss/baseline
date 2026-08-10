@@ -46,8 +46,10 @@ avoided — if you need them, the design is probably drifting toward client-side
    and out-of-band swaps.
 5. **Security:**
    - CSP: `script-src 'self'` works because htmx is self-hosted and there's no inline JS.
-   - CSRF: mutations carry a token — hidden input in forms; `hx-headers` on the body
-     tag for non-form elements.
+   - CSRF: no tokens — the server uses stdlib `http.CrossOriginProtection`
+     (`Sec-Fetch-Site` based, Go 1.25+), which covers htmx requests automatically
+     because htmx sends real same-origin requests. See
+     [patterns/go-http-server.md](../patterns/go-http-server.md).
    - All dynamic HTML goes through `html/template` (contextual auto-escaping). Never
      concatenate user input into HTML.
 

@@ -9,6 +9,8 @@
 - Run the modernizers periodically: `go fix ./...` — since Go 1.26 this applies
   ~two dozen analyzers that rewrite code to current idioms. Trust it.
 - Lint with `staticcheck` (the only third-party lint tool allowed).
+- Scan for known vulnerabilities: `govulncheck ./...` — in CI on every push *and*
+  weekly on a schedule (see [operations/ci.md](../operations/ci.md)).
 - Race detector in CI: `go test -race ./...`.
 
 ## Language conventions
@@ -43,6 +45,7 @@
 | `slices` and `maps` packages | hand-rolled loops for sort/contains/clone |
 | `embed.FS` | file paths resolved at runtime |
 | `testing/synctest` for concurrent code | `time.Sleep` in tests |
+| `http.NewCrossOriginProtection` for CSRF (Go 1.25+) | token libraries, hand-rolled double-submit cookies |
 | `math/rand/v2` | `math/rand` |
 | `crypto/rand`, `crypto/hpke`, `crypto/mlkem` | rolling your own crypto — never |
 
@@ -54,9 +57,12 @@ Everything else requires an explicit, written justification in the project READM
 |---|---|
 | `modernc.org/sqlite` | SQLite driver, pure Go (CGO-free static binaries) |
 | `github.com/jackc/pgx/v5` | Postgres, when SQLite is outgrown |
+| `github.com/alexedwards/scs/v2` | server-side sessions — with a hand-written `Store` against the app DB, **not** the bundled `sqlite3store` (CGO). See [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) |
 | `golang.org/x/crypto` | argon2/bcrypt for password hashing |
 | `golang.org/x/sync` | errgroup |
-| `honnef.co/go/tools` (staticcheck) | lint, dev-only |
+| `golang.org/x/time` | rate limiting (auth endpoints) |
+| `honnef.co/go/tools` (staticcheck) | lint, dev-only (run via `go run`, not a module dependency) |
+| `golang.org/x/vuln` (govulncheck) | CVE scanning, dev-only (run via `go run`) |
 
 Explicitly banned: ORMs (GORM etc. — write SQL), web frameworks, dependency-injection
 frameworks, viper/cobra for web apps (use `flag` + env vars).
