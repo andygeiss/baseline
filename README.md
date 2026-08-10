@@ -5,6 +5,12 @@ between an LLM's training data and the current state of the art. AI agents worki
 any of my projects MUST consult this baseline before making stack, version, or pattern
 decisions — do not rely on training data for anything covered here.
 
+**The bar: production grade, simplicity first, performant and secure out of the box.**
+Boring technology, one static Go binary, hypermedia over JavaScript, security as
+layered defaults rather than a checklist. Every rule exists to make the *default*
+path the correct one — an agent that follows the documents verbatim ships a correct,
+hardened application without inventing anything.
+
 - **Owner:** Andy Geiss
 - **Last verified:** 2026-08-10
 - **Format:** Markdown only. No code, no tooling, no build steps. Documents are the product.
@@ -64,6 +70,18 @@ These apply to every project regardless of type:
 3. **Server is the source of truth.** State lives on the server; the client renders hypermedia.
 4. **Simplicity over cleverness.** Code is read far more often than written.
 5. **Current, not bleeding edge.** Latest *stable* versions, never betas/RCs in production.
+
+## Quality bar & verification
+
+- **Adversarial review before every tagged release:** independent reviewers hunt
+  cross-document contradictions, trace every canonical snippet's mechanics end to end,
+  and verify factual claims against upstream sources (Go, htmx, scs, SQLite, systemd,
+  Caddy) — repeated until **two consecutive passes find zero defects**.
+  Last full run: v1.1.0 (2026-08-10, 11 rounds, 21 defects fixed).
+- **The reference implementation is the executable check.**
+  [baseline-reference](https://github.com/andygeiss/baseline-reference) implements
+  these rules end to end and MUST be synced to every tagged release — when a rule is
+  ambiguous, the reference resolves it.
 
 ## Maintenance protocol (humans)
 
