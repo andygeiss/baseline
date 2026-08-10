@@ -55,3 +55,9 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 
 Walk [checklists/web-application.md](../checklists/web-application.md) before calling
 any milestone complete.
+
+## Reference implementation
+
+[github.com/andygeiss/tictactoe](https://github.com/andygeiss/tictactoe) implements
+this document end to end (deviations recorded in its README). When a rule here is
+ambiguous, read how the reference does it.

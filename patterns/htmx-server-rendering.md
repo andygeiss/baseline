@@ -78,6 +78,20 @@ no-htmx full page and the htmx fragment.
 - **Form validation:** invalid POST re-renders the form fragment with errors and
   status **422**. Fields keep their submitted values. Valid POST → `303 See Other`
   redirect (plain) — htmx follows redirects transparently.
+  ⚠️ htmx 2 does **not** swap 4xx responses by default — a 422 flow requires opting
+  in via the config meta tag in the layout `<head>`:
+
+  ```html
+  <meta name="htmx-config" content='{"responseHandling":[
+    {"code":"204","swap":false},
+    {"code":"[23]..","swap":true},
+    {"code":"422","swap":true},
+    {"code":"[45]..","swap":false,"error":true}]}'>
+  ```
+
+  Only true *input* validation gets a 422. A stale-state action (clicking an already-
+  taken cell on an outdated board) is not invalid input — respond 200 with the current
+  fragment and a message, letting the swap heal the staleness.
 - **Post-action navigation from a fragment:** set `HX-Redirect: /games/42` header
   instead of rendering, when the whole page must change.
 - **Cross-component updates:** render extra fragments with `hx-swap-oob="true"` in the
