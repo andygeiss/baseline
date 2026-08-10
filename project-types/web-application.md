@@ -58,6 +58,6 @@ any milestone complete.
 
 ## Reference implementation
 
-[github.com/andygeiss/tictactoe](https://github.com/andygeiss/tictactoe) implements
+[github.com/andygeiss/baseline-reference](https://github.com/andygeiss/baseline-reference) implements
 this document end to end (deviations recorded in its README). When a rule here is
 ambiguous, read how the reference does it.
