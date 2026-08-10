@@ -42,7 +42,9 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 ## Architecture defaults
 
 - **One binary, one process.** HTTP server, background jobs, and static assets in a
-  single Go binary. No sidecars, no reverse-proxy requirements for correctness.
+  single Go binary, complete and correct on its own. Exactly two companion services
+  are sanctioned, neither needed for correctness: Caddy (TLS + compression) and
+  Litestream (backup replication) — nothing else without written justification.
 - **Server-side state.** Session data lives in SQLite; the cookie (`Secure`, `HttpOnly`,
   `SameSite=Lax`) carries only a random token. The browser holds a session token and
   rendered HTML, nothing else.

@@ -55,7 +55,10 @@ Rules:
 3. **Specificity:** selectors stay at one class deep where possible; layers resolve
    conflicts. `!important` is banned outside `utilities`.
 4. **Every interactive state in CSS:** `:hover`, `:focus-visible`, `:active`,
-   `:disabled`, plus htmx's `.htmx-request` for loading states.
+   `:disabled`, plus htmx's loading states — `app.css` MUST define them itself
+   (`.htmx-indicator { opacity: 0 }`, shown while `.htmx-request` is active), because
+   htmx's built-in inline indicator styles are disabled for CSP
+   (see [htmx.md](htmx.md)).
 5. **Motion:** transitions/animations MUST be wrapped in
    `@media (prefers-reduced-motion: no-preference)`.
 6. **Responsive:** container queries for components, media queries only for page-level

@@ -16,17 +16,25 @@ sessions.IdleTimeout = 2 * time.Hour
 sessions.Cookie.Secure = true      // Secure + HttpOnly + SameSite=Lax defaults verified below
 sessions.Cookie.HttpOnly = true
 sessions.Cookie.SameSite = http.SameSiteLaxMode
-sessions.Store = store.NewSessionStore(writeDB) // see below
+sessions.Store = store.NewSessionStore(readDB, writeDB) // see below
 ```
 
 `sessions.LoadAndSave` wraps the mux (see [go-http-server.md](go-http-server.md)
 middleware chain).
 
-⚠️ **Do not use the bundled `sqlite3store`** — it imports the CGO `mattn/go-sqlite3`
-driver and breaks the static-binary rule. `scs.Store` is a three-method interface
-(`Find`, `Commit`, `Delete`); implement it (~40 lines) against the app's existing
-`modernc.org/sqlite` pools, with a ticker goroutine deleting expired rows every few
-minutes (owned lifecycle: stopped on shutdown).
+⚠️ **Do not use the bundled `sqlite3store`** — it takes a single `*sql.DB`, and this
+baseline's SQLite setup requires two ([go-sqlite.md](go-sqlite.md)): `LoadAndSave`
+calls `Find` on every request, so a single-pool store either routes all reads through
+the one-connection write pool (serializing the entire app) or writes through the
+uncapped read pool (reintroducing `SQLITE_BUSY`). `scs.Store` is a three-method
+interface (`Find`, `Commit`, `Delete`); implement it (~40 lines) against the app's
+existing pools — **`Find` on the read pool, `Commit`/`Delete` on the write pool**.
+**`Find` MUST treat expired rows as not found** (`WHERE token = ? AND expiry > ?`) —
+scs performs no expiry check of its own, so a store that returns expired rows keeps
+those sessions alive and every request refreshes their idle deadline, silently
+disabling `IdleTimeout`. The janitor only reclaims disk; `Find` enforces expiry. A ticker goroutine deletes
+expired rows every few minutes (owned lifecycle: stopped on shutdown — see the
+background-work pattern in [go-http-server.md](go-http-server.md)).
 
 ## Login / logout flow
 
@@ -46,9 +54,11 @@ MUST rules:
 3. **Redirects are `303 See Other`.** For htmx-initiated logins from a fragment, send
    `HX-Redirect` instead (full page must change after auth transitions — never swap a
    logged-in fragment into a logged-out page).
-4. **`requireAuth` middleware** on protected routes: no user ID in session → 303 to
-   `/login` (with `HX-Redirect` for htmx requests). Handlers read the user from the
-   request context, placed there by the middleware.
+4. **`requireAuth` middleware** on protected routes: no user ID in session → plain
+   requests get a 303 to `/login`; htmx requests get a **200 with
+   `HX-Redirect: /login` instead of the 303** — the XHR would follow a 303
+   transparently and swap the login page *into* the fragment target (rule 3).
+   Handlers read the user from the request context, placed there by the middleware.
 
 ## Password hashing: argon2id (`golang.org/x/crypto/argon2`)
 

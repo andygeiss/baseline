@@ -61,8 +61,10 @@ After=network.target
 [Service]
 ExecStart=/opt/app/server
 DynamicUser=yes
-StateDirectory=app            # → /var/lib/app, owned, persistent: the SQLite file lives here
-Environment=PORT=8080 GOMEMLIMIT=450MiB LOG_LEVEL=info
+; StateDirectory → /var/lib/app, owned, persistent: the SQLite file lives here.
+; (systemd has no trailing comments — annotations get their own line.)
+StateDirectory=app
+Environment=ENV=prod PORT=8080 GOMEMLIMIT=450MiB LOG_LEVEL=info
 Environment=DATABASE_URL=/var/lib/app/app.db
 Restart=on-failure
 RestartSec=2
@@ -78,10 +80,27 @@ CapabilityBoundingSet=
 WantedBy=multi-user.target
 ```
 
-Deploy = `scp` new binary + `systemctl restart app`. Graceful shutdown (already
-mandatory) makes the restart invisible; keep the previous binary as `server.prev` for
-instant rollback. Anything fancier (blue-green, containers, Kubernetes) needs a
+Deploy = upload beside the live binary, then swap by rename (writing *over* a running
+executable fails with `ETXTBSY`; renaming does not):
+
+```
+scp server app:/opt/app/server.new
+ssh app 'cd /opt/app && cp server server.prev && mv server.new server && systemctl restart app'
+```
+
+Graceful shutdown (already mandatory) makes the restart invisible; `server.prev` is
+the instant rollback. Anything fancier (blue-green, containers, Kubernetes) needs a
 written justification — this stack's whole point is not needing it.
+
+Two adjustments when the defaults meet reality:
+
+- **Secrets** (SMTP keys, S3 credentials for Litestream) MUST NOT go in
+  `Environment=` lines — unit files are world-readable. Use systemd credentials
+  (`LoadCredential=smtp-key:/etc/app/smtp-key`); the app reads the file named by
+  `$CREDENTIALS_DIRECTORY`. Nothing else — no vault until a project genuinely needs one.
+- **When Litestream is used,** replace `DynamicUser=yes` with a static system user
+  (`User=app`) shared by both units — the replica sidecar must read the database
+  directory, and a transient UID makes that fragile.
 
 ## Backups & logs
 
@@ -97,6 +116,7 @@ The binary is configured by exactly these (flags override, envs default):
 
 | Var | Meaning | Default |
 |---|---|---|
+| `HOST` | bind address | `127.0.0.1` (the proxy is the public listener) |
 | `PORT` | app listener port | `8080` |
 | `DATABASE_URL` | SQLite file path | `app.db` |
 | `LOG_LEVEL` | slog level | `info` |

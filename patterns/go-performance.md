@@ -19,11 +19,13 @@ HTML over the wire with no client framework tax. Performance work is therefore
 
 ## Build-time wins (free, always on)
 
-- **PGO:** capture a 30 s CPU profile from production, commit it as `default.pgo` in
-  the repo root — `go build` picks it up automatically (typically 2–7 % CPU
-  reduction). Refresh the profile when the workload shifts materially.
-- Release builds: `go build -trimpath -ldflags="-s -w" ./cmd/server`
-  (reproducible paths, smaller binary; symbols stay available via DWARF-less pprof).
+- **PGO:** capture a 30 s CPU profile from production, commit it as
+  `cmd/server/default.pgo` — next to the main package, which is where `go build`
+  auto-detects it (the repo root is *not* checked). Typically 2–7 % CPU reduction;
+  refresh the profile when the workload shifts materially.
+- Release builds: `CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" ./cmd/server`
+  (static binary, reproducible paths, smaller; symbols stay available via
+  DWARF-less pprof).
 
 ## Runtime configuration
 
@@ -36,13 +38,30 @@ HTML over the wire with no client framework tax. Performance work is therefore
 ## HTTP layer
 
 - **Static assets** (`/static/`): embedded files never change within a deployed
-  binary, so serve with `Cache-Control: public, max-age=31536000, immutable` and a
-  version-busting query string (`/static/css/app.css?v={{.Version}}`, version from
-  build info — one template variable, no asset pipeline).
+  binary, so serve with `Cache-Control: public, max-age=31536000, immutable` — a
+  three-line wrapper around the file server, wired in `Routes()`:
+
+  ```go
+  func cacheImmutable(next http.Handler) http.Handler {
+  	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+  		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+  		next.ServeHTTP(w, r)
+  	})
+  }
+  ```
+
+  Every `/static/` URL in templates carries a version-busting query string
+  (`/static/css/app.css?v={{version}}` — the CSS *and* the htmx script). `version` is
+  a template function registered via `Funcs` before parsing, returning the VCS
+  revision from `debug.ReadBuildInfo` (see
+  [operations/web-application.md](../operations/web-application.md)) — one template
+  function, no asset pipeline. `immutable` without busting serves stale assets after
+  a deploy.
 - **HTML responses:** `Cache-Control: no-store` for authenticated pages; dual-mode
-  responses already send `Vary: HX-Request`.
-- **Compression happens at the reverse proxy** (Caddy: zstd/gzip, on by default) —
-  the app does not gzip. Keep the app boring; let the edge do edge work.
+  responses already send `Vary: HX-Request, HX-Boosted` via the render helper.
+- **Compression happens at the reverse proxy** — the `encode zstd gzip` line in the
+  ops Caddyfile (Caddy does **not** compress without it). The app does not gzip.
+  Keep the app boring; let the edge do edge work.
 - **Keep fragments small.** The cheapest response is the one that only contains what
   changed — that's the htmx architecture doing the performance work for you.
 

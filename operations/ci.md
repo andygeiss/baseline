@@ -61,6 +61,12 @@ jobs:
 - **`-shuffle=on`** — flushes out inter-test ordering dependencies early.
 - **`-race`** — mandatory, never dropped for speed. If the suite gets slow, fix the
   suite.
+- **`@latest` on staticcheck/govulncheck is a deliberate exception** to version
+  pinning: both are analysis gates, not build inputs — a new check can redden CI but
+  can never change the shipped binary, and for these tools the newest checks *are* the
+  point. If a staticcheck release breaks CI on an unrelated morning, pin that step to
+  the previous version in the fixing PR and remove the pin once the findings are
+  addressed.
 - **Static build gate** — proves the CGO-free single-binary invariant every commit,
   not at release time.
 

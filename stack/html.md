@@ -22,8 +22,8 @@ htmx file. Consequences of this rule:
 1. **One `<h1>` per page;** heading levels never skip.
 2. **Landmarks:** `<header>`, `<nav>`, `<main>` (exactly one), `<footer>`.
    `<div>` is for styling hooks only, never where a semantic element exists.
-3. **Buttons vs links:** `<a href>` navigates (GET), `<button>` acts (POST/PUT/DELETE
-   or htmx mutation). Never a styled `<a>` performing a mutation.
+3. **Buttons vs links:** `<a href>` navigates (GET), `<button>` acts (a POST form,
+   optionally htmx-enhanced). Never a styled `<a>` performing a mutation.
 4. **Forms always have:** `<label for>` on every control, a submit `<button>`,
    `method` + `action` that work without htmx (progressive enhancement),
    server-side validation regardless of client attributes.
@@ -43,23 +43,38 @@ htmx file. Consequences of this rule:
 
 ## Document skeleton
 
+This *is* `web/templates/layout.html` — the shell every page renders into. Every page
+template MUST define `title` and `main` (see
+[patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md)); `version`
+is a template function from build info, not a data field (see
+[patterns/go-performance.md](../patterns/go-performance.md)).
+
 ```html
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{.Title}} · AppName</title>
-  <link rel="stylesheet" href="/static/css/app.css">
-  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <meta name="htmx-config" content='{"includeIndicatorStyles":false,
+    "historyCacheSize":0,"refreshOnHistoryMiss":true,"responseHandling":[
+    {"code":"204","swap":false},
+    {"code":"[23]..","swap":true},
+    {"code":"422","swap":true},
+    {"code":"[45]..","swap":false,"error":true}]}'>
+  <title>{{template "title" .}} · AppName</title>
+  <link rel="stylesheet" href="/static/css/app.css?v={{version}}">
+  <link rel="icon" href="/static/favicon.svg?v={{version}}" type="image/svg+xml">
 </head>
 <body hx-boost="true">
   <header>…</header>
-  <main>…</main>
+  <main>{{template "main" .}}</main>
   <footer>…</footer>
-  <script src="/static/js/htmx.min.js"></script>
+  <script src="/static/js/htmx.min.js?v={{version}}"></script>
 </body>
 </html>
 ```
+
+(The `htmx-config` meta is required for the 422 validation flow — explained in
+[patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md).)
 
 Validate markup in CI or spot-check with https://validator.w3.org/nu/.

@@ -58,7 +58,7 @@ An unreplicated SQLite file is a single point of data loss. Pick one, MUST have 
 | Option | When |
 |---|---|
 | **Litestream** (sidecar, streams WAL to S3-compatible storage) | Default for anything users depend on. Restore = `litestream restore`. |
-| `VACUUM INTO '/backups/app-<date>.db'` on a timer in-process | Low-stakes apps; produces a consistent snapshot without locking writers. |
+| `VACUUM INTO '/var/lib/app/backups/app-<date>.db'` on a timer in-process | Low-stakes apps; consistent snapshot without locking writers. Target MUST be under the systemd `StateDirectory` — `ProtectSystem=strict` makes every other path read-only, and the failure is silent. Copy snapshots off the box. |
 
 `cp` of a live database file is **not** a backup (torn pages). Test the restore path
 once per project, not during the incident.
@@ -78,6 +78,7 @@ pool and silently diverge from WAL behavior. `t.TempDir()` cleans up automatical
 
 - Plain SQL strings next to the store methods. No ORM, no query builder.
 - Parameterized queries only (`?` placeholders) — string-built SQL is banned.
-- `errors.Is(err, sql.ErrNoRows)` → translate to the store's `ErrNotFound` sentinel
-  at the store boundary; callers never see `database/sql` errors.
+- `errors.Is(err, sql.ErrNoRows)` → translate to `domain.ErrNotFound` at the store
+  boundary (sentinels live in `domain` — see
+  [go-errors-logging.md](go-errors-logging.md)); callers never see `database/sql` errors.
 - Timestamps stored as UTC RFC 3339 text or Unix integers — pick per project, never mix.

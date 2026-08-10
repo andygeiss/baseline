@@ -9,7 +9,7 @@ when updating this file.
 | Go | **1.26.5** | 2026-07-07 | Latest stable patch of the 1.26 line. Go 1.27 expected Aug 2026 — re-verify after release. |
 | htmx | **2.0.9** | 2026-04-20 | The 2.x line is stable and feature-complete. |
 | htmx 4.x | ❌ do not use | beta | 4.0.0-beta5 (June 2026). MUST NOT be used until stable *and* adopted here deliberately (breaking changes: fetch-based, new swap model). |
-| scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` banned (CGO) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
+| scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
 | CSS | Baseline "Widely available" | rolling | No preprocessor, no framework. Allowed feature set defined in [stack/css.md](stack/css.md). |
 | HTML | Living Standard | rolling | Semantic HTML5, validated. |
 | JavaScript | ❌ none | — | No hand-written JS, no bundlers, no npm. htmx is the only script tag. |
@@ -21,7 +21,8 @@ when updating this file.
   patches are security fixes. Set `go 1.26` in `go.mod`; do not pin toolchain patch
   versions in the repo.
 - **htmx:** Track the latest 2.x patch. Vendor the file (self-host, no CDN in production).
-- **Dependencies:** Update monthly via `go get -u ./...` + full test run. Anything that
+- **Dependencies:** Updated weekly by Renovate/Dependabot in one grouped PR, merged on
+  green CI (the mechanism lives in [operations/ci.md](operations/ci.md)). Anything that
   breaks on a routine update is a candidate for removal.
 
 ## Sources checked (2026-08-10)

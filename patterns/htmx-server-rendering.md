@@ -22,22 +22,31 @@ block; a handler renders either the full page or just the block, depending on
 {{define "board"}}
 <div id="board" class="board">
   {{range $i, $cell := .Cells}}
-    <button class="board-cell"
-            hx-post="/games/{{$.ID}}/moves"
-            hx-vals='{"cell": {{$i}}}'
-            hx-target="#board" hx-swap="outerHTML"
-            {{if $cell.Taken}}disabled{{end}}>
-      {{$cell.Mark}}
-    </button>
+    <form method="post" action="/games/{{$.ID}}/moves"
+          hx-post="/games/{{$.ID}}/moves" hx-target="#board" hx-swap="outerHTML">
+      <input type="hidden" name="cell" value="{{$i}}">
+      <button class="board-cell" {{if $cell.Taken}}disabled{{end}}>{{$cell.Mark}}</button>
+    </form>
   {{end}}
 </div>
 {{end}}
 ```
 
+- **Every interactive element is a real `<form>` or `<a>`** — with htmx absent, the
+  form POSTs, the handler answers `303 See Other`, the browser re-renders the full
+  page. htmx enhances that into a fragment swap; it never replaces it. A bare
+  `<button hx-post=…>` outside a form does nothing without htmx and violates the
+  progressive-enhancement MUST in [stack/htmx.md](../stack/htmx.md).
 - Fragment root carries the `id` that `hx-target` points at; `hx-swap="outerHTML"`
   makes the fragment self-replacing.
+- The layout (`layout.html`, canonical version in [stack/html.md](../stack/html.md))
+  invokes `{{template "title" .}}` and `{{template "main" .}}` — every page template
+  MUST define both blocks.
 - Parse once at startup from `embed.FS`, one template set per page
-  (`layout.html` + page file), stored in a map. Fail fast at boot on parse errors.
+  (`layout.html` + page file, so `ExecuteTemplate(w, "layout.html", …)` is the full
+  page), stored in a map keyed by page file name. Register the `version` func
+  ([go-performance.md](go-performance.md)) via `.Funcs()` before parsing. Fail fast
+  at boot on parse errors.
 
 ## The dual-mode render helper
 
@@ -45,7 +54,7 @@ block; a handler renders either the full page or just the block, depending on
 // render writes page as a full document, or only its named block when the request
 // came from an htmx interaction. block == "" always renders the full page.
 func (a *App) render(w http.ResponseWriter, r *http.Request, status int, page, block string, data any) {
-	name := "layout" // full page
+	name := "layout.html" // full page: the layout shell that invokes the page's "main"
 	if block != "" &&
 		r.Header.Get("HX-Request") == "true" &&
 		r.Header.Get("HX-Boosted") != "true" {
@@ -56,7 +65,7 @@ func (a *App) render(w http.ResponseWriter, r *http.Request, status int, page, b
 		a.serverError(w, r, err)
 		return
 	}
-	w.Header().Add("Vary", "HX-Request")
+	w.Header().Add("Vary", "HX-Request, HX-Boosted") // Add, not Set — sessions.LoadAndSave already added "Vary: Cookie"
 	w.WriteHeader(status)
 	buf.WriteTo(w)
 }
@@ -68,26 +77,38 @@ Three details are load-bearing:
   whole `<body>` — they need the full page. Without this check, `hx-boost` navigation
   renders bare fragments into empty pages.
 - **Buffer first** — a template error after `WriteHeader` corrupts the response.
-- **`Vary: HX-Request`** set here, once, so no dual-mode handler can forget it.
+- **No `HX-History-Restore-Request` handling needed** — the layout's `htmx-config`
+  disables the history cache (`historyCacheSize: 0`, `refreshOnHistoryMiss: true`,
+  see [stack/htmx.md](../stack/htmx.md)), so back/forward are plain browser loads
+  and never reach this helper with htmx headers. Do not re-enable the cache without
+  extending the discriminator.
+- **`Vary: HX-Request, HX-Boosted`** added here, once, so no dual-mode handler can
+  forget it. Both headers participate in choosing the body (boosted requests send
+  `HX-Request: true` but get the full page), so both must be cache keys — `Vary` on
+  `HX-Request` alone lets a cache serve a bare fragment to a boosted navigation.
+  It is `Add`, never `Set`: `Set` would clobber the `Vary: Cookie` that
+  `sessions.LoadAndSave` has already put on the response, letting caches serve one
+  user's page to another.
 
 This helper is why progressive enhancement is free: the same handler serves the
 no-htmx full page and the htmx fragment.
 
 ## Standard flows
 
+- **Mutations follow POST-redirect-GET — except for fragment swaps.** The
+  discriminator is the same one the render helper uses:
+  `HX-Request: true` **and not** `HX-Boosted: true` → render the updated fragment
+  directly with 200. Everything else — plain forms *and boosted forms* — answers
+  `303 See Other` back to the page. Boosted POSTs need the 303 too: a direct 200
+  pushes the POST's URL into history, so refresh/back re-issues a GET against a
+  POST-only route → 405. And never 303 a fragment POST: the XHR follows the redirect
+  transparently and the full page it lands on gets swapped into the fragment target.
+  When the whole page must change after a fragment action, send `HX-Redirect` (below).
 - **Form validation:** invalid POST re-renders the form fragment with errors and
-  status **422**. Fields keep their submitted values. Valid POST → `303 See Other`
-  redirect (plain) — htmx follows redirects transparently.
-  ⚠️ htmx 2 does **not** swap 4xx responses by default — a 422 flow requires opting
-  in via the config meta tag in the layout `<head>`:
-
-  ```html
-  <meta name="htmx-config" content='{"responseHandling":[
-    {"code":"204","swap":false},
-    {"code":"[23]..","swap":true},
-    {"code":"422","swap":true},
-    {"code":"[45]..","swap":false,"error":true}]}'>
-  ```
+  status **422**. Fields keep their submitted values.
+  ⚠️ htmx 2 does **not** swap 4xx responses by default — the 422 flow requires the
+  `htmx-config` responseHandling meta tag, already part of the canonical layout
+  `<head>` in [stack/html.md](../stack/html.md). Do not remove it.
 
   Only true *input* validation gets a 422. A stale-state action (clicking an already-
   taken cell on an outdated board) is not invalid input — respond 200 with the current
@@ -99,7 +120,8 @@ no-htmx full page and the htmx fragment.
   if a response carries 3+ OOB fragments, swap a larger target instead.
 - **Server-driven events:** `HX-Trigger: gameOver` response header when a decoupled
   element must react.
-- **Caching:** dual-mode responses MUST set `Vary: HX-Request`.
+- **Caching:** dual-mode responses MUST set `Vary: HX-Request, HX-Boosted`
+  (the render helper does).
 
 ## Anti-patterns
 

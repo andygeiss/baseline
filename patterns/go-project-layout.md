@@ -24,7 +24,8 @@ project/
 │   │   └── <feature>.html
 │   └── static/
 │       ├── css/app.css
-│       └── js/htmx.min.js   ← vendored, the only JS
+│       ├── js/htmx.min.js   ← vendored, the only JS
+│       └── favicon.svg
 ├── go.mod
 └── README.md                ← links back to this baseline; records any deviations
 ```
@@ -44,13 +45,21 @@ project/
 
 ```go
 //go:embed web/templates
-var templatesFS embed.FS
+var TemplatesFS embed.FS
 
 //go:embed web/static
-var staticFS embed.FS
+var StaticFS embed.FS
 ```
 
-   (Placed in a root-level `assets.go`, passed into `app.New`.) The deliverable is a
-   single static binary; `CGO_ENABLED=0 go build ./cmd/server` must suffice.
+   Exported, in a root-level `assets.go` (the module root package): `//go:embed`
+   cannot reach `../web` from `cmd/server`, so `main.go` imports the root package
+   and passes both into `app.New`. Embedded paths keep their full prefix — strip it
+   once at wiring time with `fs.Sub(StaticFS, "web")` (fail the boot on error) so
+   `/static/css/app.css` resolves inside the sub-FS as `static/css/app.css` and
+   `http.FileServerFS` works without a `StripPrefix`.
+   The deliverable is a single static binary; `CGO_ENABLED=0 go build ./cmd/server`
+   must suffice.
 6. **Config via flags + environment,** stdlib `flag` only, with env vars as defaults:
-   `PORT`, `DATABASE_URL`, `LOG_LEVEL`. No config files until genuinely needed.
+   `HOST`, `PORT`, `DATABASE_URL`, `LOG_LEVEL` (full contract in
+   [operations/web-application.md](../operations/web-application.md)). No config files
+   until genuinely needed.

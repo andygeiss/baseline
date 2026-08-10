@@ -57,7 +57,7 @@ Everything else requires an explicit, written justification in the project READM
 |---|---|
 | `modernc.org/sqlite` | SQLite driver, pure Go (CGO-free static binaries) |
 | `github.com/jackc/pgx/v5` | Postgres, when SQLite is outgrown |
-| `github.com/alexedwards/scs/v2` | server-side sessions — with a hand-written `Store` against the app DB, **not** the bundled `sqlite3store` (CGO). See [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) |
+| `github.com/alexedwards/scs/v2` | server-side sessions — with a hand-written `Store` against the app's two DB pools, **not** the bundled `sqlite3store` (single-pool API). See [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) |
 | `golang.org/x/crypto` | argon2/bcrypt for password hashing |
 | `golang.org/x/sync` | errgroup |
 | `golang.org/x/time` | rate limiting (auth endpoints) |

@@ -17,7 +17,7 @@ or explicitly waived by the user in writing.
 
 - [ ] CI workflow from [operations/ci.md](../operations/ci.md) is in place and green
       (covers gofmt, vet, staticcheck, **govulncheck**, tidy, race tests, static build)
-- [ ] Routes registered in one file; mutations are POST/PUT/DELETE only
+- [ ] Routes registered in one file; every mutation is a POST route (never GET; no PUT/DELETE — they break the plain-form fallback)
 - [ ] Server has read/write/idle timeouts and graceful shutdown
 - [ ] Errors wrapped with `%w`; internal error text never rendered to the browser
 - [ ] `log/slog` structured logging; no secrets in logs
@@ -34,13 +34,14 @@ or explicitly waived by the user in writing.
 - [ ] Every feature works with htmx disabled (plain forms/links, full-page renders)
 - [ ] Navigation-like htmx GETs use `hx-push-url`; back button behaves
 - [ ] Requests >100ms show an indicator; destructive actions have `hx-confirm`
-- [ ] Dual-mode responses send `Vary: HX-Request`
+- [ ] Dual-mode responses send `Vary: HX-Request, HX-Boosted`
 - [ ] Invalid form POSTs return 422 with values + errors re-rendered
 
 ## Security
 
-- [ ] CSP `default-src 'self'` active; headers middleware in place (nosniff, frame DENY, referrer)
+- [ ] CSP `default-src 'self'; frame-ancestors 'none'` active; headers middleware in place (HSTS, nosniff, referrer)
 - [ ] `http.CrossOriginProtection` wraps the mux (CSRF)
+- [ ] Request bodies capped via `http.MaxBytesHandler` (larger limits only on upload routes)
 - [ ] Session cookies: `Secure`, `HttpOnly`, `SameSite=Lax`; `RenewToken` on login/logout/password change
 - [ ] Auth endpoints rate limited; login timing identical for unknown user vs wrong password
 - [ ] All user input escaped via `html/template` (no `template.HTML` on user data)
