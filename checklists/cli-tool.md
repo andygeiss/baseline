@@ -35,7 +35,7 @@ fixed or explicitly waived by the user in writing.
 
 ## Tests
 
-- [ ] `go test -race ./...` passes
+- [ ] `go test -race -shuffle=on ./...` passes
 - [ ] Core logic in `internal/` covered exhaustively (all rules/edge cases)
 - [ ] `run()` table-tested: happy path per subcommand (or the single command); unknown command and top-level `-h` where dispatch exists; bad flag (→ `errUsage`); `-json` round-trips where the flag exists
 

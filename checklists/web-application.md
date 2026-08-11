@@ -26,7 +26,7 @@ or explicitly waived by the user in writing.
 
 ## Tests
 
-- [ ] `go test -race ./...` passes
+- [ ] `go test -race -shuffle=on ./...` passes
 - [ ] Domain logic covered exhaustively (all rules/edge cases)
 - [ ] Each handler: happy path + error paths, via `httptest` against real routes
 - [ ] Dual-mode handlers tested with and without `HX-Request: true`

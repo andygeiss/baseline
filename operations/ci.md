@@ -2,7 +2,8 @@
 
 **Last verified: 2026-08-11**
 
-The [checklists](../checklists/)' mechanical items run on every push —
+The [checklists](../checklists/)' mechanical items run on every push to `main`
+and every PR —
 a human never checks what a machine can. Copy this workflow into new projects verbatim
 (`.github/workflows/ci.yml`):
 
@@ -71,8 +72,8 @@ jobs:
   point. If a staticcheck release breaks CI on an unrelated morning, pin that step to
   the previous version in the fixing PR and remove the pin once the findings are
   addressed.
-- **Static build gate** — proves the CGO-free single-binary invariant every commit,
-  not at release time.
+- **Static build gate** — proves the CGO-free single-binary invariant on every CI
+  run, not at release time.
 
 ## Local mirror
 

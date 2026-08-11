@@ -1,6 +1,6 @@
 # Operations: CLI Release
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-11**
 
 How a [CLI tool](../project-types/cli-tool.md) reaches its users. For a CLI, the
 release *is* the deployment — so unlike web applications
@@ -34,7 +34,7 @@ Docker images, no install-script-piped-to-shell.
 ## Release workflow
 
 `.github/workflows/release.yml` — runs only on tags; the standard
-[ci.yml](ci.md) still gates every push and PR:
+[ci.yml](ci.md) still gates every push to `main` and every PR:
 
 ```yaml
 name: release
@@ -89,7 +89,7 @@ jobs:
 - **Six targets** (linux/darwin/windows × amd64/arm64) cover every machine that
   matters; add a target when a user actually asks.
 - **`-trimpath` + `CGO_ENABLED=0`** — same static-binary invariant CI proves on
-  every push, plus paths stripped so builds don't leak the runner's filesystem
+  every push to `main`, plus paths stripped so builds don't leak the runner's filesystem
   and stay reproducible across machines.
 - **Tests run again on the tag** — the tag commit is what ships; "it was green
   when I pushed" is not the same commit guarantee.

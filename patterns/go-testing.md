@@ -1,6 +1,6 @@
 # Pattern: Testing (Go)
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-11**
 
 Stdlib `testing` only. No assertion libraries (no testify) — a failed comparison is
 `t.Errorf("got %v, want %v", got, want)` and that's enough. No mocking frameworks —
@@ -62,7 +62,8 @@ caught it.
 - **htmx paths:** test each dual-mode handler twice — once plain, once with
   `HX-Request: true` — asserting full page vs fragment.
 - **Concurrency:** `testing/synctest` (`synctest.Test`) for anything with timers or
-  goroutine coordination — never `time.Sleep`. CI always runs `go test -race ./...`.
+  goroutine coordination — never `time.Sleep`. CI always runs
+  `go test -race -shuffle=on ./...`.
 - **Fuzzing** (`go test -fuzz`) for parsers and any function taking untrusted input.
 
 ## Test placement

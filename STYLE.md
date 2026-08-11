@@ -12,8 +12,7 @@ That is a clarity bar, not a license to be childish. The technical content stays
 exact. The sentences get simple. When precision and plainness seem to conflict,
 keep the precision — and explain the hard part in plain words right next to it.
 This baseline's own prose holds the same bar; its structure (a navigation README,
-category headings, no runnable code) follows its own protocol, not the Documents
-rules below.
+category headings) follows its own protocol, not the Documents rules below.
 
 ## The test
 

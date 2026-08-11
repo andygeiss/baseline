@@ -45,8 +45,8 @@ Claude Code then loads the baseline as a skill ([SKILL.md](SKILL.md)) whenever a
 stack, version, or pattern decision comes up. The symlink keeps the repository
 the single copy — `git pull` is the update mechanism. This Makefile is repo
 tooling, not the project Makefile that [stack/makefile.md](stack/makefile.md)
-prescribes; its rules (including the `install`-target ban) govern projects
-built *from* the baseline, not the baseline itself.
+prescribes. That document's rules (including the `install`-target ban) govern
+projects built *from* the baseline, not the baseline itself.
 
 ## Repository structure
 
@@ -102,12 +102,12 @@ These apply to every project regardless of type:
 
 ## Quality bar & verification
 
-- **Adversarial review before every tagged release:** independent reviewers hunt
+- **Adversarial review covers every tagged release:** independent reviewers hunt
   cross-document contradictions, trace every canonical snippet's mechanics end to end,
   and verify factual claims against upstream sources (Go, htmx, scs, SQLite, systemd,
   Caddy) — repeated until **two consecutive passes find zero defects**.
-  Last full run: 2026-08-11, covering the STYLE.md addition
-  (6 rounds, 17 defects fixed, converged at two consecutive zero-defect passes).
+  Last full run: 2026-08-11, a full-corpus sweep
+  (5 rounds, 6 defects fixed, converged at two consecutive zero-defect passes).
 - **The reference implementation is the executable check.**
   [baseline-reference](https://github.com/andygeiss/baseline-reference) implements
   these rules end to end and MUST be synced to every tagged release — when a rule is

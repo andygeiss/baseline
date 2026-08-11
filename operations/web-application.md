@@ -1,6 +1,6 @@
 # Operations: Web Application
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-11**
 
 Deployment target: one small Linux VPS (or container), one binary, Caddy in front,
 systemd keeping it alive, Litestream shipping backups. Boring, restorable, cheap.
@@ -120,7 +120,9 @@ Two adjustments when the defaults meet reality:
 
 ## Environment contract
 
-The binary is configured by exactly these (flags override, envs default):
+The binary is configured by exactly these. `HOST`, `PORT`, `DATABASE_URL`, and
+`LOG_LEVEL` are flags with env-var defaults (a flag overrides its env var);
+`ENV` and `GOMEMLIMIT` are read from the environment only:
 
 | Var | Meaning | Default |
 |---|---|---|

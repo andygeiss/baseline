@@ -1,6 +1,6 @@
 # Pattern: Go HTTP Server
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-11**
 
 Stdlib only. `net/http.ServeMux` (Go 1.22+ pattern routing) covers everything a
 router package used to do.
@@ -15,16 +15,19 @@ readable at a glance:
 func (a *App) Routes() http.Handler {
 	mux := http.NewServeMux()
 
-	// a.staticFS = fs.Sub(embedded, "web") so URL /static/css/… resolves to
-	// web/static/css/… (see go-project-layout.md); cacheImmutable: go-performance.md.
-	mux.Handle("GET /static/", cacheImmutable(http.FileServerFS(a.staticFS)))
-
 	mux.HandleFunc("GET /{$}", a.handleHome)          // {$} = exactly "/"
 	mux.HandleFunc("GET /games/{id}", a.handleGameShow)
 	mux.HandleFunc("POST /games", a.handleGameCreate)
 	mux.HandleFunc("POST /games/{id}/moves", a.handleMoveCreate)
 
-	return a.middleware(mux) // the one canonical chain — see Middleware below
+	// a.staticFS = fs.Sub(embedded, "web") so URL /static/css/… resolves to
+	// web/static/css/… (see go-project-layout.md); cacheImmutable: go-performance.md.
+	// Static sits outside the chain — see the routing notes below.
+	root := http.NewServeMux()
+	root.Handle("GET /static/", cacheImmutable(http.FileServerFS(a.staticFS)))
+	root.Handle("/", a.middleware(mux)) // the one canonical chain — see Middleware below
+
+	return root
 }
 ```
 
@@ -33,6 +36,14 @@ func (a *App) Routes() http.Handler {
   those, so they'd break the no-JS fallback. Name the action in the path
   (`"POST /items/{id}/delete"`) — see [stack/htmx.md](../stack/htmx.md).
 - Wildcard `{$}` for exact root; avoid trailing-slash subtree matches unless serving files.
+- **`/static/` sits outside the middleware chain.** `sessions.LoadAndSave` would
+  query the session store on every asset request and `Add` `Vary: Cookie`, which
+  makes `immutable`-cached assets ([go-performance.md](go-performance.md))
+  unusable each time the session cookie changes (login, logout). CSRF and the
+  body cap have nothing to check on a bodiless GET. The trade — no request-log
+  line, no security headers on assets — is fine: `FileServerFS` sets the right
+  `Content-Type` from the extension, and CSP/HSTS do their work on the HTML
+  documents that reference the assets.
 
 ## Handlers
 
@@ -89,7 +100,8 @@ Outermost → innermost:
    lack these headers; `SameSite=Lax` session cookies are the independent second
    layer. Do not add a token library on top.
 5. `sessions.LoadAndSave` (see [go-auth-sessions.md](go-auth-sessions.md)), then
-   `requireAuth` on protected route groups only.
+   `requireAuth` on protected route groups only. Static assets never reach it —
+   see Routing.
 6. `http.MaxBytesHandler(mux, 1<<20)` — innermost: request bodies capped at 1 MiB so
    `ParseForm` on a hostile body can't exhaust memory. An outer cap **cannot be
    raised downstream** — the body is already wrapped in the smaller

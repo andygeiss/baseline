@@ -42,5 +42,5 @@ fixed or explicitly waived by the user in writing.
 
 - [ ] CI workflow from [operations/ci.md](../operations/ci.md) in place and green
 - [ ] `Makefile` from [stack/makefile.md](../stack/makefile.md) at the repo root (with its rule-5 library adjustments); `make check` green and gate-for-gate identical to ci.yml
-- [ ] `go test -race ./...` passes; exported API tested from `package foo_test` (consumer's view)
+- [ ] `go test -race -shuffle=on ./...` passes; exported API tested from `package foo_test` (consumer's view)
 - [ ] Edge cases and error paths covered exhaustively; fuzz test + seed corpus for any parser of untrusted input

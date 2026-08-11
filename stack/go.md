@@ -9,9 +9,9 @@
 - Run the modernizers periodically: `go fix ./...` — since Go 1.26 this applies
   ~two dozen analyzers that rewrite code to current idioms. Trust it.
 - Lint with `staticcheck` (the only third-party lint tool allowed).
-- Scan for known vulnerabilities: `govulncheck ./...` — in CI on every push *and*
-  weekly on a schedule (see [operations/ci.md](../operations/ci.md)).
-- Race detector in CI: `go test -race ./...`.
+- Scan for known vulnerabilities: `govulncheck ./...` — in CI on every push to
+  `main` *and* weekly on a schedule (see [operations/ci.md](../operations/ci.md)).
+- Race detector in CI: `go test -race -shuffle=on ./...`.
 - Locally, all the CI gates above run as one command: `make check`
   (see [stack/makefile.md](makefile.md) — the Makefile every project copies).
 
