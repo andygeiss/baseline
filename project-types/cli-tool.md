@@ -31,6 +31,7 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 6. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
 7. [operations/cli-release.md](../operations/cli-release.md) — tagging, cross-compiling, publishing
 8. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
+9. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 ## Architecture defaults
 

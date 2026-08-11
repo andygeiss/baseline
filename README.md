@@ -38,6 +38,7 @@ Rules in these documents use RFC-2119 style keywords: **MUST**, **MUST NOT**, **
 baseline/
 ├── README.md                       ← you are here: navigation protocol
 ├── VERSIONS.md                     ← pinned versions, dated, with sources
+├── STYLE.md                        ← how everything for humans is written
 ├── project-types/                  ← entry point per kind of project
 │   ├── web-application.md
 │   ├── cli-tool.md
@@ -78,6 +79,8 @@ These apply to every project regardless of type:
 3. **Server is the source of truth.** State lives on the server; the client renders hypermedia.
 4. **Simplicity over cleverness.** Code is read far more often than written.
 5. **Current, not bleeding edge.** Latest *stable* versions, never betas/RCs in production.
+6. **Write for humans.** Every doc, comment, and prompt passes the 10-year-old
+   test in [STYLE.md](STYLE.md): point first, short sentences, plain words.
 
 ## Quality bar & verification
 
@@ -85,8 +88,8 @@ These apply to every project regardless of type:
   cross-document contradictions, trace every canonical snippet's mechanics end to end,
   and verify factual claims against upstream sources (Go, htmx, scs, SQLite, systemd,
   Caddy) — repeated until **two consecutive passes find zero defects**.
-  Last full run: 2026-08-11, covering the Makefile addition
-  (6 rounds, 14 defects fixed, converged at two consecutive zero-defect passes).
+  Last full run: 2026-08-11, covering the STYLE.md addition
+  (6 rounds, 17 defects fixed, converged at two consecutive zero-defect passes).
 - **The reference implementation is the executable check.**
   [baseline-reference](https://github.com/andygeiss/baseline-reference) implements
   these rules end to end and MUST be synced to every tagged release — when a rule is

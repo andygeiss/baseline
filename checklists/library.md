@@ -36,6 +36,7 @@ fixed or explicitly waived by the user in writing.
 - [ ] Every exported symbol documented
 - [ ] Runnable `Example` functions for the main entry points (they compile in CI)
 - [ ] README: install line, 30-second example, link to this baseline, waived rules recorded
+- [ ] Prose passes [STYLE.md](../STYLE.md): doc comments follow godoc, other comments say *why* (not what), README leads with the point, any LLM prompts follow its prompt rules
 
 ## Tests
 

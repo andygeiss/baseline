@@ -30,6 +30,7 @@ hygiene as applications ([stack/go.md](../stack/go.md)).
 4. [operations/ci.md](../operations/ci.md) — the CI workflow, used verbatim
 5. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
 6. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
+7. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 ## API design rules
 

@@ -22,6 +22,7 @@ fixed or explicitly waived by the user in writing.
 - [ ] Errors wrapped with `%w`; every failure surfaces as `tool: <cause>` on stderr, exit 1
 - [ ] Ctrl-C/SIGTERM cancels the context; in-flight work finishes or rolls back; interrupted runs exit non-zero
 - [ ] Partial work is safe: units of work atomic (temp file + rename, transaction) or reruns idempotent
+- [ ] Prose passes [STYLE.md](../STYLE.md): comments say *why* (not what), README leads with the point, any LLM prompts follow its prompt rules
 
 ## Command-line contract
 

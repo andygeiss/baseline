@@ -40,6 +40,7 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 13. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
 14. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
 15. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
+16. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 ## Architecture defaults
 

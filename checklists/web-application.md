@@ -22,6 +22,7 @@ or explicitly waived by the user in writing.
 - [ ] Server has read/write/idle timeouts and graceful shutdown
 - [ ] Errors wrapped with `%w`; internal error text never rendered to the browser
 - [ ] `log/slog` structured logging; no secrets in logs
+- [ ] Prose passes [STYLE.md](../STYLE.md): comments say *why* (not what), README leads with the point, any LLM prompts follow its prompt rules
 
 ## Tests
 
