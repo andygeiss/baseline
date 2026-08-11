@@ -64,8 +64,8 @@ or explicitly waived by the user in writing.
 - [ ] Every form control labelled; keyboard-only walkthrough succeeds; focus visible
 - [ ] Contrast ≥ 4.5:1; `prefers-reduced-motion` respected; `lang` set
 - [ ] CSS in cascade layers, no `!important` outside utilities
-- [ ] Layout is mobile-first per [patterns/css-layout.md](../patterns/css-layout.md): `min-width` media queries only, page-level only; components adapt via container queries
-- [ ] Works at 320px width and at 200% zoom
+- [ ] Layout is mobile-first per [patterns/css-layout.md](../patterns/css-layout.md): layout media queries are `min-width` only and page-level only; components adapt via container queries
+- [ ] Works at 320 px width and at 200% zoom
 
 ## Ship
 
