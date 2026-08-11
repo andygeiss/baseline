@@ -13,7 +13,9 @@ hardened application without inventing anything.
 
 - **Owner:** Andy Geiss
 - **Last verified:** 2026-08-11
-- **Format:** Markdown only. No code, no tooling, no build steps. Documents are the product.
+- **Format:** Markdown only. No code, no CI, no build steps. Documents are the product.
+  The one piece of tooling is the root `Makefile`, which installs the baseline into
+  Claude Code (see below) — it builds nothing.
 
 ## How to use this repository (AI agents)
 
@@ -32,11 +34,27 @@ Follow this protocol top-down. Never skip to a leaf document without reading its
 
 Rules in these documents use RFC-2119 style keywords: **MUST**, **MUST NOT**, **SHOULD**, **MAY**.
 
+## Install into Claude Code
+
+```sh
+make install    # symlinks this repo to ~/.claude/skills/engineering-baseline
+make uninstall  # removes the symlink
+```
+
+Claude Code then loads the baseline as a skill ([SKILL.md](SKILL.md)) whenever a
+stack, version, or pattern decision comes up. The symlink keeps the repository
+the single copy — `git pull` is the update mechanism. This Makefile is repo
+tooling, not the project Makefile that [stack/makefile.md](stack/makefile.md)
+prescribes; its rules (including the `install`-target ban) govern projects
+built *from* the baseline, not the baseline itself.
+
 ## Repository structure
 
 ```
 baseline/
 ├── README.md                       ← you are here: navigation protocol
+├── SKILL.md                        ← makes the repo a Claude Code skill
+├── Makefile                        ← make install / make uninstall (Claude Code)
 ├── VERSIONS.md                     ← pinned versions, dated, with sources
 ├── STYLE.md                        ← how everything for humans is written
 ├── project-types/                  ← entry point per kind of project
