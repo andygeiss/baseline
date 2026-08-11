@@ -8,28 +8,28 @@ like, never speculatively.
 
 ```
 project/
+├── assets.go                ← //go:embed of web/ → TemplatesFS + StaticFS (rule 5)
 ├── cmd/
 │   └── server/
 │       └── main.go          ← wiring only: config, deps, http.Server, shutdown
+├── go.mod
 ├── internal/                ← all application code lives under internal/
 │   ├── app/                 ← handlers, routing, middleware (the HTTP edge)
-│   │   ├── routes.go        ← the single place all routes are registered
+│   │   ├── <feature>.go     ← handlers grouped by feature, not by "handlers"
 │   │   ├── middleware.go
-│   │   └── <feature>.go     ← handlers grouped by feature, not by "handlers"
+│   │   └── routes.go        ← the single place all routes are registered
 │   ├── domain/              ← core types + business rules; imports nothing above it
 │   └── store/               ← persistence; implements interfaces the consumers define
-├── web/
-│   ├── templates/           ← html/template files (see htmx-server-rendering.md)
-│   │   ├── layout.html
-│   │   └── <feature>.html
-│   └── static/
-│       ├── css/app.css
-│       ├── js/htmx.min.js   ← vendored, the only JS
-│       └── favicon.svg
-├── assets.go                ← //go:embed of web/ → TemplatesFS + StaticFS (rule 5)
 ├── Makefile                 ← command runner, copied from stack/makefile.md
-├── go.mod
-└── README.md                ← links back to this baseline; records any deviations
+├── README.md                ← links back to this baseline; records any deviations
+└── web/
+    ├── static/
+    │   ├── css/app.css
+    │   ├── favicon.svg
+    │   └── js/htmx.min.js   ← vendored, the only JS
+    └── templates/           ← html/template files (see htmx-server-rendering.md)
+        ├── <feature>.html
+        └── layout.html
 ```
 
 ## Rules

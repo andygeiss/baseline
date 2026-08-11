@@ -52,39 +52,40 @@ projects built *from* the baseline, not the baseline itself.
 
 ```
 baseline/
+├── checklists/                     ← definition of done per project type
+│   ├── cli-tool.md
+│   ├── library.md
+│   └── web-application.md
+├── Makefile                        ← make install / make uninstall (Claude Code)
+├── operations/                     ← how projects run in production
+│   ├── ci.md
+│   ├── cli-release.md
+│   └── web-application.md
+├── patterns/                       ← concrete, copyable implementation patterns
+│   ├── css-layout.md
+│   ├── go-auth-sessions.md
+│   ├── go-cli.md
+│   ├── go-errors-logging.md
+│   ├── go-http-server.md
+│   ├── go-performance.md
+│   ├── go-project-layout.md
+│   ├── go-sqlite.md
+│   ├── go-testing.md
+│   └── htmx-server-rendering.md
+├── project-types/                  ← entry point per kind of project
+│   ├── cli-tool.md
+│   ├── library.md
+│   └── web-application.md
 ├── README.md                       ← you are here: navigation protocol
 ├── SKILL.md                        ← makes the repo a Claude Code skill
-├── Makefile                        ← make install / make uninstall (Claude Code)
-├── VERSIONS.md                     ← pinned versions, dated, with sources
-├── STYLE.md                        ← how everything for humans is written
-├── project-types/                  ← entry point per kind of project
-│   ├── web-application.md
-│   ├── cli-tool.md
-│   └── library.md
 ├── stack/                          ← per-technology conventions
-│   ├── go.md
-│   ├── htmx.md
 │   ├── css.md
+│   ├── go.md
 │   ├── html.md
+│   ├── htmx.md
 │   └── makefile.md
-├── patterns/                       ← concrete, copyable implementation patterns
-│   ├── go-project-layout.md
-│   ├── go-http-server.md
-│   ├── go-sqlite.md
-│   ├── go-auth-sessions.md
-│   ├── go-errors-logging.md
-│   ├── go-testing.md
-│   ├── go-performance.md
-│   ├── go-cli.md
-│   └── htmx-server-rendering.md
-├── operations/                     ← how projects run in production
-│   ├── web-application.md
-│   ├── cli-release.md
-│   └── ci.md
-└── checklists/                     ← definition of done per project type
-    ├── web-application.md
-    ├── cli-tool.md
-    └── library.md
+├── STYLE.md                        ← how everything for humans is written
+└── VERSIONS.md                     ← pinned versions, dated, with sources
 ```
 
 ## Core engineering values
