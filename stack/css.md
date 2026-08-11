@@ -1,6 +1,6 @@
 # Stack: CSS
 
-**Last verified: 2026-08-10 · Target: CSS Baseline "Widely available"**
+**Last verified: 2026-08-11 · Target: CSS Baseline "Widely available"**
 
 Pure CSS. No preprocessor (Sass/Less), no framework (Tailwind/Bootstrap), no build
 step. The platform has caught up — use it.
@@ -75,5 +75,8 @@ Rules:
    (see [htmx.md](htmx.md)).
 5. **Motion:** transitions/animations MUST be wrapped in
    `@media (prefers-reduced-motion: no-preference)`.
-6. **Responsive:** container queries for components, media queries only for page-level
-   layout. Fluid type/spacing with `clamp()` — avoid breakpoint ladders.
+6. **Responsive:** mobile-first — base styles are the 320 px layout, `min-width`
+   media queries only widen it. Container queries for components, media queries
+   only for page-level layout. Fluid type/spacing with `clamp()` — avoid
+   breakpoint ladders. Copyable layouts (page shell, card grid, sidebar):
+   [patterns/css-layout.md](../patterns/css-layout.md).

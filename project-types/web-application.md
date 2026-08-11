@@ -32,15 +32,16 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 5. [patterns/go-project-layout.md](../patterns/go-project-layout.md) — directory structure
 6. [patterns/go-http-server.md](../patterns/go-http-server.md) — server, routing, middleware, CSRF
 7. [patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md) — full pages vs fragments
-8. [patterns/go-sqlite.md](../patterns/go-sqlite.md) — production SQLite: pragmas, pools, migrations, backups
-9. [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, login, password hashing (when there are users)
-10. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
-11. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
-12. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
-13. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
-14. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
-15. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
-16. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+8. [patterns/css-layout.md](../patterns/css-layout.md) — mobile-first page and component layouts (grid)
+9. [patterns/go-sqlite.md](../patterns/go-sqlite.md) — production SQLite: pragmas, pools, migrations, backups
+10. [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, login, password hashing (when there are users)
+11. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
+12. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
+13. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
+14. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
+15. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
+16. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
+17. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 ## Architecture defaults
 
