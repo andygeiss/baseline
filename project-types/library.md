@@ -1,6 +1,6 @@
 # Project Type: Library
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-11**
 
 A reusable Go module imported by other projects. Libraries are **extracted, not
 invented**: code starts in an application's `internal/` and becomes a library only
@@ -17,6 +17,7 @@ nobody imports twice is an application's internal package with extra ceremony.
 | Binaries / assets | MUST NOT ship a `main` package, embedded assets, or CLI. A module is a library or a program, not both. |
 | Logging | MUST NOT log. Return errors; the consumer decides what is log-worthy. |
 | License | MUST carry a `LICENSE` file (MIT unless there is a reason otherwise) — an unlicensed public repo is legally unusable. |
+| Local commands | MUST use the `Makefile` from [stack/makefile.md](../stack/makefile.md), with its rule-5 library adjustments. |
 
 Versions: see [VERSIONS.md](../VERSIONS.md). `go.mod` follows the same module
 hygiene as applications ([stack/go.md](../stack/go.md)).
@@ -27,7 +28,8 @@ hygiene as applications ([stack/go.md](../stack/go.md)).
 2. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — error wrapping and sentinel errors (the logging half does not apply: libraries return, consumers log)
 3. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
 4. [operations/ci.md](../operations/ci.md) — the CI workflow, used verbatim
-5. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
+5. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
+6. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
 
 ## API design rules
 

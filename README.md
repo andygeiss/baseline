@@ -12,7 +12,7 @@ path the correct one — an agent that follows the documents verbatim ships a co
 hardened application without inventing anything.
 
 - **Owner:** Andy Geiss
-- **Last verified:** 2026-08-10
+- **Last verified:** 2026-08-11
 - **Format:** Markdown only. No code, no tooling, no build steps. Documents are the product.
 
 ## How to use this repository (AI agents)
@@ -46,7 +46,8 @@ baseline/
 │   ├── go.md
 │   ├── htmx.md
 │   ├── css.md
-│   └── html.md
+│   ├── html.md
+│   └── makefile.md
 ├── patterns/                       ← concrete, copyable implementation patterns
 │   ├── go-project-layout.md
 │   ├── go-http-server.md
@@ -84,8 +85,8 @@ These apply to every project regardless of type:
   cross-document contradictions, trace every canonical snippet's mechanics end to end,
   and verify factual claims against upstream sources (Go, htmx, scs, SQLite, systemd,
   Caddy) — repeated until **two consecutive passes find zero defects**.
-  Last full run: 2026-08-11, covering the v1.2.0 CLI/library additions
-  (14 rounds, 41 defects fixed, converged at two consecutive zero-defect passes).
+  Last full run: 2026-08-11, covering the Makefile addition
+  (6 rounds, 14 defects fixed, converged at two consecutive zero-defect passes).
 - **The reference implementation is the executable check.**
   [baseline-reference](https://github.com/andygeiss/baseline-reference) implements
   these rules end to end and MUST be synced to every tagged release — when a rule is

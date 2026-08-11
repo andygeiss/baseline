@@ -10,6 +10,7 @@ when updating this file.
 | htmx | **2.0.10** | 2026-04-21 | The 2.x line is stable and feature-complete. |
 | htmx 4.x | ❌ do not use | beta | 4.0.0-beta6 (July 2026). MUST NOT be used until stable *and* adopted here deliberately (breaking changes: fetch-based, new swap model). |
 | scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
+| Make | system default | — | Command runner only (`make check` = CI). Makefile MUST stay runnable by macOS's bundled GNU Make 3.81 — portable subset, see [stack/makefile.md](stack/makefile.md). |
 | CSS | Baseline "Widely available" | rolling | No preprocessor, no framework. Allowed feature set defined in [stack/css.md](stack/css.md). |
 | HTML | Living Standard | rolling | Semantic HTML5, validated. |
 | JavaScript | ❌ none | — | No hand-written JS, no bundlers, no npm. htmx is the only script tag. |

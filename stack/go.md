@@ -1,6 +1,6 @@
 # Stack: Go
 
-**Last verified: 2026-08-10 · Pinned: Go 1.26.5** (see [VERSIONS.md](../VERSIONS.md))
+**Last verified: 2026-08-11 · Pinned: Go 1.26.5** (see [VERSIONS.md](../VERSIONS.md))
 
 ## Toolchain
 
@@ -12,6 +12,8 @@
 - Scan for known vulnerabilities: `govulncheck ./...` — in CI on every push *and*
   weekly on a schedule (see [operations/ci.md](../operations/ci.md)).
 - Race detector in CI: `go test -race ./...`.
+- Locally, all the CI gates above run as one command: `make check`
+  (see [stack/makefile.md](makefile.md) — the Makefile every project copies).
 
 ## Language conventions
 
@@ -61,6 +63,7 @@ Everything else requires an explicit, written justification in the project READM
 | `golang.org/x/crypto` | argon2/bcrypt for password hashing |
 | `golang.org/x/sync` | errgroup |
 | `golang.org/x/time` | rate limiting (auth endpoints) |
+| `golang.org/x/tools` (goimports) | formatting, dev-only (run via `go run`, not a module dependency) |
 | `honnef.co/go/tools` (staticcheck) | lint, dev-only (run via `go run`, not a module dependency) |
 | `golang.org/x/vuln` (govulncheck) | CVE scanning, dev-only (run via `go run`) |
 

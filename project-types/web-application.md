@@ -1,6 +1,6 @@
 # Project Type: Web Application
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-11**
 
 Server-rendered web application. This is the default and preferred shape for anything
 with a UI — from a tic-tac-toe game to a SaaS dashboard.
@@ -19,6 +19,7 @@ with a UI — from a tic-tac-toe game to a SaaS dashboard.
 | Sessions | `alexedwards/scs/v2`, server-side in SQLite | MUST when there are users. Cookie carries a random token only. |
 | CSRF | stdlib `http.CrossOriginProtection` | MUST. No token libraries. |
 | Deployment | Single static binary behind Caddy | MUST. Templates, CSS, htmx all embedded. |
+| Local commands | Make | MUST. One `Makefile` at the repo root, copied from [stack/makefile.md](../stack/makefile.md). |
 
 Versions: see [VERSIONS.md](../VERSIONS.md).
 
@@ -37,7 +38,8 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 11. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
 12. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
 13. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
-14. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
+14. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
+15. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
 
 ## Architecture defaults
 

@@ -1,6 +1,6 @@
 # Project Type: CLI Tool
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-11**
 
 Command-line tool: starts, does one job, exits. If the process is meant to stay up
 and serve requests, it is not a CLI — build a [web application](web-application.md).
@@ -17,6 +17,7 @@ and serve requests, it is not a CLI — build a [web application](web-applicatio
 | Persistence | none; SQLite (`modernc.org/sqlite`) if the tool keeps state | SHOULD prefer stateless. |
 | Deployment | single static binary (`CGO_ENABLED=0`) | MUST. |
 | Distribution | `go install` + GitHub release binaries | MUST. See [operations/cli-release.md](../operations/cli-release.md). |
+| Local commands | Make | MUST. `Makefile` from [stack/makefile.md](../stack/makefile.md), with the rule-5 adjustments for its layout. |
 
 Versions: see [VERSIONS.md](../VERSIONS.md).
 
@@ -27,8 +28,9 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 3. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
 4. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
 5. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
-6. [operations/cli-release.md](../operations/cli-release.md) — tagging, cross-compiling, publishing
-7. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
+6. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
+7. [operations/cli-release.md](../operations/cli-release.md) — tagging, cross-compiling, publishing
+8. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
 
 ## Architecture defaults
 

@@ -1,6 +1,6 @@
 # Operations: CI
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-11**
 
 The [checklists](../checklists/)' mechanical items run on every push —
 a human never checks what a machine can. Copy this workflow into new projects verbatim
@@ -73,6 +73,15 @@ jobs:
   addressed.
 - **Static build gate** — proves the CGO-free single-binary invariant every commit,
   not at release time.
+
+## Local mirror
+
+`make check` ([stack/makefile.md](../stack/makefile.md)) runs these gates
+gate-for-gate — same commands, same flags, same order — so "green locally" means
+"green in CI". Any change to this workflow MUST land in the canonical Makefile in
+the same commit, and vice versa. CI keeps its explicit named steps instead of
+calling `make check`: per-gate red/green in the Actions UI is worth the
+duplication.
 
 ## Dependency updates
 

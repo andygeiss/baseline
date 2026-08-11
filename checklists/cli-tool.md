@@ -1,6 +1,6 @@
 # Checklist: CLI Tool — Definition of Done
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-11**
 
 Walk this before declaring any milestone complete. Every unchecked box is either
 fixed or explicitly waived by the user in writing.
@@ -17,6 +17,7 @@ fixed or explicitly waived by the user in writing.
 
 - [ ] CI workflow from [operations/ci.md](../operations/ci.md) is in place and green
       (covers gofmt, vet, staticcheck, **govulncheck**, tidy, race tests, static build)
+- [ ] `Makefile` from [stack/makefile.md](../stack/makefile.md) at the repo root (with the rule-5 adjustments for its layout); `make check` green and gate-for-gate identical to ci.yml
 - [ ] `run(ctx, args, stdout, stderr)` pattern per [patterns/go-cli.md](../patterns/go-cli.md); `os.Exit` in `main` only
 - [ ] Errors wrapped with `%w`; every failure surfaces as `tool: <cause>` on stderr, exit 1
 - [ ] Ctrl-C/SIGTERM cancels the context; in-flight work finishes or rolls back; interrupted runs exit non-zero

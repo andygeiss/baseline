@@ -1,6 +1,6 @@
 # Checklist: Web Application — Definition of Done
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-11**
 
 Walk this before declaring any milestone complete. Every unchecked box is either fixed
 or explicitly waived by the user in writing.
@@ -17,6 +17,7 @@ or explicitly waived by the user in writing.
 
 - [ ] CI workflow from [operations/ci.md](../operations/ci.md) is in place and green
       (covers gofmt, vet, staticcheck, **govulncheck**, tidy, race tests, static build)
+- [ ] `Makefile` from [stack/makefile.md](../stack/makefile.md) at the repo root; `make check` green and gate-for-gate identical to ci.yml
 - [ ] Routes registered in one file; every mutation is a POST route (never GET; no PUT/DELETE — they break the plain-form fallback)
 - [ ] Server has read/write/idle timeouts and graceful shutdown
 - [ ] Errors wrapped with `%w`; internal error text never rendered to the browser

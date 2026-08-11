@@ -1,6 +1,6 @@
 # Pattern: Performance (Go)
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-11**
 
 The stack is fast by construction — compiled Go, one process, SQLite in WAL mode,
 HTML over the wire with no client framework tax. Performance work is therefore
@@ -23,9 +23,9 @@ HTML over the wire with no client framework tax. Performance work is therefore
   `cmd/server/default.pgo` — next to the main package, which is where `go build`
   auto-detects it (the repo root is *not* checked). Typically 2–7 % CPU reduction;
   refresh the profile when the workload shifts materially.
-- Release builds: `CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" ./cmd/server`
-  (static binary, reproducible paths, smaller; symbols stay available via
-  DWARF-less pprof).
+- Release builds: `CGO_ENABLED=0 go build -trimpath ./cmd/server` (static binary,
+  reproducible paths) — the same flags CI's build gate, `make build`, and the
+  release workflow use, and no extra ones; one definition of "release-shaped".
 
 ## Runtime configuration
 

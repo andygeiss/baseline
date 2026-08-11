@@ -1,6 +1,6 @@
 # Checklist: Library — Definition of Done
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-11**
 
 Walk this before declaring any milestone complete. Every unchecked box is either
 fixed or explicitly waived by the user in writing.
@@ -40,5 +40,6 @@ fixed or explicitly waived by the user in writing.
 ## Tests
 
 - [ ] CI workflow from [operations/ci.md](../operations/ci.md) in place and green
+- [ ] `Makefile` from [stack/makefile.md](../stack/makefile.md) at the repo root (with its rule-5 library adjustments); `make check` green and gate-for-gate identical to ci.yml
 - [ ] `go test -race ./...` passes; exported API tested from `package foo_test` (consumer's view)
 - [ ] Edge cases and error paths covered exhaustively; fuzz test + seed corpus for any parser of untrusted input

@@ -1,6 +1,6 @@
 # Pattern: Go Project Layout
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-11**
 
 Standard layout for a web application. Start smaller than this if the project is
 smaller — directories are added when a file would otherwise get roommates it doesn't
@@ -27,6 +27,7 @@ project/
 │       ├── js/htmx.min.js   ← vendored, the only JS
 │       └── favicon.svg
 ├── assets.go                ← //go:embed of web/ → TemplatesFS + StaticFS (rule 5)
+├── Makefile                 ← command runner, copied from stack/makefile.md
 ├── go.mod
 └── README.md                ← links back to this baseline; records any deviations
 ```
