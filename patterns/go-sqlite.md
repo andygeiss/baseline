@@ -58,7 +58,7 @@ An unreplicated SQLite file is a single point of data loss. Pick one, MUST have 
 | Option | When |
 |---|---|
 | **Litestream** (sidecar, streams WAL to S3-compatible storage) | Default for anything users depend on. Restore = `litestream restore`. |
-| `VACUUM INTO '/var/lib/app/backups/app-<date>.db'` on a timer in-process | Low-stakes apps; consistent snapshot without locking writers. Target MUST be under the systemd `StateDirectory` — `ProtectSystem=strict` makes every other path read-only, and the failure is silent. Copy snapshots off the box. |
+| `VACUUM INTO '/var/lib/app/backups/app-<date>.db'` on a timer in-process | Low-stakes apps; consistent snapshot without locking writers. Run it **on the read pool** — it only reads the source database, so it neither occupies the single write connection (starving writes) nor blocks writers. Target MUST be under the systemd `StateDirectory` — `ProtectSystem=strict` makes every other path read-only, and the failure is silent. Copy snapshots off the box. |
 
 `cp` of a live database file is **not** a backup (torn pages). Test the restore path
 once per project, not during the incident.

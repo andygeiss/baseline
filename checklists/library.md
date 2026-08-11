@@ -15,7 +15,7 @@ fixed or explicitly waived by the user in writing.
 - [ ] Versions match [VERSIONS.md](../VERSIONS.md) (`go.mod` says `go 1.26`)
 - [ ] Zero third-party dependencies, or each one justified in the README
 - [ ] No `main` package, no embedded assets, no logging — errors are returned, not printed
-- [ ] Implementation detail lives under `internal/`; the exported surface is the minimum needed
+- [ ] Implementation detail is inaccessible to consumers (unexported in a single-package library; under `internal/` when multi-package); the exported surface is the minimum needed
 
 ## API contract
 

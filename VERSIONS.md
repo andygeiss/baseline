@@ -1,14 +1,14 @@
 # Pinned Versions
 
-**Last verified: 2026-08-10.** These are the versions all new projects MUST use.
+**Last verified: 2026-08-11.** These are the versions all new projects MUST use.
 If your training data disagrees, this file wins. Verify against the source links
 when updating this file.
 
 | Component | Pinned version | Released | Notes |
 |---|---|---|---|
 | Go | **1.26.5** | 2026-07-07 | Latest stable patch of the 1.26 line. Go 1.27 expected Aug 2026 — re-verify after release. |
-| htmx | **2.0.9** | 2026-04-20 | The 2.x line is stable and feature-complete. |
-| htmx 4.x | ❌ do not use | beta | 4.0.0-beta5 (June 2026). MUST NOT be used until stable *and* adopted here deliberately (breaking changes: fetch-based, new swap model). |
+| htmx | **2.0.10** | 2026-04-21 | The 2.x line is stable and feature-complete. |
+| htmx 4.x | ❌ do not use | beta | 4.0.0-beta6 (July 2026). MUST NOT be used until stable *and* adopted here deliberately (breaking changes: fetch-based, new swap model). |
 | scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
 | CSS | Baseline "Widely available" | rolling | No preprocessor, no framework. Allowed feature set defined in [stack/css.md](stack/css.md). |
 | HTML | Living Standard | rolling | Semantic HTML5, validated. |
@@ -25,9 +25,11 @@ when updating this file.
   green CI (the mechanism lives in [operations/ci.md](operations/ci.md)). Anything that
   breaks on a routine update is a candidate for removal.
 
-## Sources checked (2026-08-10)
+## Sources checked (2026-08-11)
 
 - Go releases: https://go.dev/doc/devel/release
 - Go 1.26 notes: https://go.dev/doc/go1.26
-- htmx releases: https://github.com/bigskysoftware/htmx/releases
+- htmx versions: `npm view htmx.org version` or https://github.com/bigskysoftware/htmx/tags —
+  **not** the GitHub releases page: upstream tags 2.x patches without creating a
+  Release object there (2.0.10 never appeared on it)
 - CSS Baseline: https://web.dev/baseline

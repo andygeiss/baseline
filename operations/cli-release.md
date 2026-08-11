@@ -13,6 +13,9 @@ is sanctioned here.
    anyone with a Go toolchain. Works because the `main` package sits at the module
    root and version reporting uses `debug.ReadBuildInfo`
    (see [patterns/go-cli.md](../patterns/go-cli.md)) — no build flags required.
+   In the sanctioned multi-binary layout (`cmd/<name>/`), the install path gains
+   the suffix — `go install github.com/andygeiss/<tool>/cmd/<name>@latest` — and
+   the cross-compile loop below builds `./cmd/<name>` per binary instead of `.`.
 2. **GitHub release binaries** — for everyone else. Cross-compiled, static,
    checksummed, built by the workflow below.
 

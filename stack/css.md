@@ -5,14 +5,15 @@
 Pure CSS. No preprocessor (Sass/Less), no framework (Tailwind/Bootstrap), no build
 step. The platform has caught up — use it.
 
-## Allowed feature set (Baseline, safe as of 2026)
+## Allowed feature set (safe as of 2026)
 
-Use these freely; they replace what preprocessors and JS used to do:
+Baseline **Widely available** — use freely; they replace what preprocessors and JS
+used to do:
 
 | Feature | Replaces |
 |---|---|
 | Native nesting | Sass nesting |
-| Custom properties (`--token`) + `@property` | Sass variables |
+| Custom properties (`--token`) | Sass variables |
 | `color-mix()` and `oklch()` colors | Color functions, manual palettes |
 | Container queries (`@container`) | JS resize observers; use over media queries for components |
 | `:has()` | JS state classes ("parent selector") |
@@ -20,10 +21,19 @@ Use these freely; they replace what preprocessors and JS used to do:
 | CSS Grid + Subgrid, Flexbox, `gap` | Layout frameworks |
 | Logical properties (`margin-inline`, `inset-block`) | Physical LTR-only properties |
 | `clamp()`, `min()`, `max()` | JS-computed fluid sizing |
-| View Transitions (same-document) | JS animation libraries — pairs with htmx swaps |
-| `prefers-color-scheme`, `prefers-reduced-motion`, `light-dark()` | JS theme toggles |
-| `<dialog>`, `popover`, `<details>` styling | JS modal/dropdown libraries |
+| `prefers-color-scheme`, `prefers-reduced-motion` | JS theme toggles |
+| `<dialog>`, `<details>` styling | JS modal/disclosure libraries |
 | `scroll-behavior`, scroll snap | JS scroll libraries |
+
+Baseline **Newly available** as of 2026 — usable only with the stated graceful
+fallback, per the rule below:
+
+| Feature | Required fallback |
+|---|---|
+| `light-dark()` | Dark-mode tokens defined under `@media (prefers-color-scheme: dark)` stay the working mechanism; a `light-dark()` token enhancement MUST sit inside `@supports (color: light-dark(red, red))` — unguarded it wins the cascade even in browsers that can't evaluate it, because custom properties fail at `var()` substitution time (→ `unset`), not at parse time |
+| `@property` | The plain `--token` declaration exists regardless; `@property` adds typing/animation only |
+| View Transitions (same-document) | Inherently graceful — unsupported browsers swap without animating; no extra work |
+| `@scope` | Nesting + component class scoping (rule 2) |
 
 Check anything newer at https://web.dev/baseline before use: **"Widely available" MAY
 be used; "Newly available" only with a graceful fallback; otherwise MUST NOT.**
@@ -40,7 +50,10 @@ web/static/css/app.css
 
 - **reset** — minimal modern reset (box-sizing, margin trim).
 - **tokens** — all custom properties on `:root`: colors (oklch), spacing scale,
-  font stacks, radii. Dark mode via `light-dark()` + `color-scheme: light dark`.
+  font stacks, radii. Dark mode via `color-scheme: light dark` + token
+  redefinition under `@media (prefers-color-scheme: dark)`; `light-dark()` only
+  inside an `@supports (color: light-dark(red, red))` guard (Baseline Newly —
+  the table above explains why the guard is not optional).
 - **base** — element defaults: typography, links, forms.
 - **layout** — page scaffolding: grid shells, headers, content widths.
 - **components** — one nested block per component, class-named (`.card`, `.board`).
@@ -51,7 +64,8 @@ Rules:
 1. **System font stack by default** (`font-family: system-ui, sans-serif`). Self-host
    any web font; MUST NOT load fonts from third-party origins.
 2. **Class naming:** simple, semantic, component-scoped (`.board-cell`, not BEM
-   ceremony, not utility soup). Nesting keeps scope; `@scope` when bleed is a real risk.
+   ceremony, not utility soup). Nesting keeps scope; `@scope` (Baseline Newly —
+   see the table above) only when bleed is a real, demonstrated risk.
 3. **Specificity:** selectors stay at one class deep where possible; layers resolve
    conflicts. `!important` is banned outside `utilities`.
 4. **Every interactive state in CSS:** `:hover`, `:focus-visible`, `:active`,

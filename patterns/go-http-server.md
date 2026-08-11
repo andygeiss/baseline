@@ -91,8 +91,13 @@ Outermost → innermost:
 5. `sessions.LoadAndSave` (see [go-auth-sessions.md](go-auth-sessions.md)), then
    `requireAuth` on protected route groups only.
 6. `http.MaxBytesHandler(mux, 1<<20)` — innermost: request bodies capped at 1 MiB so
-   `ParseForm` on a hostile body can't exhaust memory. Raise the limit only on routes
-   that genuinely accept uploads.
+   `ParseForm` on a hostile body can't exhaust memory. An outer cap **cannot be
+   raised downstream** — the body is already wrapped in the smaller
+   `MaxBytesReader` before the handler runs. When a route genuinely accepts
+   uploads, choose the limit at the cap site instead of the blanket wrapper:
+   replace `http.MaxBytesHandler` with a few lines that pick the limit by route
+   (`limit := int64(1<<20); if r.URL.Path == "/upload" { limit = 32<<20 };
+   r.Body = http.MaxBytesReader(w, r.Body, limit)`) before delegating to the mux.
 
 ## Server lifecycle
 
@@ -110,8 +115,11 @@ srv := &http.Server{
 
 - **Timeouts are mandatory** — the zero values mean "no timeout" and that's an outage.
 - **Graceful shutdown is mandatory:** listen for `os.Interrupt`/`SIGTERM` via
-  `signal.NotifyContext`, then `srv.Shutdown(ctx)` with a ~10s deadline so in-flight
-  requests finish.
+  `signal.NotifyContext`, then call `srv.Shutdown` with a **fresh** ~10 s deadline:
+  `context.WithTimeout(context.Background(), 10*time.Second)`. The signal context
+  only *triggers* shutdown — it is already canceled at that moment, so passing it
+  (or a context derived from it) makes `Shutdown` return immediately and kill
+  in-flight requests instead of waiting for them.
 - Request-scoped work uses `r.Context()` all the way down so client disconnects
   cancel DB queries.
 

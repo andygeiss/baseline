@@ -7,7 +7,7 @@ or explicitly waived by the user in writing.
 
 ## Stack compliance
 
-- [ ] Versions match [VERSIONS.md](../VERSIONS.md) (`go.mod` says `go 1.26`; vendored htmx is 2.0.9)
+- [ ] Versions match [VERSIONS.md](../VERSIONS.md) (`go.mod` says `go 1.26`; vendored htmx is 2.0.10)
 - [ ] No dependencies outside the approved list in [stack/go.md](../stack/go.md), or each extra one is justified in the README
 - [ ] Zero hand-written JavaScript; htmx is the only `<script>`
 - [ ] No CSS/font/script loaded from a third-party origin
@@ -35,14 +35,14 @@ or explicitly waived by the user in writing.
 - [ ] Navigation-like htmx GETs use `hx-push-url`; back button behaves
 - [ ] Requests >100ms show an indicator; destructive actions have `hx-confirm`
 - [ ] Dual-mode responses send `Vary: HX-Request, HX-Boosted`
-- [ ] Invalid form POSTs return 422 with values + errors re-rendered
+- [ ] Invalid form POSTs return 422 with values + errors re-rendered (boosted POSTs: with `HX-Push-Url: false`)
 
 ## Security
 
 - [ ] CSP `default-src 'self'; frame-ancestors 'none'` active; headers middleware in place (HSTS, nosniff, referrer)
 - [ ] `http.CrossOriginProtection` wraps the mux (CSRF)
-- [ ] Request bodies capped via `http.MaxBytesHandler` (larger limits only on upload routes)
-- [ ] Session cookies: `Secure`, `HttpOnly`, `SameSite=Lax`; `RenewToken` on login/logout/password change
+- [ ] Request bodies capped at 1 MiB — `http.MaxBytesHandler`, or the route-aware limit chooser when upload routes need more (see [patterns/go-http-server.md](../patterns/go-http-server.md))
+- [ ] Session cookies: `Secure`, `HttpOnly`, `SameSite=Lax`; `RenewToken` on login/password change, `Destroy` on logout
 - [ ] Auth endpoints rate limited; login timing identical for unknown user vs wrong password
 - [ ] All user input escaped via `html/template` (no `template.HTML` on user data)
 - [ ] SQL only via parameterized queries
@@ -58,7 +58,7 @@ or explicitly waived by the user in writing.
 
 ## HTML/CSS/A11y
 
-- [ ] Valid HTML (spot-checked with the Nu validator); landmarks + heading hierarchy correct
+- [ ] Valid HTML (spot-checked with the Nu validator; `hx-*` "attribute not allowed" errors are the only expected ones); landmarks + heading hierarchy correct
 - [ ] Every form control labelled; keyboard-only walkthrough succeeds; focus visible
 - [ ] Contrast ≥ 4.5:1; `prefers-reduced-motion` respected; `lang` set
 - [ ] CSS in cascade layers, no `!important` outside utilities

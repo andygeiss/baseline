@@ -10,8 +10,8 @@ fixed or explicitly waived by the user in writing.
 - [ ] Versions match [VERSIONS.md](../VERSIONS.md) (`go.mod` says `go 1.26`)
 - [ ] No dependencies outside the approved list in [stack/go.md](../stack/go.md), or each extra one is justified in the README
 - [ ] Flags via stdlib `flag` only (no cobra/viper/urfave); config precedence is flags > env > defaults
-- [ ] Single static binary builds: `CGO_ENABLED=0 go build .`
-- [ ] `main` package at module root; logic in `internal/`
+- [ ] Single static binary builds: `CGO_ENABLED=0 go build .` (or `./cmd/...` in a multi-binary module)
+- [ ] `main` package at module root (`cmd/<name>/` only when the module ships several binaries); logic in `internal/`
 
 ## Code quality
 
@@ -35,11 +35,11 @@ fixed or explicitly waived by the user in writing.
 
 - [ ] `go test -race ./...` passes
 - [ ] Core logic in `internal/` covered exhaustively (all rules/edge cases)
-- [ ] `run()` table-tested: happy path per subcommand, unknown command, bad flag (→ `errUsage`), `-json` round-trips
+- [ ] `run()` table-tested: happy path per subcommand (or the single command); unknown command and top-level `-h` where dispatch exists; bad flag (→ `errUsage`); `-json` round-trips where the flag exists
 
 ## Ship
 
 - [ ] README links to this baseline, shows `go install` line + a 30-second usage example, records any waived rules
 - [ ] Release workflow from [operations/cli-release.md](../operations/cli-release.md) in place; tag builds all six targets + `SHA256SUMS`
-- [ ] `go install github.com/andygeiss/<tool>@<tag>` verified from a clean machine (or empty `GOMODCACHE`)
-- [ ] Semver honored: breaking changes to flags, exit codes, or `-json` fields only in a major release
+- [ ] `go install github.com/andygeiss/<tool>@<tag>` (or `…/cmd/<name>@<tag>` in a multi-binary module) verified from a clean machine (or empty `GOMODCACHE`)
+- [ ] Semver honored: breaking changes to flags, exit codes, `-json` fields, or the meaning of stdout output only in a major release

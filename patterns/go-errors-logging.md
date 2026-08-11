@@ -51,5 +51,6 @@ logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 - **Request logging** in middleware only — handlers don't log successes.
 - **Never log:** passwords, tokens, session IDs, full request bodies, or anything
   covered by "would I paste this in a public gist?"
-- Log to stdout only. The platform (systemd, container runtime) owns shipping and
-  rotation — the app does not open log files.
+- Log to stdout only (server processes; a CLI logs to stderr because its stdout
+  carries data — see [go-cli.md](go-cli.md)). The platform (systemd, container
+  runtime) owns shipping and rotation — the app does not open log files.

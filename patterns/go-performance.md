@@ -17,9 +17,9 @@ HTML over the wire with no client framework tax. Performance work is therefore
 - **Load sanity check** before first deploy: any HTTP load tool against the real
   binary; know your p99 at expected traffic so regressions are visible later.
 
-## Build-time wins (free, always on)
+## Build-time wins
 
-- **PGO:** capture a 30 s CPU profile from production, commit it as
+- **PGO** (once production traffic exists): capture a 30 s CPU profile from production, commit it as
   `cmd/server/default.pgo` — next to the main package, which is where `go build`
   auto-detects it (the repo root is *not* checked). Typically 2–7 % CPU reduction;
   refresh the profile when the workload shifts materially.

@@ -32,8 +32,10 @@ hygiene as applications ([stack/go.md](../stack/go.md)).
 ## API design rules
 
 - **Small surface.** Export the minimum that solves the consumer's problem; grow
-  on demand. Every exported symbol is a compatibility promise. Implementation
-  lives in `internal/` — unexported-by-directory beats unexported-by-convention.
+  on demand. Every exported symbol is a compatibility promise. In a
+  single-package library, implementation detail is simply unexported; once the
+  module grows more packages, detail packages live in `internal/` —
+  unexported-by-directory beats unexported-by-convention.
 - **Accept interfaces, return structs.** Take `io.Reader`/`fs.FS`/small
   consumer-shaped interfaces instead of concrete types and file paths; return
   concrete types the caller can grow with.

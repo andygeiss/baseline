@@ -12,7 +12,9 @@ htmx file. Consequences of this rule:
 - Interactivity beyond htmx swaps comes from native elements:
   `<details>`/`<summary>` (disclosure), `<dialog>` (modals, via `command`/`commandfor`
   invoker attributes where Baseline, otherwise a full-page fallback), `popover`
-  (menus, tooltips), `<datalist>` (autocomplete), form `required`/`pattern`/`min`/`max`
+  (menus, tooltips — Baseline Newly as of 2026: unsupported browsers render the
+  content inline instead of hidden, so use it only where that degrades acceptably,
+  otherwise `<details>`), `<datalist>` (autocomplete), form `required`/`pattern`/`min`/`max`
   (first-line validation).
 - If a feature genuinely cannot be built with HTML + CSS + htmx, the feature is
   redesigned or rejected — escalate to the user, do not quietly add a script tag.
@@ -77,4 +79,8 @@ is a template function from build info, not a data field (see
 (The `htmx-config` meta is required for the 422 validation flow — explained in
 [patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md).)
 
-Validate markup in CI or spot-check with https://validator.w3.org/nu/.
+Validate markup in CI or spot-check with https://validator.w3.org/nu/ —
+`Attribute "hx-…" not allowed` errors are expected (htmx attributes are not part
+of the HTML standard; htmx also accepts the `data-hx-*` spelling if a project
+needs a clean report, but the ecosystem-standard `hx-*` wins on maintainability).
+Any *other* error gets fixed.

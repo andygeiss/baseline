@@ -54,6 +54,11 @@ caught it.
 
   Assert on status code, critical headers, and *presence* of key HTML fragments
   (`strings.Contains`) — not exact HTML, which makes tests brittle.
+  ⚠️ For mutation handlers, the client MUST NOT follow redirects — the default
+  client transparently follows the mandated 303 and reports the redirected GET's
+  200, indistinguishable from the direct-200 bug the PRG rule exists to prevent.
+  Use `&http.Client{CheckRedirect: func(*http.Request, []*http.Request) error {
+  return http.ErrUseLastResponse }}` and assert the 303 + `Location` directly.
 - **htmx paths:** test each dual-mode handler twice — once plain, once with
   `HX-Request: true` — asserting full page vs fragment.
 - **Concurrency:** `testing/synctest` (`synctest.Test`) for anything with timers or

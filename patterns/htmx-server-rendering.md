@@ -71,7 +71,7 @@ func (a *App) render(w http.ResponseWriter, r *http.Request, status int, page, b
 }
 ```
 
-Three details are load-bearing:
+Four details are load-bearing:
 
 - **`HX-Boosted` check:** boosted links/forms send `HX-Request: true` but swap the
   whole `<body>` — they need the full page. Without this check, `hx-boost` navigation
@@ -109,6 +109,11 @@ no-htmx full page and the htmx fragment.
   ⚠️ htmx 2 does **not** swap 4xx responses by default — the 422 flow requires the
   `htmx-config` responseHandling meta tag, already part of the canonical layout
   `<head>` in [stack/html.md](../stack/html.md). Do not remove it.
+  ⚠️ When the invalid POST is *boosted* (`HX-Boosted: true`), also set
+  `HX-Push-Url: false` on the 422 response: a boosted swap otherwise pushes the
+  POST's URL into history — the exact refresh/back → GET-on-a-POST-route → 405
+  failure the 303 rule above exists to prevent (a 422 is not a redirect, so
+  nothing else stops the push).
 
   Only true *input* validation gets a 422. A stale-state action (clicking an already-
   taken cell on an outdated board) is not invalid input — respond 200 with the current

@@ -1,6 +1,6 @@
 # Stack: htmx
 
-**Last verified: 2026-08-10 · Pinned: htmx 2.0.9** (see [VERSIONS.md](../VERSIONS.md))
+**Last verified: 2026-08-11 · Pinned: htmx 2.0.10** (see [VERSIONS.md](../VERSIONS.md))
 
 htmx is the *only* script on the page. It turns HTML into the application protocol:
 any element can issue HTTP requests, the server answers with HTML, htmx swaps it in.
@@ -59,8 +59,8 @@ avoided — if you need them, the design is probably drifting toward client-side
    - All dynamic HTML goes through `html/template` (contextual auto-escaping). Never
      concatenate user input into HTML.
    - **History cache: off.** By default htmx snapshots the full `<body>` of visited
-     pages into `localStorage` for back-button restores — authenticated HTML that
-     outlives logout and server-side session revocation on a shared machine, and its
+     pages into `sessionStorage` for back-button restores — authenticated HTML that
+     outlives logout and server-side session revocation as long as the tab stays open, and its
      cache-miss restore requests send `HX-Request: true` while expecting a full page
      (a known dual-mode footgun). The canonical layout's `htmx-config` sets
      `"historyCacheSize":0` and `"refreshOnHistoryMiss":true`: back/forward are real

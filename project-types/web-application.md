@@ -37,7 +37,7 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 11. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
 12. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
 13. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
-14. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
+14. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
 
 ## Architecture defaults
 

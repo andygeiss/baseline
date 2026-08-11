@@ -26,6 +26,7 @@ project/
 │       ├── css/app.css
 │       ├── js/htmx.min.js   ← vendored, the only JS
 │       └── favicon.svg
+├── assets.go                ← //go:embed of web/ → TemplatesFS + StaticFS (rule 5)
 ├── go.mod
 └── README.md                ← links back to this baseline; records any deviations
 ```

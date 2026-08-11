@@ -2,7 +2,7 @@
 
 **Last verified: 2026-08-10**
 
-The [checklist](../checklists/web-application.md)'s mechanical items run on every push —
+The [checklists](../checklists/)' mechanical items run on every push —
 a human never checks what a machine can. Copy this workflow into new projects verbatim
 (`.github/workflows/ci.yml`):
 
@@ -57,6 +57,10 @@ jobs:
 - **`govulncheck`** — call-graph-aware CVE scanning; the `schedule` trigger re-scans
   weekly so a vulnerability disclosed *after* your last push still pages you. A red
   weekly run means: bump the dependency, don't silence the check.
+  ⚠️ GitHub disables scheduled workflows in public repos after 60 days without
+  repository activity — silently, with no red run. The weekly Renovate PR (below)
+  normally provides that activity; if a repo goes quiet anyway, re-enable the
+  workflow (Actions → ci → Enable) or expect no weekly scans.
 - **`go mod tidy -diff`** — fails instead of mutating; keeps `go.mod`/`go.sum` honest.
 - **`-shuffle=on`** — flushes out inter-test ordering dependencies early.
 - **`-race`** — mandatory, never dropped for speed. If the suite gets slow, fix the

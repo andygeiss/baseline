@@ -78,6 +78,9 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	case "version":
 		fmt.Fprintln(stdout, version())
 		return nil
+	case "-h", "-help", "--help", "help":
+		fmt.Fprint(stderr, usage)
+		return nil
 	default:
 		fmt.Fprintf(stderr, "unknown command %q\n%s", args[0], usage)
 		return errUsage
@@ -93,7 +96,7 @@ Flags win over environment variables win over built-in defaults — expressed by
 making the env var the flag's default:
 
 ```go
-addr := fs.String("addr", envOr("MYTOOL_ADDR", "localhost:8080"), "server address")
+addr := fs.String("addr", envOr("MYTOOL_ADDR", "localhost:8080"), "server address (env MYTOOL_ADDR)")
 
 func envOr(key, fallback string) string {
 	if v := os.Getenv(key); v != "" {
@@ -109,13 +112,15 @@ demonstrates the need; when that day comes, it's one flag pointing at one file.
 
 ## Streams
 
-- **stdout is data.** Parseable, stable across releases, pipe-friendly. Nothing
-  else goes there — no banners, no progress, no log lines.
+- **stdout is data.** Parseable, pipe-friendly, treated as an API — semver rules
+  in [operations/cli-release.md](../operations/cli-release.md). Nothing else goes
+  there — no banners, no progress, no log lines.
 - **stderr is everything else:** diagnostics, progress, usage text, errors.
   `mytool | wc -l` and `mytool > out.txt` must never capture noise.
 - **Machine consumers get `-json`:** `encoding/json`, one object per line
-  (ND-JSON), field names stable. Human output MAY change between releases; `-json`
-  output MUST NOT without a major version.
+  (ND-JSON), field names stable. Human-readable *formatting* MAY change between
+  releases; the *meaning* of stdout output and every `-json` field name are
+  major-version contract ([operations/cli-release.md](../operations/cli-release.md)).
 - **No colors, spinners, or ANSI control sequences.** Plain lines survive pipes,
   CI logs, and `2>err.txt`. Progress on long operations is a plain line to stderr.
 - **No prompts.** Input comes from flags, args, env, or stdin. Destructive
@@ -142,25 +147,18 @@ func version() string {
 		return "unknown"
 	}
 	if v := info.Main.Version; v != "" && v != "(devel)" {
-		return v // built via `go install module@vX.Y.Z`
+		return v // stamped by the toolchain: go install @version, or VCS-derived (Go 1.24+)
 	}
-	rev, dirty := "unknown", ""
-	for _, s := range info.Settings {
-		switch s.Key {
-		case "vcs.revision":
-			rev = s.Value
-		case "vcs.modified":
-			if s.Value == "true" {
-				dirty = "-dirty"
-			}
-		}
-	}
-	return "devel-" + rev[:min(len(rev), 12)] + dirty
+	return "unknown" // "(devel)" means no VCS metadata — the vcs.* settings are absent too
 }
 ```
 
-`go install github.com/andygeiss/<tool>@v1.2.3` reports `v1.2.3`; a build from a
-checkout reports `devel-<commit>`. Expose it as a `version` subcommand or
+`go install github.com/andygeiss/<tool>@v1.2.3` reports `v1.2.3`. Since Go 1.24
+a build from a git checkout also reports a VCS-derived version — the tag when
+HEAD sits exactly on one, `+dirty` when modified, otherwise a pseudo-version —
+so `unknown` only appears for builds without VCS metadata (`-buildvcs=false`,
+source tarballs), which carry no `vcs.*` build settings to fall back on either.
+Expose it as a `version` subcommand or
 `-version` flag — one of the two, matching the tool's shape.
 
 ## Long-running work
@@ -187,7 +185,8 @@ func TestRun_Fetch(t *testing.T) {
 }
 ```
 
-Table-test the argument surface: happy path per subcommand, unknown command,
-bad flag (expect `errUsage`), and — for `-json` — that output parses back with
+Table-test the argument surface: happy path per subcommand (or the single
+command), unknown command and top-level `-h` where dispatch exists, bad flag
+(expect `errUsage`), and — where `-json` exists — that output parses back with
 `encoding/json`. Strategy and coverage bar per
 [go-testing.md](go-testing.md).

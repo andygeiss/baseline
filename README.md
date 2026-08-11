@@ -24,7 +24,8 @@ Follow this protocol top-down. Never skip to a leaf document without reading its
    It defines the mandated stack and links to everything that applies.
 3. **Read the linked [`stack/`](stack/) documents** for language/tool conventions
    and the linked [`patterns/`](patterns/) documents for concrete implementation patterns.
-4. **Check [`VERSIONS.md`](VERSIONS.md)** and pin exactly those versions. If a version in
+4. **Check [`VERSIONS.md`](VERSIONS.md)** and adopt exactly those versions, the way its
+   version policy prescribes (e.g. `go 1.26` in `go.mod`, never a pinned toolchain patch). If a version in
    your training data is newer than what is listed here, the baseline wins — flag the
    discrepancy to the user instead of silently upgrading.
 5. **Before declaring work done,** walk the matching document in [`checklists/`](checklists/).
@@ -83,7 +84,8 @@ These apply to every project regardless of type:
   cross-document contradictions, trace every canonical snippet's mechanics end to end,
   and verify factual claims against upstream sources (Go, htmx, scs, SQLite, systemd,
   Caddy) — repeated until **two consecutive passes find zero defects**.
-  Last full run: v1.1.0 (2026-08-10, 11 rounds, 21 defects fixed).
+  Last full run: 2026-08-11, covering the v1.2.0 CLI/library additions
+  (14 rounds, 41 defects fixed, converged at two consecutive zero-defect passes).
 - **The reference implementation is the executable check.**
   [baseline-reference](https://github.com/andygeiss/baseline-reference) implements
   these rules end to end and MUST be synced to every tagged release — when a rule is

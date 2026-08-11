@@ -14,7 +14,7 @@ Internet ──► Caddy (:443, auto-HTTPS)  ──► app (127.0.0.1:8080)
 ```
 
 - **TLS terminates at Caddy** — automatic Let's Encrypt, zstd/gzip compression,
-  HTTP→HTTPS redirect, all in a 5-line Caddyfile:
+  HTTP→HTTPS redirect, all in a four-line Caddyfile:
 
   ```
   example.com {
@@ -34,10 +34,18 @@ Internet ──► Caddy (:443, auto-HTTPS)  ──► app (127.0.0.1:8080)
 - **`:8080` (localhost)** — the application (routes from
   [patterns/go-http-server.md](../patterns/go-http-server.md)).
 - **`:6060` (localhost)** — ops mux, never proxied, MUST NOT be publicly reachable:
-  - `GET /healthz` — 200 + JSON `{"status":"ok","version":…}`; pings the DB with a
-    1 s timeout, 503 on failure. This is what systemd/uptime checks hit (via localhost).
+  - `GET /healthz` — 200 + JSON `{"status":"ok","version":…}`; pings the DB **via
+    the read pool** with a 1 s timeout, 503 on failure. Never the write pool: its
+    single connection is busy during any long write, and a
+    ping queued behind it times out — a healthy app flapping 503. This is what
+    systemd/uptime checks hit (via localhost).
   - `/debug/pprof/…` — `net/http/pprof` handlers. Being localhost-only *is* the
     access control.
+  - The ops mux runs in its own `http.Server` **without the app's `WriteTimeout`**
+    (or with one ≥ twice the longest profile window): `profile?seconds=30` writes
+    nothing until profiling ends, so the app's 30 s write deadline would kill every
+    profile. The mandatory-timeout rule protects the public listener; localhost-only
+    ops traffic is the exemption.
 
 ## Version stamping
 
