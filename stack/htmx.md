@@ -1,6 +1,6 @@
 # Stack: htmx
 
-**Last verified: 2026-08-11 · Pinned: htmx 2.0.10** (see [VERSIONS.md](../VERSIONS.md))
+**Last verified: 2026-08-12 · Pinned: htmx 2.0.10** (see [VERSIONS.md](../VERSIONS.md))
 
 htmx is the *only* script on the page. It turns HTML into the application protocol:
 any element can issue HTTP requests, the server answers with HTML, htmx swaps it in.
@@ -24,7 +24,7 @@ Stay on 2.x until this baseline says otherwise.
 |---|---|
 | `hx-get` / `hx-post` | Issue request. GET reads, POST mutates — the only two verbs with a plain-form fallback. |
 | `hx-target` | CSS selector to swap into. Default is the triggering element — usually set this explicitly. |
-| `hx-swap` | `innerHTML` (default), `outerHTML` for self-replacing fragments. |
+| `hx-swap` | `innerHTML` (default), `outerHTML` for self-replacing fragments. `transition:false` opts a rapid-fire swap out of view transitions ([patterns/css-motion.md](../patterns/css-motion.md)). |
 | `hx-trigger` | Only when the default event is wrong (e.g. `input changed delay:300ms` for search). |
 | `hx-push-url` | `true` on navigation-like GETs so the URL bar and back button stay honest. |
 | `hx-indicator` | Always give requests >100ms a visible indicator (CSS `.htmx-request`). |

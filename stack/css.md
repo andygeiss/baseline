@@ -33,6 +33,7 @@ fallback, per the rule below:
 | `light-dark()` | Dark-mode tokens defined under `@media (prefers-color-scheme: dark)` stay the working mechanism; a `light-dark()` token enhancement MUST sit inside `@supports (color: light-dark(red, red))` — unguarded it wins the cascade even in browsers that can't evaluate it, because custom properties fail at `var()` substitution time (→ `unset`), not at parse time |
 | `@property` | The plain `--token` declaration exists regardless; `@property` adds typing/animation only |
 | View Transitions (same-document) | Inherently graceful — unsupported browsers swap without animating; no extra work |
+| `@starting-style` | Inherently graceful — unsupported browsers show the element fully formed without the entry animation; no extra work |
 | `@scope` | Nesting + component class scoping (rule 2) |
 
 Check anything newer at https://web.dev/baseline before use: **"Widely available" MAY
@@ -48,10 +49,13 @@ web/static/css/app.css
 @layer reset, tokens, base, layout, components, utilities;
 ```
 
-- **reset** — minimal modern reset (box-sizing, margin trim).
-- **tokens** — all custom properties on `:root`: colors (oklch), spacing scale,
-  widths, font stacks, radii. Dark mode via `color-scheme: light dark` + token
-  redefinition under `@media (prefers-color-scheme: dark)`; `light-dark()` only
+- **reset** — minimal modern reset (box-sizing, margin trim). Trim margins
+  with an element list, never `* { margin: 0 }` — the universal trim strips the
+  UA's `dialog { margin: auto }` centering.
+- **tokens** — all custom properties on `:root`: colors (oklch), spacing
+  scale, widths, font stacks, radii, motion durations. Dark mode via
+  `color-scheme: light dark` + token redefinition under
+  `@media (prefers-color-scheme: dark)`; `light-dark()` only
   inside an `@supports (color: light-dark(red, red))` guard (Baseline Newly —
   the table above explains why the guard is not optional). The concrete
   starting set, with measured contrast:
@@ -59,7 +63,9 @@ web/static/css/app.css
 - **base** — element defaults: typography, links, forms.
 - **layout** — page scaffolding: grid shells, headers, content widths.
 - **components** — one nested block per component, class-named (`.card`, `.board`).
-- **utilities** — the few single-purpose helpers (`.visually-hidden`). Keep under ~10.
+- **utilities** — the few single-purpose helpers (`.visually-hidden`) and the
+  view-transition kill switch ([patterns/css-motion.md](../patterns/css-motion.md)).
+  Keep under ~10.
 
 Rules:
 
@@ -76,7 +82,11 @@ Rules:
    htmx's built-in inline indicator styles are disabled for CSP
    (see [htmx.md](htmx.md)).
 5. **Motion:** transitions/animations MUST be wrapped in
-   `@media (prefers-reduced-motion: no-preference)`.
+   `@media (prefers-reduced-motion: no-preference)`. The one exception is the
+   view-transition kill switch, which sits under `(prefers-reduced-motion:
+   reduce)` because it cancels animations the browser declares, not ones
+   `app.css` does. Durations, the indicator fade, view-transition swaps,
+   dialog entry: [patterns/css-motion.md](../patterns/css-motion.md).
 6. **Responsive:** mobile-first — base styles are the 320 px layout, `min-width`
    media queries only widen it. Container queries for components, media queries
    only for page-level layout. Fluid type/spacing with `clamp()` — avoid

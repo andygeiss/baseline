@@ -1,6 +1,6 @@
 # Stack: HTML
 
-**Last verified: 2026-08-10 · Target: WHATWG Living Standard**
+**Last verified: 2026-08-12 · Target: WHATWG Living Standard**
 
 HTML is the application. Links and forms are the API; the DOM is the client-side state.
 
@@ -58,6 +58,7 @@ is a template function from build info, not a data field (see
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="htmx-config" content='{"includeIndicatorStyles":false,
+    "globalViewTransitions":true,
     "historyCacheSize":0,"refreshOnHistoryMiss":true,"responseHandling":[
     {"code":"204","swap":false},
     {"code":"[23]..","swap":true},
@@ -77,7 +78,9 @@ is a template function from build info, not a data field (see
 ```
 
 (The `htmx-config` meta is required for the 422 validation flow — explained in
-[patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md).)
+[patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md).
+It also turns on view-transition swaps:
+[patterns/css-motion.md](../patterns/css-motion.md).)
 
 Validate markup in CI or spot-check with https://validator.w3.org/nu/ —
 `Attribute "hx-…" not allowed` errors are expected (htmx attributes are not part

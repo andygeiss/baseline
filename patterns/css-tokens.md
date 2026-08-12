@@ -58,6 +58,9 @@ same tokens the page shell in [css-layout.md](css-layout.md) consumes:
 }
 ```
 
+Motion adds two duration tokens (`--motion-fast`, `--motion-slow`) to this
+layer — [css-motion.md](css-motion.md) defines them.
+
 ## Rules
 
 1. **Roles, not values.** A token names the job (`--color-accent`), never the
@@ -80,7 +83,8 @@ same tokens the page shell in [css-layout.md](css-layout.md) consumes:
 5. **Derive states, don't multiply tokens.** Hover and active shades come from
    `color-mix()` at the use site
    (`color-mix(in oklch, var(--color-accent), var(--color-text) 15%)`), not
-   from new tokens. The set above is 16 tokens; treat ~20 as the ceiling.
+   from new tokens. The set above is 16 tokens, plus the two motion durations;
+   treat ~20 as the ceiling.
 6. **A breakpoint cannot be a token** — media queries cannot read custom
    properties ([css-layout.md](css-layout.md) mobile-first rule 3).
 

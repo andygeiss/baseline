@@ -64,6 +64,7 @@ baseline/
 │   └── web-application.md
 ├── patterns/                       ← concrete, copyable implementation patterns
 │   ├── css-layout.md
+│   ├── css-motion.md
 │   ├── css-tokens.md
 │   ├── go-auth-sessions.md
 │   ├── go-cli.md

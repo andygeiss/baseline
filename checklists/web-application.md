@@ -63,7 +63,8 @@ or explicitly waived by the user in writing.
 - [ ] Valid HTML (spot-checked with the Nu validator; `hx-*` "attribute not allowed" errors are the only expected ones); landmarks + heading hierarchy correct
 - [ ] Every form control labelled; keyboard-only walkthrough succeeds; focus visible
 - [ ] Contrast ≥ 4.5:1; `prefers-reduced-motion` respected; `lang` set
-- [ ] CSS in cascade layers, no `!important` outside utilities
+- [ ] CSS in cascade layers, no `!important` outside `utilities`
+- [ ] Motion follows [patterns/css-motion.md](../patterns/css-motion.md): transition properties listed explicitly (never `all`); paint/compositor properties only; one-shot durations from the two motion tokens; rapid-fire swaps opt out (`transition:false`); view-transition kill switch in `utilities`
 - [ ] Layout is mobile-first per [patterns/css-layout.md](../patterns/css-layout.md): layout media queries are `min-width` only and page-level only; components adapt via container queries
 - [ ] Works at 320 px width and at 200% zoom
 
