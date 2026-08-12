@@ -11,9 +11,9 @@ layered defaults rather than a checklist. Every rule exists to make the *default
 path the correct one — an agent that follows the documents verbatim ships a correct,
 hardened application without inventing anything.
 
-- **Owner:** Andy Geiss
 - **Last verified:** 2026-08-12
-- **Format:** Markdown only. No code, no CI, no build steps. Documents are the product.
+- **Format:** Markdown only, plus the MIT `LICENSE`. No code, no CI, no build
+  steps. Documents are the product.
   The one piece of tooling is the root `Makefile`, which installs the baseline into
   Claude Code (see below) — it builds nothing.
 
@@ -56,6 +56,7 @@ baseline/
 │   ├── cli-tool.md
 │   ├── library.md
 │   └── web-application.md
+├── LICENSE                         ← MIT
 ├── Makefile                        ← make install / make uninstall (Claude Code)
 ├── operations/                     ← how projects run in production
 │   ├── ci.md
