@@ -12,7 +12,7 @@ path the correct one — an agent that follows the documents verbatim ships a co
 hardened application without inventing anything.
 
 - **Owner:** Andy Geiss
-- **Last verified:** 2026-08-11
+- **Last verified:** 2026-08-12
 - **Format:** Markdown only. No code, no CI, no build steps. Documents are the product.
   The one piece of tooling is the root `Makefile`, which installs the baseline into
   Claude Code (see below) — it builds nothing.
@@ -63,10 +63,13 @@ baseline/
 │   └── web-application.md
 ├── patterns/                       ← concrete, copyable implementation patterns
 │   ├── css-layout.md
+│   ├── css-tokens.md
 │   ├── go-auth-sessions.md
 │   ├── go-cli.md
 │   ├── go-errors-logging.md
+│   ├── go-forms-validation.md
 │   ├── go-http-server.md
+│   ├── go-library.md
 │   ├── go-performance.md
 │   ├── go-project-layout.md
 │   ├── go-sqlite.md
@@ -107,8 +110,9 @@ These apply to every project regardless of type:
   cross-document contradictions, trace every canonical snippet's mechanics end to end,
   and verify factual claims against upstream sources (Go, htmx, scs, SQLite, systemd,
   Caddy) — repeated until **two consecutive passes find zero defects**.
-  Last full run: 2026-08-11, a full-corpus sweep
-  (5 rounds, 6 defects fixed, converged at two consecutive zero-defect passes).
+  Last run: 2026-08-12 over the v1.8.0 additions (11 rounds, 26 defects fixed,
+  converged at two consecutive zero-defect rounds); last full-corpus sweep:
+  2026-08-11.
 - **The reference implementation is the executable check.**
   [baseline-reference](https://github.com/andygeiss/baseline-reference) implements
   these rules end to end and MUST be synced to every tagged release — when a rule is

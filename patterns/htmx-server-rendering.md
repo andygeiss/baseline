@@ -1,6 +1,6 @@
 # Pattern: htmx Server Rendering (Go html/template)
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-12**
 
 The one mechanic that makes Go + htmx work: **every dynamic view is a named template
 block; a handler renders either the full page or just the block, depending on
@@ -105,7 +105,9 @@ no-htmx full page and the htmx fragment.
   transparently and the full page it lands on gets swapped into the fragment target.
   When the whole page must change after a fragment action, send `HX-Redirect` (below).
 - **Form validation:** invalid POST re-renders the form fragment with errors and
-  status **422**. Fields keep their submitted values.
+  status **422**. Fields keep their submitted values. The request side of this
+  flow — validator, handler loop, flash messages — is
+  [go-forms-validation.md](go-forms-validation.md).
   ⚠️ htmx 2 does **not** swap 4xx responses by default — the 422 flow requires the
   `htmx-config` responseHandling meta tag, already part of the canonical layout
   `<head>` in [stack/html.md](../stack/html.md). Do not remove it.

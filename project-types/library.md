@@ -1,6 +1,6 @@
 # Project Type: Library
 
-**Last verified: 2026-08-11**
+**Last verified: 2026-08-12**
 
 A reusable Go module imported by other projects. Libraries are **extracted, not
 invented**: code starts in an application's `internal/` and becomes a library only
@@ -25,12 +25,13 @@ hygiene as applications ([stack/go.md](../stack/go.md)).
 ## Required reading (in order)
 
 1. [stack/go.md](../stack/go.md) — language conventions and toolchain
-2. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — error wrapping and sentinel errors (the logging half does not apply: libraries return, consumers log)
-3. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
-4. [operations/ci.md](../operations/ci.md) — the CI workflow, used verbatim
-5. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
-6. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
-7. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+2. [patterns/go-library.md](../patterns/go-library.md) — layout, doc comments, Example functions, fuzz corpus, release mechanics
+3. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — error wrapping and sentinel errors (the logging half does not apply: libraries return, consumers log)
+4. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
+5. [operations/ci.md](../operations/ci.md) — the CI workflow, used verbatim
+6. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
+7. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
+8. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 ## API design rules
 

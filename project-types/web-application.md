@@ -1,6 +1,6 @@
 # Project Type: Web Application
 
-**Last verified: 2026-08-11**
+**Last verified: 2026-08-12**
 
 Server-rendered web application. This is the default and preferred shape for anything
 with a UI — from a tic-tac-toe game to a SaaS dashboard.
@@ -33,15 +33,17 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 6. [patterns/go-http-server.md](../patterns/go-http-server.md) — server, routing, middleware, CSRF
 7. [patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md) — full pages vs fragments
 8. [patterns/css-layout.md](../patterns/css-layout.md) — mobile-first page and component layouts (grid)
-9. [patterns/go-sqlite.md](../patterns/go-sqlite.md) — production SQLite: pragmas, pools, migrations, backups
-10. [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, login, password hashing (when there are users)
-11. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
-12. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
-13. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
-14. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
-15. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
-16. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
-17. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+9. [patterns/css-tokens.md](../patterns/css-tokens.md) — the concrete tokens layer and dark mode
+10. [patterns/go-sqlite.md](../patterns/go-sqlite.md) — production SQLite: pragmas, pools, migrations, backups
+11. [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, login, password hashing (when there are users)
+12. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
+13. [patterns/go-forms-validation.md](../patterns/go-forms-validation.md) — the form loop: validator, 422 re-render, flash messages
+14. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
+15. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
+16. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
+17. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
+18. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
+19. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 ## Architecture defaults
 

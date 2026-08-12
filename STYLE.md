@@ -1,6 +1,6 @@
 # House Style: Writing for Humans
 
-**Last verified: 2026-08-11**
+**Last verified: 2026-08-12**
 
 This document governs everything we write for people: README files and docs,
 Go source comments, and prompts for LLMs (AI language models). One bar applies
@@ -65,6 +65,11 @@ Read what you wrote out loud, once.
   not claims.
 - Headings state facts or actions ("Install", "Why there is no config file") —
   not categories ("Overview", "Miscellaneous").
+- File trees list entries alphabetically — case-insensitive, files and
+  directories interleaved — so every tree is mechanically checkable against
+  the real directory. Everything else that mentions files orders by meaning:
+  a topology sketch by data flow, a "Required reading (in order)" list by
+  dependency.
 - One primary audience per document. When users and contributors need
   different things, split the document.
 

@@ -1,6 +1,6 @@
 # Pattern: Go Project Layout
 
-**Last verified: 2026-08-11**
+**Last verified: 2026-08-12**
 
 Standard layout for a web application. Start smaller than this if the project is
 smaller — directories are added when a file would otherwise get roommates it doesn't
@@ -16,8 +16,11 @@ project/
 ├── internal/                ← all application code lives under internal/
 │   ├── app/                 ← handlers, routing, middleware (the HTTP edge)
 │   │   ├── <feature>.go     ← handlers grouped by feature, not by "handlers"
+│   │   ├── forms.go         ← form structs + the Validator (go-forms-validation.md)
 │   │   ├── middleware.go
-│   │   └── routes.go        ← the single place all routes are registered
+│   │   ├── ops.go           ← /healthz + pprof for the ops listener (go-http-server.md)
+│   │   ├── routes.go        ← the single place all routes are registered
+│   │   └── views.go         ← the view struct every page embeds (go-forms-validation.md)
 │   ├── domain/              ← core types + business rules; imports nothing above it
 │   └── store/               ← persistence; implements interfaces the consumers define
 ├── Makefile                 ← command runner, copied from stack/makefile.md

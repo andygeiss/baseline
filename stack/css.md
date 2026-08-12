@@ -1,6 +1,6 @@
 # Stack: CSS
 
-**Last verified: 2026-08-11 · Target: CSS Baseline "Widely available"**
+**Last verified: 2026-08-12 · Target: CSS Baseline "Widely available"**
 
 Pure CSS. No preprocessor (Sass/Less), no framework (Tailwind/Bootstrap), no build
 step. The platform has caught up — use it.
@@ -50,10 +50,12 @@ web/static/css/app.css
 
 - **reset** — minimal modern reset (box-sizing, margin trim).
 - **tokens** — all custom properties on `:root`: colors (oklch), spacing scale,
-  font stacks, radii. Dark mode via `color-scheme: light dark` + token
+  widths, font stacks, radii. Dark mode via `color-scheme: light dark` + token
   redefinition under `@media (prefers-color-scheme: dark)`; `light-dark()` only
   inside an `@supports (color: light-dark(red, red))` guard (Baseline Newly —
-  the table above explains why the guard is not optional).
+  the table above explains why the guard is not optional). The concrete
+  starting set, with measured contrast:
+  [patterns/css-tokens.md](../patterns/css-tokens.md).
 - **base** — element defaults: typography, links, forms.
 - **layout** — page scaffolding: grid shells, headers, content widths.
 - **components** — one nested block per component, class-named (`.card`, `.board`).

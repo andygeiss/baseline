@@ -1,6 +1,6 @@
 # Operations: Web Application
 
-**Last verified: 2026-08-11**
+**Last verified: 2026-08-12**
 
 Deployment target: one small Linux VPS (or container), one binary, Caddy in front,
 systemd keeping it alive, Litestream shipping backups. Boring, restorable, cheap.
@@ -41,11 +41,10 @@ Internet ──► Caddy (:443, auto-HTTPS)  ──► app (127.0.0.1:8080)
     systemd/uptime checks hit (via localhost).
   - `/debug/pprof/…` — `net/http/pprof` handlers. Being localhost-only *is* the
     access control.
-  - The ops mux runs in its own `http.Server` **without the app's `WriteTimeout`**
-    (or with one ≥ twice the longest profile window): `profile?seconds=30` writes
-    nothing until profiling ends, so the app's 30 s write deadline would kill every
-    profile. The mandatory-timeout rule protects the public listener; localhost-only
-    ops traffic is the exemption.
+  - The ops mux runs in its own `http.Server` with the same timeouts as the app
+    server. A long profile survives the 30 s `WriteTimeout`: `profile?seconds=30`
+    writes nothing until profiling ends, but `net/http/pprof` extends its own
+    write deadline to `WriteTimeout + seconds` on every seconds-based handler.
 
 ## Version stamping
 

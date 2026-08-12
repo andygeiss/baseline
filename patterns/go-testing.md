@@ -1,6 +1,6 @@
 # Pattern: Testing (Go)
 
-**Last verified: 2026-08-11**
+**Last verified: 2026-08-12**
 
 Stdlib `testing` only. No assertion libraries (no testify) — a failed comparison is
 `t.Errorf("got %v, want %v", got, want)` and that's enough. No mocking frameworks —
@@ -45,7 +45,7 @@ caught it.
 - `t.Parallel()` in every test that doesn't share state; `t.TempDir()`, `t.Setenv`,
   `t.Cleanup` over hand-rolled setup/teardown. Use `t.Context()` (Go 1.24+) for
   context plumbing in tests.
-- **Handler tests** run against `app.Routes()` (the real mux + middleware), not bare
+- **Handler tests** run against the app's `Routes()` (the real mux + middleware), not bare
   handler funcs — routing patterns and middleware are part of the behavior:
 
   ```go
