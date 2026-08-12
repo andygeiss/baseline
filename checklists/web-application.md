@@ -1,6 +1,6 @@
 # Checklist: Web Application — Definition of Done
 
-**Last verified: 2026-08-11**
+**Last verified: 2026-08-12**
 
 Walk this before declaring any milestone complete. Every unchecked box is either fixed
 or explicitly waived by the user in writing.
@@ -22,7 +22,7 @@ or explicitly waived by the user in writing.
 - [ ] Server has read/write/idle timeouts and graceful shutdown
 - [ ] Errors wrapped with `%w`; internal error text never rendered to the browser
 - [ ] `log/slog` structured logging; no secrets in logs
-- [ ] Prose passes [STYLE.md](../STYLE.md): comments say *why* (not what), README leads with the point, any LLM prompts follow its prompt rules
+- [ ] Prose passes [STYLE.md](../STYLE.md): comments say *why* (not what), README leads with the point, commits are semantic (`type(scope): subject`), any LLM prompts follow its prompt rules
 
 ## Tests
 

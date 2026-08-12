@@ -3,8 +3,8 @@
 **Last verified: 2026-08-12**
 
 This document governs everything we write for people: README files and docs,
-Go source comments, and prompts for LLMs (AI language models). One bar applies
-to all of it:
+commit messages, Go source comments, and prompts for LLMs (AI language
+models). One bar applies to all of it:
 
 > **A smart 10-year-old could follow it.**
 
@@ -77,6 +77,32 @@ Read what you wrote out loud, once.
 environment variables prior to initialization."
 **After:** "You configure the app with environment variables. Set them before
 it starts."
+
+## Commit messages
+
+Semantic commits, always: `type(scope): subject` — the scope optional, the
+subject imperative and lowercase ("add", not "added"), ≤ 72 characters, no
+trailing period.
+
+```
+feat(games): add rematch from the result page
+
+The result page linked back to the lobby, so a rematch cost three clicks.
+POST /games/{id}/rematch creates the new game and 303s into it.
+```
+
+- **Six types.** `feat` (new behavior), `fix` (corrected behavior), `docs`,
+  `refactor` (same behavior, restructured), `test`, `chore` (housekeeping:
+  deps, Makefile, CI). A commit that needs two types is two commits.
+- **`!` marks a breaking change** (`feat!: drop the CSV export`). For a
+  released module the type encodes the semver decision
+  ([patterns/go-library.md](patterns/go-library.md)): `fix` is a patch,
+  `feat` a minor, `!` a major — `git log` answers the version question before
+  tagging.
+- **The body answers why**, after a blank line, when the subject alone does
+  not — the same rule as Go source comments: the diff says what.
+- **No enforcement tooling.** commitlint and hooks check format, not sense;
+  the reviewer checks both.
 
 ## Go source comments
 
