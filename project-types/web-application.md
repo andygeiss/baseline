@@ -15,6 +15,7 @@ with a UI — from a tic-tac-toe game to a SaaS dashboard.
 | Styling | Pure CSS | MUST. No preprocessor, no Tailwind, no framework. |
 | Markup | Semantic HTML | MUST. Forms and links are the API of the UI. |
 | Client-side JS | — | MUST NOT write any. htmx is the only script. |
+| Install (PWA) | Web app manifest + icons | MAY, per project. MUST NOT add a service worker — see [patterns/pwa.md](../patterns/pwa.md). |
 | Persistence | SQLite (`modernc.org/sqlite`) first | SHOULD. Postgres (`pgx`) only when concurrency/scale demands it. |
 | Sessions | `alexedwards/scs/v2`, server-side in SQLite | MUST when there are users. Cookie carries a random token only. |
 | CSRF | stdlib `http.CrossOriginProtection` | MUST. No token libraries. |
@@ -37,16 +38,17 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 10. [patterns/css-motion.md](../patterns/css-motion.md) — motion as feedback: transitions, view transitions, reduced motion
 11. [patterns/design-system.md](../patterns/design-system.md) — the root `DESIGN.md`: theme values lockstep with `app.css`
 12. [patterns/css-surfaces.md](../patterns/css-surfaces.md) — the surface style: minimal (the default), neumorphic, or glass
-13. [patterns/go-sqlite.md](../patterns/go-sqlite.md) — production SQLite: pragmas, pools, migrations, backups
-14. [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, login, password hashing (when there are users)
-15. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
-16. [patterns/go-forms-validation.md](../patterns/go-forms-validation.md) — the form loop: validator, 422 re-render, flash messages
-17. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
-18. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
-19. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
-20. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
-21. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
-22. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+13. [patterns/pwa.md](../patterns/pwa.md) — install to the home screen: manifest, icons, no service worker (when the project opts in)
+14. [patterns/go-sqlite.md](../patterns/go-sqlite.md) — production SQLite: pragmas, pools, migrations, backups
+15. [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, login, password hashing (when there are users)
+16. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
+17. [patterns/go-forms-validation.md](../patterns/go-forms-validation.md) — the form loop: validator, 422 re-render, flash messages
+18. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
+19. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
+20. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
+21. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
+22. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
+23. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 ## Architecture defaults
 

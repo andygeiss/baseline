@@ -78,7 +78,8 @@ baseline/
 │   ├── go-project-layout.md
 │   ├── go-sqlite.md
 │   ├── go-testing.md
-│   └── htmx-server-rendering.md
+│   ├── htmx-server-rendering.md
+│   └── pwa.md
 ├── project-types/                  ← entry point per kind of project
 │   ├── cli-tool.md
 │   ├── library.md
@@ -114,9 +115,9 @@ These apply to every project regardless of type:
   cross-document contradictions, trace every canonical snippet's mechanics end to end,
   and verify factual claims against upstream sources (Go, htmx, scs, SQLite, systemd,
   Caddy) — repeated until **two consecutive passes find zero defects**.
-  Last run: 2026-08-13 over the css-surfaces additions (4 rounds, 12 defects
-  fixed, converged at two consecutive zero-defect rounds); last full-corpus
-  sweep: 2026-08-11.
+  Last run: 2026-08-13 over the pwa additions (8 rounds, 21 defects fixed,
+  converged at two consecutive zero-defect rounds); last full-corpus sweep:
+  2026-08-11.
 - **The reference implementation is the executable check.**
   [baseline-reference](https://github.com/andygeiss/baseline-reference) implements
   these rules end to end and MUST be synced to every tagged release — when a rule is

@@ -1,6 +1,6 @@
 # Pattern: Go HTTP Server
 
-**Last verified: 2026-08-12**
+**Last verified: 2026-08-13**
 
 Stdlib only. `net/http.ServeMux` (Go 1.22+ pattern routing) covers everything a
 router package used to do.
@@ -42,8 +42,9 @@ func (a *App) Routes() http.Handler {
   unusable each time the session cookie changes (login, logout). CSRF and the
   body cap have nothing to check on a bodiless GET. The trade — no request-log
   line, no security headers on assets — is fine: `FileServerFS` sets the right
-  `Content-Type` from the extension, and CSP/HSTS do their work on the HTML
-  documents that reference the assets.
+  `Content-Type` from the extension via Go's mime table ([pwa.md](pwa.md)
+  registers `.webmanifest`, which the built-in table lacks), and CSP/HSTS do
+  their work on the HTML documents that reference the assets.
 
 ## Handlers
 

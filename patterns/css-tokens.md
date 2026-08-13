@@ -97,7 +97,9 @@ set above.
    `DESIGN.md` quotes is character-identical to `app.css`, and both files
    change in the same commit; after a color change, re-measure the contrast
    floors `DESIGN.md` records.
-   [design-system.md](design-system.md) defines the file.
+   [design-system.md](design-system.md) defines the file. An installable
+   project's manifest colors and `theme-color` metas move with `--color-bg`
+   in the same commit as well ([pwa.md](pwa.md) rule 3).
 
 ## Measured contrast (2026-08-12)
 

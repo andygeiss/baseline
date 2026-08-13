@@ -1,6 +1,6 @@
 # Stack: HTML
 
-**Last verified: 2026-08-12 · Target: WHATWG Living Standard**
+**Last verified: 2026-08-13 · Target: WHATWG Living Standard**
 
 HTML is the application. Links and forms are the API; the DOM is the client-side state.
 
@@ -81,6 +81,10 @@ is a template function from build info, not a data field (see
 [patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md).
 It also turns on view-transition swaps:
 [patterns/css-motion.md](../patterns/css-motion.md).)
+
+An installable project adds four head lines after the favicon link;
+[patterns/pwa.md](../patterns/pwa.md) defines them. Nothing else in the shell
+changes, and the no-JavaScript rule holds: install needs no service worker.
 
 Validate markup in CI or spot-check with https://validator.w3.org/nu/ —
 `Attribute "hx-…" not allowed` errors are expected (htmx attributes are not part

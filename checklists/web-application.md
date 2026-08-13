@@ -9,7 +9,7 @@ or explicitly waived by the user in writing.
 
 - [ ] Versions match [VERSIONS.md](../VERSIONS.md) (`go.mod` says `go 1.26`; vendored htmx is 2.0.10)
 - [ ] No dependencies outside the approved list in [stack/go.md](../stack/go.md), or each extra one is justified in the README
-- [ ] Zero hand-written JavaScript; htmx is the only `<script>`
+- [ ] Zero hand-written JavaScript; htmx is the only `<script>`; no service worker registered
 - [ ] No CSS/font/script loaded from a third-party origin
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build ./cmd/server` (assets embedded)
 
@@ -77,4 +77,5 @@ or explicitly waived by the user in writing.
 - [ ] Deployed per the ops doc: Caddy in front (auto-HTTPS + compression), app on localhost, hardened systemd unit
 - [ ] `GOMEMLIMIT` set; version visible in `/healthz` and boot log (`debug.ReadBuildInfo`)
 - [ ] Static assets served with `immutable` cache headers + version-busting query string
+- [ ] If installable (PWA): manifest, all four icons, and head lines per [patterns/pwa.md](../patterns/pwa.md); `.webmanifest` MIME registered at boot; no service worker; manifest colors and `theme-color` metas are the current `--color-bg`, converted
 - [ ] Previous binary kept as instant rollback
