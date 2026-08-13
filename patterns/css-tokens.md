@@ -61,6 +61,11 @@ same tokens the page shell in [css-layout.md](css-layout.md) consumes:
 Motion adds two duration tokens (`--motion-fast`, `--motion-slow`) to this
 layer — [css-motion.md](css-motion.md) defines them.
 
+Typography and icons add none. [css-typography.md](css-typography.md) changes
+what `--font-body` holds and puts sizes in `clamp()` at the use site;
+[css-icons.md](css-icons.md) keeps its `--icon` property inside the `.icon`
+rule, where it is a component detail rather than a `:root` token.
+
 A surface style may change ground values and the radius and, in the
 neumorphic style, add two shadow roles — [css-surfaces.md](css-surfaces.md)
 defines the three sanctioned styles. Minimal (the default) is exactly the

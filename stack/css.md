@@ -24,6 +24,7 @@ used to do:
 | `prefers-color-scheme`, `prefers-reduced-motion` | JS theme toggles |
 | `<dialog>`, `<details>` styling | JS modal/disclosure libraries |
 | `scroll-behavior`, scroll snap | JS scroll libraries |
+| CSS masking (`mask`) — Widely as of 2026-06-07 | Icon fonts, sprite sheets, one `<img>` per icon |
 
 Baseline **Newly available** as of 2026 — usable only with the stated graceful
 fallback, per the rule below:
@@ -35,6 +36,7 @@ fallback, per the rule below:
 | View Transitions (same-document) | Inherently graceful — unsupported browsers swap without animating; no extra work |
 | `@starting-style` | Inherently graceful — unsupported browsers show the element fully formed without the entry animation; no extra work |
 | `@scope` | Nesting + component class scoping (rule 2) |
+| `text-wrap: balance` | Inherently graceful — unsupported browsers wrap normally; headings only ([patterns/css-typography.md](../patterns/css-typography.md)) |
 | `backdrop-filter` | The glass surface style's panels stay translucent without the blur — its contrast floors are measured on the unblurred composite, so the fallback is the measured state ([patterns/css-surfaces.md](../patterns/css-surfaces.md)); Safari before 18 needs the `-webkit-` prefix alongside |
 
 Check anything newer at https://web.dev/baseline before use: **"Widely available" MAY
@@ -71,7 +73,9 @@ web/static/css/app.css
 Rules:
 
 1. **System font stack by default** (`font-family: system-ui, sans-serif`). Self-host
-   any web font; MUST NOT load fonts from third-party origins.
+   any web font; MUST NOT load fonts from third-party origins. The type scale, the
+   `@font-face` recipe, and the rule that keeps a font swap from shifting the page:
+   [patterns/css-typography.md](../patterns/css-typography.md).
 2. **Class naming:** simple, semantic, component-scoped (`.board-cell`, not BEM
    ceremony, not utility soup). Nesting keeps scope; `@scope` (Baseline Newly —
    see the table above) only when bleed is a real, demonstrated risk.
@@ -101,3 +105,7 @@ Rules:
    controls sit on the page in the project's one surface style — minimal (the
    default), neumorphic, or glass. The recipes and their accessibility
    guardrails: [patterns/css-surfaces.md](../patterns/css-surfaces.md).
+9. **Icons are CSS masks.** One `.icon` rule painted with `currentColor`, one
+   custom property per shape, in this same stylesheet — never an icon font,
+   never a third-party icon pack, never a request per icon:
+   [patterns/css-icons.md](../patterns/css-icons.md).

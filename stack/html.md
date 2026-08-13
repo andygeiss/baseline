@@ -86,6 +86,10 @@ An installable project adds four head lines after the favicon link;
 [patterns/pwa.md](../patterns/pwa.md) defines them. Nothing else in the shell
 changes, and the no-JavaScript rule holds: install needs no service worker.
 
+A project with a self-hosted font adds one `preload` line after the stylesheet
+link; [patterns/css-typography.md](../patterns/css-typography.md) defines it,
+including why that one URL carries no `?v={{version}}`.
+
 Validate markup in CI or spot-check with https://validator.w3.org/nu/ —
 `Attribute "hx-…" not allowed` errors are expected (htmx attributes are not part
 of the HTML standard; htmx also accepts the `data-hx-*` spelling if a project

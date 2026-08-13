@@ -41,10 +41,11 @@ func (a *App) Routes() http.Handler {
   makes `immutable`-cached assets ([go-performance.md](go-performance.md))
   unusable each time the session cookie changes (login, logout). CSRF and the
   body cap have nothing to check on a bodiless GET. The trade — no request-log
-  line, no security headers on assets — is fine: `FileServerFS` sets the right
-  `Content-Type` from the extension via Go's mime table ([pwa.md](pwa.md)
-  registers `.webmanifest`, which the built-in table lacks), and CSP/HSTS do
-  their work on the HTML documents that reference the assets.
+  line, no security headers on assets — is fine: `FileServerFS` sets the
+  `Content-Type` from the extension via Go's mime table, and CSP/HSTS do their
+  work on the HTML documents that reference the assets. That table is small,
+  so two extensions register themselves at boot: `.webmanifest`
+  ([pwa.md](pwa.md)) and `.woff2` ([css-typography.md](css-typography.md)).
 
 ## Handlers
 

@@ -13,6 +13,7 @@ with a UI — from a tic-tac-toe game to a SaaS dashboard.
 | Templating | `html/template` | MUST. Embedded via `embed.FS`. |
 | Interactivity | htmx 2.x | MUST for dynamic behavior. Self-hosted, single script tag. |
 | Styling | Pure CSS | MUST. No preprocessor, no Tailwind, no framework. |
+| Icons & fonts | CSS mask icons; system font stack by default | MUST. No icon font, no icon package, no third-party origin. A brand web font is self-hosted — see [patterns/css-icons.md](../patterns/css-icons.md) and [patterns/css-typography.md](../patterns/css-typography.md). |
 | Markup | Semantic HTML | MUST. Forms and links are the API of the UI. |
 | Client-side JS | — | MUST NOT write any. htmx is the only script. |
 | Install (PWA) | Web app manifest + icons | MAY, per project. MUST NOT add a service worker — see [patterns/pwa.md](../patterns/pwa.md). |
@@ -35,20 +36,22 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 7. [patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md) — full pages vs fragments
 8. [patterns/css-layout.md](../patterns/css-layout.md) — mobile-first page and component layouts (grid)
 9. [patterns/css-tokens.md](../patterns/css-tokens.md) — the concrete tokens layer and dark mode
-10. [patterns/css-motion.md](../patterns/css-motion.md) — motion as feedback: transitions, view transitions, reduced motion
-11. [patterns/design-system.md](../patterns/design-system.md) — the root `DESIGN.md`: theme values lockstep with `app.css`
-12. [patterns/css-surfaces.md](../patterns/css-surfaces.md) — the surface style: minimal (the default), neumorphic, or glass
-13. [patterns/pwa.md](../patterns/pwa.md) — install to the home screen: manifest, icons, no service worker (when the project opts in)
-14. [patterns/go-sqlite.md](../patterns/go-sqlite.md) — production SQLite: pragmas, pools, migrations, backups
-15. [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, login, password hashing (when there are users)
-16. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
-17. [patterns/go-forms-validation.md](../patterns/go-forms-validation.md) — the form loop: validator, 422 re-render, flash messages
-18. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
-19. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
-20. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
-21. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
-22. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
-23. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+10. [patterns/css-typography.md](../patterns/css-typography.md) — the type scale, and the only sanctioned way to add a web font
+11. [patterns/css-icons.md](../patterns/css-icons.md) — icons as CSS masks, tinted by `currentColor`
+12. [patterns/css-motion.md](../patterns/css-motion.md) — motion as feedback: transitions, view transitions, reduced motion
+13. [patterns/design-system.md](../patterns/design-system.md) — the root `DESIGN.md`: theme values lockstep with `app.css`
+14. [patterns/css-surfaces.md](../patterns/css-surfaces.md) — the surface style: minimal (the default), neumorphic, or glass
+15. [patterns/pwa.md](../patterns/pwa.md) — install to the home screen: manifest, icons, no service worker (when the project opts in)
+16. [patterns/go-sqlite.md](../patterns/go-sqlite.md) — production SQLite: pragmas, pools, migrations, backups
+17. [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, login, password hashing (when there are users)
+18. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
+19. [patterns/go-forms-validation.md](../patterns/go-forms-validation.md) — the form loop: validator, 422 re-render, flash messages
+20. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
+21. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
+22. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
+23. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
+24. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
+25. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 ## Architecture defaults
 

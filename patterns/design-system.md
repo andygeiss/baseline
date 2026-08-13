@@ -179,8 +179,9 @@ Every component composes the roles above, and every interactive state
    The theme's values are seventeen — the seven color roles in two schemes
    (fourteen values), two font stacks, one radius — plus any color role the
    project adds, which lands in both files at once (rule 2).
-   Spacing, widths, motion durations, and layout mechanics follow
-   [css-tokens.md](css-tokens.md), [css-layout.md](css-layout.md), and
+   Spacing, widths, motion durations, the type scale, and layout mechanics
+   follow [css-tokens.md](css-tokens.md), [css-layout.md](css-layout.md),
+   [css-typography.md](css-typography.md), and
    [css-motion.md](css-motion.md); the body restates their `app.css` values
    only so a design tool sees the whole system — restated here, chosen there.
 2. **Token names mirror the tokens layer.** `--color-text-muted` →
@@ -207,10 +208,10 @@ Every component composes the roles above, and every interactive state
    `accent` and `error` twins; then — and only then — separate `error` by
    lightness so failure keeps its own color. Then re-measure contrast (the duty
    [css-tokens.md](css-tokens.md) states) and record the new floors in the
-   Colors section. Fonts must be self-hosted ([stack/css.md](../stack/css.md)
-   rule 1); the radius is any `px`, `em`, or `rem` length — the only units
-   the spec's dimension type allows — and an unrounded theme writes `0rem`
-   in both files. Body prose follows its
+   Colors section. Fonts must be self-hosted, by the one recipe in
+   [css-typography.md](css-typography.md); the radius is any `px`, `em`, or
+   `rem` length — the only units the spec's dimension type allows — and an
+   unrounded theme writes `0rem` in both files. Body prose follows its
    values: a sentence describing a replaced value — the Typography stack,
    the Shapes radius — is rewritten to describe the new one.
    The surface style composes the same way:

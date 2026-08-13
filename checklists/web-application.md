@@ -10,7 +10,7 @@ or explicitly waived by the user in writing.
 - [ ] Versions match [VERSIONS.md](../VERSIONS.md) (`go.mod` says `go 1.26`; vendored htmx is 2.0.10)
 - [ ] No dependencies outside the approved list in [stack/go.md](../stack/go.md), or each extra one is justified in the README
 - [ ] Zero hand-written JavaScript; htmx is the only `<script>`; no service worker registered
-- [ ] No CSS/font/script loaded from a third-party origin
+- [ ] No CSS, font, icon, or script loaded from a third-party origin
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build ./cmd/server` (assets embedded)
 
 ## Code quality
@@ -61,13 +61,16 @@ or explicitly waived by the user in writing.
 ## HTML/CSS/A11y
 
 - [ ] Valid HTML (spot-checked with the Nu validator; `hx-*` "attribute not allowed" errors are the only expected ones); landmarks + heading hierarchy correct
-- [ ] Every form control labelled; keyboard-only walkthrough succeeds; focus visible
+- [ ] Every form control labeled; keyboard-only walkthrough succeeds; focus visible
 - [ ] Contrast ≥ 4.5:1; `prefers-reduced-motion` respected; `lang` set
 - [ ] CSS in cascade layers, no `!important` outside `utilities`
 - [ ] `DESIGN.md` at the repo root per [patterns/design-system.md](../patterns/design-system.md); every CSS value in it character-identical to `app.css`, measured contrast recorded
 - [ ] Motion follows [patterns/css-motion.md](../patterns/css-motion.md): transition properties listed explicitly (never `all`); paint/compositor properties only; one-shot durations from the two motion tokens; rapid-fire swaps opt out (`transition:false`); view-transition kill switch in `utilities`
 - [ ] Layout is mobile-first per [patterns/css-layout.md](../patterns/css-layout.md): layout media queries are `min-width` only and page-level only; components adapt via container queries
 - [ ] One surface style per [patterns/css-surfaces.md](../patterns/css-surfaces.md), named in `DESIGN.md`; form controls keep a ≥ 3:1 `--color-border` boundary in every style; glass panels sit on the page ground only, alpha at the measured 80% floor
+- [ ] Type per [patterns/css-typography.md](../patterns/css-typography.md): no root `font-size` override, sizes in `rem`/`em` with a `rem` term in every `clamp()`, `font: inherit` on form controls
+- [ ] Any web font is self-hosted WOFF2, variable, one file per style, `font-display: optional`, versioned by filename, preloaded with `crossorigin` and no `?v=` on either URL; `.woff2` MIME registered at boot
+- [ ] Icons per [patterns/css-icons.md](../patterns/css-icons.md): CSS masks painted with `currentColor`, `aria-hidden` on every icon, accessible name on the control, no icon font and no meaning carried by icon alone
 - [ ] Works at 320 px width and at 200% zoom
 
 ## Ship
