@@ -92,3 +92,7 @@ Rules:
    only for page-level layout. Fluid type/spacing with `clamp()` — avoid
    breakpoint ladders. Copyable layouts (page shell, card grid, sidebar):
    [patterns/css-layout.md](../patterns/css-layout.md).
+7. **The theme lives in `DESIGN.md`.** Every project records its token values,
+   measured contrast, and component inventory in a `DESIGN.md` at the repo
+   root, lockstep with this stylesheet — value changed in one, same commit
+   changes the other: [patterns/design-system.md](../patterns/design-system.md).

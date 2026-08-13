@@ -87,6 +87,11 @@ layer — [css-motion.md](css-motion.md) defines them.
    treat ~20 as the ceiling.
 6. **A breakpoint cannot be a token** — media queries cannot read custom
    properties ([css-layout.md](css-layout.md) mobile-first rule 3).
+7. **`DESIGN.md` mirrors this layer.** Every CSS value the project's root
+   `DESIGN.md` quotes is character-identical to `app.css`, and both files
+   change in the same commit; after a color change, re-measure the contrast
+   floors `DESIGN.md` records.
+   [design-system.md](design-system.md) defines the file.
 
 ## Measured contrast (2026-08-12)
 

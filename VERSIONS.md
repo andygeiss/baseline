@@ -1,6 +1,6 @@
 # Pinned Versions
 
-**Last verified: 2026-08-11.** These are the versions all new projects MUST use.
+**Last verified: 2026-08-12.** These are the versions all new projects MUST use.
 If your training data disagrees, this file wins. Verify against the source links
 when updating this file.
 
@@ -12,6 +12,7 @@ when updating this file.
 | scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
 | Make | system default | — | Command runner only (`make check` = CI). Makefile MUST stay runnable by macOS's bundled GNU Make 3.81 — portable subset, see [stack/makefile.md](stack/makefile.md). |
 | CSS | Baseline "Widely available" | rolling | No preprocessor, no framework. Allowed feature set defined in [stack/css.md](stack/css.md). |
+| `design.md` spec (`DESIGN.md`) | **alpha** | rolling | Google Labs format for the project design file — see [patterns/design-system.md](patterns/design-system.md). Sanctioned alpha exception: a document format, not software; worst case it reads as plain markdown. |
 | HTML | Living Standard | rolling | Semantic HTML5, validated. |
 | JavaScript | ❌ none | — | No hand-written JS, no bundlers, no npm. htmx is the only script tag. |
 
@@ -26,7 +27,7 @@ when updating this file.
   green CI (the mechanism lives in [operations/ci.md](operations/ci.md)). Anything that
   breaks on a routine update is a candidate for removal.
 
-## Sources checked (2026-08-11)
+## Sources checked (2026-08-12)
 
 - Go releases: https://go.dev/doc/devel/release
 - Go 1.26 notes: https://go.dev/doc/go1.26
@@ -34,3 +35,4 @@ when updating this file.
   **not** the GitHub releases page: upstream tags 2.x patches without creating a
   Release object there (2.0.10 never appeared on it)
 - CSS Baseline: https://web.dev/baseline
+- `design.md` spec: https://github.com/google-labs-code/design.md

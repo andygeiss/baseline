@@ -12,6 +12,7 @@ project/
 ├── cmd/
 │   └── server/
 │       └── main.go          ← wiring only: config, deps, http.Server, shutdown
+├── DESIGN.md                ← the theme, lockstep with app.css (design-system.md)
 ├── go.mod
 ├── internal/                ← all application code lives under internal/
 │   ├── app/                 ← handlers, routing, middleware (the HTTP edge)

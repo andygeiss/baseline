@@ -66,6 +66,7 @@ baseline/
 │   ├── css-layout.md
 │   ├── css-motion.md
 │   ├── css-tokens.md
+│   ├── design-system.md
 │   ├── go-auth-sessions.md
 │   ├── go-cli.md
 │   ├── go-errors-logging.md
@@ -112,9 +113,9 @@ These apply to every project regardless of type:
   cross-document contradictions, trace every canonical snippet's mechanics end to end,
   and verify factual claims against upstream sources (Go, htmx, scs, SQLite, systemd,
   Caddy) — repeated until **two consecutive passes find zero defects**.
-  Last run: 2026-08-12 over the v1.8.0 additions (11 rounds, 26 defects fixed,
-  converged at two consecutive zero-defect rounds); last full-corpus sweep:
-  2026-08-11.
+  Last run: 2026-08-13 over the design-system additions (15 rounds, 36 defects
+  fixed, converged at two consecutive zero-defect rounds); last full-corpus
+  sweep: 2026-08-11.
 - **The reference implementation is the executable check.**
   [baseline-reference](https://github.com/andygeiss/baseline-reference) implements
   these rules end to end and MUST be synced to every tagged release — when a rule is
