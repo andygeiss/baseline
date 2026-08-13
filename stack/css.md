@@ -1,6 +1,6 @@
 # Stack: CSS
 
-**Last verified: 2026-08-12 · Target: CSS Baseline "Widely available"**
+**Last verified: 2026-08-13 · Target: CSS Baseline "Widely available"**
 
 Pure CSS. No preprocessor (Sass/Less), no framework (Tailwind/Bootstrap), no build
 step. The platform has caught up — use it.
@@ -35,6 +35,7 @@ fallback, per the rule below:
 | View Transitions (same-document) | Inherently graceful — unsupported browsers swap without animating; no extra work |
 | `@starting-style` | Inherently graceful — unsupported browsers show the element fully formed without the entry animation; no extra work |
 | `@scope` | Nesting + component class scoping (rule 2) |
+| `backdrop-filter` | The glass surface style's panels stay translucent without the blur — its contrast floors are measured on the unblurred composite, so the fallback is the measured state ([patterns/css-surfaces.md](../patterns/css-surfaces.md)); Safari before 18 needs the `-webkit-` prefix alongside |
 
 Check anything newer at https://web.dev/baseline before use: **"Widely available" MAY
 be used; "Newly available" only with a graceful fallback; otherwise MUST NOT.**
@@ -96,3 +97,7 @@ Rules:
    measured contrast, and component inventory in a `DESIGN.md` at the repo
    root, lockstep with this stylesheet — value changed in one, same commit
    changes the other: [patterns/design-system.md](../patterns/design-system.md).
+8. **Surfaces come from one sanctioned style.** Cards, dialogs, buttons, and
+   controls sit on the page in the project's one surface style — minimal (the
+   default), neumorphic, or glass. The recipes and their accessibility
+   guardrails: [patterns/css-surfaces.md](../patterns/css-surfaces.md).

@@ -1,6 +1,6 @@
 # Pattern: Design System (DESIGN.md, Themes)
 
-**Last verified: 2026-08-12**
+**Last verified: 2026-08-13**
 
 Every web application records its design system in one file: `DESIGN.md` at the
 repo root, next to `README.md`. It holds the theme — the token values, measured
@@ -136,9 +136,9 @@ base styles are the 320 px layout, and wider screens only add columns.
 
 ## Elevation & Depth
 
-No shadows. Depth is one step deep: `surface` panels on the `bg` page ground,
-separated by `border` lines. A design needing a taller stack than that gets
-redesigned flatter.
+No shadows: this is the minimal surface style. Depth is one step deep:
+`surface` panels on the `bg` page ground, separated by `border` lines. A
+design needing a taller stack than that gets redesigned flatter.
 
 ## Shapes
 
@@ -213,6 +213,14 @@ Every component composes the roles above, and every interactive state
    in both files. Body prose follows its
    values: a sentence describing a replaced value — the Typography stack,
    the Shapes radius — is rewritten to describe the new one.
+   The surface style composes the same way:
+   [css-surfaces.md](css-surfaces.md) defines the three sanctioned styles,
+   and the canonical file above *is* the minimal one — its Elevation & Depth
+   section names the style, so copying it unchanged records the default. A
+   neumorphic or glass project takes that pattern's token deltas as its
+   values — new values, added color roles (rule 2), prose rewritten to
+   follow them. It names its style in the same section. Like the theme,
+   the project chooses the style once.
 5. **Components reference tokens, never restate them.** The body bullets are
    the inventory: one per component the project ships, growing and shrinking
    with the app. The `components` map does not grow with them — it carries

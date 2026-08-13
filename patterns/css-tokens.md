@@ -1,6 +1,6 @@
 # Pattern: CSS Tokens (Colors, Spacing, Dark Mode)
 
-**Last verified: 2026-08-12**
+**Last verified: 2026-08-13**
 
 The concrete `tokens` layer that [stack/css.md](../stack/css.md) mandates but
 leaves open. Copy it as the starting set, then change **values**, never the
@@ -61,6 +61,11 @@ same tokens the page shell in [css-layout.md](css-layout.md) consumes:
 Motion adds two duration tokens (`--motion-fast`, `--motion-slow`) to this
 layer — [css-motion.md](css-motion.md) defines them.
 
+A surface style may change ground values and the radius and, in the
+neumorphic style, add two shadow roles — [css-surfaces.md](css-surfaces.md)
+defines the three sanctioned styles. Minimal (the default) is exactly the
+set above.
+
 ## Rules
 
 1. **Roles, not values.** A token names the job (`--color-accent`), never the
@@ -84,7 +89,8 @@ layer — [css-motion.md](css-motion.md) defines them.
    `color-mix()` at the use site
    (`color-mix(in oklch, var(--color-accent), var(--color-text) 15%)`), not
    from new tokens. The set above is 16 tokens, plus the two motion durations;
-   treat ~20 as the ceiling.
+   treat ~20 as the ceiling — the neumorphic style's two shadow roles
+   ([css-surfaces.md](css-surfaces.md)) land exactly on it.
 6. **A breakpoint cannot be a token** — media queries cannot read custom
    properties ([css-layout.md](css-layout.md) mobile-first rule 3).
 7. **`DESIGN.md` mirrors this layer.** Every CSS value the project's root

@@ -1,6 +1,6 @@
 # Checklist: Web Application — Definition of Done
 
-**Last verified: 2026-08-12**
+**Last verified: 2026-08-13**
 
 Walk this before declaring any milestone complete. Every unchecked box is either fixed
 or explicitly waived by the user in writing.
@@ -67,6 +67,7 @@ or explicitly waived by the user in writing.
 - [ ] `DESIGN.md` at the repo root per [patterns/design-system.md](../patterns/design-system.md); every CSS value in it character-identical to `app.css`, measured contrast recorded
 - [ ] Motion follows [patterns/css-motion.md](../patterns/css-motion.md): transition properties listed explicitly (never `all`); paint/compositor properties only; one-shot durations from the two motion tokens; rapid-fire swaps opt out (`transition:false`); view-transition kill switch in `utilities`
 - [ ] Layout is mobile-first per [patterns/css-layout.md](../patterns/css-layout.md): layout media queries are `min-width` only and page-level only; components adapt via container queries
+- [ ] One surface style per [patterns/css-surfaces.md](../patterns/css-surfaces.md), named in `DESIGN.md`; form controls keep a ≥ 3:1 `--color-border` boundary in every style; glass panels sit on the page ground only, alpha at the measured 80% floor
 - [ ] Works at 320 px width and at 200% zoom
 
 ## Ship

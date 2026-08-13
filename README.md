@@ -11,7 +11,7 @@ layered defaults rather than a checklist. Every rule exists to make the *default
 path the correct one — an agent that follows the documents verbatim ships a correct,
 hardened application without inventing anything.
 
-- **Last verified:** 2026-08-12
+- **Last verified:** 2026-08-13
 - **Format:** Markdown only, plus the MIT `LICENSE`. No code, no CI, no build
   steps. Documents are the product.
   The one piece of tooling is the root `Makefile`, which installs the baseline into
@@ -65,6 +65,7 @@ baseline/
 ├── patterns/                       ← concrete, copyable implementation patterns
 │   ├── css-layout.md
 │   ├── css-motion.md
+│   ├── css-surfaces.md
 │   ├── css-tokens.md
 │   ├── design-system.md
 │   ├── go-auth-sessions.md
@@ -113,7 +114,7 @@ These apply to every project regardless of type:
   cross-document contradictions, trace every canonical snippet's mechanics end to end,
   and verify factual claims against upstream sources (Go, htmx, scs, SQLite, systemd,
   Caddy) — repeated until **two consecutive passes find zero defects**.
-  Last run: 2026-08-13 over the design-system additions (15 rounds, 36 defects
+  Last run: 2026-08-13 over the css-surfaces additions (4 rounds, 12 defects
   fixed, converged at two consecutive zero-defect rounds); last full-corpus
   sweep: 2026-08-11.
 - **The reference implementation is the executable check.**

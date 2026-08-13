@@ -1,6 +1,6 @@
 # Project Type: Web Application
 
-**Last verified: 2026-08-12**
+**Last verified: 2026-08-13**
 
 Server-rendered web application. This is the default and preferred shape for anything
 with a UI — from a tic-tac-toe game to a SaaS dashboard.
@@ -36,16 +36,17 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 9. [patterns/css-tokens.md](../patterns/css-tokens.md) — the concrete tokens layer and dark mode
 10. [patterns/css-motion.md](../patterns/css-motion.md) — motion as feedback: transitions, view transitions, reduced motion
 11. [patterns/design-system.md](../patterns/design-system.md) — the root `DESIGN.md`: theme values lockstep with `app.css`
-12. [patterns/go-sqlite.md](../patterns/go-sqlite.md) — production SQLite: pragmas, pools, migrations, backups
-13. [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, login, password hashing (when there are users)
-14. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
-15. [patterns/go-forms-validation.md](../patterns/go-forms-validation.md) — the form loop: validator, 422 re-render, flash messages
-16. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
-17. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
-18. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
-19. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
-20. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
-21. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+12. [patterns/css-surfaces.md](../patterns/css-surfaces.md) — the surface style: minimal (the default), neumorphic, or glass
+13. [patterns/go-sqlite.md](../patterns/go-sqlite.md) — production SQLite: pragmas, pools, migrations, backups
+14. [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, login, password hashing (when there are users)
+15. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
+16. [patterns/go-forms-validation.md](../patterns/go-forms-validation.md) — the form loop: validator, 422 re-render, flash messages
+17. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
+18. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
+19. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
+20. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
+21. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
+22. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 ## Architecture defaults
 
