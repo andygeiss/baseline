@@ -11,7 +11,7 @@ layered defaults rather than a checklist. Every rule exists to make the *default
 path the correct one — an agent that follows the documents verbatim ships a correct,
 hardened application without inventing anything.
 
-- **Last verified:** 2026-08-13
+- **Last verified:** 2026-08-14
 - **Format:** Markdown only, plus the MIT `LICENSE`. No code, no CI, no build
   steps. Documents are the product.
   The one piece of tooling is the root `Makefile`, which installs the baseline into
@@ -120,13 +120,19 @@ These apply to every project regardless of type:
   cross-document contradictions, trace every canonical snippet's mechanics end to end,
   and verify factual claims against upstream sources (Go, htmx, scs, SQLite, systemd,
   Caddy) — repeated until **two consecutive passes find zero defects**.
-  Last run: 2026-08-14 over the security-headers, go-http-client, and go-config
-  additions — 7 rounds, 15 defects fixed. **This release did not meet the
-  two-consecutive-zero bar:** rounds 5 and 7 were clean but round 6 was not, and
-  the passes were not independent. The reference-repo sync stood in as the
-  empirical round and found one further defect (a hand-rolled `envOr` helper
-  where stdlib `cmp.Or` already does the job), which is recorded here rather
-  than smoothed over. Previous run: 2026-08-13 over css-typography and css-icons
+  Last run: 2026-08-14, a **re-review of the v1.14.0 additions**
+  (security-headers, go-http-client, go-config) after the first attempt shipped
+  below the bar. Four defects fixed: a retry loop that resent an unreplayable
+  request body as an empty one, a `main` switch documented as identical to
+  go-cli.md's while using a different exit code, a rule the document's own
+  canonical snippet did not implement (`fs.Usage` naming the non-flag
+  environment variables), and an `errUsage` redeclaration that fails to compile
+  when a CLI adopts go-cli.md and go-config.md together. The verification pass
+  over the corrected documents and their cross-references found nothing further.
+  **Still short of two consecutive independent zero-defect passes** — one clean
+  pass, by the same reviewer that made the fixes. The reference-repo sync is the
+  outstanding empirical round.
+  Previous run: 2026-08-13 over css-typography and css-icons
   (7 rounds, 29 defects, converged); last full-corpus sweep: 2026-08-11.
 - **The reference implementation is the executable check.**
   [baseline-reference](https://github.com/andygeiss/baseline-reference) implements

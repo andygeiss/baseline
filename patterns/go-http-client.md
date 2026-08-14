@@ -142,12 +142,20 @@ never without a bound.
 ```go
 const maxAttempts = 3
 
-// do sends req, retrying transient failures with exponential backoff.
-// Safe only for idempotent requests — see the rules below.
+// do sends req, retrying transient failures with exponential backoff. It
+// retries only what is safe to repeat: an idempotent method with a body it can
+// rebuild. Everything else gets exactly one attempt — see the rules below.
 func (c *Client) do(req *http.Request) (*http.Response, error) {
 	var lastErr error
 	base := 100 * time.Millisecond
 	delay := jitter(base) // the exact wait before the next attempt
+
+	// Do consumes and closes req.Body, so a second attempt needs GetBody to
+	// rebuild it. NewRequestWithContext fills GetBody in for *bytes.Buffer,
+	// *bytes.Reader and *strings.Reader — for any other reader it is nil, and
+	// replaying without it would send an empty body that the server accepts as
+	// a valid, wrong PUT. No replay available means no retry.
+	replayable := req.Body == nil || req.GetBody != nil
 
 	for attempt := 1; ; attempt++ {
 		resp, err := c.http.Do(req)
@@ -167,7 +175,7 @@ func (c *Client) do(req *http.Request) (*http.Response, error) {
 			drainAndClose(resp.Body)
 		}
 
-		if !idempotent(req.Method) {
+		if !idempotent(req.Method) || !replayable {
 			return nil, fmt.Errorf("%s %s: %w", req.Method, req.URL.Host, lastErr)
 		}
 		if attempt == maxAttempts {
@@ -249,6 +257,11 @@ func retryAfter(resp *http.Response) (time.Duration, bool) {
   must be retried, the API needs an idempotency key — that is the API's design
   problem, and `idempotent` is where you would then make the exception,
   deliberately and in one place.
+- **A body that cannot be replayed cannot be retried.** An idempotent PUT built
+  from a plain `io.Reader` (an open file, a pipe) has no `GetBody`, and the
+  first attempt drains it. Retrying then sends *nothing* — and unlike a network
+  error, the server answers 200 to the empty body it was given. Buffer the body
+  first if the retry matters more than the memory.
 - **The context outranks the retry budget.** Three attempts inside a 10-second
   context is three attempts *or* 10 seconds, whichever comes first.
 - **`rand` is `math/rand/v2`** ([stack/go.md](../stack/go.md)). Jitter needs no

@@ -31,12 +31,23 @@ type Config struct {
 }
 
 // errUsage is go-cli.md's sentinel: the message was already printed where the
-// problem was found, so main only has to pick the exit code.
+// problem was found, so main only has to pick the exit code. Declare it once
+// per main package — a tool that also follows go-cli.md already has it.
 var errUsage = errors.New("usage error")
 
 func parseConfig(args []string, stderr io.Writer) (Config, error) {
 	fs := flag.NewFlagSet("server", flag.ContinueOnError)
 	fs.SetOutput(stderr)
+
+	// Rule 5: the variables that are not flags have nowhere else to be
+	// documented, so -h names them too.
+	fs.Usage = func() {
+		fmt.Fprintf(stderr, "usage: server [flags]\n\nFlags:\n")
+		fs.PrintDefaults()
+		fmt.Fprintf(stderr, "\nEnvironment only:\n"+
+			"  ENV\n    \tdev|prod — picks text vs JSON log output (default dev)\n"+
+			"  CREDENTIALS_DIRECTORY\n    \tset by systemd; directory holding secret files\n")
+	}
 
 	var c Config
 	fs.StringVar(&c.Host, "host", cmp.Or(os.Getenv("HOST"), "127.0.0.1"), "bind address (env HOST)")
@@ -70,15 +81,15 @@ func parseConfig(args []string, stderr io.Writer) (Config, error) {
 	c.SMTPKey = key
 	return c, nil
 }
-
 ```
 
 `cmp.Or` returns its first non-zero argument, which is the precedence rule
 itself in one stdlib call — no helper to write, and empty counts as unset
 (`PORT= ./server` is a mistake, not a request for `""`).
 
-`main` maps the three outcomes to exit codes, the same switch as
-[go-cli.md](go-cli.md):
+`main` maps the three outcomes to exit codes, using
+[go-cli.md](go-cli.md)'s codes — `0` success, `2` usage error — with one
+deliberate difference from the switch there:
 
 ```go
 cfg, err := parseConfig(os.Args[1:], os.Stderr)
@@ -90,9 +101,17 @@ case errors.Is(err, errUsage):
 	os.Exit(2) // the FlagSet already said what was wrong
 default:
 	fmt.Fprintf(os.Stderr, "server: %v\n", err) // a validation failure, said once
-	os.Exit(2)
+	os.Exit(2) // 2, not go-cli.md's 1 — see below
 }
 ```
+
+**The `default` branch exits 2 here, where [go-cli.md](go-cli.md)'s exits 1.**
+That is not a drift: this switch only ever sees errors from `parseConfig`, and
+every one of them — a bad port, an unknown log level, an `ENV` that is neither
+`dev` nor `prod` — means the operator configured the binary wrong. That is the
+definition of exit 2. `go-cli.md`'s `default` covers the work itself failing
+after the arguments parsed fine, which is exit 1. A `run()` that does both keeps
+the two branches separate rather than collapsing them.
 
 Printing happens in exactly one place per failure kind. A parser that returns
 the `flag` package's own error *and* a `main` that prints it produces the
