@@ -1,6 +1,6 @@
 # Stack: Make
 
-**Last verified: 2026-08-11**
+**Last verified: 2026-08-14**
 
 Every project ships one `Makefile` at the repository root. It is the single local
 command surface: `make` runs every gate CI runs, `make test`/`make run` serve the
@@ -39,8 +39,11 @@ check:
 test:
 	go test -race -shuffle=on ./...
 
+# Loads .env when it is there, so a local start is one command. Only run:
+# check and test MUST NOT depend on a developer's machine (rule 6). One shell
+# line, because each recipe line gets its own shell.
 run:
-	go run $(MAIN)
+	set -a; if [ -f .env ]; then . ./.env; fi; set +a; go run $(MAIN)
 
 fmt:
 	go run golang.org/x/tools/cmd/goimports@latest -w .
@@ -88,6 +91,24 @@ clean:
    - *Library:* delete `MAIN`, `run`, `build`, and `clean` (nothing creates
      `bin/`) and trim `.PHONY` to `check test fmt` — `check`'s
      `go build ./...` already proves everything compiles.
+6. **`run` loads `.env` when it is there. Nothing else does.** A binary that
+   needs a token or a database URL otherwise needs two commands to start, and
+   the second one is the one people forget. The recipe above is the whole
+   mechanism — `set -a` exports what the file sets, `if [ -f .env ]` makes the
+   file optional. Four limits keep it honest, and all four are MUST:
+   - **`run` only.** A `check` or `test` that read `.env` would pass because a
+     developer's machine happened to hold a value and fail in CI, which has no
+     such file. The gates run against the committed repository, nothing else.
+   - **The file is optional.** A fresh clone must still start, and fail on the
+     binary's own missing-configuration message
+     ([patterns/go-config.md](../patterns/go-config.md) rule 1) rather than on
+     a shell error about a missing file.
+   - **`.env` is in `.gitignore`, in the same commit that adds this recipe.**
+     A committed `.env` holding a secret is the anti-pattern go-config.md bans;
+     being uncommitted is exactly what makes the file allowed to hold one.
+   - **Production never uses it.** The unit file passes secrets as credential
+     files (go-config.md, *Secrets*). `.env` is a convenience for a developer's
+     own machine and MUST NOT be part of how anything deploys.
 
 ## Why each target
 
@@ -98,7 +119,9 @@ clean:
 - **`test`** — always `-race -shuffle=on`, exactly as CI runs it. If that is
   too slow for the inner loop, fix the suite, don't fork the flags.
 - **`run`** — `go run`, not build-then-execute; the build cache makes it fast
-  and there is no stale binary to accidentally re-run.
+  and there is no stale binary to accidentally re-run. It is also the one
+  target that reads `.env` (rule 6), so starting the app locally stays a
+  single command.
 - **`fmt`** — the one mutating fixer (`goimports` = gofmt + import management,
   per [stack/go.md](go.md)). The read-only gofmt gate in `check` stays the
   authority on "is it formatted".
@@ -112,6 +135,10 @@ clean:
 ## What NOT to add
 
 The classic Makefile over-engineering, all banned: self-documenting `help`
-targets (awk over `##` comments), colored output, `.env` loading, Docker
+targets (awk over `##` comments), colored output, Docker
 targets, `install`/`deploy` targets, GOOS/GOARCH matrix loops (the release
 workflow owns cross-compilation), includes, and conditionals on the host OS.
+
+`.env` loading sits half on this list: rule 6 allows it in `run` and nowhere
+else. Reading it in `check` or `test` is the banned version, because it makes a
+gate depend on a file CI does not have.

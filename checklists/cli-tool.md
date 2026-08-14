@@ -21,6 +21,7 @@ fixed or explicitly waived by the user in writing.
 - [ ] `run(ctx, args, stdout, stderr)` pattern per [patterns/go-cli.md](../patterns/go-cli.md); `os.Exit` in `main` only
 - [ ] Errors wrapped with `%w`; every failure surfaces as `tool: <cause>` on stderr, exit 1
 - [ ] Config parsed and validated before any work starts; a bad value exits 2 with one line, never a half-done run
+- [ ] If the repo has a `.env`: it is gitignored, only `make run` reads it, and production takes its secrets from credential files instead — [stack/makefile.md](../stack/makefile.md) rule 6
 - [ ] Any outbound HTTP uses an injected client with a timeout (never `http.DefaultClient`), checks `resp.StatusCode`, and caps the body it reads — [patterns/go-http-client.md](../patterns/go-http-client.md)
 - [ ] Ctrl-C/SIGTERM cancels the context; in-flight work finishes or rolls back; interrupted runs exit non-zero
 - [ ] Partial work is safe: units of work atomic (temp file + rename, transaction) or reruns idempotent

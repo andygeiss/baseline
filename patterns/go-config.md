@@ -250,4 +250,7 @@ and forgets to leave out of `LogValue`.
   empty and fail loudly at the point of use.
 - ❌ A secret in an `Environment=` line or a committed `.env` file. Unit files
   are world-readable and repositories are forever; use the credential file
-  above.
+  above. An **uncommitted** `.env` that `make run` sources
+  ([stack/makefile.md](../stack/makefile.md) rule 6) is a different thing: a
+  developer's own machine, gitignored, and never how a deployment gets a
+  secret. The word doing the work in this bullet is *committed*.

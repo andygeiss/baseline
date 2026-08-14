@@ -23,6 +23,7 @@ or explicitly waived by the user in writing.
 - [ ] Errors wrapped with `%w`; internal error text never rendered to the browser
 - [ ] `log/slog` structured logging; no secrets in logs (`Config.LogValue` allowlists the safe fields)
 - [ ] Config parsed and validated in `main` before the DB opens or the listener binds; `internal/` never calls `os.Getenv`
+- [ ] If the repo has a `.env`: it is gitignored, only `make run` reads it, and production takes its secrets from credential files instead — [stack/makefile.md](../stack/makefile.md) rule 6
 - [ ] Any outbound HTTP uses an injected client with a timeout (never `http.DefaultClient`), checks `resp.StatusCode`, and caps the body it reads — [patterns/go-http-client.md](../patterns/go-http-client.md)
 - [ ] Prose passes [STYLE.md](../STYLE.md): comments say *why* (not what), README leads with the point, commits are semantic (`type(scope): subject`), any LLM prompts follow its prompt rules
 
