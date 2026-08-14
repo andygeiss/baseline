@@ -1,6 +1,6 @@
 # Stack: Go
 
-**Last verified: 2026-08-14 · Pinned: Go 1.26.5** (see [VERSIONS.md](../VERSIONS.md))
+**Last verified: 2026-08-14 · Pinned: Go 1.26.6** (see [VERSIONS.md](../VERSIONS.md))
 
 ## Toolchain
 
