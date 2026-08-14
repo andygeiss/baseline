@@ -1,6 +1,6 @@
 # Checklist: Library — Definition of Done
 
-**Last verified: 2026-08-12**
+**Last verified: 2026-08-14**
 
 Walk this before declaring any milestone complete. Every unchecked box is either
 fixed or explicitly waived by the user in writing.
@@ -23,6 +23,7 @@ fixed or explicitly waived by the user in writing.
 - [ ] Zero values usable, or a single `New(...)` with a config struct (no functional options without justification)
 - [ ] No panics across the API boundary except documented programmer error; branchable failures exported as sentinel errors
 - [ ] No `init()` side effects, package-level mutable state, or unowned goroutines; lifecycles have `ctx` or `Close`
+- [ ] If it speaks HTTP: the client is a parameter, not built inside — the consumer owns timeouts and retries ([patterns/go-http-client.md](../patterns/go-http-client.md))
 
 ## Compatibility
 

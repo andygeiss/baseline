@@ -1,6 +1,6 @@
 # Project Type: Library
 
-**Last verified: 2026-08-12**
+**Last verified: 2026-08-14**
 
 A reusable Go module imported by other projects. Libraries are **extracted, not
 invented**: code starts in an application's `internal/` and becomes a library only
@@ -44,6 +44,10 @@ hygiene as applications ([stack/go.md](../stack/go.md)).
   consumer-shaped interfaces instead of concrete types and file paths; return
   concrete types the caller can grow with.
 - **`context.Context` first parameter** on anything that does I/O or can block.
+- **Take the HTTP client, never build one.** A library that constructs its own
+  `*http.Client` has chosen a timeout and retry policy for every consumer, with
+  no way to override it. Accept `*http.Client` or a one-method interface —
+  [patterns/go-http-client.md](../patterns/go-http-client.md).
 - **Usable zero values.** `var b thing.Builder` should work; where construction
   genuinely needs input, one `New(...)` with a config struct. Functional options
   MUST NOT be the default — they earn their complexity only on APIs with many
