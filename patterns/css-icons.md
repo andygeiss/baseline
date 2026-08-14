@@ -1,6 +1,6 @@
 # Pattern: CSS Icons (Mask, currentColor)
 
-**Last verified: 2026-08-13**
+**Last verified: 2026-08-14**
 
 The one decision this document owns: **how an icon gets onto the page.** Every
 icon is a CSS mask — one shared `.icon` rule plus one custom property per
@@ -103,6 +103,12 @@ Path data taken from an icon pack (Lucide, Feather, Bootstrap Icons — all MIT
 or ISC) is copied into `app.css` as paths, never installed: there is no npm in
 this stack. Keep the pack's license notice in the project README when its
 geometry ships.
+
+**These `data:` URLs are a CSP dependency.** The browser checks CSS image loads
+against `img-src`, so the policy MUST carry `img-src 'self' data:` — under a
+bare `default-src 'self'` every icon on the page is blocked and the app renders
+with holes where the shapes should be. [security-headers.md](security-headers.md)
+owns that policy; anyone tightening it starts here.
 
 ## Rules
 

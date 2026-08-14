@@ -1,6 +1,6 @@
 # Stack: htmx
 
-**Last verified: 2026-08-12 · Pinned: htmx 2.0.10** (see [VERSIONS.md](../VERSIONS.md))
+**Last verified: 2026-08-14 · Pinned: htmx 2.0.10** (see [VERSIONS.md](../VERSIONS.md))
 
 htmx is the *only* script on the page. It turns HTML into the application protocol:
 any element can issue HTTP requests, the server answers with HTML, htmx swaps it in.
@@ -47,8 +47,9 @@ avoided — if you need them, the design is probably drifting toward client-side
    full-page-vs-fragment mechanic, response headers (`HX-Redirect`, `HX-Trigger`),
    and out-of-band swaps.
 5. **Security:**
-   - CSP: `script-src 'self'` works because htmx is self-hosted and there's no
-     inline JS — with one wrinkle: by default htmx injects an inline `<style>` for
+   - CSP: htmx needs no policy change — it is self-hosted and writes no inline
+     JS ([patterns/security-headers.md](../patterns/security-headers.md) owns
+     the policy). One wrinkle: by default htmx injects an inline `<style>` for
      its indicator CSS, which the policy blocks. The canonical layout's `htmx-config`
      meta sets `"includeIndicatorStyles":false`; `app.css` owns the
      `.htmx-indicator`/`.htmx-request` rules instead (see [css.md](css.md)).

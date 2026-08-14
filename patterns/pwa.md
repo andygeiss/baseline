@@ -1,6 +1,6 @@
 # Pattern: PWA Install
 
-**Last verified: 2026-08-13**
+**Last verified: 2026-08-14**
 
 The one decision this document owns: **how the app gets onto the home
 screen** — installed from the browser, launching in its own window under its
@@ -157,9 +157,8 @@ after the favicon link. Nothing else in the shell changes:
   `theme-color` but not `media` takes the first tag, and one that reads
   neither falls back to the manifest. Every fallback is another tint, never a
   broken page — which is what makes an unsupported tag acceptable here.
-- CSP needs no change: the manifest is same-origin, and `manifest-src` falls
-  back to the `default-src 'self'` already set in
-  [go-http-server.md](go-http-server.md).
+- CSP needs no change — the manifest is same-origin. The policy and the reason
+  live in [security-headers.md](security-headers.md).
 
 ## What install changes at runtime
 

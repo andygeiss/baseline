@@ -1,6 +1,6 @@
 # Pattern: CSS Typography (Type Scale, Self-Hosted Fonts)
 
-**Last verified: 2026-08-13**
+**Last verified: 2026-08-14**
 
 The one decision this document owns: **how type is set** — which families, which
 sizes, and what happens when a brand needs a font the operating system does not
@@ -69,9 +69,9 @@ in [css-layout.md](css-layout.md).
 
 Only when the brand requires it, and only ever from this origin — a font from a
 third-party host is banned by [stack/css.md](../stack/css.md) rule 1, leaks
-every visitor to that host, and would need a CSP hole that
-`default-src 'self'` ([go-http-server.md](go-http-server.md)) does not have.
-A self-hosted font needs no CSP change at all.
+every visitor to that host, and would need a `font-src` hole the policy in
+[security-headers.md](security-headers.md) does not have. A self-hosted font
+needs no CSP change at all.
 
 One **variable** family, as WOFF2, embedded in the binary from
 `web/static/fonts/` like every other asset

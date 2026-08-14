@@ -1,6 +1,6 @@
 # Checklist: Web Application — Definition of Done
 
-**Last verified: 2026-08-13**
+**Last verified: 2026-08-14**
 
 Walk this before declaring any milestone complete. Every unchecked box is either fixed
 or explicitly waived by the user in writing.
@@ -21,7 +21,9 @@ or explicitly waived by the user in writing.
 - [ ] Routes registered in one file; every mutation is a POST route (never GET; no PUT/DELETE — they break the plain-form fallback)
 - [ ] Server has read/write/idle timeouts and graceful shutdown
 - [ ] Errors wrapped with `%w`; internal error text never rendered to the browser
-- [ ] `log/slog` structured logging; no secrets in logs
+- [ ] `log/slog` structured logging; no secrets in logs (`Config.LogValue` allowlists the safe fields)
+- [ ] Config parsed and validated in `main` before the DB opens or the listener binds; `internal/` never calls `os.Getenv`
+- [ ] Any outbound HTTP uses an injected client with a timeout (never `http.DefaultClient`), checks `resp.StatusCode`, and caps the body it reads — [patterns/go-http-client.md](../patterns/go-http-client.md)
 - [ ] Prose passes [STYLE.md](../STYLE.md): comments say *why* (not what), README leads with the point, commits are semantic (`type(scope): subject`), any LLM prompts follow its prompt rules
 
 ## Tests
@@ -41,7 +43,8 @@ or explicitly waived by the user in writing.
 
 ## Security
 
-- [ ] CSP `default-src 'self'; frame-ancestors 'none'` active; headers middleware in place (HSTS, nosniff, referrer)
+- [ ] `secureHeaders` sends the full policy from [patterns/security-headers.md](../patterns/security-headers.md) — CSP, HSTS, nosniff, referrer — and the test pinning all four is green
+- [ ] CSP carries `img-src 'self' data:`; a page with icons loads with **zero** CSP violations in the browser console
 - [ ] `http.CrossOriginProtection` wraps the mux (CSRF)
 - [ ] Request bodies capped at 1 MiB — `http.MaxBytesHandler`, or the route-aware limit chooser when upload routes need more (see [patterns/go-http-server.md](../patterns/go-http-server.md))
 - [ ] Session cookies: `Secure`, `HttpOnly`, `SameSite=Lax`; `RenewToken` on login/password change, `Destroy` on logout

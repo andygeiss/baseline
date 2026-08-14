@@ -1,6 +1,6 @@
 # Pattern: Go HTTP Server
 
-**Last verified: 2026-08-13**
+**Last verified: 2026-08-14**
 
 Stdlib only. `net/http.ServeMux` (Go 1.22+ pattern routing) covers everything a
 router package used to do.
@@ -92,10 +92,9 @@ Outermost → innermost:
 
 1. `logRequests` — slog: method, path, status, duration.
 2. `recoverPanic` — turn panics into 500s, log stack.
-3. `secureHeaders` — `Content-Security-Policy: default-src 'self'; frame-ancestors 'none'`,
-   `Strict-Transport-Security: max-age=31536000` (browsers ignore it over plain HTTP,
-   so it is harmless in dev), `X-Content-Type-Options: nosniff`,
-   `Referrer-Policy: same-origin`.
+3. `secureHeaders` — CSP, HSTS, nosniff, and Referrer-Policy. The policy string
+   and the middleware live in [security-headers.md](security-headers.md), which
+   owns every security header the app sends.
 4. **CSRF: `http.NewCrossOriginProtection()`** (stdlib, Go 1.25+) — rejects unsafe
    cross-origin requests via the `Sec-Fetch-Site` header (falling back to
    Origin-vs-Host comparison). No tokens, no per-form wiring. Only pre-2020 browsers
