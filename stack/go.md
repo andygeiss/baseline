@@ -1,6 +1,6 @@
 # Stack: Go
 
-**Last verified: 2026-08-11 · Pinned: Go 1.26.5** (see [VERSIONS.md](../VERSIONS.md))
+**Last verified: 2026-08-14 · Pinned: Go 1.26.5** (see [VERSIONS.md](../VERSIONS.md))
 
 ## Toolchain
 
@@ -48,6 +48,8 @@
 | `embed.FS` | file paths resolved at runtime |
 | `testing/synctest` for concurrent code | `time.Sleep` in tests |
 | `http.NewCrossOriginProtection` for CSRF (Go 1.25+) | token libraries, hand-rolled double-submit cookies |
+| an injected `*http.Client` with a `Timeout` ([patterns/go-http-client.md](../patterns/go-http-client.md)) | `http.DefaultClient`, `http.Get`, `http.Post` — none of them has a timeout |
+| `cmp.Or` for "value, or this default" | a hand-rolled `envOr`/`firstNonEmpty` helper |
 | `math/rand/v2` | `math/rand` |
 | `crypto/rand`, `crypto/hpke`, `crypto/mlkem` | rolling your own crypto — never |
 
