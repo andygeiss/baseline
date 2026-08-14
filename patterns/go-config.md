@@ -39,21 +39,22 @@ func parseConfig(args []string, stderr io.Writer) (Config, error) {
 	fs := flag.NewFlagSet("server", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 
-	// Rule 5: the variables that are not flags have nowhere else to be
-	// documented, so -h names them too.
-	fs.Usage = func() {
-		fmt.Fprintf(stderr, "usage: server [flags]\n\nFlags:\n")
-		fs.PrintDefaults()
-		fmt.Fprintf(stderr, "\nEnvironment only:\n"+
-			"  ENV\n    \tdev|prod — picks text vs JSON log output (default dev)\n"+
-			"  CREDENTIALS_DIRECTORY\n    \tset by systemd; directory holding secret files\n")
-	}
-
 	var c Config
 	fs.StringVar(&c.Host, "host", cmp.Or(os.Getenv("HOST"), "127.0.0.1"), "bind address (env HOST)")
 	fs.StringVar(&c.Port, "port", cmp.Or(os.Getenv("PORT"), "8080"), "listener port (env PORT)")
 	fs.StringVar(&c.DatabaseURL, "database-url", cmp.Or(os.Getenv("DATABASE_URL"), "app.db"), "SQLite file path (env DATABASE_URL)")
 	level := fs.String("log-level", cmp.Or(os.Getenv("LOG_LEVEL"), "info"), "debug|info|warn|error (env LOG_LEVEL)")
+
+	// Rule 5: the variables that are not flags have nowhere else to be
+	// documented, so -h names them too. Without this, -h is a partial contract.
+	fs.Usage = func() {
+		fmt.Fprintf(stderr, "Usage of server:\n")
+		fs.PrintDefaults()
+		fmt.Fprintf(stderr, "\nRead from the environment only:\n"+
+			"  ENV\n\tdev|prod, picks text vs JSON logs (default dev)\n"+
+			"  CREDENTIALS_DIRECTORY\n\tset by systemd; directory holding secret files\n")
+	}
+
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return Config{}, err // -h: usage printed, exit 0

@@ -128,10 +128,16 @@ These apply to every project regardless of type:
   canonical snippet did not implement (`fs.Usage` naming the non-flag
   environment variables), and an `errUsage` redeclaration that fails to compile
   when a CLI adopts go-cli.md and go-config.md together. The verification pass
-  over the corrected documents and their cross-references found nothing further.
-  **Still short of two consecutive independent zero-defect passes** — one clean
-  pass, by the same reviewer that made the fixes. The reference-repo sync is the
-  outstanding empirical round.
+  over the corrected documents and their cross-references found nothing further,
+  and the reference-repo sync — the independent empirical round — found nothing
+  either: `verify.sh` stayed green and the reference turned out to have already
+  implemented two of the four fixes on its own, which is the strongest available
+  evidence that the corrected documents describe what a correct build does.
+  **One caveat, recorded rather than smoothed over:** the reference makes no
+  outbound HTTP calls, so it cannot exercise go-http-client at all. The retry fix
+  was verified by compiling that pattern's snippet standalone against an
+  `httptest.Server` — a real check, but not a continuous one, and the acceptance
+  test's only coverage hole.
   Previous run: 2026-08-13 over css-typography and css-icons
   (7 rounds, 29 defects, converged); last full-corpus sweep: 2026-08-11.
 - **The reference implementation is the executable check.**
