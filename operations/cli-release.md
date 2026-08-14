@@ -1,6 +1,6 @@
 # Operations: CLI Release
 
-**Last verified: 2026-08-11**
+**Last verified: 2026-08-14**
 
 How a [CLI tool](../project-types/cli-tool.md) reaches its users. For a CLI, the
 release *is* the deployment — so unlike web applications
@@ -49,9 +49,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           check-latest: true

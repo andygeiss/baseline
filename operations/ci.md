@@ -1,6 +1,6 @@
 # Operations: CI
 
-**Last verified: 2026-08-11**
+**Last verified: 2026-08-14**
 
 The [checklists](../checklists/)' mechanical items run on every push to `main`
 and every PR —
@@ -22,9 +22,9 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod   # single source of truth for the Go version
           check-latest: true        # newest patch release = current security fixes
@@ -54,7 +54,16 @@ jobs:
 ## Why each gate exists
 
 - **`go-version-file` + `check-latest`** — CI always tests on the latest patch of the
-  module's Go version; patch releases are security releases.
+  module's Go version; patch releases are security releases. Since `setup-go@v6` the
+  action also exports `GOTOOLCHAIN=local`, so `go` runs the toolchain the action just
+  installed instead of silently downloading another one. That is the behaviour this
+  baseline wants: if `go.mod` ever declares a Go version newer than the installed one,
+  CI fails loudly instead of testing a Go release nobody pinned.
+- **Action majors are pinned in [VERSIONS.md](../VERSIONS.md)** — `checkout@v7` and
+  `setup-go@v7` are the current majors and run on **Node 24**. `checkout@v4` and
+  `setup-go@v5` — the versions most training data still suggests — target the
+  deprecated Node 20 runtime: GitHub force-runs those on Node 24 anyway and annotates
+  every run. Bump on the deprecation warning, not after the removal.
 - **`govulncheck`** — call-graph-aware CVE scanning; the `schedule` trigger re-scans
   weekly so a vulnerability disclosed *after* your last push still pages you. A red
   weekly run means: bump the dependency, don't silence the check.
