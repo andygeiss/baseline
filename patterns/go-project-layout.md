@@ -1,6 +1,6 @@
 # Pattern: Go Project Layout
 
-**Last verified: 2026-08-12**
+**Last verified: 2026-08-14**
 
 Standard layout for a web application. Start smaller than this if the project is
 smaller — directories are added when a file would otherwise get roommates it doesn't
@@ -11,6 +11,7 @@ project/
 ├── assets.go                ← //go:embed of web/ → TemplatesFS + StaticFS (rule 5)
 ├── cmd/
 │   └── server/
+│       ├── config.go        ← the Config struct + its parser (go-config.md)
 │       └── main.go          ← wiring only: config, deps, http.Server, shutdown
 ├── DESIGN.md                ← the theme, lockstep with app.css (design-system.md)
 ├── go.mod
@@ -67,5 +68,7 @@ var StaticFS embed.FS
    must suffice.
 6. **Config via flags + environment,** stdlib `flag` only, with env vars as defaults:
    `HOST`, `PORT`, `DATABASE_URL`, `LOG_LEVEL` (full contract in
-   [operations/web-application.md](../operations/web-application.md)). No config files
-   until genuinely needed.
+   [operations/web-application.md](../operations/web-application.md); the struct,
+   parser, and validation in [go-config.md](go-config.md)). The `Config` type and
+   its parser sit in the `main` package — `internal/` never reads the environment.
+   No config files until genuinely needed.

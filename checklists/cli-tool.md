@@ -1,6 +1,6 @@
 # Checklist: CLI Tool — Definition of Done
 
-**Last verified: 2026-08-12**
+**Last verified: 2026-08-14**
 
 Walk this before declaring any milestone complete. Every unchecked box is either
 fixed or explicitly waived by the user in writing.
@@ -9,7 +9,7 @@ fixed or explicitly waived by the user in writing.
 
 - [ ] Versions match [VERSIONS.md](../VERSIONS.md) (`go.mod` says `go 1.26`)
 - [ ] No dependencies outside the approved list in [stack/go.md](../stack/go.md), or each extra one is justified in the README
-- [ ] Flags via stdlib `flag` only (no cobra/viper/urfave); config precedence is flags > env > defaults
+- [ ] Flags via stdlib `flag` only (no cobra/viper/urfave); config precedence is flags > env > defaults per [patterns/go-config.md](../patterns/go-config.md)
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build .` (or `./cmd/...` in a multi-binary module)
 - [ ] `main` package at module root (`cmd/<name>/` only when the module ships several binaries); logic in `internal/`
 
@@ -20,6 +20,8 @@ fixed or explicitly waived by the user in writing.
 - [ ] `Makefile` from [stack/makefile.md](../stack/makefile.md) at the repo root (with the rule-5 adjustments for its layout); `make check` green and gate-for-gate identical to ci.yml
 - [ ] `run(ctx, args, stdout, stderr)` pattern per [patterns/go-cli.md](../patterns/go-cli.md); `os.Exit` in `main` only
 - [ ] Errors wrapped with `%w`; every failure surfaces as `tool: <cause>` on stderr, exit 1
+- [ ] Config parsed and validated before any work starts; a bad value exits 2 with one line, never a half-done run
+- [ ] Any outbound HTTP uses an injected client with a timeout (never `http.DefaultClient`), checks `resp.StatusCode`, and caps the body it reads — [patterns/go-http-client.md](../patterns/go-http-client.md)
 - [ ] Ctrl-C/SIGTERM cancels the context; in-flight work finishes or rolls back; interrupted runs exit non-zero
 - [ ] Partial work is safe: units of work atomic (temp file + rename, transaction) or reruns idempotent
 - [ ] Prose passes [STYLE.md](../STYLE.md): comments say *why* (not what), README leads with the point, commits are semantic (`type(scope): subject`), any LLM prompts follow its prompt rules

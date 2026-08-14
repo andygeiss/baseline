@@ -1,6 +1,6 @@
 # Pattern: Go CLI
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-14**
 
 The mechanics behind [project-types/cli-tool.md](../project-types/cli-tool.md):
 process skeleton, flags, streams, exit codes, version reporting, testing.
@@ -96,19 +96,17 @@ Flags win over environment variables win over built-in defaults — expressed by
 making the env var the flag's default:
 
 ```go
-addr := fs.String("addr", envOr("MYTOOL_ADDR", "localhost:8080"), "server address (env MYTOOL_ADDR)")
-
-func envOr(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
-}
+addr := fs.String("addr", cmp.Or(os.Getenv("MYTOOL_ADDR"), "localhost:8080"), "server address (env MYTOOL_ADDR)")
 ```
 
-Env vars are namespaced with the tool's name (`MYTOOL_*`) and documented in `-h`
-text (`"server address (env MYTOOL_ADDR)"`). No config files until a real project
-demonstrates the need; when that day comes, it's one flag pointing at one file.
+`cmp.Or` takes the first non-zero value, so the whole precedence rule is one
+stdlib call — no helper needed.
+
+A CLI namespaces its variables with the tool's name (`MYTOOL_*`) and names them
+in the `-h` text, so `-h` is the whole contract. The `Config` struct,
+validation, and the secrets rules live in [go-config.md](go-config.md) — a
+single-purpose tool with two flags does not need the struct, but everything
+else there applies from the first flag.
 
 ## Streams
 

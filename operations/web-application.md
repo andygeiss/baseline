@@ -1,6 +1,6 @@
 # Operations: Web Application
 
-**Last verified: 2026-08-12**
+**Last verified: 2026-08-14**
 
 Deployment target: one small Linux VPS (or container), one binary, Caddy in front,
 systemd keeping it alive, Litestream shipping backups. Boring, restorable, cheap.
@@ -121,7 +121,10 @@ Two adjustments when the defaults meet reality:
 
 The binary is configured by exactly these. `HOST`, `PORT`, `DATABASE_URL`, and
 `LOG_LEVEL` are flags with env-var defaults (a flag overrides its env var);
-`ENV` and `GOMEMLIMIT` are read from the environment only:
+`ENV` and `GOMEMLIMIT` are read from the environment only. Secrets are not in
+this table on purpose — they arrive as systemd credentials, per the section
+above. The parser that produces both is
+[patterns/go-config.md](../patterns/go-config.md):
 
 | Var | Meaning | Default |
 |---|---|---|

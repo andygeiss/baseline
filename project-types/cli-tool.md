@@ -1,6 +1,6 @@
 # Project Type: CLI Tool
 
-**Last verified: 2026-08-11**
+**Last verified: 2026-08-14**
 
 Command-line tool: starts, does one job, exits. If the process is meant to stay up
 and serve requests, it is not a CLI — build a [web application](web-application.md).
@@ -11,9 +11,10 @@ and serve requests, it is not a CLI — build a [web application](web-applicatio
 |---|---|---|
 | Language | Go (stdlib) | MUST. Same conventions as everywhere: [stack/go.md](../stack/go.md). |
 | Flags | stdlib `flag`, one `FlagSet` per subcommand | MUST. No cobra, viper, urfave/cli, kong. |
-| Config | flags > env vars > built-in defaults | MUST. No config files until genuinely needed. |
+| Config | flags > env vars > built-in defaults | MUST. No config files until genuinely needed — see [patterns/go-config.md](../patterns/go-config.md). |
 | Output | stdout = data, stderr = everything else | MUST. See [patterns/go-cli.md](../patterns/go-cli.md). |
 | Machine output | `encoding/json` behind a `-json` flag | SHOULD, when other programs consume the output. |
+| Outbound HTTP | stdlib `http.Client`, built in `run()` | MUST when the tool calls an API. Never `http.DefaultClient` — see [patterns/go-http-client.md](../patterns/go-http-client.md). |
 | Persistence | none; SQLite (`modernc.org/sqlite`) if the tool keeps state | SHOULD prefer stateless. |
 | Deployment | single static binary (`CGO_ENABLED=0`) | MUST. |
 | Distribution | `go install` + GitHub release binaries | MUST. See [operations/cli-release.md](../operations/cli-release.md). |
@@ -25,13 +26,15 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 
 1. [stack/go.md](../stack/go.md) — language conventions and toolchain
 2. [patterns/go-cli.md](../patterns/go-cli.md) — the `run()` pattern, flags, streams, exit codes, version
-3. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
-4. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
-5. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
-6. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
-7. [operations/cli-release.md](../operations/cli-release.md) — tagging, cross-compiling, publishing
-8. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
-9. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+3. [patterns/go-config.md](../patterns/go-config.md) — flags over env over defaults, validated before any work starts
+4. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
+5. [patterns/go-http-client.md](../patterns/go-http-client.md) — calling an external API: timeouts, retries, body limits (when the tool has one)
+6. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
+7. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
+8. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
+9. [operations/cli-release.md](../operations/cli-release.md) — tagging, cross-compiling, publishing
+10. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
+11. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 ## Architecture defaults
 
