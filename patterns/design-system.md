@@ -230,6 +230,30 @@ Every component composes the roles above, and every interactive state
    background, `surface` panel). A literal color in either is the same tell
    as a raw `oklch()` outside the tokens layer: a role is missing, or one
    already exists — use it.
+6. **What a design tool receives is derived, never maintained.** Uploading
+   (the Claude Design bullet above) means shipping a copy of the theme
+   somewhere the lockstep rule cannot reach. So no hand-written copy goes:
+   a committed script regenerates the upload from `app.css` and `DESIGN.md`,
+   and a project re-runs it in the commit that changes either. A second list
+   of the same token values — a `tokens.css` written for the tool, a class
+   inventory typed into a README — is the first thing to go stale (rule 3's
+   drift, one repo further out). Anything the upload states about the theme
+   is *read out of* the stylesheet at build time, so it cannot name what is
+   not there. Two things the script owes the reader:
+   - **Rewrite the app's absolute asset paths.** A self-hosted font at
+     `/static/fonts/…` ([css-typography.md](css-typography.md)) resolves to
+     nothing outside the app's root, and `font-display: optional` swallows
+     the failure — the tool renders the fallback font, shows no error, and
+     every design it produces loses the type hierarchy the theme is built
+     on. Point the upload's copy at its own directory and check the
+     rendered result, not the upload's exit code.
+   - **Say what is not there.** A baseline web application has no
+     JavaScript ([README](../README.md) core value 2) and therefore no
+     components to bundle: the upload is the stylesheet, the fonts, this
+     file, and the class vocabulary. A design tool with a component picker
+     will show an empty one. Write that down in the upload — an
+     unexplained empty picker reads as a broken import, and the next
+     person re-runs the sync looking for the failure.
 
 ## Anti-patterns
 
@@ -242,6 +266,9 @@ Every component composes the roles above, and every interactive state
 - ❌ The design system living in the design tool — Claude Design and Figma are
   consumers; the repo's `DESIGN.md` is the record, versioned with the code it
   styles.
+- ❌ Hand-maintaining what a design tool receives — a `tokens.css` written for
+  the tool, a class list typed into its README (rule 6). Derive it, or the
+  tool designs against last month's theme.
 - ❌ `DESIGN.md` as a second CSS architecture document — cascade layers,
   breakpoints, and motion mechanics belong to the baseline patterns; this file
   records values and inventory.
