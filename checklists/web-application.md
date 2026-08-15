@@ -3,7 +3,13 @@
 **Last verified: 2026-08-15**
 
 Walk this before declaring any milestone complete. Every unchecked box is either fixed
-or explicitly waived by the user in writing.
+or waived on the record — the waiver format lives in [README.md](../README.md) under
+*Which rules can be waived*. **Nothing under Security below is waivable**, and neither
+are the SQLite pragmas and the single-writer pool: those are the safety tier, so an
+unchecked box there means the work is not done.
+
+This checklist stands on its own. Every box names the document behind it, so you can
+walk it without holding the whole corpus in your head.
 
 ## Stack compliance
 
@@ -80,7 +86,7 @@ or explicitly waived by the user in writing.
 
 ## Ship
 
-- [ ] README links to this baseline and records any waived rules
+- [ ] README links to this baseline; any waived rule recorded in the format [README.md](../README.md) *Which rules can be waived* defines (rule, document, date, who, why, what contains it)
 - [ ] The binary satisfies every line of [operations/web-application.md](../operations/web-application.md): two listeners, stdout logs, SIGTERM shutdown, state under `DATABASE_URL`, secrets from `CREDENTIALS_DIRECTORY`
 - [ ] It starts with an empty environment on `127.0.0.1:8080` — no deployment needed to try it
 - [ ] `GOMEMLIMIT` set by the deployment; version visible in `/healthz` and the boot log (`debug.ReadBuildInfo`) — and it is the git tag, not `unknown` and not a pseudo-version off an older major (past v1 the module path carries the `/vN` suffix — [operations/web-application.md](../operations/web-application.md) *Version stamping*)

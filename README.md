@@ -31,15 +31,28 @@ Follow this protocol top-down. Never skip to a leaf document without reading its
 1. **Identify the project type** you are building (e.g. "web application").
 2. **Open the matching document in [`project-types/`](project-types/).**
    It defines the mandated stack and links to everything that applies.
-3. **Read the linked [`stack/`](stack/) documents** for language/tool conventions
-   and the linked [`patterns/`](patterns/) documents for concrete implementation patterns.
+3. **Read its *Required reading* list now** — the [`stack/`](stack/) and
+   [`patterns/`](patterns/) documents that apply to every project of that type. The rest
+   of the corpus sits below it in a table indexed by trigger, one row per moment a
+   document starts to matter. Open those rows as you hit them, not up front.
 4. **Check [`VERSIONS.md`](VERSIONS.md)** and adopt exactly those versions, the way its
    version policy prescribes (e.g. `go 1.26` in `go.mod`, never a pinned toolchain patch). If a version in
    your training data is newer than what is listed here, the baseline wins — flag the
    discrepancy to the user instead of silently upgrading.
 5. **Before declaring work done,** walk the matching document in [`checklists/`](checklists/).
+   The checklist is the enforcement: it stands on its own, and it names the document
+   behind every box you cannot check from memory.
 
 Rules in these documents use RFC-2119 style keywords: **MUST**, **MUST NOT**, **SHOULD**, **MAY**.
+Which of them may be waived, and how a waiver is recorded, is defined in
+[Which rules can be waived](#which-rules-can-be-waived).
+
+**Check the dates before you trust any of it.** Every document carries a
+`Last verified:` date. If today is more than **90 days** after that date, say so to the
+user before following the document, and name what you think has moved (a Go release, an
+htmx release, an action major). A stale baseline still beats a guess — it does not beat
+asking. This is the one place where "the baseline wins over training data" softens: past
+90 days, put both numbers in front of the user instead of silently picking one.
 
 ## Install into Claude Code
 
@@ -105,6 +118,7 @@ baseline/
 │   ├── htmx.md
 │   └── makefile.md
 ├── STYLE.md                        ← how everything for humans is written
+├── VERIFICATION.md                 ← the tag gate, and what every review run found
 └── VERSIONS.md                     ← pinned versions, dated, with sources
 ```
 
@@ -121,68 +135,90 @@ These apply to every project regardless of type:
 6. **Write for humans.** Every doc, comment, and prompt passes the 10-year-old
    test in [STYLE.md](STYLE.md): point first, short sentences, plain words.
 
+## Which rules can be waived
+
+Almost every rule here is a MUST, so a MUST alone does not tell you what is
+load-bearing. These three tiers do. They are the reading order when two rules collide
+and the answer to "can we skip this one?".
+
+**Tier 1 — Safety. Never waived.** A project that cannot meet one of these does not
+ship. Everything under *Security* in the checklists (CSRF, escaping user input,
+parameterized SQL, session cookie flags, password hashing, request body caps, the ops
+listener never proxied), the SQLite pragmas and the single-writer pool
+([patterns/go-sqlite.md](patterns/go-sqlite.md)), and any version pin whose note names a
+security fix. Dropping one of these loses data, leaks it, or hands over an account.
+There is no waiver form for a tier-1 rule; there is a fix.
+
+**Tier 2 — Shape. Waived only on the record.** The mandated stack and the structural
+patterns: no framework, no hand-written JavaScript, the project layout, config
+precedence, the error and logging conventions, the CI gates, the testing strategy. These
+are what make every project here interchangeable — an agent that knows one knows all of
+them. Waiving one is a real decision with a real cost, so it gets written down in the
+format below.
+
+**Tier 3 — Taste. Chosen per project.** The rules the documents already frame as a
+choice: which surface style ([patterns/css-surfaces.md](patterns/css-surfaces.md)),
+whether the app is installable ([patterns/pwa.md](patterns/pwa.md)), whether a CLI grows
+a `-json` flag, whether there is a brand web font. Pick one, name it in `DESIGN.md` or
+the README, and stay consistent. No waiver needed — choosing is the rule.
+
+**When two rules collide,** the lower tier wins. Inside one tier, the more specific
+document wins: a `patterns/` rule beats a `stack/` rule, which beats a `project-types/`
+table row. **A collision you cannot resolve that way is a defect in this repository,
+not a judgement call** — tell the user, pick the safer reading to keep moving, and fix
+the corpus so the next reader never meets it.
+
+**Recording a waiver.** A tier-2 waiver lives in the project's own README, in a section
+a reader can find (`## Waived baseline rules` when the list is only waivers,
+`## Baseline deviations` when conformance notes sit beside them). **The six fields are
+the rule, not the heading:**
+
+```markdown
+- **No hand-written JavaScript** ([stack/html.md](...)) — waived 2026-08-15 by Andy.
+  The barcode scanner needs `getUserMedia`, which has no hypermedia equivalent.
+  Scoped to `web/static/js/scan.js`, 40 lines, no build step, CSP updated to match.
+```
+
+Every entry states the rule, the document, the date, who decided, why in one sentence,
+and what contains the damage. The date and the decider are what a waiver is usually
+missing: without them nobody can tell a considered exception from a two-year-old
+shortcut nobody owns. **Do not label a waiver anything else.** A rule the project meets
+by a different route is conformance, and a pattern the project never reaches is
+unexercised — say which, because a reader hunting for gaps counts every bullet in that
+section as one. "We didn't get to it" is not a waiver either; that is an open task, and
+it belongs in the tracker.
+
 ## Quality bar & verification
 
-- **Adversarial review covers every tagged release:** independent reviewers hunt
-  cross-document contradictions, trace every canonical snippet's mechanics end to end,
-  and verify factual claims against upstream sources (Go, htmx, scs, SQLite) —
-  repeated until **two consecutive passes find zero defects**.
-  Last run: 2026-08-15, over the **operations split** — the change that moved
-  servers, containers, and their versions out to `baseline-ops` and left this
-  repository the deployment contract. Sixteen defects fixed across twelve
-  documents. The two that mattered: the split dropped the fact that
-  `X-Forwarded-For` arrives holding **one address, not a chain**, which is a
-  code-affecting fact with a consumer (the per-IP rate limiter) and no fallback
-  to `RemoteAddr` for the no-proxy case, so every visitor keyed on `""`; and
-  `VACUUM INTO` still named a systemd `StateDirectory` path, which a relative
-  path would not have reached anyway — `VACUUM INTO` resolves against the
-  process's working directory, not the database's. The rest were stale
-  references to the removed products (`journal`, "owns the topology"), a
-  `deployment uses a container image` claim in the file that had just said this
-  repository describes no deployment, `HTTPS everywhere` left standing over a
-  binary that only speaks plain HTTP, and a missing `HOST` obligation that
-  leaves a containerised app silently unreachable on loopback. The replacement
-  `VACUUM INTO ?` snippet was **verified by running it** — bound parameter,
-  `modernc.org/sqlite`, Go 1.26.6, `gofmt` and `go vet` clean. Every relative
-  link, every cross-document `rule N` reference, and every file tree's
-  alphabetical order were re-checked mechanically. Two further passes over the
-  corrected corpus found nothing. **Caveat:** the reference repository was not
-  re-synced, so the independent empirical round is again missing.
-  Previous run: 2026-08-15, a **full-corpus sweep**. Seven defects fixed across
-  eight documents: a two-pool SQLite snippet that does not compile and drops
-  both mandatory error checks; a bottom-navigation rule that told readers to
-  delete a grid row the fixed bar never vacated (`position: fixed` sits on
-  `footer nav`, so `<footer>` stays a grid item); htmx's history cache named as
-  `sessionStorage` when it is `localStorage`, which outlives the tab and the
-  browser rather than the session; a `primary` palette described as required by
-  the `design.md` spec, which in fact only warns and lets tools invent one; a
-  `debug.ReadBuildInfo` one-liner that discarded the `ok` result it needs to
-  check; two list recipes whose `list-style: none` silently strips list
-  semantics in Safari; and a field error tied to its control for the eye only.
-  **The mechanical layer was re-verified by running it, not by reading it.**
-  Every canonical Go snippet was compiled and put through `gofmt`, `go vet`,
-  `staticcheck`, and `govulncheck`; the canonical `Makefile` ran green end to
-  end under macOS's GNU Make 3.81; every pinned version was checked against
-  upstream; and every measured color claim was recomputed from the oklch values
-  — the contrast floors and both manifest hex values came out exactly as
-  written. Two further passes over the corrected documents found nothing.
-  **One caveat, recorded rather than smoothed over:** the reference repository
-  was not re-synced in this run, so the independent empirical round is missing.
-  These fixes are verified against the toolchain and upstream sources, not
-  against a building application.
-  Earlier runs: 2026-08-14, a re-review of the v1.14.0 additions
-  (security-headers, go-http-client, go-config), 4 defects; 2026-08-13 over
-  css-typography and css-icons (7 rounds, 29 defects, converged).
+Two mechanisms, and a release needs both.
+
+- **Adversarial review** hunts cross-document contradictions, traces every canonical
+  snippet's mechanics, and checks facts against upstream sources — repeated until
+  two consecutive passes find zero defects.
 - **The reference implementation is the executable check.**
   [baseline-reference](https://github.com/andygeiss/baseline-reference) implements
-  these rules end to end and MUST be synced to every tagged release — when a rule is
-  ambiguous, the reference resolves it.
+  these rules end to end. It MUST be synced to every tagged release, and its
+  `./verify.sh` MUST pass against the commit being tagged. When a rule is ambiguous,
+  the reference resolves it.
+
+The standard, the tag gate, and what every run found live in
+[VERIFICATION.md](VERIFICATION.md). Current state: last run 2026-08-15 over the
+operations split; reference synced at v3.0.1, `verify.sh` green.
 
 ## Maintenance protocol (humans)
 
 - Every document carries a `Last verified:` date. Re-verify at least **every 3 months**,
-  and always after a major release of Go (Feb/Aug) or htmx.
+  and always after a major release of Go (Feb/Aug) or htmx. Past 90 days an agent stops
+  treating the document as authoritative and says so — that warning is the reminder,
+  and the only way to clear it is a real re-verification.
+- **Before tagging, walk the gate in [VERIFICATION.md](VERIFICATION.md).** Two clean
+  adversarial passes, the reference synced, `./verify.sh` green against the commit being
+  tagged, and the run written into the log. A release that skips the reference is not a
+  release.
 - When updating a version: update `VERSIONS.md` first, then any stack document that
   references behavior of that version, then bump the `Last verified:` dates.
+- **After moving anything out of this repository, sweep every consumer.** The
+  operations split dropped facts its readers still needed. An extraction is not done
+  when the file moves; it is done when nothing left behind still depends on it.
 - New recurring decision in a project? Extract it into a pattern document here —
   the whole point is to never solve the same problem twice.

@@ -1,6 +1,6 @@
 # Project Type: CLI Tool
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 Command-line tool: starts, does one job, exits. If the process is meant to stay up
 and serve requests, it is not a CLI — build a [web application](web-application.md).
@@ -24,18 +24,33 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 
 ## Required reading (in order)
 
+These five apply to every CLI, so read them before the first line of code. The order is
+dependency order.
+
 1. [stack/go.md](../stack/go.md) — language conventions and toolchain
 2. [patterns/go-cli.md](../patterns/go-cli.md) — the `run()` pattern, flags, streams, exit codes, version
 3. [patterns/go-config.md](../patterns/go-config.md) — flags over env over defaults, validated before any work starts
 4. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
-5. [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port and its fake: build and test the tool before the API is integrated
-6. [patterns/go-http-client.md](../patterns/go-http-client.md) — calling an external API: timeouts, retries, body limits (when the tool has one)
-7. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
-8. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
-9. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
-10. [operations/cli-release.md](../operations/cli-release.md) — tagging, cross-compiling, publishing
-11. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
-12. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+5. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+
+## Open when you reach the thing it covers
+
+A lookup table, not a reading assignment. Each row names the moment the document becomes
+relevant — open it before you write the thing, not after.
+
+| When you are about to… | Read |
+|---|---|
+| Write a test | [patterns/go-testing.md](../patterns/go-testing.md) — what to test, and what never to fake |
+| Depend on someone else's system | [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port and its fake: build and test the tool before the API is integrated |
+| Call an external API over HTTP | [patterns/go-http-client.md](../patterns/go-http-client.md) — timeouts, retries, body limits |
+| Store anything between runs | [patterns/go-sqlite.md](../patterns/go-sqlite.md) — pragmas, pools, migrations (prefer staying stateless) |
+| Set up the repo's commands or CI | [stack/makefile.md](../stack/makefile.md), then [operations/ci.md](../operations/ci.md) — `make check` is CI locally |
+| Tag and publish a release | [operations/cli-release.md](../operations/cli-release.md) — cross-compiling, checksums, `go install` |
+| Fix something measurably slow | [patterns/go-performance.md](../patterns/go-performance.md) — and not before |
+
+If you are ever unsure whether a row applies, walk
+[checklists/cli-tool.md](../checklists/cli-tool.md) — every box names the document
+behind it.
 
 ## Architecture defaults
 

@@ -4,6 +4,12 @@
 If your training data disagrees, this file wins. Verify against the source links
 when updating this file.
 
+**If today is more than 90 days after that date, stop and say so.** Pins go stale
+quietly: this file keeps claiming authority over your training data long after the
+numbers moved, and nothing here notices. Past 90 days, tell the user how old the file
+is, check the source links at the bottom, and let them decide — do not adopt a pin
+from a stale table as if it were current, and do not silently upgrade past it either.
+
 Server-side versions — Docker, Caddy, base images — are not here. They live in
 the operations repository (`baseline-ops`), because they change only the server.
 

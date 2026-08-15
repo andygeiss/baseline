@@ -1,9 +1,14 @@
 # Checklist: CLI Tool — Definition of Done
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 Walk this before declaring any milestone complete. Every unchecked box is either
-fixed or explicitly waived by the user in writing.
+fixed or waived on the record — the waiver format lives in [README.md](../README.md)
+under *Which rules can be waived*. The safety tier is not waivable: partial work
+staying safe, and a destructive action needing an explicit flag.
+
+This checklist stands on its own. Every box names the document behind it, so you can
+walk it without holding the whole corpus in your head.
 
 ## Stack compliance
 
@@ -44,7 +49,7 @@ fixed or explicitly waived by the user in writing.
 
 ## Ship
 
-- [ ] README links to this baseline, shows `go install` line + a 30-second usage example, records any waived rules
+- [ ] README links to this baseline, shows `go install` line + a 30-second usage example, and records any waived rule in the format [README.md](../README.md) *Which rules can be waived* defines
 - [ ] Release workflow from [operations/cli-release.md](../operations/cli-release.md) in place; tag builds all six targets + `SHA256SUMS`
 - [ ] `go install github.com/andygeiss/<tool>@<tag>` (or `…/cmd/<name>@<tag>` in a multi-binary module) verified from a clean machine (or empty `GOMODCACHE`)
 - [ ] Semver honored: breaking changes to flags, exit codes, `-json` fields, or the meaning of stdout output only in a major release

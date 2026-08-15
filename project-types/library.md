@@ -1,6 +1,6 @@
 # Project Type: Library
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 A reusable Go module imported by other projects. Libraries are **extracted, not
 invented**: code starts in an application's `internal/` and becomes a library only
@@ -24,15 +24,34 @@ hygiene as applications ([stack/go.md](../stack/go.md)).
 
 ## Required reading (in order)
 
+These five apply to every library, so read them before the first line of code. The order
+is dependency order.
+
 1. [stack/go.md](../stack/go.md) — language conventions and toolchain
 2. [patterns/go-library.md](../patterns/go-library.md) — layout, doc comments, Example functions, fuzz corpus, release mechanics
 3. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — error wrapping and sentinel errors (the logging half does not apply: libraries return, consumers log)
 4. [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port rules a library lives by: take the consumer's interface, never invent one (the adapter and fake halves are for programs)
-5. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
-6. [operations/ci.md](../operations/ci.md) — the CI workflow, used verbatim
-7. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
-8. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
-9. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+5. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+
+Ports & adapters is required reading here rather than a lookup row: "accept the
+consumer's interface, never invent one" is an API design rule, and a library gets it
+wrong at design time or not at all.
+
+## Open when you reach the thing it covers
+
+A lookup table, not a reading assignment. Each row names the moment the document becomes
+relevant — open it before you write the thing, not after.
+
+| When you are about to… | Read |
+|---|---|
+| Write a test | [patterns/go-testing.md](../patterns/go-testing.md) — plus the external-test-package and fuzz rules below |
+| Set up the repo's commands or CI | [stack/makefile.md](../stack/makefile.md), then [operations/ci.md](../operations/ci.md) — used verbatim; `make check` is CI locally |
+| Accept an HTTP client from a consumer | [patterns/go-http-client.md](../patterns/go-http-client.md) — what the consumer owns, and why the library never builds one |
+| Fix something measurably slow | [patterns/go-performance.md](../patterns/go-performance.md) — and not before |
+
+If you are ever unsure whether a row applies, walk
+[checklists/library.md](../checklists/library.md) — every box names the document behind
+it.
 
 ## API design rules
 
@@ -79,8 +98,8 @@ hygiene as applications ([stack/go.md](../stack/go.md)).
 - Every exported symbol has a doc comment.
 - Runnable `Example` functions (`func ExampleParse()`) for the main entry points —
   they render on pkg.go.dev *and* compile in CI, so the docs can't rot.
-- README: install line, the 30-second example, link to this baseline, any waived
-  rules.
+- README: install line, the 30-second example, link to this baseline, and any waived
+  rule in the format [README.md](../README.md) *Which rules can be waived* defines.
 
 ## Testing
 

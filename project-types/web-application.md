@@ -30,6 +30,9 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 
 ## Required reading (in order)
 
+These eleven apply to every web application, so read them before the first line of
+code. The order is dependency order.
+
 1. [stack/go.md](../stack/go.md) — language conventions and toolchain
 2. [stack/html.md](../stack/html.md) — markup and the no-JS rule
 3. [stack/css.md](../stack/css.md) — styling architecture
@@ -39,26 +42,39 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 7. [patterns/go-http-server.md](../patterns/go-http-server.md) — server, routing, middleware, CSRF
 8. [patterns/security-headers.md](../patterns/security-headers.md) — the CSP and every other security header, in one place
 9. [patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md) — full pages vs fragments
-10. [patterns/css-layout.md](../patterns/css-layout.md) — mobile-first page and component layouts (grid)
-11. [patterns/css-tokens.md](../patterns/css-tokens.md) — the concrete tokens layer and dark mode
-12. [patterns/css-typography.md](../patterns/css-typography.md) — the type scale, and the only sanctioned way to add a web font
-13. [patterns/css-icons.md](../patterns/css-icons.md) — icons as CSS masks, tinted by `currentColor`
-14. [patterns/css-motion.md](../patterns/css-motion.md) — motion as feedback: transitions, view transitions, reduced motion
-15. [patterns/design-system.md](../patterns/design-system.md) — the root `DESIGN.md`: theme values lockstep with `app.css`
-16. [patterns/css-surfaces.md](../patterns/css-surfaces.md) — the surface style: minimal (the default), neumorphic, or glass
-17. [patterns/pwa.md](../patterns/pwa.md) — install to the home screen: manifest, icons, no service worker (when the project opts in)
-18. [patterns/go-sqlite.md](../patterns/go-sqlite.md) — production SQLite: pragmas, pools, migrations, backups
-19. [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, login, password hashing (when there are users)
-20. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
-21. [patterns/go-forms-validation.md](../patterns/go-forms-validation.md) — the form loop: validator, 422 re-render, flash messages
-22. [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the seam to someone else's system: the port, the hand-written fake, and finishing the feature before the API is integrated
-23. [patterns/go-http-client.md](../patterns/go-http-client.md) — calling an external API: timeouts, retries, body limits (when the app has one)
-24. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
-25. [operations/web-application.md](../operations/web-application.md) — the deployment contract: listeners, signals, logs, secrets, the environment
-26. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
-27. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
-28. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
-29. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+10. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
+11. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+
+## Open when you reach the thing it covers
+
+The rest of the corpus is a lookup table, not a reading assignment. Each row names the
+moment the document becomes relevant. **Open it at that moment — and open it before you
+write the thing, not after.** Nothing here is optional when its trigger fires; the
+checklist checks all of it either way.
+
+| When you are about to… | Read |
+|---|---|
+| Write any CSS at all | [patterns/css-tokens.md](../patterns/css-tokens.md) — the tokens layer and dark mode |
+| Lay out a page or a component | [patterns/css-layout.md](../patterns/css-layout.md) — mobile-first grid, container queries, bottom nav |
+| Write the first line of `app.css` | [patterns/design-system.md](../patterns/design-system.md) — the root `DESIGN.md`, lockstep with the stylesheet |
+| Choose how surfaces look | [patterns/css-surfaces.md](../patterns/css-surfaces.md) — minimal (the default), neumorphic, or glass |
+| Size text, or add a web font | [patterns/css-typography.md](../patterns/css-typography.md) — the type scale, and the only sanctioned way to self-host a font |
+| Add an icon | [patterns/css-icons.md](../patterns/css-icons.md) — CSS masks tinted by `currentColor` |
+| Animate or transition anything | [patterns/css-motion.md](../patterns/css-motion.md) — motion as feedback, and reduced motion |
+| Store anything | [patterns/go-sqlite.md](../patterns/go-sqlite.md) — pragmas, the two pools, migrations, backups |
+| Add users, login, or passwords | [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, hashing, renewal |
+| Accept a form POST | [patterns/go-forms-validation.md](../patterns/go-forms-validation.md) — validator, 422 re-render, flash messages |
+| Depend on someone else's system | [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port, the hand-written fake, finishing the feature before the API exists |
+| Call an external API over HTTP | [patterns/go-http-client.md](../patterns/go-http-client.md) — timeouts, retries, body limits |
+| Write a test | [patterns/go-testing.md](../patterns/go-testing.md) — what to test, and what never to fake |
+| Make the app installable | [patterns/pwa.md](../patterns/pwa.md) — manifest, icons, and why there is never a service worker |
+| Set up the repo's commands or CI | [stack/makefile.md](../stack/makefile.md), then [operations/ci.md](../operations/ci.md) — `make check` is CI locally |
+| Configure the build, or serve a static asset | [patterns/go-performance.md](../patterns/go-performance.md) — GOMEMLIMIT, cache headers, version busting: day-one defaults, not tuning |
+| Ship it | [operations/web-application.md](../operations/web-application.md) — the deployment contract: listeners, signals, logs, secrets |
+
+If you are ever unsure whether a row applies, walk
+[checklists/web-application.md](../checklists/web-application.md) — every box names the
+document behind it.
 
 ## Architecture defaults
 

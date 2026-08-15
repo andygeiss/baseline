@@ -1,9 +1,14 @@
 # Checklist: Library — Definition of Done
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 Walk this before declaring any milestone complete. Every unchecked box is either
-fixed or explicitly waived by the user in writing.
+fixed or waived on the record — the waiver format lives in [README.md](../README.md)
+under *Which rules can be waived*. The compatibility promises are not waivable: after
+v1.0.0 they are a promise to every consumer, not a preference.
+
+This checklist stands on its own. Every box names the document behind it, so you can
+walk it without holding the whole corpus in your head.
 
 ## Justification
 
@@ -36,7 +41,7 @@ fixed or explicitly waived by the user in writing.
 - [ ] Package doc comment shows the primary entry point; reads well on pkg.go.dev
 - [ ] Every exported symbol documented
 - [ ] Runnable `Example` functions for the main entry points (they compile in CI)
-- [ ] README: install line, 30-second example, link to this baseline, waived rules recorded
+- [ ] README: install line, 30-second example, link to this baseline, any waived rule recorded in the format [README.md](../README.md) *Which rules can be waived* defines
 - [ ] Prose passes [STYLE.md](../STYLE.md): doc comments follow godoc, other comments say *why* (not what), README leads with the point, commits are semantic (`type(scope): subject`), any LLM prompts follow its prompt rules
 
 ## Tests
