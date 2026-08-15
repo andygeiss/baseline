@@ -147,7 +147,10 @@ owns that policy; anyone tightening it starts here.
 4. **Size in `em`, never `px`.** `1em` ties the icon to its type, so it tracks
    fluid headings ([css-typography.md](css-typography.md)) and the user's
    font-size setting. A bigger icon comes from bigger text on the control, not
-   from an icon-size ladder.
+   from an icon-size ladder. One control sets its own factor: in a bottom
+   navigation target the icon is what the thumb aims at and the word underneath
+   only names it, so it takes `font-size: 1.5em` at that one use site
+   ([css-layout.md](css-layout.md)) — still `em`, still no ladder.
 5. **One mechanism.** No icon font, no sprite file, no `<img>` icon, no inline
    SVG in templates. A mark that cannot be a single-color mask — a logo, an
    empty-state illustration — is an image with `alt`, not an icon.

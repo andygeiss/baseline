@@ -99,6 +99,94 @@ blocks inside it. Inside a 65 ch `main` the card grid below is stuck at one
 or two cramped columns. The sidebar's `48em` query — which reads the
 viewport, not the container — fires while the content column is still narrow.
 
+## Bottom navigation — the fixed bar
+
+An app whose pages are places rather than documents navigates from a bar fixed
+to the bottom of the screen, where the thumb already is. The bar is
+`position: fixed`, so it stays off `body`'s grid — the shell above then has two
+rows, `auto 1fr`, because the footer takes none:
+
+```css
+@layer layout {
+  footer nav {
+    position: fixed;
+    inset-block-end: 0;
+    inset-inline: 0;
+    display: flex;
+    justify-content: space-around;
+    padding-block: var(--space-xs);
+    /* Without the inset the phone's home indicator sits on the last row of targets. */
+    padding-block-end: calc(var(--space-xs) + env(safe-area-inset-bottom));
+    border-block-start: 1px solid var(--color-border);
+    background: var(--color-surface); /* opaque: the page scrolls behind the bar */
+  }
+
+  footer nav a {
+    display: flex;
+    flex-direction: column; /* icon over word */
+    align-items: center;
+    gap: 0.125rem;
+    min-inline-size: 3.5rem;
+    min-block-size: 3.5rem; /* 56px — the target size, not the 44px floor */
+    padding: var(--space-xs);
+    font-size: 0.8125rem;
+    text-decoration: none;
+    color: var(--color-text-muted);
+  }
+
+  /* The one control where the icon outgrows its label: the icon is what the
+     thumb aims at, the word only names it (css-icons.md rule 4). */
+  footer nav a .icon { font-size: 1.5em }
+
+  footer nav a[aria-current="page"] {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+}
+```
+
+`main` reserves the bar's height, or the last card ends up underneath it:
+`padding-block-end: calc(6rem + env(safe-area-inset-bottom))`.
+
+Each link carries an icon span and a word, and the server marks the current
+one — the markup [css-icons.md](css-icons.md) and
+[stack/html.md](../stack/html.md) prescribe:
+
+```html
+<footer>
+  <nav aria-label="Main">
+    <a href="/inbox" aria-current="page">
+      <span class="icon icon-inbox" aria-hidden="true"></span>Inbox
+    </a>
+    …
+  </nav>
+</footer>
+```
+
+Five rules hold the bar together:
+
+1. **Every destination keeps its word.** An icon-only bar is a guessing game
+   for everything past the house and the person glyph — an inbox tray, a star,
+   and a check mark name no destination on their own, and a first-time user
+   learns them by tapping. `aria-label` fixes the screen reader and nothing
+   else. Both platform conventions agree (Apple HIG tab bars, Material bottom
+   navigation): the label stays.
+2. **Grow the box, never drop the label.** A bigger glyph adds no hit area —
+   the target is the `<a>` box. 44 px is the floor (WCAG 2.5.5, Apple's 44 pt,
+   Google's 48 dp; WCAG 2.5.8 AA asks only 24 px); a primary destination gets
+   `3.5rem`. Whoever wants a bigger bar raises `min-block-size`.
+3. **Five destinations at most.** Five 56 px targets fit a 320 px screen with
+   room to spare (64 px each); six do not. A sixth destination belongs on a
+   page, not in the bar — and a bar that hides destinations on phones breaks
+   mobile-first rule 4 above.
+4. **The current destination is marked twice over.** `aria-current="page"`
+   names it, and color *plus* weight show it — color alone would be the
+   distinction WCAG 1.4.1 forbids, and dropping the word (rule 1) leaves
+   nothing but color.
+5. **The bar is opaque.** Content scrolls behind it, so a translucent one has
+   no measurable backdrop ([css-surfaces.md](css-surfaces.md)) and a raised or
+   frosted one smears whatever passes underneath.
+
 ## Card grid — zero media queries
 
 The default for any collection of like items (cards, products, thumbnails):
@@ -238,6 +326,8 @@ Never give a text container a fixed height. Content determines height;
 - ❌ Fixed pixel widths or heights on containers.
 - ❌ A global 12-column system (`.col-md-6`) — that is a framework habit; each
   layout declares the few tracks it actually has.
+- ❌ An icon-only bottom bar, or a taller icon buying a bigger tap target — the
+  word stays under the glyph, and the target grows through the `<a>` box.
 - ❌ Absolute positioning for layout — it is for overlay decorations (badges,
   status dots) anchored to a `position: relative` parent, and for off-screen
   accessibility hiding (`.visually-hidden`) — never page layout.
