@@ -59,9 +59,9 @@ HTML over the wire with no client framework tax. Performance work is therefore
   a deploy.
 - **HTML responses:** `Cache-Control: no-store` for authenticated pages; dual-mode
   responses already send `Vary: HX-Request, HX-Boosted` via the render helper.
-- **Compression happens at the reverse proxy** — the `encode zstd gzip` line in the
-  ops Caddyfile (Caddy does **not** compress without it). The app does not gzip.
-  Keep the app boring; let the edge do edge work.
+- **Compression happens at the reverse proxy**, which the deployment configures —
+  and most proxies do **not** compress until told to. The app does not gzip. Keep
+  the app boring; let the edge do edge work.
 - **Keep fragments small.** The cheapest response is the one that only contains what
   changed — that's the htmx architecture doing the performance work for you.
 

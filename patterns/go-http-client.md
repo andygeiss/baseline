@@ -1,6 +1,6 @@
 # Pattern: HTTP Client (Go)
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 Calling someone else's HTTP API. Stdlib only. The rule that matters most is the
 first one, because the default is wrong:
@@ -267,7 +267,7 @@ func retryAfter(resp *http.Response) (time.Duration, bool) {
 - **`rand` is `math/rand/v2`** ([stack/go.md](../stack/go.md)). Jitter needs no
   cryptographic randomness, and v2 needs no seeding.
 - **Retries hide outages.** Log at the point of final failure, not per attempt,
-  or one flapping dependency floods the journal.
+  or one flapping dependency floods the logs.
 
 ## Testing
 

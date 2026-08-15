@@ -1,6 +1,6 @@
 # Pattern: Errors & Logging (Go)
 
-**Last verified: 2026-08-10**
+**Last verified: 2026-08-15**
 
 ## Errors
 
@@ -36,12 +36,13 @@ Constructed once in `main.go`, injected as a dependency (no package-level logger
 
 ```go
 logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-	Level: cfg.LogLevel, // slog.LevelDebug in dev, Info in prod
+	Level: cfg.LogLevel, // parsed at boot into a slog.Level, never a string
 }))
 ```
 
 - **JSON handler in production** (machines read it), `slog.NewTextHandler` in dev
-  (humans read it). Switch on an env var.
+  (humans read it). The switch is `cfg.Env`, which `main` already parsed
+  ([go-config.md](go-config.md)) — not a fresh `os.Getenv` here.
 - **Always key-value attrs, never Sprintf into the message:**
   `logger.Info("game created", "game_id", g.ID, "player", p.Name)` — the message is a
   constant, the variables are attrs.
@@ -52,5 +53,6 @@ logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 - **Never log:** passwords, tokens, session IDs, full request bodies, or anything
   covered by "would I paste this in a public gist?"
 - Log to stdout only (server processes; a CLI logs to stderr because its stdout
-  carries data — see [go-cli.md](go-cli.md)). The platform (systemd, container
-  runtime) owns shipping and rotation — the app does not open log files.
+  carries data — see [go-cli.md](go-cli.md)). Whatever runs the binary owns
+  shipping and rotation — the app does not open log files, and does not rotate
+  anything ([operations/web-application.md](../operations/web-application.md)).

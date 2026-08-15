@@ -5,6 +5,13 @@ between an LLM's training data and the current state of the art. AI agents worki
 any of my projects MUST consult this baseline before making stack, version, or pattern
 decisions — do not rely on training data for anything covered here.
 
+**Scope: how software is built here, not how a server is run.** Deployment,
+servers, containers, and their versions live in the operations repository
+(`baseline-ops`). The seam is one question — *does this fact change the code, or
+only the server?* — and this repository owns the first answer. What it publishes
+to the second is one document: the deployment contract in
+[`operations/web-application.md`](operations/web-application.md).
+
 **The bar: production grade, simplicity first, performant and secure out of the box.**
 Boring technology, one static Go binary, hypermedia over JavaScript, security as
 layered defaults rather than a checklist. Every rule exists to make the *default*
@@ -58,7 +65,7 @@ baseline/
 │   └── web-application.md
 ├── LICENSE                         ← MIT
 ├── Makefile                        ← make install / make uninstall (Claude Code)
-├── operations/                     ← how projects run in production
+├── operations/                     ← CI, releases, and the deployment contract
 │   ├── ci.md
 │   ├── cli-release.md
 │   └── web-application.md
@@ -118,9 +125,30 @@ These apply to every project regardless of type:
 
 - **Adversarial review covers every tagged release:** independent reviewers hunt
   cross-document contradictions, trace every canonical snippet's mechanics end to end,
-  and verify factual claims against upstream sources (Go, htmx, scs, SQLite, systemd,
-  Caddy) — repeated until **two consecutive passes find zero defects**.
-  Last run: 2026-08-15, a **full-corpus sweep**. Seven defects fixed across
+  and verify factual claims against upstream sources (Go, htmx, scs, SQLite) —
+  repeated until **two consecutive passes find zero defects**.
+  Last run: 2026-08-15, over the **operations split** — the change that moved
+  servers, containers, and their versions out to `baseline-ops` and left this
+  repository the deployment contract. Sixteen defects fixed across twelve
+  documents. The two that mattered: the split dropped the fact that
+  `X-Forwarded-For` arrives holding **one address, not a chain**, which is a
+  code-affecting fact with a consumer (the per-IP rate limiter) and no fallback
+  to `RemoteAddr` for the no-proxy case, so every visitor keyed on `""`; and
+  `VACUUM INTO` still named a systemd `StateDirectory` path, which a relative
+  path would not have reached anyway — `VACUUM INTO` resolves against the
+  process's working directory, not the database's. The rest were stale
+  references to the removed products (`journal`, "owns the topology"), a
+  `deployment uses a container image` claim in the file that had just said this
+  repository describes no deployment, `HTTPS everywhere` left standing over a
+  binary that only speaks plain HTTP, and a missing `HOST` obligation that
+  leaves a containerised app silently unreachable on loopback. The replacement
+  `VACUUM INTO ?` snippet was **verified by running it** — bound parameter,
+  `modernc.org/sqlite`, Go 1.26.6, `gofmt` and `go vet` clean. Every relative
+  link, every cross-document `rule N` reference, and every file tree's
+  alphabetical order were re-checked mechanically. Two further passes over the
+  corrected corpus found nothing. **Caveat:** the reference repository was not
+  re-synced, so the independent empirical round is again missing.
+  Previous run: 2026-08-15, a **full-corpus sweep**. Seven defects fixed across
   eight documents: a two-pool SQLite snippet that does not compile and drops
   both mandatory error checks; a bottom-navigation rule that told readers to
   delete a grid row the fixed bar never vacated (`position: fixed` sits on
@@ -142,7 +170,7 @@ These apply to every project regardless of type:
   was not re-synced in this run, so the independent empirical round is missing.
   These fixes are verified against the toolchain and upstream sources, not
   against a building application.
-  Previous runs: 2026-08-14, a re-review of the v1.14.0 additions
+  Earlier runs: 2026-08-14, a re-review of the v1.14.0 additions
   (security-headers, go-http-client, go-config), 4 defects; 2026-08-13 over
   css-typography and css-icons (7 rounds, 29 defects, converged).
 - **The reference implementation is the executable check.**

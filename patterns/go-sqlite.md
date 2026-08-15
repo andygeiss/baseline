@@ -65,15 +65,37 @@ Forward-only, embedded, applied at boot. No migration framework:
 
 ## Backups
 
-An unreplicated SQLite file is a single point of data loss. Pick one, MUST have one:
+**The question every project MUST answer before launch: if the server disappears
+right now, what have you lost?** The database is one file on one machine, and so
+is any snapshot written beside it. A dead disk takes both in the same second.
 
-| Option | When |
-|---|---|
-| **Litestream** (sidecar, streams WAL to S3-compatible storage) | Default for anything users depend on. Restore = `litestream restore`. |
-| `VACUUM INTO '/var/lib/app/backups/app-<date>.db'` on a timer in-process | Low-stakes apps; consistent snapshot without locking writers. Run it **on the read pool** — it only reads the source database, so it neither occupies the single write connection (starving writes) nor blocks writers. Target MUST be under the systemd `StateDirectory` — `ProtectSystem=strict` makes every other path read-only, and the failure is silent. Copy snapshots off the box. |
+Three answers are legitimate — "I don't know" is not:
 
-`cp` of a live database file is **not** a backup (torn pages). Test the restore path
-once per project, not during the incident.
+| Answer | What you run | Recovery point |
+|---|---|---|
+| **"Nothing that matters."** The data rebuilds from somewhere else, or nobody would miss it. | Nothing. Record the decision in the README so the next person sees a choice, not an oversight. | — |
+| **"Up to a day."** | `VACUUM INTO` on a timer, **plus** a second mechanism that copies the snapshot off the machine. | The last snapshot that left the box |
+| **"Seconds."** Anything users create and expect to find again. | Continuous replication of the WAL to storage somewhere else. The deployment provides it; the operations repository has the runbook. | Seconds |
+
+`VACUUM INTO` gives a consistent snapshot, and in WAL mode it blocks no writer:
+
+```go
+// The snapshot goes beside the database, built from that file's own directory:
+// every other path may be read-only, and VACUUM INTO resolves a relative path
+// against the process's working directory, not the database's.
+dst := filepath.Join(filepath.Dir(cfg.DatabaseURL), "app-"+day+".db")
+
+// The read pool, never the write pool: this statement only reads, so running
+// it on the single write connection would starve writes for its whole duration.
+_, err := readDB.ExecContext(ctx, "VACUUM INTO ?", dst)
+```
+
+That placement is also its limit — the snapshot is on the same disk as the thing
+it protects, so *getting it off the box is a separate job with its own
+credentials and its own rehearsal*. Budget for that before picking this row.
+
+`cp` of a live database file is **not** a backup (torn pages). Whichever row you
+pick, restore from it once, on purpose, before launch — not during the incident.
 
 ## Testing
 

@@ -1,6 +1,6 @@
 # Pattern: Configuration (Go)
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 Every knob the binary has, in one struct, parsed once at startup, validated
 before anything opens a socket or a file. This document owns the precedence
@@ -52,7 +52,7 @@ func parseConfig(args []string, stderr io.Writer) (Config, error) {
 		fs.PrintDefaults()
 		fmt.Fprintf(stderr, "\nRead from the environment only:\n"+
 			"  ENV\n\tdev|prod, picks text vs JSON logs (default dev)\n"+
-			"  CREDENTIALS_DIRECTORY\n\tset by systemd; directory holding secret files\n")
+			"  CREDENTIALS_DIRECTORY\n\tdirectory holding secret files; set by the deployment\n")
 	}
 
 	if err := fs.Parse(args); err != nil {
@@ -62,7 +62,7 @@ func parseConfig(args []string, stderr io.Writer) (Config, error) {
 		return Config{}, errUsage // fs already printed the message and the usage
 	}
 
-	c.Env = cmp.Or(os.Getenv("ENV"), "dev") // not a flag: the unit file sets it, never a command line
+	c.Env = cmp.Or(os.Getenv("ENV"), "dev") // not a flag: the deployment sets it, never a command line
 
 	// Cheap checks first — a typo in a flag should not wait on a file read.
 	if err := c.LogLevel.UnmarshalText([]byte(*level)); err != nil {
@@ -141,25 +141,24 @@ message twice — once from the `FlagSet`, once from `main`.
    that, so set `fs.Usage` to print them under the flag list — otherwise `-h`
    quietly stops being complete.
 6. **A CLI namespaces its variables** with the tool's name (`MYTOOL_ADDR`) —
-   it shares the environment with everything else on the box. A server
-   deployed alone in its own unit file does not need the prefix.
+   it shares the environment with everything else on the box. A server does not
+   need the prefix: it is deployed alone, and its deployment sets every variable
+   it reads.
 
 ## Secrets
 
 **Secrets arrive as files, not as flags and not as environment variables.**
-Both of the easy options leak: a flag value shows up in `ps` and in shell
-history, and an `Environment=` line in a unit file is world-readable and
-inherited by every child process. systemd's credentials mechanism passes a file
-instead, and [operations/web-application.md](../operations/web-application.md)
-mandates it:
-
-```ini
-LoadCredential=smtp-key:/etc/app/smtp-key
-```
+Both of the easy options leak: a flag value shows up in `ps`, in shell history,
+and in any process listing, and an environment variable is inherited by every
+child process and printed by whatever inspects the running service. A file is
+neither. The deployment puts one file per secret in a directory and names that
+directory in `$CREDENTIALS_DIRECTORY`; the contract is in
+[operations/web-application.md](../operations/web-application.md), and the
+operations repository decides what the path actually is.
 
 ```go
-// readCredential returns the systemd credential of that name, or "" when the
-// unit passes none — which is the normal case in dev. The caller decides
+// readCredential returns the credential file of that name, or "" when the
+// deployment passes none — which is the normal case in dev. The caller decides
 // whether an empty secret is fatal; that depends on the feature, not on config.
 func readCredential(name string) (string, error) {
 	dir := os.Getenv("CREDENTIALS_DIRECTORY")
@@ -174,9 +173,12 @@ func readCredential(name string) (string, error) {
 }
 ```
 
-`$CREDENTIALS_DIRECTORY` is set by systemd, readable only by the service user,
-and unset in a plain `go run`. That is the one environment variable the config
-layer reads for a secret, and it holds a directory path, not the secret itself.
+`$CREDENTIALS_DIRECTORY` is set by the deployment, points somewhere only the
+service user can read, and is unset in a plain `go run`. That is the one
+environment variable the config layer reads for a secret, and it holds a
+directory path, not the secret itself. The name is deliberately not tied to any
+one runtime: the code says "wherever this deployment keeps its secret files", so
+moving the app somewhere else changes the deployment and no Go.
 
 **Keep secrets out of the logs.** Logging the whole config at boot is useful
 right up until it prints a key. One method fixes it for good:
@@ -248,9 +250,10 @@ and forgets to leave out of `LogValue`.
 - ❌ Defaulting a secret (`cmp.Or(os.Getenv("SMTP_KEY"), "dev-secret")`). The default ships
   to production the day somebody forgets to configure the real one. Leave it
   empty and fail loudly at the point of use.
-- ❌ A secret in an `Environment=` line or a committed `.env` file. Unit files
-  are world-readable and repositories are forever; use the credential file
-  above. An **uncommitted** `.env` that `make run` sources
+- ❌ A secret in an environment variable or a committed `.env` file. The first
+  is readable by anything that can inspect the process and the second lives in
+  the repository forever; use the credential file above. An **uncommitted**
+  `.env` that `make run` sources
   ([stack/makefile.md](../stack/makefile.md) rule 6) is a different thing: a
   developer's own machine, gitignored, and never how a deployment gets a
   secret. The word doing the work in this bullet is *committed*.

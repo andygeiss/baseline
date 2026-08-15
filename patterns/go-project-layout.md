@@ -1,6 +1,6 @@
 # Pattern: Go Project Layout
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 Standard layout for a web application. Start smaller than this if the project is
 smaller — directories are added when a file would otherwise get roommates it doesn't

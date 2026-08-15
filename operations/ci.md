@@ -1,6 +1,6 @@
 # Operations: CI
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 The [checklists](../checklists/)' mechanical items run on every push to `main`
 and every PR —
@@ -102,6 +102,19 @@ that's what makes routine updates routine. Major-version bumps of the *pinned* s
 
 ## Out of scope for CI
 
-Deployment stays manual-and-trivial (`scp` + restart, see
-[web-application.md](web-application.md)) until a project demonstrably needs more.
-No release automation, no artifact registries, no CD pipelines by default.
+**CI never deploys, and this repository does not describe deployment at all.**
+How a web application reaches a server — and which server — belongs to the
+operations repository (`baseline-ops`), because it changes only the server. What
+belongs here is the contract the binary must satisfy:
+[web-application.md](web-application.md).
+
+The division of labour is the point: CI answers "is this code good?", and a
+person answers "should this go live now?". No CD pipeline, no deploy key in a
+repository secret. A CLI tool is the one exception, and only because its release
+*is* its distribution — [cli-release.md](cli-release.md) owns that tagged
+workflow.
+
+CI also builds no container image, whatever the deployment turns out to run.
+The lockstep rule above would pull that step into `make check` as well, and then
+every local `make` would need a container runtime up — to build a file this
+repository does not own.

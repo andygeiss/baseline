@@ -60,7 +60,7 @@ or explicitly waived by the user in writing.
 - [ ] Pragmas per [patterns/go-sqlite.md](../patterns/go-sqlite.md): WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)`
 - [ ] Two pools: reads pooled, writes `SetMaxOpenConns(1)` + `_txlock=immediate`
 - [ ] Migrations embedded, forward-only, applied at boot inside a transaction
-- [ ] Backups running (Litestream or `VACUUM INTO`) **and the restore was rehearsed once**
+- [ ] Backups: the off-box question is answered and its mechanism runs — the Ship section below is where it gets verified
 
 ## HTML/CSS/A11y
 
@@ -81,9 +81,11 @@ or explicitly waived by the user in writing.
 ## Ship
 
 - [ ] README links to this baseline and records any waived rules
-- [ ] Binary runs with only the env contract from [operations/web-application.md](../operations/web-application.md)
-- [ ] Deployed per the ops doc: Caddy in front (auto-HTTPS + compression), app on localhost, hardened systemd unit
-- [ ] `GOMEMLIMIT` set; version visible in `/healthz` and boot log (`debug.ReadBuildInfo`)
+- [ ] The binary satisfies every line of [operations/web-application.md](../operations/web-application.md): two listeners, stdout logs, SIGTERM shutdown, state under `DATABASE_URL`, secrets from `CREDENTIALS_DIRECTORY`
+- [ ] It starts with an empty environment on `127.0.0.1:8080` — no deployment needed to try it
+- [ ] `GOMEMLIMIT` set by the deployment; version visible in `/healthz` and the boot log (`debug.ReadBuildInfo`) — and it is the git tag, not `unknown`
+- [ ] TLS terminates in front of the app, the app is reachable from nothing else, and the proxy writes its own `X-Forwarded-For`
+- [ ] The off-box question is answered on purpose — "if this server disappears right now, what have you lost?" — with the matching row from [patterns/go-sqlite.md](../patterns/go-sqlite.md) running, and **the restore rehearsed once**
 - [ ] Static assets served with `immutable` cache headers + version-busting query string
 - [ ] If installable (PWA): manifest, all four icons, and head lines per [patterns/pwa.md](../patterns/pwa.md); `.webmanifest` MIME registered at boot; no service worker; manifest colors and `theme-color` metas are the current `--color-bg`, converted
-- [ ] Previous binary kept as instant rollback
+- [ ] Deployed and rolled back at least once by following the operations repository's runbook, not by improvising

@@ -1,6 +1,6 @@
 # Pattern: Authentication & Sessions (Go)
 
-**Last verified: 2026-08-10 · Sessions: `alexedwards/scs/v2` (v2.9.0) · Hashing: argon2id**
+**Last verified: 2026-08-15 · Sessions: `alexedwards/scs/v2` (v2.9.0) · Hashing: argon2id**
 
 Server-side sessions: the cookie carries only a random token; all session data lives in
 SQLite. Nothing is decrypted client-side, nothing to key-rotate, revocation is a DELETE.
@@ -94,9 +94,30 @@ argon2.IDKey(password, salt, 2, 19*1024, 1, 32)  // t=2, m=19 MiB, p=1, 32-byte 
 
 Login, registration, and password-reset MUST be rate limited per client IP: a
 `map[string]*rate.Limiter` guarded by a mutex, e.g. `rate.NewLimiter(rate.Every(3*time.Second), 5)`,
-with a janitor evicting idle entries. Over limit → `429` with `Retry-After`. Behind the
-reverse proxy, the client IP comes from the proxy-set header — trust it only from the
-proxy's address (see [operations/web-application.md](../operations/web-application.md)).
+with a janitor evicting idle entries. Over limit → `429` with `Retry-After`.
+
+The map key is the client IP, and getting it is one short function because the
+deployment contract already did the hard part:
+
+```go
+// clientIP trusts X-Forwarded-For because nothing but the proxy can reach this
+// app, and the proxy overwrote whatever the client sent
+// (operations/web-application.md). The header holds one address, not a chain —
+// nothing to split, no last-hop rule to get wrong.
+func clientIP(r *http.Request) string {
+	if ip := r.Header.Get("X-Forwarded-For"); ip != "" {
+		return ip
+	}
+	host, _, err := net.SplitHostPort(r.RemoteAddr) // no proxy in front: dev
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
+}
+```
+
+The `RemoteAddr` fallback is not decoration: with no proxy the header is empty,
+and a limiter keyed on `""` throttles every visitor as if they were one.
 
 ## Password reset (when needed)
 

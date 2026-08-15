@@ -1,11 +1,12 @@
 # Operations: CLI Release
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 How a [CLI tool](../project-types/cli-tool.md) reaches its users. For a CLI, the
-release *is* the deployment — so unlike web applications
-([ci.md](ci.md) keeps those manual-and-trivial), a tag-triggered release workflow
-is sanctioned here.
+release *is* the deployment — so unlike a web application, which a person ships
+to a server they own (the operations repository has that runbook), a
+tag-triggered release workflow is sanctioned here. It is the only workflow in
+this baseline that produces artifacts.
 
 ## Distribution channels
 

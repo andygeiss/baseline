@@ -1,6 +1,6 @@
 # Stack: Make
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 Every project ships one `Makefile` at the repository root. It is the single local
 command surface: `make` runs every gate CI runs, `make test`/`make run` serve the
@@ -72,14 +72,17 @@ clean:
    `clean` mean the same thing in every repository. A project MAY add a target
    for a real recurring command (`db-reset`, …), never speculatively; a Makefile
    growing past one screen is over-engineering.
-4. **No tool bootstrapping, no ldflags, no release logic.** Dev tools run via
-   `go run …@latest` — the same dev-tool exception CI uses ([stack/go.md](go.md)
-   approved list, rationale in [operations/ci.md](../operations/ci.md));
-   downloads are cached, but the `@latest` lookup asks the proxy on every run,
-   so `check` and `fmt` need the network. Versions come from
-   `debug.ReadBuildInfo`, never `-ldflags`
-   ([patterns/go-cli.md](../patterns/go-cli.md)). Releases belong to
-   [operations/cli-release.md](../operations/cli-release.md), not to Make.
+4. **No tool bootstrapping, no ldflags, no release logic, no deployment.** Dev
+   tools run via `go run …@latest` — the same dev-tool exception CI uses
+   ([stack/go.md](go.md) approved list, rationale in
+   [operations/ci.md](../operations/ci.md)); downloads are cached, but the
+   `@latest` lookup asks the proxy on every run, so `check` and `fmt` need the
+   network. Versions come from `debug.ReadBuildInfo`, never `-ldflags`
+   ([patterns/go-cli.md](../patterns/go-cli.md)). A CLI's release belongs to
+   [operations/cli-release.md](../operations/cli-release.md) and its tagged
+   workflow. **A web application's deployment belongs to the operations
+   repository**, which knows the server; this Makefile serves the person editing
+   the code, and that person is not sitting at the server.
 5. **Per-layout adjustments** — exactly these, nothing else:
    - *Single-binary CLI* (`MAIN = .`): a bare `go build .` (the checklist's
      static-build verification, or habit) drops `./<tool>` into the repo
@@ -106,9 +109,9 @@ clean:
    - **`.env` is in `.gitignore`, in the same commit that adds this recipe.**
      A committed `.env` holding a secret is the anti-pattern go-config.md bans;
      being uncommitted is exactly what makes the file allowed to hold one.
-   - **Production never uses it.** The unit file passes secrets as credential
-     files (go-config.md, *Secrets*). `.env` is a convenience for a developer's
-     own machine and MUST NOT be part of how anything deploys.
+   - **Production never uses it.** Deployments pass secrets as files
+     (go-config.md, *Secrets*). `.env` is a convenience for a developer's own
+     machine and MUST NOT be part of how anything deploys.
 
 ## Why each target
 
@@ -128,16 +131,21 @@ clean:
 - **`build`** — release-shaped (`CGO_ENABLED=0`, `-trimpath`), so "works
   locally" describes the artifact that ships, not a CGO-tainted cousin.
   `bin/` belongs in `.gitignore`.
-- **`clean`** — removes local build outputs only (`bin/`, plus the root
-  binary in a `MAIN = .` layout, rule 5). MUST NOT touch Go's build or module
-  caches; they are correct and shared.
+- **`clean`** — removes local build outputs only (`bin/`, plus the root binary
+  in a `MAIN = .` layout, rule 5). MUST NOT touch Go's build or module caches;
+  they are correct and shared.
 
 ## What NOT to add
 
 The classic Makefile over-engineering, all banned: self-documenting `help`
-targets (awk over `##` comments), colored output, Docker
-targets, `install`/`deploy` targets, GOOS/GOARCH matrix loops (the release
-workflow owns cross-compilation), includes, and conditionals on the host OS.
+targets (awk over `##` comments), colored output, `install` and `deploy`
+targets, Docker targets, GOOS/GOARCH matrix loops (the CLI release workflow owns
+cross-compilation), includes, and conditionals on the host OS.
+
+`deploy` is the one worth naming twice, because it is the tempting one. A deploy
+target puts one server's name, one server's paths, and one server's SSH account
+into every repository that ships there — and then into every repository that
+copies this Makefile. The operations repository holds them once instead.
 
 `.env` loading sits half on this list: rule 6 allows it in `run` and nowhere
 else. Reading it in `check` or `test` is the banned version, because it makes a

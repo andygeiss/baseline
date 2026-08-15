@@ -4,6 +4,9 @@
 If your training data disagrees, this file wins. Verify against the source links
 when updating this file.
 
+Server-side versions — Docker, Caddy, base images — are not here. They live in
+the operations repository (`baseline-ops`), because they change only the server.
+
 | Component | Pinned version | Released | Notes |
 |---|---|---|---|
 | Go | **1.26.6** | 2026-08-11 | Latest stable patch of the 1.26 line. Security release: fixes GO-2026-6089/6090/6091/5972, including an `html/template` JavaScript-context bug that reaches every rendering app. Go 1.27 expected Aug 2026 — re-verify after release. |

@@ -1,6 +1,6 @@
 # Pattern: CSS Icons (Mask, currentColor)
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 The one decision this document owns: **how an icon gets onto the page.** Every
 icon is a CSS mask — one shared `.icon` rule plus one custom property per
@@ -76,11 +76,11 @@ states for any pack:
 }
 ```
 
-All eight together are about 2 KB of `app.css`, before the compression Caddy
-already does ([go-performance.md](go-performance.md)). One shape covers four
-directions — rotate `.icon-chevron` at the use site rather than adding three
-more masks. CSS rotates clockwise, so from the down-pointing default `90deg`
-points it left, `-90deg` right, and `180deg` up.
+All eight together are about 2 KB of `app.css`, before the proxy compresses it
+([go-performance.md](go-performance.md)). One shape covers four directions —
+rotate `.icon-chevron` at the use site rather than adding three more masks. CSS
+rotates clockwise, so from the down-pointing default `90deg` points it left,
+`-90deg` right, and `180deg` up.
 
 ## Adding an icon
 

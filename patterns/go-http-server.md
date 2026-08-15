@@ -1,6 +1,6 @@
 # Pattern: Go HTTP Server
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 Stdlib only. `net/http.ServeMux` (Go 1.22+ pattern routing) covers everything a
 router package used to do.
@@ -116,7 +116,7 @@ Outermost → innermost:
 
 ```go
 srv := &http.Server{
-	Addr:              net.JoinHostPort(cfg.Host, cfg.Port), // HOST defaults to 127.0.0.1 — Caddy is the public listener (see operations)
+	Addr:              net.JoinHostPort(cfg.Host, cfg.Port), // HOST defaults to 127.0.0.1 — the proxy is the public listener (see operations)
 	Handler:           a.Routes(),
 	ReadHeaderTimeout: 5 * time.Second,
 	ReadTimeout:       10 * time.Second,
@@ -160,7 +160,7 @@ exit is gated on `g.Wait()`, so nothing is killed mid-write.
 `/healthz` and `/debug/pprof` run on a second, localhost-only server — never on
 the app listener, so they are never proxied and being localhost-only *is* the
 access control ([operations/web-application.md](../operations/web-application.md)
-owns the topology). The handler lives in `internal/app/ops.go`:
+owns that contract). The handler lives in `internal/app/ops.go`:
 
 ```go
 // OpsHandler serves /healthz and /debug/pprof on the localhost ops listener.
@@ -216,6 +216,6 @@ g.Go(func() error { return serve(ctx, ops) })
   answers both GET and POST, and a subtree match because that is how `Index`
   dispatches.
 - The ops mux takes **none** of the app middleware: no request log (a health
-  poll every few seconds is journal noise), no sessions, no CSRF, no body cap.
+  poll every few seconds is log noise), no sessions, no CSRF, no body cap.
 - `version` is read once at boot via `debug.ReadBuildInfo` — the same string
   the asset cache-buster uses ([go-performance.md](go-performance.md)).

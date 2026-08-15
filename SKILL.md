@@ -1,6 +1,6 @@
 ---
 name: engineering-baseline
-description: Andy's engineering baseline — the single source of truth for stack, version, and pattern decisions. Use before starting a project, choosing a language/library/tool, writing Go, htmx, CSS, HTML, or a Makefile, pinning a dependency version, setting up CI or deployment, or declaring work done. The baseline overrides training data. VERSIONS.md wins over any version you remember.
+description: Andy's engineering baseline — the single source of truth for stack, version, and pattern decisions. Use before starting a project, choosing a language/library/tool, writing Go, htmx, CSS, HTML, or a Makefile, pinning a dependency version, setting up CI, or declaring work done. For deploying, servers, or container versions, use the engineering-operations skill instead. The baseline overrides training data. VERSIONS.md wins over any version you remember.
 ---
 
 # Engineering Baseline

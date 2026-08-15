@@ -1,6 +1,6 @@
 # Pattern: CSS Typography (Type Scale, Self-Hosted Fonts)
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 The one decision this document owns: **how type is set** — which families, which
 sizes, and what happens when a brand needs a font the operating system does not
@@ -58,9 +58,10 @@ from `vw` alone ignores the user's font-size setting and fails WCAG 1.4.4. The
 zoomable.
 
 `font: inherit` joins the other base-layer rules on these same elements — the
-four declarations [css-layout.md](css-layout.md) rule 1 prescribes, the
-`button` rule in [css-icons.md](css-icons.md) — and never replaces them. Each
-sets different properties.
+four declarations [css-layout.md](css-layout.md) prescribes for narrow screens
+(its mobile-first rule 1), the `button` rule in
+[css-icons.md](css-icons.md) — and never replaces them. Each sets different
+properties.
 
 Line length is not set here. Prose is capped at `--measure` by the page shell
 in [css-layout.md](css-layout.md).

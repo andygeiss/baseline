@@ -1,6 +1,6 @@
 # Project Type: Web Application
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 Server-rendered web application. This is the default and preferred shape for anything
 with a UI — from a todo list to a SaaS dashboard.
@@ -23,7 +23,7 @@ with a UI — from a todo list to a SaaS dashboard.
 | Security headers | One `secureHeaders` middleware | MUST. CSP, HSTS, nosniff, Referrer-Policy — one owner, see [patterns/security-headers.md](../patterns/security-headers.md). |
 | Config | flags > env vars > built-in defaults | MUST. One `Config` struct parsed in `main`, no config files — see [patterns/go-config.md](../patterns/go-config.md). |
 | Outbound HTTP | stdlib `http.Client`, injected | MUST when calling an external API. Never `http.DefaultClient` — see [patterns/go-http-client.md](../patterns/go-http-client.md). |
-| Deployment | Single static binary behind Caddy | MUST. Templates, CSS, htmx all embedded. |
+| Deployment | Single static binary behind a TLS proxy | MUST. Templates, CSS, htmx all embedded. The binary satisfies [operations/web-application.md](../operations/web-application.md); *how* it is deployed belongs to the operations repository. |
 | Local commands | Make | MUST. One `Makefile` at the repo root, copied from [stack/makefile.md](../stack/makefile.md). |
 
 Versions: see [VERSIONS.md](../VERSIONS.md).
@@ -54,7 +54,7 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 22. [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the seam to someone else's system: the port, the hand-written fake, and finishing the feature before the API is integrated
 23. [patterns/go-http-client.md](../patterns/go-http-client.md) — calling an external API: timeouts, retries, body limits (when the app has one)
 24. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
-25. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
+25. [operations/web-application.md](../operations/web-application.md) — the deployment contract: listeners, signals, logs, secrets, the environment
 26. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
 27. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
 28. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
@@ -63,16 +63,20 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 ## Architecture defaults
 
 - **One binary, one process.** HTTP server, background jobs, and static assets in a
-  single Go binary, complete and correct on its own. Exactly two companion services
-  are sanctioned, neither needed for correctness: Caddy (TLS + compression) and
-  Litestream (backup replication) — nothing else without written justification.
+  single Go binary, complete and correct on its own — no supervisor, no start script,
+  no second process it depends on. A deployment MAY run companion services beside it
+  (a TLS proxy, a backup replicator); the application MUST NOT need any of them to be
+  correct, and its code MUST NOT name one.
 - **Server-side state.** Session data lives in SQLite; the cookie (`Secure`, `HttpOnly`,
   `SameSite=Lax`) carries only a random token. The browser holds a session token and
   rendered HTML, nothing else.
 - **Progressive enhancement.** Every feature MUST work with plain HTML forms and links
   if htmx fails to load. htmx upgrades the experience; it is not a dependency for correctness.
-- **HTTPS everywhere**, HTTP only as a redirect. Security headers set in middleware
-  (see [patterns/go-http-server.md](../patterns/go-http-server.md)).
+- **HTTPS in public, plain HTTP inside.** The proxy terminates TLS and redirects
+  HTTP to it; the binary itself only ever speaks plain HTTP, so `curl` against it
+  works with nothing in front ([operations/web-application.md](../operations/web-application.md)).
+  HSTS and the rest of the policy come from the `secureHeaders` middleware
+  ([patterns/security-headers.md](../patterns/security-headers.md)).
 
 ## Definition of done
 
