@@ -1,6 +1,6 @@
 # Pattern: SQLite in Production (Go)
 
-**Last verified: 2026-08-10 · Driver: `modernc.org/sqlite` (pure Go)**
+**Last verified: 2026-08-15 · Driver: `modernc.org/sqlite` (pure Go)**
 
 SQLite is the default database. Configured correctly it serves thousands of requests
 per second on one small box with zero operational overhead. Configured by default it
@@ -16,12 +16,24 @@ const pragmas = "?_pragma=busy_timeout(5000)" +
 	"&_pragma=synchronous(NORMAL)" +
 	"&_pragma=foreign_keys(1)"
 
-// Two pools over the same file: many readers, exactly one writer.
-readDB, err := sql.Open("sqlite", "file:"+path+pragmas)
-readDB.SetMaxOpenConns(max(4, runtime.NumCPU()))
+// openDB returns two pools over the same file: many readers, exactly one
+// writer. Neither call touches the file — the first query does — so a bad path
+// surfaces when the migrations run, not here.
+func openDB(path string) (readDB, writeDB *sql.DB, err error) {
+	readDB, err = sql.Open("sqlite", "file:"+path+pragmas)
+	if err != nil {
+		return nil, nil, fmt.Errorf("open read pool: %w", err)
+	}
+	readDB.SetMaxOpenConns(max(4, runtime.NumCPU()))
 
-writeDB, err := sql.Open("sqlite", "file:"+path+pragmas+"&_txlock=immediate")
-writeDB.SetMaxOpenConns(1)
+	writeDB, err = sql.Open("sqlite", "file:"+path+pragmas+"&_txlock=immediate")
+	if err != nil {
+		readDB.Close() // already open — don't leak it on the way out
+		return nil, nil, fmt.Errorf("open write pool: %w", err)
+	}
+	writeDB.SetMaxOpenConns(1)
+	return readDB, writeDB, nil
+}
 ```
 
 The rules behind it — all MUST:

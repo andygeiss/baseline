@@ -1,6 +1,6 @@
 # Pattern: Design System (DESIGN.md, Themes)
 
-**Last verified: 2026-08-13**
+**Last verified: 2026-08-15**
 
 Every web application records its design system in one file: `DESIGN.md` at the
 repo root, next to `README.md`. It holds the theme — the token values, measured
@@ -112,10 +112,11 @@ two files change in the same commit.
 Every color `app.css` writes comes from the roles above — components never
 use a raw color value. `accent` colors everything interactive: links, primary
 buttons, focus rings. `primary` restates the `accent` values character for
-character: the spec requires a `primary` palette, and tools invent one when
-it is missing. `surface` is cards, table stripes, and wells. `error`
-appears only on validation failures. Hover and active shades are mixed with
-`color-mix()` at the use site — never stored as extra tokens.
+character — a file without a `primary` palette makes a design tool generate a
+color of its own, so this theme names it instead. `surface` is cards, table
+stripes, and wells. `error` appears only on validation failures. Hover and
+active shades are mixed with `color-mix()` at the use site — never stored as
+extra tokens.
 
 Measured contrast (2026-08-12): every text role on both backgrounds ≥ 6.6:1
 in both schemes; `border` on both backgrounds ≥ 3.2:1; the primary button
@@ -192,9 +193,11 @@ Every component composes the roles above, and every interactive state
    other is the invented token vocabulary
    [css-tokens.md](css-tokens.md) exists to stop. The spacing, width,
    and motion tokens stay body prose (rule 1 above). One alias sits outside
-   the mirror: the spec requires a `primary` palette, so `primary` and
-   `primary-dark` restate the `accent` values character for character —
-   spec vocabulary, not a new role, and not part of the seventeen.
+   the mirror: `primary` and `primary-dark` restate the `accent` values
+   character for character. The spec does not require a `primary` palette — it
+   warns when one is missing, and tools then invent their own — so writing it
+   down is how the theme keeps that decision. Spec vocabulary, not a new role,
+   and not part of the seventeen.
 3. **Lockstep, same commit.** A commit that changes a token value in `app.css`
    updates `DESIGN.md` too, and the reverse — the discipline `Makefile` and
    `ci.yml` already use ([stack/makefile.md](../stack/makefile.md)). Every CSS

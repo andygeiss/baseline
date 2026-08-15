@@ -1,6 +1,6 @@
 # Pattern: Forms & Validation (Go)
 
-**Last verified: 2026-08-12**
+**Last verified: 2026-08-15**
 
 Every form is the same loop: GET renders the form, POST parses and validates,
 an invalid POST re-renders the same form with errors and submitted values at
@@ -128,8 +128,9 @@ a fragment through the same `a.render` dual-mode split:
 <form id="game-form" method="post" action="/games"
       hx-post="/games" hx-target="#game-form" hx-swap="outerHTML">
   <label for="name">Name</label>
-  <input id="name" name="name" value="{{.Name}}" required maxlength="60">
-  {{with .FieldErrors.name}}<p class="field-error">{{.}}</p>{{end}}
+  <input id="name" name="name" value="{{.Name}}" required maxlength="60"
+         {{with .FieldErrors.name}}aria-invalid="true" aria-describedby="name-error"{{end}}>
+  {{with .FieldErrors.name}}<p id="name-error" class="field-error">{{.}}</p>{{end}}
   <button>Create game</button>
 </form>
 {{end}}
@@ -143,7 +144,12 @@ a fragment through the same `a.render` dual-mode split:
   units, the server counts runes, so an emoji (two code units, one rune)
   reaches the client cap early — stricter than advertised, never looser.
 - The error sits adjacent to its control, so a fragment swap keeps the
-  message in reading order next to the field it names.
+  message in reading order next to the field it names. Adjacent is enough for
+  the eye and nothing for a screen reader, so the failing control also points
+  at the message: `aria-describedby` reads it out when focus lands there, and
+  `aria-invalid` says the field is the one that failed. Both appear only when
+  the error does — the ARIA patch for a gap with no native mechanism
+  ([stack/html.md](../stack/html.md)).
 - The fragment root's `id` is the form's own `hx-target` — self-replacing, per
   [htmx-server-rendering.md](htmx-server-rendering.md).
 

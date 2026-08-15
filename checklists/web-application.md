@@ -1,6 +1,6 @@
 # Checklist: Web Application — Definition of Done
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 Walk this before declaring any milestone complete. Every unchecked box is either fixed
 or explicitly waived by the user in writing.
@@ -65,12 +65,12 @@ or explicitly waived by the user in writing.
 ## HTML/CSS/A11y
 
 - [ ] Valid HTML (spot-checked with the Nu validator; `hx-*` "attribute not allowed" errors are the only expected ones); landmarks + heading hierarchy correct
-- [ ] Every form control labeled; keyboard-only walkthrough succeeds; focus visible
+- [ ] Every form control labeled, and each field error tied to its control (`aria-describedby` + `aria-invalid`); keyboard-only walkthrough succeeds; focus visible
 - [ ] Contrast ≥ 4.5:1; `prefers-reduced-motion` respected; `lang` set
 - [ ] CSS in cascade layers, no `!important` outside `utilities`
 - [ ] `DESIGN.md` at the repo root per [patterns/design-system.md](../patterns/design-system.md); every CSS value in it character-identical to `app.css`, measured contrast recorded
 - [ ] Motion follows [patterns/css-motion.md](../patterns/css-motion.md): transition properties listed explicitly (never `all`); paint/compositor properties only; one-shot durations from the two motion tokens; rapid-fire swaps opt out (`transition:false`); view-transition kill switch in `utilities`
-- [ ] Layout is mobile-first per [patterns/css-layout.md](../patterns/css-layout.md): layout media queries are `min-width` only and page-level only; components adapt via container queries
+- [ ] Layout is mobile-first per [patterns/css-layout.md](../patterns/css-layout.md): layout media queries are `min-width` only and page-level only; components adapt via container queries; every list that drops its markers carries `role="list"`
 - [ ] Any bottom navigation per [patterns/css-layout.md](../patterns/css-layout.md): every destination keeps its word under the icon, at most five of them, targets ≥ 3.5rem, the current one marked by color *and* weight plus `aria-current="page"`, the bar opaque and clear of `env(safe-area-inset-bottom)`
 - [ ] One surface style per [patterns/css-surfaces.md](../patterns/css-surfaces.md), named in `DESIGN.md`; form controls keep a ≥ 3:1 `--color-border` boundary in every style; glass panels sit on the page ground only, alpha at the measured 80% floor
 - [ ] Type per [patterns/css-typography.md](../patterns/css-typography.md): no root `font-size` override, sizes in `rem`/`em` with a `rem` term in every `clamp()`, `font: inherit` on form controls

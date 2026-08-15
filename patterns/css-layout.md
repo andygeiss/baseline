@@ -1,6 +1,6 @@
 # Pattern: CSS Layout (Mobile-First, Grid)
 
-**Last verified: 2026-08-11**
+**Last verified: 2026-08-15**
 
 The one mechanic that makes pure-CSS layout work: **base styles are the phone
 layout; wider screens only add to it.** Layout comes from CSS Grid and Flexbox
@@ -103,8 +103,9 @@ viewport, not the container — fires while the content column is still narrow.
 
 An app whose pages are places rather than documents navigates from a bar fixed
 to the bottom of the screen, where the thumb already is. The bar is
-`position: fixed`, so it stays off `body`'s grid — the shell above then has two
-rows, `auto 1fr`, because the footer takes none:
+`position: fixed`, so it takes no space in the flow. The page shell above needs
+no change: `<footer>` stays a grid item, and with its only child out of flow it
+collapses to a zero-height row.
 
 ```css
 @layer layout {
@@ -205,6 +206,12 @@ The default for any collection of like items (cards, products, thumbnails):
   phone, four on a desktop, no breakpoints.
 - `min(100%, 16rem)` is the load-bearing part: a bare `minmax(16rem, 1fr)`
   overflows any container narrower than 16 rem and breaks the 320 px rule.
+- **Every list that drops its markers carries `role="list"`** — this one and
+  the `.media-list` below. Safari hands a list whose markers are gone to
+  VoiceOver as plain content, so "list, 6 items" is never announced. It is the
+  one place [stack/html.md](../stack/html.md)'s first rule of ARIA sends you to
+  ARIA anyway: nothing native puts the semantics back. (A list inside `<nav>`
+  keeps them — the bottom bar above needs nothing.)
 
 ## Sidebar — the one media query
 

@@ -11,7 +11,7 @@ layered defaults rather than a checklist. Every rule exists to make the *default
 path the correct one — an agent that follows the documents verbatim ships a correct,
 hardened application without inventing anything.
 
-- **Last verified:** 2026-08-14
+- **Last verified:** 2026-08-15
 - **Format:** Markdown only, plus the MIT `LICENSE`. No code, no CI, no build
   steps. Documents are the product.
   The one piece of tooling is the root `Makefile`, which installs the baseline into
@@ -120,26 +120,31 @@ These apply to every project regardless of type:
   cross-document contradictions, trace every canonical snippet's mechanics end to end,
   and verify factual claims against upstream sources (Go, htmx, scs, SQLite, systemd,
   Caddy) — repeated until **two consecutive passes find zero defects**.
-  Last run: 2026-08-14, a **re-review of the v1.14.0 additions**
-  (security-headers, go-http-client, go-config) after the first attempt shipped
-  below the bar. Four defects fixed: a retry loop that resent an unreplayable
-  request body as an empty one, a `main` switch documented as identical to
-  go-cli.md's while using a different exit code, a rule the document's own
-  canonical snippet did not implement (`fs.Usage` naming the non-flag
-  environment variables), and an `errUsage` redeclaration that fails to compile
-  when a CLI adopts go-cli.md and go-config.md together. The verification pass
-  over the corrected documents and their cross-references found nothing further,
-  and the reference-repo sync — the independent empirical round — found nothing
-  either: `verify.sh` stayed green and the reference turned out to have already
-  implemented two of the four fixes on its own, which is the strongest available
-  evidence that the corrected documents describe what a correct build does.
-  **One caveat, recorded rather than smoothed over:** the reference makes no
-  outbound HTTP calls, so it cannot exercise go-http-client at all. The retry fix
-  was verified by compiling that pattern's snippet standalone against an
-  `httptest.Server` — a real check, but not a continuous one, and the acceptance
-  test's only coverage hole.
-  Previous run: 2026-08-13 over css-typography and css-icons
-  (7 rounds, 29 defects, converged); last full-corpus sweep: 2026-08-11.
+  Last run: 2026-08-15, a **full-corpus sweep**. Seven defects fixed across
+  eight documents: a two-pool SQLite snippet that does not compile and drops
+  both mandatory error checks; a bottom-navigation rule that told readers to
+  delete a grid row the fixed bar never vacated (`position: fixed` sits on
+  `footer nav`, so `<footer>` stays a grid item); htmx's history cache named as
+  `sessionStorage` when it is `localStorage`, which outlives the tab and the
+  browser rather than the session; a `primary` palette described as required by
+  the `design.md` spec, which in fact only warns and lets tools invent one; a
+  `debug.ReadBuildInfo` one-liner that discarded the `ok` result it needs to
+  check; two list recipes whose `list-style: none` silently strips list
+  semantics in Safari; and a field error tied to its control for the eye only.
+  **The mechanical layer was re-verified by running it, not by reading it.**
+  Every canonical Go snippet was compiled and put through `gofmt`, `go vet`,
+  `staticcheck`, and `govulncheck`; the canonical `Makefile` ran green end to
+  end under macOS's GNU Make 3.81; every pinned version was checked against
+  upstream; and every measured color claim was recomputed from the oklch values
+  — the contrast floors and both manifest hex values came out exactly as
+  written. Two further passes over the corrected documents found nothing.
+  **One caveat, recorded rather than smoothed over:** the reference repository
+  was not re-synced in this run, so the independent empirical round is missing.
+  These fixes are verified against the toolchain and upstream sources, not
+  against a building application.
+  Previous runs: 2026-08-14, a re-review of the v1.14.0 additions
+  (security-headers, go-http-client, go-config), 4 defects; 2026-08-13 over
+  css-typography and css-icons (7 rounds, 29 defects, converged).
 - **The reference implementation is the executable check.**
   [baseline-reference](https://github.com/andygeiss/baseline-reference) implements
   these rules end to end and MUST be synced to every tagged release — when a rule is

@@ -1,6 +1,6 @@
 # Stack: htmx
 
-**Last verified: 2026-08-14 · Pinned: htmx 2.0.10** (see [VERSIONS.md](../VERSIONS.md))
+**Last verified: 2026-08-15 · Pinned: htmx 2.0.10** (see [VERSIONS.md](../VERSIONS.md))
 
 htmx is the *only* script on the page. It turns HTML into the application protocol:
 any element can issue HTTP requests, the server answers with HTML, htmx swaps it in.
@@ -60,10 +60,12 @@ avoided — if you need them, the design is probably drifting toward client-side
    - All dynamic HTML goes through `html/template` (contextual auto-escaping). Never
      concatenate user input into HTML.
    - **History cache: off.** By default htmx snapshots the full `<body>` of visited
-     pages into `sessionStorage` for back-button restores — authenticated HTML that
-     outlives logout and server-side session revocation as long as the tab stays open, and its
-     cache-miss restore requests send `HX-Request: true` while expecting a full page
-     (a known dual-mode footgun). The canonical layout's `htmx-config` sets
+     pages into `localStorage` for back-button restores — authenticated HTML that
+     outlives logout and server-side session revocation. `localStorage` has no
+     expiry, so it outlives the tab and the browser too — it is still there for
+     whoever opens that browser next. Its cache-miss restore requests send
+     `HX-Request: true` while expecting a full page (a known dual-mode
+     footgun). The canonical layout's `htmx-config` sets
      `"historyCacheSize":0` and `"refreshOnHistoryMiss":true`: back/forward are real
      page loads. The server is the source of truth — there is nothing client-side
      worth restoring.

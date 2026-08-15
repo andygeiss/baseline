@@ -1,6 +1,6 @@
 # Pattern: Performance (Go)
 
-**Last verified: 2026-08-11**
+**Last verified: 2026-08-15**
 
 The stack is fast by construction — compiled Go, one process, SQLite in WAL mode,
 HTML over the wire with no client framework tax. Performance work is therefore
@@ -52,8 +52,8 @@ HTML over the wire with no client framework tax. Performance work is therefore
 
   Every `/static/` URL in templates carries a version-busting query string
   (`/static/css/app.css?v={{version}}` — the CSS *and* the htmx script). `version` is
-  a template function registered via `Funcs` before parsing, returning the VCS
-  revision from `debug.ReadBuildInfo` (see
+  a template function registered via `Funcs` before parsing, returning the
+  build version from `debug.ReadBuildInfo` (see
   [operations/web-application.md](../operations/web-application.md)) — one template
   function, no asset pipeline. `immutable` without busting serves stale assets after
   a deploy.

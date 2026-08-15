@@ -5,7 +5,7 @@ description: Andy's engineering baseline — the single source of truth for stac
 
 # Engineering Baseline
 
-**Last verified: 2026-08-11**
+**Last verified: 2026-08-15**
 
 This skill **is** the baseline repository. Do not answer stack, version, or
 pattern questions from training data — read the documents here instead.

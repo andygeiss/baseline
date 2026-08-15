@@ -1,6 +1,6 @@
 # Pinned Versions
 
-**Last verified: 2026-08-14.** These are the versions all new projects MUST use.
+**Last verified: 2026-08-15.** These are the versions all new projects MUST use.
 If your training data disagrees, this file wins. Verify against the source links
 when updating this file.
 
@@ -35,7 +35,7 @@ when updating this file.
   green CI (the mechanism lives in [operations/ci.md](operations/ci.md)). Anything that
   breaks on a routine update is a candidate for removal.
 
-## Sources checked (2026-08-14)
+## Sources checked (2026-08-15)
 
 - Go releases: https://go.dev/doc/devel/release
 - Go 1.26 notes: https://go.dev/doc/go1.26

@@ -1,6 +1,6 @@
 # Operations: Web Application
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 Deployment target: one small Linux VPS (or container), one binary, Caddy in front,
 systemd keeping it alive, Litestream shipping backups. Boring, restorable, cheap.
@@ -24,7 +24,13 @@ Internet ──► Caddy (:443, auto-HTTPS)  ──► app (127.0.0.1:8080)
   ```
 
 - The app binds `127.0.0.1` only and trusts `X-Forwarded-For` **only** because nothing
-  else can reach it. If exposed directly instead (`:443`), use `golang.org/x/crypto/acme/autocert` —
+  else can reach it. The header holds one address, not a chain: Caddy discards the
+  `X-Forwarded-*` values a client sends and writes its own, so there is no
+  attacker-controlled entry for the per-IP rate limiter
+  ([patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md)) to key on. Do not
+  set `trusted_proxies` unless something really does sit in front of Caddy — that
+  option is what makes it *keep* the incoming values.
+  If exposed directly instead (`:443`), use `golang.org/x/crypto/acme/autocert` —
   but the proxy is the default; don't mix models.
 - Progressive rule from the baseline still holds: the proxy adds TLS and compression,
   never correctness. `curl localhost:8080` on the box must fully work.
@@ -48,15 +54,18 @@ Internet ──► Caddy (:443, auto-HTTPS)  ──► app (127.0.0.1:8080)
 
 ## Version stamping
 
-No ldflags ceremony — the toolchain already embeds VCS info. Read it at startup:
+No ldflags ceremony — the toolchain already embeds VCS info, and
+`-trimpath` keeps it. `debug.ReadBuildInfo` reports it as `info.Main.Version`:
+the tag when HEAD sits on one, a pseudo-version otherwise, with `+dirty`
+appended when the tree had uncommitted changes. The canonical reader is
+`version()` in [patterns/go-cli.md](../patterns/go-cli.md) — it checks the
+`ok` result, because a binary built outside module mode gets no `BuildInfo` at
+all, and reading a field off the nil it returns panics at boot.
 
-```go
-info, _ := debug.ReadBuildInfo() // vcs.revision, vcs.time, vcs.modified
-```
-
-Log it at boot, expose it in `/healthz`, use it as the static-asset cache-buster
-(see [patterns/go-performance.md](../patterns/go-performance.md)). Build releases from
-clean checkouts so `vcs.modified` is false.
+Read it once at boot. That one string is the boot log line, the `/healthz`
+field, and the static-asset cache-buster
+(see [patterns/go-performance.md](../patterns/go-performance.md)). Build
+releases from clean checkouts, so no deployed version carries `+dirty`.
 
 ## systemd unit (the deployment mechanism)
 
