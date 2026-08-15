@@ -28,13 +28,14 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 2. [patterns/go-cli.md](../patterns/go-cli.md) — the `run()` pattern, flags, streams, exit codes, version
 3. [patterns/go-config.md](../patterns/go-config.md) — flags over env over defaults, validated before any work starts
 4. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
-5. [patterns/go-http-client.md](../patterns/go-http-client.md) — calling an external API: timeouts, retries, body limits (when the tool has one)
-6. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
-7. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
-8. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
-9. [operations/cli-release.md](../operations/cli-release.md) — tagging, cross-compiling, publishing
-10. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
-11. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+5. [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port and its fake: build and test the tool before the API is integrated
+6. [patterns/go-http-client.md](../patterns/go-http-client.md) — calling an external API: timeouts, retries, body limits (when the tool has one)
+7. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
+8. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
+9. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
+10. [operations/cli-release.md](../operations/cli-release.md) — tagging, cross-compiling, publishing
+11. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
+12. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 ## Architecture defaults
 

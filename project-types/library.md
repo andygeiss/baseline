@@ -27,11 +27,12 @@ hygiene as applications ([stack/go.md](../stack/go.md)).
 1. [stack/go.md](../stack/go.md) — language conventions and toolchain
 2. [patterns/go-library.md](../patterns/go-library.md) — layout, doc comments, Example functions, fuzz corpus, release mechanics
 3. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — error wrapping and sentinel errors (the logging half does not apply: libraries return, consumers log)
-4. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
-5. [operations/ci.md](../operations/ci.md) — the CI workflow, used verbatim
-6. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
-7. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
-8. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+4. [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port rules a library lives by: take the consumer's interface, never invent one (the adapter and fake halves are for programs)
+5. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
+6. [operations/ci.md](../operations/ci.md) — the CI workflow, used verbatim
+7. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
+8. [patterns/go-performance.md](../patterns/go-performance.md) — when something is slow (and not before)
+9. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 ## API design rules
 

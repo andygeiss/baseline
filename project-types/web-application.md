@@ -51,13 +51,14 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 19. [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, login, password hashing (when there are users)
 20. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
 21. [patterns/go-forms-validation.md](../patterns/go-forms-validation.md) — the form loop: validator, 422 re-render, flash messages
-22. [patterns/go-http-client.md](../patterns/go-http-client.md) — calling an external API: timeouts, retries, body limits (when the app has one)
-23. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
-24. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
-25. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
-26. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
-27. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
-28. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+22. [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the seam to someone else's system: the port, the hand-written fake, and finishing the feature before the API is integrated
+23. [patterns/go-http-client.md](../patterns/go-http-client.md) — calling an external API: timeouts, retries, body limits (when the app has one)
+24. [patterns/go-testing.md](../patterns/go-testing.md) — testing strategy
+25. [operations/web-application.md](../operations/web-application.md) — deployment, TLS, health, backups
+26. [operations/ci.md](../operations/ci.md) — the CI workflow every project copies
+27. [stack/makefile.md](../stack/makefile.md) — the Makefile every project copies (`make check` = CI locally)
+28. [patterns/go-performance.md](../patterns/go-performance.md) — build/runtime defaults (GOMEMLIMIT, asset caching, version busting) apply from day one; optimization work only when something is measurably slow
+29. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 ## Architecture defaults
 
