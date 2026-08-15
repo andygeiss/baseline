@@ -63,7 +63,9 @@ checklist checks all of it either way.
 | Animate or transition anything | [patterns/css-motion.md](../patterns/css-motion.md) — motion as feedback, and reduced motion |
 | Store anything | [patterns/go-sqlite.md](../patterns/go-sqlite.md) — pragmas, the two pools, migrations, backups |
 | Add users, login, or passwords | [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) — sessions, hashing, renewal |
+| Let a program sign in (a CLI, a script) | [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) §Machine tokens — a bearer token, hashed at rest, shown once |
 | Accept a form POST | [patterns/go-forms-validation.md](../patterns/go-forms-validation.md) — validator, 422 re-render, flash messages |
+| Keep a page current while the reader watches it | [patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md) — polling with a cursor, the 204, and why not SSE |
 | Depend on someone else's system | [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port, the hand-written fake, finishing the feature before the API exists |
 | Call an external API over HTTP | [patterns/go-http-client.md](../patterns/go-http-client.md) — timeouts, retries, body limits |
 | Write a test | [patterns/go-testing.md](../patterns/go-testing.md) — what to test, and what never to fake |

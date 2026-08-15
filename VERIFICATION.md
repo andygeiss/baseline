@@ -50,6 +50,94 @@ be synced, the tag waits.
 
 Newest first.
 
+### 2026-08-15 — live updates, machine tokens, and a second binary (v3.2.0)
+
+The release that came out of replacing the reference application. The todo app
+had closed every rule it could reach; the holes it named — outbound HTTP, the
+adapter half of ports & adapters, sessions, flash, secrets, backups, bottom
+navigation, `<dialog>` — all needed a product with more in it. **Go Chat**, a
+chat application with a command-line client, is that product, and it gave
+`project-types/cli-tool.md` its first reference implementation as well.
+
+**One gap found before any code was written.** The corpus had no rule for
+keeping a page current: no polling, no SSE, no WebSockets, nothing. A chat
+application cannot be built without answering that, and the answer is
+constrained by "htmx is the only script tag".
+[patterns/htmx-live-updates.md](patterns/htmx-live-updates.md) is the answer —
+polling with a server-held cursor, a 204 for the quiet case, and the reasoning
+for why SSE is not in this baseline yet.
+
+**Thirteen defects in the changed documents, over eight adversarial passes** —
+the last two clean, which is what the gate asks for. A new document takes more
+passes than an edited one; the count is recorded rather than rounded down
+because it is the honest cost of adding one. The ones worth remembering:
+
+1. The new document's canonical handler called `a.clientError(w, status)`. Every
+   other document in the corpus — and `go-errors-logging.md`, which defines it —
+   uses `clientError(w, r, status)`. The snippet would not have compiled in any
+   project built from this baseline.
+2. The same handler passed a bare `[]Message` as its template data, which cannot
+   render the sentinel the document's own markup shows: the sentinel carries a
+   URL, so it needs the room and the cursor too. It also skipped `Vary` on the
+   204 path, which `htmx-server-rendering.md` requires of every response that
+   bypasses the render helper.
+3. `checklists/web-application.md` contradicted itself: "Requests >100ms show an
+   indicator" one line above "the poll carries no indicator". Both boxes now
+   name the exception.
+4. A sentence warning against narrowing the `responseHandling` pattern parsed as
+   an instruction to narrow it — the opposite of its point.
+5. `patterns/go-cli.md`'s new snippet put a `:=` statement and a package-level
+   function in one block, which cannot be pasted as written and never says the
+   two halves live in different scopes.
+6. The same environment variable was `$TOOL_TOKEN` in two documents and
+   `$MYTOOL_TOKEN` in the one that sets the convention.
+7. `project-types/cli-tool.md` still said "Reference implementation: None yet",
+   and this repository's README still described the previous run as current.
+
+The rest were cross-references a new rule had made stale, an ambiguous name, and
+a colon left dangling by an earlier fix.
+
+**Two older defects, found by doing the work rather than by reading.**
+`go-ports-adapters.md` had been missing from the README's file tree since it
+shipped in v2.1.0, and it had **no checklist box in any checklist** — so a
+pattern nothing enforced. That is exactly why the todo app could carry the
+adapter half unexercised with every gate green. Both are fixed here, and the
+tree is now checked against the real directories mechanically.
+
+**Empirical half: two findings only a running application produces.**
+
+- **A `Secure` session cookie cannot be exercised over the HTTP this baseline
+  mandates.** `go-auth-sessions.md` set the flag unconditionally;
+  `project-types/web-application.md` says the binary only ever speaks plain HTTP
+  behind a TLS proxy. Together they make an app nobody can sign in to in
+  development and an acceptance test that cannot reach a single authenticated
+  route. The reference ties the flag to `ENV`, which the deployment sets and
+  which is the thing that knows whether TLS is in front.
+- **htmx stops polling on 286 only while `responseHandling` counts 286 as a
+  swap.** Traced through the vendored htmx 2.0.10: the cancel sits inside the
+  swap branch (`if (shouldSwap) { if (status === 286) cancelPolling(elt) }`), so
+  the canonical `htmx-config` meta works through its `{"code":"[23]..","swap":true}`
+  rule rather than by design. Narrowing that pattern to `2..` — which reads more
+  precise — would leave polls running forever with nothing in the console to say
+  so. Both codes are now documented as load-bearing.
+
+**Every changed snippet was compiled and run,** not read: the polling handler,
+`NewToken`, and the CLI's `token` reader, through `gofmt`, `go vet`,
+`staticcheck`, and `go run` against Go 1.26.6. `NewToken` was checked by its
+output — a 43-character secret from 32 random bytes, a 64-character hex hash.
+The claim that `http.CrossOriginProtection` admits non-browser clients is
+verified by execution rather than by reading: the reference's CLI posts messages
+through that middleware in `verify.sh`.
+
+**Empirical half: closed.** The reference implements the whole corpus end to end
+and `./verify.sh` exits 0 — every mechanical gate, the vendored htmx checksum,
+the CSS gates, static builds of both binaries, the adapter's dependency
+direction, then the booted binaries smoke-tested through registration behind a
+credential-file invite code, session cookie flags, token renewal, rate limiting,
+the plain-form and htmx flows, the poll's 204 and 200 answers, escaping, the 422
+contract, machine tokens end to end, CSRF, the backup snapshot, restart, graceful
+shutdown, and the `chat` client talking to all of it.
+
 ### 2026-08-15 — governance: the gate, the tiers, the staleness switch (v3.1.0)
 
 The release that added this file. It changed no rule the reference implements — no

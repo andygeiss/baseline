@@ -25,9 +25,9 @@ Stay on 2.x until this baseline says otherwise.
 | `hx-get` / `hx-post` | Issue request. GET reads, POST mutates — the only two verbs with a plain-form fallback. |
 | `hx-target` | CSS selector to swap into. Default is the triggering element — usually set this explicitly. |
 | `hx-swap` | `innerHTML` (default), `outerHTML` for self-replacing fragments. `transition:false` opts a rapid-fire swap out of view transitions ([patterns/css-motion.md](../patterns/css-motion.md)). |
-| `hx-trigger` | Only when the default event is wrong (e.g. `input changed delay:300ms` for search). |
+| `hx-trigger` | Only when the default event is wrong (e.g. `input changed delay:300ms` for search). Polling (`every 3s`) keeps a page current and has its own rules — [patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md). |
 | `hx-push-url` | `true` on navigation-like GETs so the URL bar and back button stay honest. |
-| `hx-indicator` | Always give requests >100ms a visible indicator (CSS `.htmx-request`). |
+| `hx-indicator` | Always give requests >100ms a visible indicator (CSS `.htmx-request`) — except a background poll, which shows none ([patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md)). |
 | `hx-boost` | On `<body>`: upgrades plain links/forms to AJAX with graceful fallback. |
 | `hx-confirm` | For destructive actions. |
 

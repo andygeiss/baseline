@@ -82,6 +82,14 @@ milestone complete.
 
 ## Reference implementation
 
-None yet. Until one exists, the snippets in
-[patterns/go-cli.md](../patterns/go-cli.md) are canonical — the first CLI built
-against this document SHOULD be promoted to reference status.
+The `chat` client in
+[github.com/andygeiss/baseline-reference](https://github.com/andygeiss/baseline-reference)
+implements this document end to end (deviations recorded in its README). When a
+rule here is ambiguous, read how the reference does it.
+
+It is the sanctioned multi-binary case: the module ships a server and a client,
+so `main` sits in `cmd/chat/` rather than at the module root, and the install
+path gains the suffix. **The one part it does not exercise is the release** —
+that repository's tags mirror baseline versions rather than the tool's own
+contract, so it publishes no artifacts and
+[operations/cli-release.md](../operations/cli-release.md) has no reference yet.

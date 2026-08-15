@@ -31,6 +31,7 @@ walk it without holding the whole corpus in your head.
 - [ ] Config parsed and validated in `main` before the DB opens or the listener binds; `internal/` never calls `os.Getenv`
 - [ ] If the repo has a `.env`: it is gitignored, only `make run` reads it, and production takes its secrets from credential files instead — [stack/makefile.md](../stack/makefile.md) rule 6
 - [ ] Any outbound HTTP uses an injected client with a timeout (never `http.DefaultClient`), checks `resp.StatusCode`, and caps the body it reads — [patterns/go-http-client.md](../patterns/go-http-client.md)
+- [ ] Any adapter for someone else's system sits in its own package, defines no port of its own, exposes domain methods instead of `*http.Response`, and imports `internal/domain` and nothing else of yours — `go list -deps` proves it ([patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md))
 - [ ] Prose passes [STYLE.md](../STYLE.md): comments say *why* (not what), README leads with the point, commits are semantic (`type(scope): subject`), any LLM prompts follow its prompt rules
 
 ## Tests
@@ -39,14 +40,16 @@ walk it without holding the whole corpus in your head.
 - [ ] Domain logic covered exhaustively (all rules/edge cases)
 - [ ] Each handler: happy path + error paths, via `httptest` against real routes
 - [ ] Dual-mode handlers tested with and without `HX-Request: true`
+- [ ] Every port has a hand-written fake, never a mock; tests assert the outcome, not call counts or call order — [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md)
 
 ## Hypermedia & progressive enhancement
 
 - [ ] Every feature works with htmx disabled (plain forms/links, full-page renders)
 - [ ] Navigation-like htmx GETs use `hx-push-url`; back button behaves
-- [ ] Requests >100ms show an indicator; destructive actions have `hx-confirm`
+- [ ] Requests >100ms show an indicator — except a background poll, which shows none ([patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md)); destructive actions have `hx-confirm`
 - [ ] Dual-mode responses send `Vary: HX-Request, HX-Boosted`
 - [ ] Invalid form POSTs return 422 with values + errors re-rendered (boosted POSTs: with `HX-Push-Url: false`)
+- [ ] Any live-updating region per [patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md): the cursor is a row id the server advances inside the swapped sentinel, an empty poll answers 204, the route 303s a non-htmx request, and the poll carries no indicator and no rate limit
 
 ## Security
 
@@ -56,6 +59,7 @@ walk it without holding the whole corpus in your head.
 - [ ] Request bodies capped at 1 MiB — `http.MaxBytesHandler`, or the route-aware limit chooser when upload routes need more (see [patterns/go-http-server.md](../patterns/go-http-server.md))
 - [ ] Session cookies: `Secure`, `HttpOnly`, `SameSite=Lax`; `RenewToken` on login/password change, `Destroy` on logout
 - [ ] Auth endpoints rate limited; login timing identical for unknown user vs wrong password
+- [ ] Any machine token per [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) §Machine tokens: 32 random bytes, only its SHA-256 stored, shown once, read from `Authorization: Bearer` and never from the query string, revoked by DELETE
 - [ ] All user input escaped via `html/template` (no `template.HTML` on user data)
 - [ ] SQL only via parameterized queries
 - [ ] Passwords (if any) hashed with argon2id (OWASP params, PHC-encoded)

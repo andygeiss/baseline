@@ -126,6 +126,63 @@ deleted on use; the plaintext token goes in the emailed link once. A used or exp
 token and an unknown email produce the same response (no enumeration). Consider
 sessions of that user revoked on successful reset.
 
+## Machine tokens (when a program is the user)
+
+A CLI or a script cannot hold a session cookie. Sessions are built for a browser:
+they idle out in two hours, they renew on login, and the cookie is ambient
+authority the browser attaches by itself. Give a program its own credential
+instead.
+
+```go
+// NewToken returns the secret to show the caller once, and the hash to store.
+func NewToken() (secret, hash string, err error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil { // crypto/rand
+		return "", "", fmt.Errorf("token: %w", err)
+	}
+	secret = base64.RawURLEncoding.EncodeToString(b)
+	sum := sha256.Sum256([]byte(secret))
+	return secret, hex.EncodeToString(sum[:]), nil
+}
+```
+
+MUST rules:
+
+1. **Store the SHA-256, never the token** — the same rule as a reset token
+   above, for the same reason: a leaked database then leaks nothing usable.
+2. **SHA-256 is the right hash here, and argon2id is not.** A password is short
+   and guessable, so the slow hash buys the time to notice a breach. This token
+   is 32 random bytes; nothing brute-forces that, and argon2id would spend 19 MiB
+   of memory on every single API request to protect a secret that needs no
+   protecting.
+3. **Show the secret once,** at creation, and never again. There is nothing to
+   show later — the server kept only the hash. Replacing a lost token is
+   creating a new one and deleting the old.
+4. **The token travels in `Authorization: Bearer <secret>`.** MUST NOT accept it
+   in a query string: URLs land in access logs, in `Referer` headers, and in
+   shell history.
+5. **Look it up by hash** (`WHERE token_hash = ?`, indexed and unique), and let
+   the row carry a human label and a `last_used_at` the handler touches. Both
+   exist so a person can tell which token to revoke. **Revocation is a DELETE.**
+6. **One function resolves either credential** — a bearer token or a session —
+   and puts the same user in the request context. Everything downstream stops
+   caring which one arrived.
+
+   What it MUST NOT do is decide the answer when there is no user, because the
+   two surfaces disagree. A browser is sent to the sign-in page; a program gets
+   `401` and a body it can read, since a `303` to a login form is `200` of HTML
+   that reads as success to anything checking only the status. Split the
+   middleware, not the lookup. And tell the two failures apart: **nothing
+   presented** is a signed-out reader, while **a token presented and refused** is
+   `401` on both surfaces — quietly treating a revoked token as "signed out"
+   hides the revocation behind a login form.
+
+**A machine token needs no CSRF defense, and gets none.** `http.CrossOriginProtection`
+allows requests that carry no `Sec-Fetch-Site` and no `Origin`, which is every
+non-browser client, so the CLI is not blocked. That is correct rather than a
+loophole: CSRF is an attack on *ambient* authority, and a browser never attaches
+a bearer token by itself. The cookie half of the app is still covered.
+
 ## CSRF
 
 Handled globally by `http.CrossOriginProtection`, not per-form tokens — see

@@ -200,6 +200,23 @@ func (c Config) LogValue() slog.Value {
 `slog.Any("config", cfg)` now prints the safe fields only. The allowlist is the
 point: a redaction blocklist forgets the field somebody adds next year.
 
+### A CLI holds its secret differently
+
+Everything above assumes a deployment — something that starts the process and
+can put a file where only that process may read it. A command-line tool has no
+such thing. It runs as a person, from a shell, on a laptop, and
+[go-cli.md](go-cli.md) sends its configuration through `MYTOOL_*` environment
+variables. Read the two rules together and they collide: secrets never come from
+the environment, and a CLI's settings always do.
+
+**The file wins, and the environment variable stays available.** A CLI takes its
+secret from a file named by `-token-file`, defaulting to `$MYTOOL_TOKEN_FILE`, and
+falls back to `$MYTOOL_TOKEN` when neither is set. Document the fallback as what it
+is: convenient, and readable by every child process the shell starts. The
+ban above is not softened for services — it is scoped to them, because the
+mechanism it names (`$CREDENTIALS_DIRECTORY`) only exists where a deployment
+does.
+
 ## Testing
 
 `parseConfig` takes its arguments and writes to an injected `stderr`, so it

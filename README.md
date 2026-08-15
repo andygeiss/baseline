@@ -99,9 +99,11 @@ baseline/
 │   ├── go-http-server.md
 │   ├── go-library.md
 │   ├── go-performance.md
+│   ├── go-ports-adapters.md
 │   ├── go-project-layout.md
 │   ├── go-sqlite.md
 │   ├── go-testing.md
+│   ├── htmx-live-updates.md
 │   ├── htmx-server-rendering.md
 │   ├── pwa.md
 │   └── security-headers.md
@@ -202,8 +204,9 @@ Two mechanisms, and a release needs both.
   the reference resolves it.
 
 The standard, the tag gate, and what every run found live in
-[VERIFICATION.md](VERIFICATION.md). Current state: last run 2026-08-15 over the
-operations split; reference synced at v3.0.1, `verify.sh` green.
+[VERIFICATION.md](VERIFICATION.md). Current state: last run 2026-08-15 over live
+updates, machine tokens, and the CLI's secret rule; the reference is Go Chat, a
+chat application with a command-line client, and `verify.sh` is green.
 
 ## Maintenance protocol (humans)
 

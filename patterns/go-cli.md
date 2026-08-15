@@ -108,6 +108,42 @@ validation, and the secrets rules live in [go-config.md](go-config.md) — a
 single-purpose tool with two flags does not need the struct, but everything
 else there applies from the first flag.
 
+**A secret is the one setting that does not follow that rule.** An API token in
+`$MYTOOL_TOKEN` is inherited by every process the tool starts and printed by
+anything that dumps the environment. So the token comes from a file, and the
+environment variable is the documented fallback — the seam is spelled out in
+[go-config.md](go-config.md) *A CLI holds its secret differently*.
+
+The flag names the file, never the secret — beside the other flags, in the
+subcommand:
+
+```go
+tokenFile := fs.String("token-file", os.Getenv("MYTOOL_TOKEN_FILE"),
+	"file holding the API token (env MYTOOL_TOKEN_FILE; MYTOOL_TOKEN also works)")
+```
+
+And reading it is its own function, so every subcommand gets the same
+precedence:
+
+```go
+// token prefers the file, because $MYTOOL_TOKEN leaks into every child process.
+func token(path string) (string, error) {
+	if path == "" {
+		return os.Getenv("MYTOOL_TOKEN"), nil
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("read token file: %w", err)
+	}
+	return strings.TrimSpace(string(b)), nil // the file usually ends in a newline
+}
+```
+
+MUST NOT take a secret from a flag *value*: it shows up in `ps` and in shell
+history. A missing token file is an error, never a silent fall-through to no
+token — that answers "not signed in" and sends the reader looking in the wrong
+place.
+
 ## Streams
 
 - **stdout is data.** Parseable, pipe-friendly, treated as an API — semver rules

@@ -28,6 +28,8 @@ walk it without holding the whole corpus in your head.
 - [ ] Config parsed and validated before any work starts; a bad value exits 2 with one line, never a half-done run
 - [ ] If the repo has a `.env`: it is gitignored, only `make run` reads it, and production takes its secrets from credential files instead — [stack/makefile.md](../stack/makefile.md) rule 6
 - [ ] Any outbound HTTP uses an injected client with a timeout (never `http.DefaultClient`), checks `resp.StatusCode`, and caps the body it reads — [patterns/go-http-client.md](../patterns/go-http-client.md)
+- [ ] Any adapter for someone else's system sits in its own package, defines no port of its own, exposes domain methods instead of `*http.Response`, and imports `internal/domain` and nothing else of yours — `go list -deps` proves it ([patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md))
+- [ ] Any secret (API token, key) is read from a file named by `-token-file`/`$MYTOOL_TOKEN_FILE`, with `$MYTOOL_TOKEN` documented as the leaky fallback and **never** taken from a flag value — [patterns/go-config.md](../patterns/go-config.md) *A CLI holds its secret differently*
 - [ ] Ctrl-C/SIGTERM cancels the context; in-flight work finishes or rolls back; interrupted runs exit non-zero
 - [ ] Partial work is safe: units of work atomic (temp file + rename, transaction) or reruns idempotent
 - [ ] Prose passes [STYLE.md](../STYLE.md): comments say *why* (not what), README leads with the point, commits are semantic (`type(scope): subject`), any LLM prompts follow its prompt rules
@@ -46,6 +48,7 @@ walk it without holding the whole corpus in your head.
 - [ ] `go test -race -shuffle=on ./...` passes
 - [ ] Core logic in `internal/` covered exhaustively (all rules/edge cases)
 - [ ] `run()` table-tested: happy path per subcommand (or the single command); unknown command and top-level `-h` where dispatch exists; bad flag (→ `errUsage`); `-json` round-trips where the flag exists
+- [ ] Every port has a hand-written fake, never a mock; tests assert the outcome, not call counts or call order — [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md)
 
 ## Ship
 
