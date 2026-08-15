@@ -65,7 +65,7 @@ web/static/css/app.css
   [patterns/css-tokens.md](../patterns/css-tokens.md).
 - **base** — element defaults: typography, links, forms.
 - **layout** — page scaffolding: grid shells, headers, content widths.
-- **components** — one nested block per component, class-named (`.card`, `.board`).
+- **components** — one nested block per component, class-named (`.card`, `.task-list`).
 - **utilities** — the few single-purpose helpers (`.visually-hidden`) and the
   view-transition kill switch ([patterns/css-motion.md](../patterns/css-motion.md)).
   Keep under ~10.
@@ -76,7 +76,7 @@ Rules:
    any web font; MUST NOT load fonts from third-party origins. The type scale, the
    `@font-face` recipe, and the rule that keeps a font swap from shifting the page:
    [patterns/css-typography.md](../patterns/css-typography.md).
-2. **Class naming:** simple, semantic, component-scoped (`.board-cell`, not BEM
+2. **Class naming:** simple, semantic, component-scoped (`.task-title`, not BEM
    ceremony, not utility soup). Nesting keeps scope; `@scope` (Baseline Newly —
    see the table above) only when bleed is a real, demonstrated risk.
 3. **Specificity:** selectors stay at one class deep where possible; layers resolve

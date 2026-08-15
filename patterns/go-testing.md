@@ -9,7 +9,7 @@ hand-written fakes against small consumer-defined interfaces.
 ## What to test, in priority order
 
 1. **Domain logic** (`internal/domain`) — exhaustively. This is pure code; there is no
-   excuse for gaps. Win detection in a tic-tac-toe game lives here and gets every case.
+   excuse for gaps. The title rules of a todo app live here and get every case.
 2. **HTTP edge** (`internal/app`) — happy path + each error path per handler, via
    `net/http/httptest`.
 3. **Store** — against real SQLite, not fakes: a temp file opened with the production
@@ -25,14 +25,14 @@ caught it.
 - **Table-driven tests with subtests**, names describing behavior:
 
   ```go
-  func TestBoard_Winner(t *testing.T) {
+  func TestValidateTitle(t *testing.T) {
   	tests := []struct {
   		name  string
-  		moves []Move
-  		want  Player
+  		title string
+  		want  error
   	}{
-  		{"row of three wins", …, PlayerX},
-  		{"full board no winner is draw", …, PlayerNone},
+  		{"a plain title is fine", "Buy milk", nil},
+  		{"only spaces is empty", "   ", ErrEmptyTitle},
   	}
   	for _, tt := range tests {
   		t.Run(tt.name, func(t *testing.T) {

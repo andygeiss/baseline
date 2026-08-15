@@ -3,7 +3,7 @@
 **Last verified: 2026-08-14**
 
 Server-rendered web application. This is the default and preferred shape for anything
-with a UI — from a tic-tac-toe game to a SaaS dashboard.
+with a UI — from a todo list to a SaaS dashboard.
 
 ## Mandated stack
 

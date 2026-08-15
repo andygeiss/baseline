@@ -11,24 +11,25 @@ block; a handler renders either the full page or just the block, depending on
 `layout.html` defines the shell; page templates fill slots and define their fragments:
 
 ```html
-{{/* web/templates/game.html */}}
-{{define "title"}}Game {{.ID}}{{end}}
+{{/* web/templates/tasks.html */}}
+{{define "title"}}Your tasks{{end}}
 
 {{define "main"}}
-  <h1>Tic-Tac-Toe</h1>
-  {{template "board" .}}
+  <h1>Your tasks</h1>
+  {{template "task-list" .}}
 {{end}}
 
-{{define "board"}}
-<div id="board" class="board">
-  {{range $i, $cell := .Cells}}
-    <form method="post" action="/games/{{$.ID}}/moves"
-          hx-post="/games/{{$.ID}}/moves" hx-target="#board" hx-swap="outerHTML">
-      <input type="hidden" name="cell" value="{{$i}}">
-      <button class="board-cell" {{if $cell.Taken}}disabled{{end}}>{{$cell.Mark}}</button>
-    </form>
+{{define "task-list"}}
+<ul id="task-list" class="task-list">
+  {{range .Tasks}}
+    <li>
+      <form method="post" action="/tasks/{{.ID}}/toggle"
+            hx-post="/tasks/{{.ID}}/toggle" hx-target="#task-list" hx-swap="outerHTML">
+        <button class="task-toggle" aria-pressed="{{.Done}}">{{.Title}}</button>
+      </form>
+    </li>
   {{end}}
-</div>
+</ul>
 {{end}}
 ```
 
@@ -117,15 +118,15 @@ no-htmx full page and the htmx fragment.
   failure the 303 rule above exists to prevent (a 422 is not a redirect, so
   nothing else stops the push).
 
-  Only true *input* validation gets a 422. A stale-state action (clicking an already-
-  taken cell on an outdated board) is not invalid input — respond 200 with the current
+  Only true *input* validation gets a 422. A stale-state action (ticking off a task
+  another tab already deleted) is not invalid input — respond 200 with the current
   fragment and a message, letting the swap heal the staleness.
-- **Post-action navigation from a fragment:** set `HX-Redirect: /games/42` header
+- **Post-action navigation from a fragment:** set `HX-Redirect: /tasks/42` header
   instead of rendering, when the whole page must change.
 - **Cross-component updates:** render extra fragments with `hx-swap-oob="true"` in the
-  same response (e.g. update the score header when the board changes) — sparingly;
+  same response (e.g. update the open-task count when the list changes) — sparingly;
   if a response carries 3+ OOB fragments, swap a larger target instead.
-- **Server-driven events:** `HX-Trigger: gameOver` response header when a decoupled
+- **Server-driven events:** `HX-Trigger: taskDeleted` response header when a decoupled
   element must react.
 - **Caching:** dual-mode responses MUST set `Vary: HX-Request, HX-Boosted`
   (the render helper does).
