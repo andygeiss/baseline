@@ -17,6 +17,7 @@ walk it without holding the whole corpus in your head.
 - [ ] Flags via stdlib `flag` only (no cobra/viper/urfave); config precedence is flags > env > defaults per [patterns/go-config.md](../patterns/go-config.md)
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build .` (or `./cmd/...` in a multi-binary module)
 - [ ] `main` package at module root (`cmd/<name>/` only when the module ships several binaries); logic in `internal/`
+- [ ] The binary's name is free: `command -v <name>` finds nothing on a stock macOS and Linux box — a collision means the tool that runs is not the tool that was installed ([project-types/cli-tool.md](../project-types/cli-tool.md))
 
 ## Code quality
 

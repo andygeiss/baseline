@@ -74,6 +74,13 @@ behind it.
 - **Subcommands are a smell until they aren't.** Single-purpose tools take flags
   only. Add manual dispatch (stdlib, ~10 lines) when the tool genuinely does
   several things; at more than ~5 subcommands, question whether it is several tools.
+- **Check the name with `command -v` before you commit to it.** A plain English
+  word is a name somebody already took: the reference client below was called
+  `chat` for a day, and `/usr/sbin/chat` is a PPP utility on every macOS box — so
+  the tool a person installed was not the tool that ran, with nothing to say so.
+  Prefix it (`gochat`) and the collision is gone. The env vars follow the name
+  ([patterns/go-config.md](../patterns/go-config.md) rule 6), so renaming later
+  moves those too — which is why this is a decision to make first.
 
 ## Definition of done
 
@@ -82,14 +89,16 @@ milestone complete.
 
 ## Reference implementation
 
-The `chat` client in
+The `gochat` client in
 [github.com/andygeiss/baseline-reference](https://github.com/andygeiss/baseline-reference)
 implements this document end to end (deviations recorded in its README). When a
 rule here is ambiguous, read how the reference does it.
 
 It is the sanctioned multi-binary case: the module ships a server and a client,
-so `main` sits in `cmd/chat/` rather than at the module root, and the install
-path gains the suffix. **The one part it does not exercise is the release** —
-that repository's tags mirror baseline versions rather than the tool's own
-contract, so it publishes no artifacts and
-[operations/cli-release.md](../operations/cli-release.md) has no reference yet.
+so `main` sits in `cmd/gochat/` rather than at the module root, and the install
+path gains the suffix.
+
+**The one part it does not exercise is the release** — that repository's tags
+mirror baseline versions rather than the tool's own contract, so it publishes no
+artifacts and [operations/cli-release.md](../operations/cli-release.md) has no
+reference yet.
