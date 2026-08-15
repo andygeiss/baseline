@@ -204,9 +204,10 @@ Two mechanisms, and a release needs both.
   the reference resolves it.
 
 The standard, the tag gate, and what every run found live in
-[VERIFICATION.md](VERIFICATION.md). Current state: last run 2026-08-15 over live
-updates, machine tokens, and the CLI's secret rule; the reference is Go Chat, a
-chat application with a command-line client, and `verify.sh` is green.
+[VERIFICATION.md](VERIFICATION.md). Current state: last run 2026-08-15, a
+full-corpus sweep that compiled and executed every canonical snippet and killed
+two claims this repository had made about its own evidence. The reference is Go
+Chat, a chat application with a command-line client, and `verify.sh` is green.
 
 ## Maintenance protocol (humans)
 

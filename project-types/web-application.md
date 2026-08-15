@@ -85,8 +85,9 @@ document behind it.
   no second process it depends on. A deployment MAY run companion services beside it
   (a TLS proxy, a backup replicator); the application MUST NOT need any of them to be
   correct, and its code MUST NOT name one.
-- **Server-side state.** Session data lives in SQLite; the cookie (`Secure`, `HttpOnly`,
-  `SameSite=Lax`) carries only a random token. The browser holds a session token and
+- **Server-side state.** Session data lives in SQLite; the cookie (`HttpOnly`,
+  `SameSite=Lax`, and `Secure` in production — [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md))
+  carries only a random token. The browser holds a session token and
   rendered HTML, nothing else.
 - **Progressive enhancement.** Every feature MUST work with plain HTML forms and links
   if htmx fails to load. htmx upgrades the experience; it is not a dependency for correctness.

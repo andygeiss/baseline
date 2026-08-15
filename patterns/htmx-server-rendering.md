@@ -111,7 +111,11 @@ no-htmx full page and the htmx fragment.
   [go-forms-validation.md](go-forms-validation.md).
   ⚠️ htmx 2 does **not** swap 4xx responses by default — the 422 flow requires the
   `htmx-config` responseHandling meta tag, already part of the canonical layout
-  `<head>` in [stack/html.md](../stack/html.md). Do not remove it.
+  `<head>` in [stack/html.md](../stack/html.md). Do not remove it, and do not
+  move its `{"code":"422","swap":true}` rule below `{"code":"[45]..","swap":false,"error":true}`:
+  htmx takes the first rule whose pattern matches, `[45]..` matches `422`, and
+  this whole flow then fails by doing nothing at all
+  ([htmx-live-updates.md](htmx-live-updates.md) has the full ordering table).
   ⚠️ When the invalid POST is *boosted* (`HX-Boosted: true`), also set
   `HX-Push-Url: false` on the 422 response: a boosted swap otherwise pushes the
   POST's URL into history — the exact refresh/back → GET-on-a-POST-route → 405

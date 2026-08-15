@@ -73,11 +73,23 @@ canonical layout ([stack/html.md](../stack/html.md)), and the 286 rule is not
 obvious. Traced through htmx 2.0.10: the cancel sits *inside* the swap branch —
 `if (shouldSwap) { if (status === 286) { cancelPolling(elt) } }`. So **286 stops
 a poll only while that array counts 286 as a swap**, which the canonical array
-does through its `{"code":"[23]..","swap":true}` rule. Narrow that pattern to
-`2..` — which looks more precise, and is the edit somebody tidying the config
-would make — and polling never stops again, with nothing in the console to say
-so. The `204` rule works the same way, and survives only because it sits *first*
-in the array, ahead of `[23]..`. Do not reorder or narrow those two rules.
+does through its `{"code":"[23]..","swap":true}` rule, not by naming 286
+anywhere.
+
+**How the array is read is the whole trap: each `code` is an unanchored regular
+expression, and the first rule that matches wins.** A status matching no rule
+does not swap. Three edits a tidying pass would make, and what each one silently
+costs:
+
+| Edit | What breaks |
+|---|---|
+| Replace `[23]..` with the codes the app actually returns (`200`, `303`) | 286 then matches nothing, so it does not swap — and the cancel that lives inside the swap never runs. The poll runs forever. |
+| Group `422` after `[45]..` | `[45]..` matches `422` first, so the validation flow stops swapping and an invalid form silently does nothing ([htmx-server-rendering.md](htmx-server-rendering.md)). |
+| Move `204` after `[23]..` | `[23]..` matches `204` first, so the empty body swaps — wiping out the sentinel that was still polling. |
+
+Narrowing `[23]..` to `2..` is the one edit that looks dangerous and is not:
+`2..` still matches `286`. Keep the four rules in the order the canonical layout
+writes them; that order is the only thing holding all three flows up.
 
 ## Rules
 

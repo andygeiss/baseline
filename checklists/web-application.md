@@ -57,7 +57,7 @@ walk it without holding the whole corpus in your head.
 - [ ] CSP carries `img-src 'self' data:`; a page with icons loads with **zero** CSP violations in the browser console
 - [ ] `http.CrossOriginProtection` wraps the mux (CSRF)
 - [ ] Request bodies capped at 1 MiB — `http.MaxBytesHandler`, or the route-aware limit chooser when upload routes need more (see [patterns/go-http-server.md](../patterns/go-http-server.md))
-- [ ] Session cookies: `Secure`, `HttpOnly`, `SameSite=Lax`; `RenewToken` on login/password change, `Destroy` on logout
+- [ ] Session cookies: `HttpOnly` and `SameSite=Lax` always, `Secure` tied to `ENV` so production sets it and dev does not ([patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md)); `RenewToken` on login/password change, `Destroy` on logout
 - [ ] Auth endpoints rate limited; login timing identical for unknown user vs wrong password
 - [ ] Any machine token per [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) §Machine tokens: 32 random bytes, only its SHA-256 stored, shown once, read from `Authorization: Bearer` and never from the query string, revoked by DELETE
 - [ ] All user input escaped via `html/template` (no `template.HTML` on user data)

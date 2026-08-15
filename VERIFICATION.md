@@ -50,6 +50,72 @@ be synced, the tag waits.
 
 Newest first.
 
+### 2026-08-15 — a full re-review, and two claims that measurement killed (v3.3.1)
+
+A sweep of the whole corpus, run against the toolchain rather than read. Five
+rounds; the last two found nothing. **Three defects, and the two that matter are
+both cases of this file being wrong about its own evidence.**
+
+1. **The `Secure` session cookie was never actually fixed here.** The v3.2.0
+   entry below records the finding and says the reference ties the flag to
+   `ENV` — and `patterns/go-auth-sessions.md` still set
+   `sessions.Cookie.Secure = true` flat. Only the reference was changed, so the
+   corpus and its own executable check disagreed for a release, while the
+   reference's README listed the finding under *Fed back into the baseline*.
+   The rule now lives in the baseline, with the checklist and the project-type
+   document carrying the same nuance.
+2. **The `responseHandling` warning named an edit that is not dangerous.** Both
+   `patterns/htmx-live-updates.md` and the v3.2.0 entry claimed that narrowing
+   `{"code":"[23]..","swap":true}` to `2..` leaves polls running forever.
+   `2..` still matches `286` — the poll still stops. Running htmx 2.0.10's own
+   matcher (`new RegExp(code).test(status)`, first match wins, unanchored) over
+   every plausible tidying edit found the real ones, now a table in that
+   document: replacing the `[23]..` catch-all with the codes the app returns
+   breaks 286, and **grouping `422` after `[45]..` silently kills the entire
+   form-validation flow** — which nothing in the corpus had warned about.
+3. **Both claims about the cookie overstated the damage,** including the one
+   written during this run. Measured instead of reasoned: `curl` stores and
+   returns a `Secure` cookie over `http://localhost` and `http://127.0.0.1`, and
+   refuses to store it at all over a LAN address. Loopback is a secure context,
+   so the flat flag works on a laptop and on `verify.sh` — it fails on a phone
+   testing the mobile-first layout, on a container reached by hostname, and on a
+   plain-HTTP staging box. The rule stands; only its stated reason was wrong.
+
+**The mechanical layer was re-run, not re-read.** Every canonical Go snippet was
+compiled, vetted, `staticcheck`ed, and executed against Go 1.26.6: the `run()`
+skeleton and its test, `parseConfig` (including the empty-environment case rule 3
+promises), the middleware chain, `OpsHandler`, the render helper, the forms
+handler, the poll handler, `NewToken`, `clientIP`, and the whole `go-http-client`
+retry path (its 503 test asserts two attempts). `openDB` was run against a real
+database: WAL, `busy_timeout=5000`, `synchronous=1`, `foreign_keys=1` all read
+back from a pooled connection, and `VACUUM INTO ?` wrote a snapshot. The
+canonical `Makefile` ran end to end under macOS's GNU Make 3.81, `.env` present
+and absent; the release workflow's cross-compile loop built all six targets under
+`bash -e`. `fs.Sub` + `FileServerFS` was proven to need no `StripPrefix`, with
+both `mime` registrations taking effect. Every version stamp claim was checked by
+building tagged, dirty, untagged, and `-buildvcs=false` binaries — all four
+report exactly what the corpus says. Contrast floors recomputed from oklch
+(≥ 6.6:1 text, ≥ 3.2:1 border, ≥ 7.4:1 button), both manifest hex values
+reproduced, the eight icon data URIs parsed as SVG, the `htmx-config` and
+manifest JSON parsed, `DESIGN.md`'s seventeen values diffed character-for-character
+against the tokens layer, and every pin re-checked upstream (Go 1.26.6, htmx
+2.0.10 latest 2.x, `checkout@v7`, `setup-go@v7`, scs v2.9.0).
+
+**Empirical half: closed.** Reference at `8341d4e`; `./verify.sh` exits 0 — every
+mechanical gate, then both booted binaries through registration, session flags,
+token renewal, rate limiting, the plain-form and htmx flows, the poll's 204 and
+200 answers, the 422 contract, machine tokens, CSRF, the backup snapshot,
+restart, and graceful shutdown. Run twice, before and after these corrections.
+The reference already satisfied both corrected rules — `Secure` follows `ENV` in
+its `main.go`, and its layout carries the canonical `responseHandling` order —
+which is the whole reason defect 1 could hide: nothing that runs disagreed with
+the corpus, only the corpus disagreed with itself. Its `SPEC.md` pin and its own
+tag move to this release's commit when the tag is cut (gate items 2 and 3).
+
+**A note this file owes its own readers.** v3.3.0 was tagged without an entry
+here, which is gate item 4 — so the gate was broken by the release right after
+the one that introduced it. The entry above covers both releases.
+
 ### 2026-08-15 — live updates, machine tokens, and a second binary (v3.2.0)
 
 The release that came out of replacing the reference application. The todo app
@@ -109,17 +175,20 @@ tree is now checked against the real directories mechanically.
 - **A `Secure` session cookie cannot be exercised over the HTTP this baseline
   mandates.** `go-auth-sessions.md` set the flag unconditionally;
   `project-types/web-application.md` says the binary only ever speaks plain HTTP
-  behind a TLS proxy. Together they make an app nobody can sign in to in
-  development and an acceptance test that cannot reach a single authenticated
-  route. The reference ties the flag to `ENV`, which the deployment sets and
-  which is the thing that knows whether TLS is in front.
+  behind a TLS proxy. The reference ties the flag to `ENV`, which the deployment
+  sets and which is the thing that knows whether TLS is in front. (This entry
+  originally said the pair makes an app nobody can sign in to in development and
+  an acceptance test that cannot reach an authenticated route. Both overstate
+  it — loopback is a secure context, so the flat flag survives `localhost`. The
+  2026-08-15 entry above measures what actually breaks, and the rule stands for
+  that reason.)
 - **htmx stops polling on 286 only while `responseHandling` counts 286 as a
   swap.** Traced through the vendored htmx 2.0.10: the cancel sits inside the
   swap branch (`if (shouldSwap) { if (status === 286) cancelPolling(elt) }`), so
   the canonical `htmx-config` meta works through its `{"code":"[23]..","swap":true}`
-  rule rather than by design. Narrowing that pattern to `2..` — which reads more
-  precise — would leave polls running forever with nothing in the console to say
-  so. Both codes are now documented as load-bearing.
+  rule rather than by design. Both codes are now documented as load-bearing.
+  (The example this entry originally gave for a breaking edit was wrong — see
+  the 2026-08-15 entry above, which corrects it.)
 
 **Every changed snippet was compiled and run,** not read: the polling handler,
 `NewToken`, and the CLI's `token` reader, through `gofmt`, `go vet`,

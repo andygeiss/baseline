@@ -13,11 +13,30 @@ Constructed in `main.go`, injected like every other dependency:
 sessions := scs.New()
 sessions.Lifetime = 12 * time.Hour
 sessions.IdleTimeout = 2 * time.Hour
-sessions.Cookie.Secure = true      // set all three explicitly: scs defaults HttpOnly=true
-sessions.Cookie.HttpOnly = true    // and SameSite=Lax, but Secure defaults to FALSE —
-sessions.Cookie.SameSite = http.SameSiteLaxMode // don't "simplify" these away
+sessions.Cookie.Secure = cfg.Env == "prod" // TLS is in front only in production — see below
+sessions.Cookie.HttpOnly = true            // set both explicitly: scs defaults HttpOnly=true
+sessions.Cookie.SameSite = http.SameSiteLaxMode // and SameSite=Lax — don't "simplify" these away
 sessions.Store = store.NewSessionStore(readDB, writeDB) // see below
 ```
+
+**`Secure` follows `ENV`, and that is not a weakened rule.** The binary only ever
+speaks plain HTTP; a proxy adds TLS in front of it
+([project-types/web-application.md](../project-types/web-application.md)). A
+client returns a `Secure` cookie only over a connection it counts as secure, and
+clients make exactly one exception for plain HTTP: **loopback**. `curl` returns
+the cookie over `http://localhost` and `http://127.0.0.1`, and so does any
+browser following the secure-contexts rule, where loopback counts as trustworthy
+by definition. A flat `Secure = true` therefore survives on a laptop and hides
+the problem.
+
+Nothing past loopback gets that exception. Point a phone at the LAN address to
+check the mobile-first layout this baseline mandates
+([css-layout.md](css-layout.md)), reach the app in a container by its
+hostname, or put a staging box on plain HTTP, and the cookie is not even stored
+— nobody signs in, and no page behind the sign-in form can be reached at all.
+`ENV` is the one setting that knows whether TLS is in front, because the
+deployment sets it ([go-config.md](go-config.md)) — so `Secure` in production,
+off in dev. `HttpOnly` and `SameSite=Lax` never fork: they cost nothing anywhere.
 
 `sessions.LoadAndSave` wraps the mux (see [go-http-server.md](go-http-server.md)
 middleware chain).
