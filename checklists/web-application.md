@@ -83,7 +83,7 @@ or explicitly waived by the user in writing.
 - [ ] README links to this baseline and records any waived rules
 - [ ] The binary satisfies every line of [operations/web-application.md](../operations/web-application.md): two listeners, stdout logs, SIGTERM shutdown, state under `DATABASE_URL`, secrets from `CREDENTIALS_DIRECTORY`
 - [ ] It starts with an empty environment on `127.0.0.1:8080` — no deployment needed to try it
-- [ ] `GOMEMLIMIT` set by the deployment; version visible in `/healthz` and the boot log (`debug.ReadBuildInfo`) — and it is the git tag, not `unknown`
+- [ ] `GOMEMLIMIT` set by the deployment; version visible in `/healthz` and the boot log (`debug.ReadBuildInfo`) — and it is the git tag, not `unknown` and not a pseudo-version off an older major (past v1 the module path carries the `/vN` suffix — [operations/web-application.md](../operations/web-application.md) *Version stamping*)
 - [ ] TLS terminates in front of the app, the app is reachable from nothing else, and the proxy writes its own `X-Forwarded-For`
 - [ ] The off-box question is answered on purpose — "if this server disappears right now, what have you lost?" — with the matching row from [patterns/go-sqlite.md](../patterns/go-sqlite.md) running, and **the restore rehearsed once**
 - [ ] Static assets served with `immutable` cache headers + version-busting query string

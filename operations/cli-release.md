@@ -30,6 +30,11 @@ Docker images, no install-script-piped-to-shell.
   the observable contract**: flag names and defaults, exit codes, `-json` field
   names, or the meaning of stdout output. Scripts depend on all of these; treat
   them like a library API.
+- **A major past v1 moves the module path too** — `github.com/andygeiss/<tool>/v2`
+  in `go.mod` and in every internal import, before the tag exists. Skip it and Go
+  refuses the tag for the main module without saying so: `@latest` keeps resolving
+  to the v1 line, and the binary stamps a v1 pseudo-version
+  ([patterns/go-cli.md](../patterns/go-cli.md)).
 - Human-facing stderr text MAY change in any release.
 
 ## Release workflow

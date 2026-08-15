@@ -1,6 +1,6 @@
 # Pattern: Go CLI
 
-**Last verified: 2026-08-14**
+**Last verified: 2026-08-15**
 
 The mechanics behind [project-types/cli-tool.md](../project-types/cli-tool.md):
 process skeleton, flags, streams, exit codes, version reporting, testing.
@@ -158,6 +158,14 @@ so `unknown` only appears for builds without VCS metadata (`-buildvcs=false`,
 source tarballs), which carry no `vcs.*` build settings to fall back on either.
 Expose it as a `version` subcommand or
 `-version` flag — one of the two, matching the tool's shape.
+
+One trap, silent in both directions: **a v2+ tag only stamps as itself when the
+module path carries the matching major suffix** (`github.com/you/tool/v2`).
+Without it Go rejects the tag for the main module and reports a pseudo-version
+off the last v1 tag instead — and `go install …/tool@latest` keeps resolving to
+that v1 line too, so users of a "v2" tool silently get v1. The rule and its cost
+are in [operations/web-application.md](../operations/web-application.md)
+*Version stamping*; the check is `go version -m` on a clean tagged build.
 
 ## Long-running work
 

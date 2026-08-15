@@ -76,6 +76,24 @@ Two things silently break the stamp wherever the build happens: a missing `.git`
 and a missing `git` binary. Neither produces an error — every binary just
 reports `unknown`. A version of `unknown` at `/healthz` means one of the two.
 
+**Past v1, "the tag" holds only if the module path says so.** Go accepts a
+`vX.Y.Z` tag for the main module only when the path ends in the matching major
+suffix, so an application tagged `v2.0.0` whose `go.mod` still reads
+`github.com/you/app` gets no error and no warning — the toolchain quietly falls
+back to a pseudo-version off the last v1 tag, and `/healthz` names a version
+nobody released. Before the first v2 tag, the module path becomes
+`github.com/you/app/v2` and every internal import moves with it:
+
+```
+module github.com/you/app/v2   ← go.mod, and every internal import path
+```
+
+The cost lands in operations, not in Go: images are tagged by version and a
+rollback is identified by it, so a `v2.0.0` image whose `/healthz` reports
+`v1.7.3-0.20260815…` leaves "what is running?" without one answer. Check it once
+per major, with `go version -m ./bin/app` against a clean tagged checkout — the
+`mod` line is the string the binary will report.
+
 ## Environment contract
 
 The binary is configured by exactly these. `HOST`, `PORT`, `DATABASE_URL`, and
