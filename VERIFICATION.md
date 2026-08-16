@@ -1,6 +1,6 @@
 # Verification Record
 
-**Last verified: 2026-08-15**
+**Last verified: 2026-08-16**
 
 How this repository proves it is right, and what every review run found. The
 README states the standard in a paragraph; this file holds the evidence and the
@@ -49,6 +49,61 @@ be synced, the tag waits.
 ## Run log
 
 Newest first.
+
+### 2026-08-16 — a word list for every project (v3.4.0)
+
+The release that added [patterns/glossary.md](patterns/glossary.md): an optional
+root `GLOSSARY.md` holding one entry per concept a project owns, and the words it
+turned down. Tier 3 — a project whose vocabulary is the baseline's plus plain
+English writes nothing down.
+
+**Thirty defects in the changed documents, over ten adversarial passes** — the
+last two clean, which is what the gate asks for. A new document takes more passes
+than an edited one, and this one had to be held against itself: it prescribes a
+format, so every rule it states is a rule its own worked example must pass. The
+four worth remembering:
+
+1. **The document's rule excluded an entry its own example contained.** Rule 3
+   first said a glossary lists what the project *invented* — but the example's
+   *Slug* is a web term everywhere. The criterion was wrong, not the entry. What
+   earns a word its place is the project giving a general term a specific job:
+   *which* of a room's two names goes in the URL is Go Chat's decision.
+2. **`Label` collided inside its own project.** The example defined *Label* as
+   the note on a machine token, in an application where every form control has an
+   HTML label. It ships as *Token label* — the exact ambiguity this pattern
+   exists to kill, found sitting in the pattern's own example.
+3. **The checklist box asked for something no project can do.** It read
+   "`git grep` for each *Avoid* word finds nothing", but `channel` hits every Go
+   `chan` and `label` every `<label>`. The check is concept-scoped now, and it
+   carries rule 5's exception for a rejected word that survives where renaming is
+   expensive.
+4. **Two conflicts with [STYLE.md](STYLE.md) went undeclared.** A word list has
+   no runnable example for its first screen, and the cluster headings of rule 4
+   are the category headings STYLE bans. `design-system.md` had to declare the
+   same kind of exception for `DESIGN.md`; this document now declares both.
+
+**Writing the reference's own glossary found two more, which is what the sync is
+for.** Both came from checking the words against real code rather than imagining
+them:
+
+- **An *Avoid* word was one the project uses correctly.** *Author* first listed
+  *sender* as a runner-up to ban. The reference pairs *reader* and *sender* on
+  purpose — the person polling against the person who just pressed Send — so
+  banning *sender* would have renamed a role the live-update design needs.
+- **A seventh term, and an ordering rule.** Go Chat has an *invite code* the
+  first draft missed, and seven entries in domain order read as a list to study
+  rather than a file to look words up in. Rule 4 now says alphabetical.
+
+One thing was deliberately left alone: the same act is `/register` in the routes,
+"Make an account" on the button, and `signUp` in the tests. That is not glossary
+drift — rule 2 scopes entries to nouns, and UI copy phrases an action for people.
+
+**Empirical half: closed, before the tag.** Reference synced and tagged v3.4.0,
+its `SPEC.md` pinning this release's commit, and its `GLOSSARY.md` is the file
+this pattern quotes — diffed character for character, not eyeballed.
+`./verify.sh` exits 0 against the commit that carries this entry: every
+mechanical gate, the vendored htmx checksum, static builds of both binaries, then
+the booted binaries through the full smoke suite.
 
 ### 2026-08-15 — a full re-review, and two claims that measurement killed (v3.3.1)
 

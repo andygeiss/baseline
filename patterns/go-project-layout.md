@@ -14,6 +14,7 @@ project/
 │       ├── config.go        ← the Config struct + its parser (go-config.md)
 │       └── main.go          ← wiring only: config, deps, http.Server, shutdown
 ├── DESIGN.md                ← the theme, lockstep with app.css (design-system.md)
+├── GLOSSARY.md              ← the words this project owns — optional (glossary.md)
 ├── go.mod
 ├── internal/                ← all application code lives under internal/
 │   ├── app/                 ← handlers, routing, middleware (the HTTP edge)

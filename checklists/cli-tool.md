@@ -34,6 +34,7 @@ walk it without holding the whole corpus in your head.
 - [ ] Ctrl-C/SIGTERM cancels the context; in-flight work finishes or rolls back; interrupted runs exit non-zero
 - [ ] Partial work is safe: units of work atomic (temp file + rename, transaction) or reruns idempotent
 - [ ] Prose passes [STYLE.md](../STYLE.md): comments say *why* (not what), README leads with the point, commits are semantic (`type(scope): subject`), any LLM prompts follow its prompt rules
+- [ ] If the tool keeps a `GLOSSARY.md` ([patterns/glossary.md](../patterns/glossary.md)): the README links it; every term is the word the code, the subcommands, and the flags use; a `git grep` for each *Avoid* word finds no use of it for that concept, except where its entry says so; no term restates baseline or general-programming vocabulary
 
 ## Command-line contract
 

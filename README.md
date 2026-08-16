@@ -18,7 +18,7 @@ layered defaults rather than a checklist. Every rule exists to make the *default
 path the correct one — an agent that follows the documents verbatim ships a correct,
 hardened application without inventing anything.
 
-- **Last verified:** 2026-08-15
+- **Last verified:** 2026-08-16
 - **Format:** Markdown only, plus the MIT `LICENSE`. No code, no CI, no build
   steps. Documents are the product.
   The one piece of tooling is the root `Makefile`, which installs the baseline into
@@ -90,6 +90,7 @@ baseline/
 │   ├── css-tokens.md
 │   ├── css-typography.md
 │   ├── design-system.md
+│   ├── glossary.md
 │   ├── go-auth-sessions.md
 │   ├── go-cli.md
 │   ├── go-config.md
@@ -160,7 +161,8 @@ format below.
 
 **Tier 3 — Taste. Chosen per project.** The rules the documents already frame as a
 choice: which surface style ([patterns/css-surfaces.md](patterns/css-surfaces.md)),
-whether the app is installable ([patterns/pwa.md](patterns/pwa.md)), whether a CLI grows
+whether the app is installable ([patterns/pwa.md](patterns/pwa.md)), whether the project
+keeps a `GLOSSARY.md` ([patterns/glossary.md](patterns/glossary.md)), whether a CLI grows
 a `-json` flag, whether there is a brand web font. Pick one, name it in `DESIGN.md` or
 the README, and stay consistent. No waiver needed — choosing is the rule.
 
@@ -204,10 +206,11 @@ Two mechanisms, and a release needs both.
   the reference resolves it.
 
 The standard, the tag gate, and what every run found live in
-[VERIFICATION.md](VERIFICATION.md). Current state: last run 2026-08-15, a
-full-corpus sweep that compiled and executed every canonical snippet and killed
-two claims this repository had made about its own evidence. The reference is Go
-Chat, a chat application with a command-line client, and `verify.sh` is green.
+[VERIFICATION.md](VERIFICATION.md). Current state: last run 2026-08-16, which
+added the project glossary and found thirty defects in the documents it changed —
+two of them visible only once the reference's own word list was written against
+real code. The reference is Go Chat, a chat application with a command-line
+client, and `verify.sh` is green.
 
 ## Maintenance protocol (humans)
 

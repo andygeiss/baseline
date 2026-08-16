@@ -54,6 +54,7 @@ checklist checks all of it either way.
 
 | When you are about to… | Read |
 |---|---|
+| Name a concept this project owns — a domain type, a route word, a UI label | [patterns/glossary.md](../patterns/glossary.md) — the optional root `GLOSSARY.md`: one word per concept, the runners-up under *Avoid* |
 | Write any CSS at all | [patterns/css-tokens.md](../patterns/css-tokens.md) — the tokens layer and dark mode |
 | Lay out a page or a component | [patterns/css-layout.md](../patterns/css-layout.md) — mobile-first grid, container queries, bottom nav |
 | Write the first line of `app.css` | [patterns/design-system.md](../patterns/design-system.md) — the root `DESIGN.md`, lockstep with the stylesheet |

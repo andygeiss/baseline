@@ -40,6 +40,7 @@ relevant — open it before you write the thing, not after.
 
 | When you are about to… | Read |
 |---|---|
+| Name a concept this tool owns — a domain type, a subcommand, a flag | [patterns/glossary.md](../patterns/glossary.md) — the optional root `GLOSSARY.md`: one word per concept, the runners-up under *Avoid* |
 | Write a test | [patterns/go-testing.md](../patterns/go-testing.md) — what to test, and what never to fake |
 | Depend on someone else's system | [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port and its fake: build and test the tool before the API is integrated |
 | Call an external API over HTTP | [patterns/go-http-client.md](../patterns/go-http-client.md) — timeouts, retries, body limits |

@@ -33,6 +33,7 @@ walk it without holding the whole corpus in your head.
 - [ ] Any outbound HTTP uses an injected client with a timeout (never `http.DefaultClient`), checks `resp.StatusCode`, and caps the body it reads — [patterns/go-http-client.md](../patterns/go-http-client.md)
 - [ ] Any adapter for someone else's system sits in its own package, defines no port of its own, exposes domain methods instead of `*http.Response`, and imports `internal/domain` and nothing else of yours — `go list -deps` proves it ([patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md))
 - [ ] Prose passes [STYLE.md](../STYLE.md): comments say *why* (not what), README leads with the point, commits are semantic (`type(scope): subject`), any LLM prompts follow its prompt rules
+- [ ] If the project keeps a `GLOSSARY.md` ([patterns/glossary.md](../patterns/glossary.md)): the README links it; every term is the word the code, the UI, and the URLs use; a `git grep` for each *Avoid* word finds no use of it for that concept, except where its entry says so; no term restates baseline or general-programming vocabulary
 
 ## Tests
 
