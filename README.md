@@ -106,6 +106,7 @@ baseline/
 │   ├── go-testing.md
 │   ├── htmx-live-updates.md
 │   ├── htmx-server-rendering.md
+│   ├── local-https.md
 │   ├── pwa.md
 │   └── security-headers.md
 ├── project-types/                  ← entry point per kind of project
@@ -161,7 +162,9 @@ format below.
 
 **Tier 3 — Taste. Chosen per project.** The rules the documents already frame as a
 choice: which surface style ([patterns/css-surfaces.md](patterns/css-surfaces.md)),
-whether the app is installable ([patterns/pwa.md](patterns/pwa.md)), whether the project
+whether the app is installable ([patterns/pwa.md](patterns/pwa.md)), whether a developer
+can reach it from a phone over HTTPS ([patterns/local-https.md](patterns/local-https.md)),
+whether the project
 keeps a `GLOSSARY.md` ([patterns/glossary.md](patterns/glossary.md)), whether a CLI grows
 a `-json` flag, whether there is a brand web font. Pick one, name it in `DESIGN.md` or
 the README, and stay consistent. No waiver needed — choosing is the rule.

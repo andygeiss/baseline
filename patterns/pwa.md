@@ -18,7 +18,10 @@ A service worker is hand-written JavaScript, and this pattern needs none:
   `display`, and `prefer_related_applications` false or absent (the manifest
   omits it) — served over HTTPS, which
   [operations/web-application.md](../operations/web-application.md) already
-  mandates. A service worker is not on that list. Chrome retired the last
+  mandates in production and
+  [local-https.md](local-https.md) supplies on a developer's machine, where
+  install is otherwise impossible to try. A service worker is not on that
+  list. Chrome retired the last
   clause that implied one, "has a `fetch()` handler", from menu install in
   108 (mobile) and 112 (desktop). Safari never asked for one.
 - **Offline contradicts the architecture.** The server is the source of truth;
