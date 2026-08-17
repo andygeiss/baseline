@@ -4,11 +4,8 @@
 
 One topic per section: **the moment it fires, the document that rules it, and what done
 looks like.** Read a section before you write the thing it covers; walk its boxes before
-you call the work complete. Both halves live here because a trigger that routes you to a
-document the checklist never checks is how a rule goes missing — and a section with no
-box is the honest answer where the document rules something no milestone can verify.
-
-Paths are from the repository root.
+you call the work complete. A section with no box is the honest answer where the document
+rules something no milestone can verify. Paths are from the repository root.
 
 Every unchecked box is either fixed or waived on the record — the waiver format lives in
 `README.md` under *Which rules can be waived*. The compatibility promises are not

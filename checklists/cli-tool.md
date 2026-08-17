@@ -4,17 +4,16 @@
 
 One topic per section: **the moment it fires, the document that rules it, and what done
 looks like.** Read a section before you write the thing it covers; walk its boxes before
-you call the work complete. Both halves live here because a trigger that routes you to a
-document the checklist never checks is how a rule goes missing — and a section with no
-box is the honest answer where the document rules something no milestone can verify.
-
-Paths are from the repository root.
+you call the work complete. A section with no box is the honest answer where the document
+rules something no milestone can verify. Paths are from the repository root.
 
 Every unchecked box is either fixed or waived on the record — the waiver format lives in
-`README.md` under *Which rules can be waived*. The safety tier is not waivable: partial
-work staying safe, a destructive action needing an explicit flag, and every box about how
-a secret is handled — a secret never arrives as a flag *value*, and `.env` is gitignored.
-Tier 1 is decided by what a rule protects, not by which section it landed in.
+`README.md` under *Which rules can be waived*. **Tier 1 is decided by what a rule
+protects, not by which section it landed in**, and these are the boxes: partial work
+staying safe, a destructive action needing an explicit flag, every box about how a secret
+is handled — a secret never arrives as a flag *value*, and `.env` is gitignored — and the
+pragmas and parameterized SQL under *Storing anything between runs*. There is no waiver
+for any of them; there is a fix.
 
 ## Every CLI tool
 

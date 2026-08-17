@@ -4,16 +4,15 @@
 
 One topic per section: **the moment it fires, the document that rules it, and what done
 looks like.** Read a section before you write the thing it covers; walk its boxes before
-you call the work complete. Both halves live here because a trigger that routes you to a
-document the checklist never checks is how a rule goes missing.
-
-Paths are from the repository root.
+you call the work complete. Paths are from the repository root.
 
 Every unchecked box is either fixed or waived on the record — the waiver format lives in
-`README.md` under *Which rules can be waived*. **Nothing under *Security* is waivable**,
-and neither are the SQLite pragmas, the single-writer pool, or the three secret-handling
-boxes — `Config.LogValue`, the `.env` block, and secrets arriving as credential files.
-Tier 1 is decided by what a rule protects, not by which section it landed in.
+`README.md` under *Which rules can be waived*. **Tier 1 is decided by what a rule
+protects, not by which section it landed in**, so a wholly tier-1 section says so in its
+heading. Three sections are only partly tier 1: `Config.LogValue` and the three `.env`
+boxes under *Reading a flag…*; the pragmas, both pools, and parameterized SQL under
+*Storing anything*; the zero-CSP-violations check under *Adding an icon*. No waiver for
+any of those; there is a fix.
 
 ## Every web application
 
@@ -34,13 +33,14 @@ No trigger: these fire for every project of this type.
 - [ ] Server shuts down gracefully
 - [ ] Valid HTML, spot-checked with the Nu validator (`hx-*` "attribute not allowed" errors are the only expected ones)
 - [ ] Landmarks + heading hierarchy correct
+- [ ] Every form control labeled
 - [ ] Keyboard-only walkthrough succeeds
 - [ ] Focus visible
 - [ ] `lang` set
 - [ ] README links to this baseline
 - [ ] Any waived rule recorded in the format `README.md` *Which rules can be waived* defines (rule, document, date, who, why, what contains it)
 
-### Security
+### Security — tier 1, not waivable
 
 Required reading, not a trigger — the policy is tier 1, so it does not wait for an agent
 to notice a moment. `patterns/security-headers.md` owns the CSP and every other header.
@@ -206,7 +206,7 @@ font.
 - [ ] The off-box question is answered on purpose — "if this server disappears right now, what have you lost?" — with the matching row running
 - [ ] **The restore rehearsed once**
 
-## Adding users, login, or passwords
+## Adding users, login, or passwords — tier 1, not waivable
 
 `patterns/go-auth-sessions.md` — sessions, hashing, renewal.
 
@@ -219,7 +219,7 @@ font.
 - [ ] Login timing identical for unknown user vs wrong password
 - [ ] Passwords (if any) hashed with argon2id (OWASP params, PHC-encoded)
 
-## Letting a program sign in — a CLI, a script
+## Letting a program sign in — a CLI, a script — tier 1, not waivable
 
 `patterns/go-auth-sessions.md` §Machine tokens — a bearer token, hashed at rest, shown
 once.
@@ -235,7 +235,6 @@ once.
 `patterns/go-forms-validation.md` — validator, 422 re-render, flash messages.
 
 - [ ] Invalid form POSTs return 422 with values + errors re-rendered
-- [ ] Every form control labeled
 - [ ] Each field error tied to its control (`aria-describedby` + `aria-invalid`)
 
 ## Keeping a page current while the reader watches it

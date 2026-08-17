@@ -2,9 +2,9 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15 · Driver: `modernc.org/sqlite` (pure Go)
 
-**The pragmas and the single-writer pool are tier 1 and never waived.** The README names
-those two: dropping either loses data. Parameterized queries are tier 1 too, from the
-checklists' *Security* section.
+**The pragmas, the single-writer pool, and parameterized queries are tier 1 and never
+waived.** Dropping either of the first two loses data; dropping the third hands over the
+database.
 
 SQLite is the default database. Configured correctly it serves thousands of requests
 per second on one small box with zero operational overhead. Configured by default it

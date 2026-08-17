@@ -2,8 +2,8 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
 
-One exception: never handing user data to `template.HTML` is tier 1, and the checklists'
-*Security* section is where it is stated.
+One exception: never handing user data to `template.HTML` is tier 1, wherever a checklist
+files it.
 
 The one mechanic that makes Go + htmx work: **every dynamic view is a named template
 block; a handler renders either the full page or just the block, depending on

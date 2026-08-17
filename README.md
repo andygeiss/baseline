@@ -156,19 +156,27 @@ behind it. When the two disagree, this section wins and the document is the defe
 dropping it loses data, leaks it, or hands over an account.** Apply the test; the list
 below is what it currently catches, not the definition.
 
-- Everything under *Security* in the checklists — CSRF, escaping user input,
-  parameterized SQL, session cookie flags, password hashing, request body caps, the ops
-  listener never proxied.
-- The SQLite pragmas and the single-writer pool
+- The headers and the request surface — CSRF, escaping user input, request body caps, the
+  security-header policy, the ops listener never proxied
+  ([patterns/security-headers.md](patterns/security-headers.md),
+  [patterns/go-http-server.md](patterns/go-http-server.md)).
+- Everything about who is signed in: session cookie flags, renewal on login and password
+  change, password hashing, auth rate limiting, constant-time login, and every
+  machine-token rule ([patterns/go-auth-sessions.md](patterns/go-auth-sessions.md)).
+- Parameterized SQL, the SQLite pragmas, and the single-writer pool
   ([patterns/go-sqlite.md](patterns/go-sqlite.md)).
 - Any version pin whose note names a security fix.
-- Every rule about how a secret is handled, wherever it sits in a checklist: a secret
-  arrives as a file and `LogValue` keeps it out of the logs
-  ([patterns/go-config.md](patterns/go-config.md) *Secrets*), a secret never arrives as a
-  flag *value* ([patterns/go-cli.md](patterns/go-cli.md)), and `.env` is gitignored and
-  never used in production ([stack/makefile.md](stack/makefile.md) rule 6). These three
-  sit under *Code quality* rather than *Security*, and they are tier 1 anyway — which is
-  the whole reason the test outranks the section.
+- Every rule about how a secret is handled: a secret arrives as a file and `LogValue`
+  keeps it out of the logs ([patterns/go-config.md](patterns/go-config.md) *Secrets*), a
+  secret never arrives as a flag *value* ([patterns/go-cli.md](patterns/go-cli.md)), and
+  `.env` is gitignored and never used in production
+  ([stack/makefile.md](stack/makefile.md) rule 6).
+
+**The checklists mark this, they do not imply it.** A trigger section that is wholly
+tier 1 says so under its heading; where only some of a section's boxes are, the
+checklist's preamble names them. Nothing is tier 1 because of the section it landed in —
+that positional definition died when routing and the definition of done became one file
+and the security boxes scattered across the topics that fire them.
 
 There is no waiver form for a tier-1 rule; there is a fix. **A rule that meets the test
 but is not listed here is still tier 1** — say so, and fix this section.

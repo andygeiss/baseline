@@ -3,7 +3,7 @@
 **Tier 1** (safety — never waived) · Last verified: 2026-08-14
 
 The four headers, every directive in the policy, and the ban on `'unsafe-inline'` and
-`'unsafe-eval'` are what the checklists file under *Security*. The single-owner rule and
+`'unsafe-eval'` are tier 1 wherever a checklist files them. The single-owner rule and
 the anti-patterns below are tier 2.
 
 This document owns every security header the app sends. One middleware sets them, one

@@ -2,8 +2,8 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15
 
-The `html/template` escaping the 422 re-render depends on is tier 1, and the checklists'
-*Security* section is where it is stated.
+The `html/template` escaping the 422 re-render depends on is tier 1, wherever a checklist
+files it.
 
 Every form is the same loop: GET renders the form, POST parses and validates,
 an invalid POST re-renders the same form with errors and submitted values at

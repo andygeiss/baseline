@@ -4,7 +4,7 @@
 
 The cookie flags, `RenewToken` and `Destroy`, the argon2id parameters, the
 no-enumeration rule, the rate limits, `FindCtx` treating expired rows as not found, and
-every machine-token rule are what the checklists file under *Security*. The scs wiring,
+every machine-token rule are tier 1 wherever a checklist files them. The scs wiring,
 the store implementation, and the redirect mechanics are tier 2 — shape, waived only on
 the record.
 
