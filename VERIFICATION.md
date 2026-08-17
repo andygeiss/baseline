@@ -48,14 +48,96 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Nothing owed.** v3.8.0 closed its gate: eleven adversarial passes with the last two clean,
-the reference synced and tagged in step, `./verify.sh` green over 61 gates, and the run
-recorded below. One budget waiver stands on the record under *Waived budgets*, and the trim
-pass that pays it back is the next change to land here.
+**Nothing owed.** v3.9.0 closed its gate: twelve adversarial passes with the last two
+clean, the reference synced and tagged in step at `cbba3c2`, `./verify.sh` exiting 0
+against the commit being tagged, and the run recorded below. One budget waiver stands on
+the record under *Waived budgets*, and it now carries a finding rather than a promise —
+there is nothing left in this repository to trim, so the next move on it is a decision
+about the budget number itself.
 
 ## Run log
 
 Newest first.
+
+### 2026-08-17 — four patterns, and the passes that rewrote them (v3.9.0)
+
+**Forty-four defects over twelve passes**, the last two clean. The four documents that went
+into the run are not the four that came out of it: every one of them was wrong about
+something it stated confidently, and the count is the point — a first draft that reads well
+is not evidence of anything.
+
+**The empirical half:** [baseline-reference](https://github.com/andygeiss/baseline-reference)
+`cbba3c2`, tagged v3.9.0, pinning baseline `12dc414` — the commit the documents survived
+to. `./verify.sh` exits 0 there, over its full gauntlet plus eight new gates: the upload
+that lies about itself, a picture round-tripped byte for byte, a long room paged backwards
+with its two cursors kept apart, every time on a page machine-readable and naming its
+zone, a reset link delivered and spent and ending the other sessions, that form answering
+the same thing whoever asks, and two config pairs refused at boot.
+
+**The worst one was a contradiction neither document could see alone.**
+[htmx-lists.md](patterns/htmx-lists.md) said "the last item in the list is a control", and
+[htmx-live-updates.md](patterns/htmx-live-updates.md) has said for three releases that the
+last row of a list is the poller. **They cannot both be the last row.** A chat that pages
+backwards fires both documents, follows both, and loses one of the two mechanisms. The rule
+is now stated as *the far end from where new rows arrive*, with both directions spelled
+out, because which end that is depends on the sort order and nothing had ever said so.
+
+**Three more of the same shape — a rule stated once and contradicted elsewhere:**
+
+- **`go-email.md` put the port and its fake in `domain`.**
+  [go-ports-adapters.md](patterns/go-ports-adapters.md) rule 1 says the consumer declares
+  the port, "never in the adapter and never in a `ports/` package of its own", and rule 6
+  says the fake lives with the consumer's tests. Mail's consumer is the background sender,
+  not a handler, and the new document now says that.
+- **"A handler that names the actor" was in three places** — the uploads document's tier
+  line, its checklist box, and the README's tier-1 list — and the reference cannot satisfy
+  it. An attachment in a room everyone reads has no actor predicate, which
+  [go-authorization.md](patterns/go-authorization.md) *Say which rows are shared* already
+  allows. The rule is now "a handler rather than a file server", and **deleting** is where
+  the actor comes back.
+- **`security-headers.md` had anticipated this document and pointed nowhere.** It has said
+  since v1.14.0 that user-uploaded files "MUST NOT be served from this path or this
+  handler: that is a different route with its own `Content-Type` and `Content-Disposition`
+  rules" — a forward reference to a document that did not exist until this run. It now
+  names it.
+
+**A fact that was true of one storage choice and stated as true of all.**
+`time-and-dates.md` rule 1 justified itself with "`time.Local` is the container's UTC in
+production and the developer's zone on their laptop". For a timestamp read back with
+`time.Parse` from RFC 3339 that is simply false — the value carries the offset in the
+string and renders identically everywhere. The zone that actually differs comes from
+`time.Unix`, which returns a **local** Time, and [go-sqlite.md](patterns/go-sqlite.md)
+offers Unix integers as one of its two storage choices. The rule was right; the reason
+under it was wrong for half the projects that would read it.
+
+**Two claims were checked by running them rather than by reading them.** `EXPLAIN QUERY
+PLAN` against SQLite 3.54 refuted "the index matches the order exactly": an ASC index
+serves a DESC keyset scan with the same `SEARCH … USING INDEX` and no temp b-tree, so the
+document was telling readers to build indexes they do not need. The same check confirmed
+the claim next to it — a row-value comparison really is used as an index range constraint,
+rather than filtered after the fact.
+
+**Nothing in [patterns/](patterns/) pointed at any of the four new documents.** Every
+reference came from the checklist, the README, or this file. A reader inside
+`go-auth-sessions.md` at "the plaintext token goes in the emailed link once" had no way to
+reach the document that says how mail leaves. Four one-line back-links fixed it — and one
+of them broke the floor budget, because `go-http-server.md` and `security-headers.md` are
+*Required reading* and every byte in them is paid by every web application before its first
+line of code. **The floor is the one budget that was never waived**, so the links were
+trimmed and paid for out of the checklist. It holds at 19,499 of 19,500.
+
+**The trim kept paying.** The change path finished the run at **7,237**, against 7,270
+before any of this landed and 7,266 when the passes started: four new trigger sections, and
+the number an ordinary change pays is 33 tokens smaller than it was. The checklist budget
+and the change path stay waived under *Waived budgets*; the numbers there were re-measured
+after the last fix of this run, which is the rule that entry states about itself.
+
+**The question this corpus still cannot answer: how do you delete a person?** Uploads made
+it sharp — an attachment is the first row that obviously outlives the account that made it,
+and nothing here rules what happens to it, to their messages, or to the outbox row holding
+their address when they ask to be gone. `go-sqlite.md` has cascade rules and no policy;
+`go-authorization.md` says who may touch a row and not who may erase one. Every document in
+this release is about data arriving. None of them is about data leaving.
 
 ### 2026-08-17 — the rule that was missing (v3.8.0)
 
@@ -504,6 +586,7 @@ Every feature in the baseline, and what it needs:
 | Web app manifest | nothing | `manifest-src` falls back to `default-src`, and the manifest is same-origin ([patterns/pwa.md](patterns/pwa.md)). |
 | View transitions, CSS motion | nothing | Pure CSS ([patterns/css-motion.md](patterns/css-motion.md)). |
 | Forms | `form-action 'self'` | Already in the policy. |
+| Uploaded pictures | nothing | An attachment is served by the app's own handler, so `img-src 'self'` already covers it ([patterns/go-file-uploads.md](patterns/go-file-uploads.md)). What keeps that safe is not the policy but the pair of rules in that document: the type comes from sniffing the bytes, and `nosniff` makes it binding. A project that ever serves user files from a second origin needs a row here and a directive to match. |
 
 Why each absent header stays absent:
 
@@ -530,19 +613,31 @@ to clear it is the work under *Paid back by* — never an edit to the budget num
 would turn a waiver into a new normal without anyone deciding to.
 
 - **The 4,300-token checklist budget and the 7,000-token change path**
-  ([README.md](README.md) *Size budgets*) — waived 2026-08-17 by Andy.
-  `checklists/web-application.md` sits at **4,493** and the change path at **7,270**, both
-  because *Reading or writing a row somebody owns* added ten boxes, nine of them tier 1.
-  **When two rules collide the lower tier wins**, and a tier-1 hole beats a tier-2 budget.
-  **Contained:** 193 tokens and 270 tokens, on one checklist of one project type. **The
-  floor was not waived** — it holds at 19,498 of 19,500, and paying for that is written up
-  in the run below. No other project type moved.
-  **Paid back by:** a trim pass over the wordiest boxes in that checklist, moving their
-  explanatory tails into the documents that own the facts. The seven longest hold about 275
-  tokens between them, and 270 have to come out of this checklist specifically — it is the
-  file both blown budgets share, so the trim has to land there rather than anywhere cheaper.
-  Held for its own change because a prose sweep folded into a safety addition is how the
-  v3.7.0 run introduced two of its seven defects.
+  ([README.md](README.md) *Size budgets*) — first waived 2026-08-17 by Andy for the
+  authorization section, re-measured the same day when four patterns landed.
+  `checklists/web-application.md` sits at **4,509** and the change path at **7,237**.
+  **When two rules collide the lower tier wins**, and one of the four
+  ([go-file-uploads.md](patterns/go-file-uploads.md)) is tier 1.
+  **Contained:** 209 tokens and 237 tokens, on one checklist of one project type. **The
+  floor was not waived** — it holds at 19,499 of 19,500, and one back-link in the review
+  run had to be trimmed and paid for to keep it there. No other project type moved.
+
+  **The promised trim was done, and it worked.** Every wordiest box lost its explanatory
+  tail to the document that owns the fact, twenty section leads went to one line, and the
+  run record in `VERSIONS.md` moved here where records belong: **509 tokens off the change
+  path, against the 270 the last entry promised.** Four trigger sections then cost 505, and
+  the review run gave 29 back. So the change path is **33 tokens smaller** than it was
+  before any of this landed, and still 237 over.
+
+  **Paid back by:** nothing left in this repository to trim, and that is the finding. The
+  prose is now at the bar *Write to the reader's competence* sets; what remains is boxes
+  and section leads, one line and one check each, and cutting further deletes checks rather
+  than words. **A corpus that keeps its promise to extract every recurring decision into a
+  pattern adds about 125 tokens to this number per pattern, forever** — those two rules in
+  [README.md](README.md) cannot both hold as the corpus grows. Either *Size budgets* moves
+  the change number on purpose, or the web-application checklist stops taking sections.
+  That decision is a change to *Size budgets* and belongs in its own commit with a number
+  chosen deliberately, not folded into the change that discovered the tension.
 
   These numbers were measured after the last fix of the run, not carried over from the
   first draft. That draft said 4,420 and 197, and two fix passes later both were wrong —
