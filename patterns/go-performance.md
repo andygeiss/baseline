@@ -1,6 +1,9 @@
 # Pattern: Performance (Go)
 
-**Last verified: 2026-08-17**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+
+The ops listener this document profiles through is tier 1 —
+[go-http-server.md](go-http-server.md) owns it.
 
 The stack is fast by construction — compiled Go, one process, SQLite in WAL mode,
 HTML over the wire with no client framework tax. Performance work is therefore

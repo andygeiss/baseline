@@ -67,7 +67,7 @@ here.
   - [ ] Other comments say *why*, not what
   - [ ] The README leads with the point
   - [ ] Commits are semantic (`type(scope): subject`)
-  - [ ] Any LLM prompts follow its prompt rules
+  - [ ] Any LLM prompts follow [patterns/go-llm-adapter.md](../patterns/go-llm-adapter.md) *Writing the prompt*
 
 ## Tests
 

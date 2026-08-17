@@ -1,22 +1,24 @@
 # Pattern: Configuration (Go)
 
-**Last verified: 2026-08-17**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
 
-Every knob the binary has, in one struct, parsed once at startup, validated
-before anything opens a socket or a file. This document owns the precedence
-rule that [project-types/cli-tool.md](../project-types/cli-tool.md) and
-[go-project-layout.md](go-project-layout.md) rule 6 mandate, and produces the
-environment contract that [operations/web-application.md](../operations/web-application.md)
-publishes.
+**The rules in *Secrets* are tier 1 and never waived:** a secret arrives as a file, never
+as a flag value or an environment variable, and `LogValue` keeps it out of the logs.
+Either one leaks an account if dropped, which is the README's own test for tier 1.
 
-**Flags beat environment variables beat built-in defaults.** One mechanism
-expresses all three: the environment variable is the flag's default value.
+Every knob the binary has, in one struct, parsed once at startup, validated before
+anything opens a socket or a file. This document owns the precedence rule that
+[project-types/cli-tool.md](../project-types/cli-tool.md) and
+[go-project-layout.md](go-project-layout.md) rule 6 mandate, and produces the environment
+contract that [operations/web-application.md](../operations/web-application.md) publishes.
+
+**Flags beat environment variables beat built-in defaults.** One mechanism expresses all
+three: the environment variable is the flag's default value.
 
 ## The struct and the parser
 
-Both live in the `main` package (`cmd/server/config.go`, or next to `main.go`
-in a CLI module) — configuration is a wiring concern, and `internal/` code must
-not read the environment at all:
+Both live in the `main` package (`cmd/server/config.go`, or next to `main.go` in a CLI
+module) — configuration is wiring, and `internal/` code must not read the environment:
 
 ```go
 // Config is every knob this binary has. After parseConfig returns, nothing
@@ -84,13 +86,12 @@ func parseConfig(args []string, stderr io.Writer) (Config, error) {
 }
 ```
 
-`cmp.Or` returns its first non-zero argument, which is the precedence rule
-itself in one stdlib call — no helper to write, and empty counts as unset
-(`PORT= ./server` is a mistake, not a request for `""`).
+`cmp.Or` returns its first non-zero argument, which is the precedence rule itself in one
+stdlib call — no helper to write, and empty counts as unset (`PORT= ./server` is a
+mistake, not a request for `""`).
 
-`main` maps the three outcomes to exit codes, using
-[go-cli.md](go-cli.md)'s codes — `0` success, `2` usage error — with one
-deliberate difference from the switch there:
+`main` maps the three outcomes to [go-cli.md](go-cli.md)'s exit codes, with one
+deliberate difference:
 
 ```go
 cfg, err := parseConfig(os.Args[1:], os.Stderr)
@@ -106,53 +107,43 @@ default:
 }
 ```
 
-**The `default` branch exits 2 here, where [go-cli.md](go-cli.md)'s exits 1.**
-That is not a drift: this switch only ever sees errors from `parseConfig`, and
-every one of them — a bad port, an unknown log level, an `ENV` that is neither
-`dev` nor `prod` — means the operator configured the binary wrong. That is the
-definition of exit 2. `go-cli.md`'s `default` covers the work itself failing
-after the arguments parsed fine, which is exit 1. A `run()` that does both keeps
-the two branches separate rather than collapsing them.
-
-Printing happens in exactly one place per failure kind. A parser that returns
-the `flag` package's own error *and* a `main` that prints it produces the
-message twice — once from the `FlagSet`, once from `main`.
+**The `default` branch exits 2 here, where [go-cli.md](go-cli.md)'s exits 1.** That is
+not drift: this switch only ever sees errors from `parseConfig`, and every one of them
+means the operator configured the binary wrong, which is the definition of exit 2.
+`go-cli.md`'s `default` covers the work itself failing after the arguments parsed fine.
+Printing happens in exactly one place per failure kind — a parser that returns the `flag`
+package's own error *and* a `main` that prints it produces the message twice.
 
 ## Rules
 
-1. **Parse before you build anything.** Configuration errors surface as a
-   one-line message and exit 2, before the database opens and before the
-   listener binds. A bad `PORT` MUST NOT be discovered by a half-started
-   process that already created files. This covers **local** facts only — flags,
-   files, the database this binary owns. Nothing another system has to answer
-   runs at boot ([go-http-client.md](go-http-client.md) *Boot does not wait on a
-   dependency*): validating hard at startup and refusing to start over somebody
-   else's outage are different decisions, and only the first one is this rule.
-2. **Validate at the edge, store the parsed type.** `LogLevel` is a
-   `slog.Level`, not a string that some later code re-parses and re-fails on.
-   Parse once, at the boundary; after that the type carries the guarantee.
-3. **Every value has a default that works.** `go run ./cmd/server` with an
-   empty environment MUST start a working app on `127.0.0.1:8080`. A binary
-   that needs six variables before it does anything is a binary nobody can try.
-4. **`internal/` never reads the environment.** Pass the fields a package
-   needs, not the struct: `app.New(templates, store, cfg.Env == "dev")`. The
-   dependency direction forces it — `internal/app` cannot import the `main`
-   package's `Config` — and that is the rule working, not an obstacle.
-5. **Flag name and env var say the same thing.** `-log-level` ↔ `LOG_LEVEL`.
-   The help text names the variable (`"(env LOG_LEVEL)"`), so `-h` is the
-   complete contract and no separate document can drift from it. The variables
-   that are *not* flags (`ENV`, `CREDENTIALS_DIRECTORY`) have nowhere to say
-   that, so set `fs.Usage` to print them under the flag list — otherwise `-h`
-   quietly stops being complete.
-6. **A CLI namespaces its variables** with the tool's name (`MYTOOL_ADDR`) —
-   it shares the environment with everything else on the box. A server does not
-   need the prefix: it is deployed alone, and its deployment sets every variable
-   it reads.
-7. **Settings that only make sense together are validated together.** Rule 2
-   checks one field at a time and cannot see a pair, so two flags that are
-   really one setting — a reference file and the text describing it, a host and
-   the credential for it — get their own check, and it says which half is
-   missing and what to do about it:
+1. **Parse before you build anything.** Configuration errors surface as a one-line
+   message and exit 2, before the database opens and before the listener binds. This
+   covers **local** facts only — flags, files, the database this binary owns. Nothing
+   another system has to answer runs at boot ([go-http-client.md](go-http-client.md)
+   *Boot does not wait on a dependency*): validating hard at startup and refusing to
+   start over somebody else's outage are different decisions, and only the first is this
+   rule.
+2. **Validate at the edge, store the parsed type.** `LogLevel` is a `slog.Level`, not a
+   string that some later code re-parses and re-fails on.
+3. **Every value has a default that works.** `go run ./cmd/server` with an empty
+   environment MUST start a working app on `127.0.0.1:8080`. A binary that needs six
+   variables before it does anything is a binary nobody can try.
+4. **`internal/` never reads the environment.** Pass the fields a package needs, not the
+   struct: `app.New(templates, store, cfg.Env == "dev")`. The dependency direction forces
+   it — `internal/app` cannot import the `main` package's `Config` — and that is the rule
+   working, not an obstacle.
+5. **Flag name and env var say the same thing.** `-log-level` ↔ `LOG_LEVEL`. The help
+   text names the variable (`"(env LOG_LEVEL)"`), so `-h` is the complete contract and no
+   separate document can drift from it. The variables that are *not* flags (`ENV`,
+   `CREDENTIALS_DIRECTORY`) have nowhere to say that, so `fs.Usage` prints them under the
+   flag list — otherwise `-h` quietly stops being complete.
+6. **A CLI namespaces its variables** with the tool's name (`MYTOOL_ADDR`) — it shares
+   the environment with everything else on the box. A server does not need the prefix: it
+   is deployed alone.
+7. **Settings that only make sense together are validated together.** Rule 2 checks one
+   field at a time and cannot see a pair, so two flags that are really one setting — a
+   reference file and the text describing it, a host and the credential for it — get
+   their own check, naming which half is missing and what to do:
 
    ```go
    // beside is the transcript file the recording would carry if it had one:
@@ -168,26 +159,23 @@ message twice — once from the `FlagSet`, once from `main`.
    }
    ```
 
-   Without it the half-configured pair starts fine and fails on the first
-   request that needs it, which is the worst place to find out.
+   Without it the half-configured pair starts fine and fails on the first request that
+   needs it, which is the worst place to find out.
 
-   **A value too long for an environment variable is read from a file**, named
-   after the artefact it belongs to (`voices/jarvis.opus` → `voices/jarvis.txt`).
-   Pointing at the one file is then the whole setting, and the flag still
-   overrides the file. A paragraph in an environment variable is a paragraph
-   nobody can read back: every tool that prints a process's environment prints it
-   as one unbroken line, and the newlines that made it readable are gone.
+   **A value too long for an environment variable is read from a file**, named after the
+   artefact it belongs to (`voices/jarvis.opus` → `voices/jarvis.txt`). Pointing at the
+   one file is then the whole setting, and the flag still overrides it. A paragraph in an
+   environment variable is a paragraph nobody can read back: every tool that prints a
+   process's environment prints it as one unbroken line.
 
 ## Secrets
 
-**Secrets arrive as files, not as flags and not as environment variables.**
-Both of the easy options leak: a flag value shows up in `ps`, in shell history,
-and in any process listing, and an environment variable is inherited by every
-child process and printed by whatever inspects the running service. A file is
-neither. The deployment puts one file per secret in a directory and names that
-directory in `$CREDENTIALS_DIRECTORY`; the contract is in
-[operations/web-application.md](../operations/web-application.md), and the
-operations repository decides what the path actually is.
+**Secrets arrive as files, not as flags and not as environment variables.** Both easy
+options leak: a flag value shows up in `ps`, in shell history, and in any process
+listing; an environment variable is inherited by every child process and printed by
+whatever inspects the running service. A file is neither. The deployment puts one file
+per secret in a directory and names that directory in `$CREDENTIALS_DIRECTORY` — the
+contract is in [operations/web-application.md](../operations/web-application.md).
 
 ```go
 // readCredential returns the credential file of that name, or "" when the
@@ -206,15 +194,14 @@ func readCredential(name string) (string, error) {
 }
 ```
 
-`$CREDENTIALS_DIRECTORY` is set by the deployment, points somewhere only the
-service user can read, and is unset in a plain `go run`. That is the one
-environment variable the config layer reads for a secret, and it holds a
-directory path, not the secret itself. The name is deliberately not tied to any
-one runtime: the code says "wherever this deployment keeps its secret files", so
-moving the app somewhere else changes the deployment and no Go.
+`$CREDENTIALS_DIRECTORY` is set by the deployment, points somewhere only the service user
+can read, and is unset in a plain `go run`. It is the one environment variable the config
+layer reads for a secret, and it holds a directory path rather than the secret itself.
+The name is deliberately not tied to any one runtime, so moving the app elsewhere changes
+the deployment and no Go.
 
-**Keep secrets out of the logs.** Logging the whole config at boot is useful
-right up until it prints a key. One method fixes it for good:
+**Keep secrets out of the logs.** Logging the whole config at boot is useful right up
+until it prints a key:
 
 ```go
 // LogValue is what slog logs for a Config: everything except the secrets.
@@ -230,30 +217,27 @@ func (c Config) LogValue() slog.Value {
 }
 ```
 
-`slog.Any("config", cfg)` now prints the safe fields only. The allowlist is the
-point: a redaction blocklist forgets the field somebody adds next year.
+`slog.Any("config", cfg)` now prints the safe fields only. The allowlist is the point: a
+redaction blocklist forgets the field somebody adds next year.
 
 ### A CLI holds its secret differently
 
-Everything above assumes a deployment — something that starts the process and
-can put a file where only that process may read it. A command-line tool has no
-such thing. It runs as a person, from a shell, on a laptop, and
-[go-cli.md](go-cli.md) sends its configuration through `MYTOOL_*` environment
-variables. Read the two rules together and they collide: secrets never come from
-the environment, and a CLI's settings always do.
+Everything above assumes a deployment — something that can put a file where only that
+process may read it. A command-line tool has none: it runs as a person, from a shell, and
+[go-cli.md](go-cli.md) sends its configuration through `MYTOOL_*` environment variables.
+Read the two rules together and they collide.
 
-**The file wins, and the environment variable stays available.** A CLI takes its
-secret from a file named by `-token-file`, defaulting to `$MYTOOL_TOKEN_FILE`, and
-falls back to `$MYTOOL_TOKEN` when neither is set. Document the fallback as what it
-is: convenient, and readable by every child process the shell starts. The
-ban above is not softened for services — it is scoped to them, because the
-mechanism it names (`$CREDENTIALS_DIRECTORY`) only exists where a deployment
-does.
+**The file wins, and the environment variable stays available.** A CLI takes its secret
+from a file named by `-token-file`, defaulting to `$MYTOOL_TOKEN_FILE`, and falls back to
+`$MYTOOL_TOKEN` when neither is set. Document the fallback as what it is: convenient, and
+readable by every child process the shell starts. The ban above is not softened for
+services — it is scoped to them, because `$CREDENTIALS_DIRECTORY` only exists where a
+deployment does.
 
 ## Testing
 
-`parseConfig` takes its arguments and writes to an injected `stderr`, so it
-tests without a process:
+`parseConfig` takes its arguments and writes to an injected `stderr`, so it tests without
+a process:
 
 ```go
 func TestParseConfig(t *testing.T) {
@@ -272,39 +256,32 @@ func TestParseConfig(t *testing.T) {
 }
 ```
 
-Table-test the parts that can actually break: **precedence** (a flag overrides
-its environment variable), each **validation failure** (bad port, bad log level,
-bad `ENV`), **each half of a paired setting** from rule 7, and the **empty
-environment** case from rule 3. Precedence is the
-one most likely to regress silently, because a wrong answer still starts.
-
-One more test earns its place the moment the struct holds a secret: set one,
-render the config through a `slog` handler, and assert the value does not appear
-in the output. That is the test that catches the field somebody adds to `Config`
-and forgets to leave out of `LogValue`.
+Table-test what can actually break: **precedence** (a flag overrides its environment
+variable), each **validation failure**, **each half of a paired setting** from rule 7,
+and the **empty environment** case from rule 3. Precedence regresses most silently,
+because a wrong answer still starts. One more test earns its place the moment the struct
+holds a secret: set one, render the config through a `slog` handler, and assert the value
+does not appear — that is what catches the field somebody adds to `Config` and forgets to
+leave out of `LogValue`.
 
 ## Anti-patterns
 
-- ❌ viper, koanf, envconfig, godotenv. Twenty lines of stdlib, and none of
-  them are on the approved list in [stack/go.md](../stack/go.md).
-- ❌ A config file. Flags and environment cover both ways a binary gets
-  configured; a file adds a format, a path, a reload question, and a second
-  place for the answer to live. When a project genuinely needs one, it is one
-  flag pointing at one file — and the flag still wins over the file.
-- ❌ `os.Getenv` scattered through `internal/`. The value's origin becomes
-  untraceable, tests need the real environment, and nothing can list what the
-  binary actually reads.
-- ❌ A package-level `var cfg Config`. Global mutable state, initialized by
-  `init()` in the worst version, untestable in every version.
-- ❌ `log.Fatal` inside the parser. It skips deferred cleanup and cannot be
-  tested; return the error and let `main` own the exit code.
-- ❌ Defaulting a secret (`cmp.Or(os.Getenv("SMTP_KEY"), "dev-secret")`). The default ships
-  to production the day somebody forgets to configure the real one. Leave it
-  empty and fail loudly at the point of use.
-- ❌ A secret in an environment variable or a committed `.env` file. The first
-  is readable by anything that can inspect the process and the second lives in
-  the repository forever; use the credential file above. An **uncommitted**
-  `.env` that `make run` sources
-  ([stack/makefile.md](../stack/makefile.md) rule 6) is a different thing: a
-  developer's own machine, gitignored, and never how a deployment gets a
-  secret. The word doing the work in this bullet is *committed*.
+- ❌ viper, koanf, envconfig, godotenv. Twenty lines of stdlib, and none are on the
+  approved list in [stack/go.md](../stack/go.md).
+- ❌ A config file. Flags and environment cover both ways a binary gets configured; a
+  file adds a format, a path, a reload question, and a second place for the answer to
+  live. When a project genuinely needs one, it is one flag pointing at one file — and the
+  flag still wins over the file.
+- ❌ `os.Getenv` scattered through `internal/`. The value's origin becomes untraceable,
+  tests need the real environment, and nothing can list what the binary reads.
+- ❌ A package-level `var cfg Config`. Global mutable state, initialized by `init()` in
+  the worst version, untestable in every version.
+- ❌ `log.Fatal` inside the parser. It skips deferred cleanup and cannot be tested;
+  return the error and let `main` own the exit code.
+- ❌ Defaulting a secret (`cmp.Or(os.Getenv("SMTP_KEY"), "dev-secret")`). The default
+  ships to production the day somebody forgets to configure the real one.
+- ❌ A secret in an environment variable or a **committed** `.env` file. An
+  *uncommitted* `.env` that `make run` sources
+  ([stack/makefile.md](../stack/makefile.md) rule 6) is a different thing: a developer's
+  own machine, gitignored, and never how a deployment gets a secret. The word doing the
+  work in this bullet is *committed*.

@@ -1,6 +1,9 @@
 # Pattern: CSS Typography (Type Scale, Self-Hosted Fonts)
 
-**Last verified: 2026-08-15**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15
+
+One thing here is tier 3, chosen per project: **whether there is a brand web font at
+all.** How it is then self-hosted is not a choice.
 
 The one decision this document owns: **how type is set** — which families, which
 sizes, and what happens when a brand needs a font the operating system does not

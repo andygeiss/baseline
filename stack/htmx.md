@@ -1,6 +1,7 @@
 # Stack: htmx
 
-**Last verified: 2026-08-15 · Pinned: htmx 2.0.10** (see [VERSIONS.md](../VERSIONS.md))
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15 · Pinned:
+htmx 2.0.10 ([VERSIONS.md](../VERSIONS.md))
 
 htmx is the *only* script on the page. It turns HTML into the application protocol:
 any element can issue HTTP requests, the server answers with HTML, htmx swaps it in.

@@ -1,6 +1,6 @@
 # Pattern: Testing (Go)
 
-**Last verified: 2026-08-12**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-12
 
 Stdlib `testing` only. No assertion libraries (no testify) — a failed comparison is
 `t.Errorf("got %v, want %v", got, want)` and that's enough. No mocking frameworks —

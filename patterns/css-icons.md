@@ -1,6 +1,6 @@
 # Pattern: CSS Icons (Mask, currentColor)
 
-**Last verified: 2026-08-15**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15
 
 The one decision this document owns: **how an icon gets onto the page.** Every
 icon is a CSS mask — one shared `.icon` rule plus one custom property per

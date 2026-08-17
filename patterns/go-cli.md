@@ -1,6 +1,10 @@
 # Pattern: Go CLI
 
-**Last verified: 2026-08-17**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+
+**One rule here is tier 1 and never waived:** a secret never arrives as a flag *value*,
+because `ps` and shell history both keep it. Whether the tool grows a `-json` flag is
+tier 3, chosen per project.
 
 The mechanics behind [project-types/cli-tool.md](../project-types/cli-tool.md):
 process skeleton, flags, streams, exit codes, version reporting, testing.

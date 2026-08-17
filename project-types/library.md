@@ -24,18 +24,19 @@ hygiene as applications ([stack/go.md](../stack/go.md)).
 
 ## Required reading (in order)
 
-These five apply to every library, so read them before the first line of code. The order
-is dependency order.
+These four apply to every library, so read them before the first line of code. The
+order is dependency order.
 
 1. [stack/go.md](../stack/go.md) — language conventions and toolchain
 2. [patterns/go-library.md](../patterns/go-library.md) — layout, doc comments, Example functions, fuzz corpus, release mechanics
-3. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — error wrapping and sentinel errors (the logging half does not apply: libraries return, consumers log)
-4. [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port rules a library lives by: take the consumer's interface, never invent one (the adapter and fake halves are for programs)
-5. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+3. [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port rules a library lives by: take the consumer's interface, never invent one (the adapter and fake halves are for programs)
+4. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
-Ports & adapters is required reading here rather than a lookup row: "accept the
-consumer's interface, never invent one" is an API design rule, and a library gets it
-wrong at design time or not at all.
+**A document is required only when it changes a decision you make before the first
+line of code.** Anything you can read at the moment you write the thing is a row in
+the table below. Ports & adapters is required here for exactly that reason: "accept
+the consumer's interface, never invent one" is an API design rule, and a library gets
+it wrong at design time or not at all.
 
 ## Open when you reach the thing it covers
 
@@ -44,6 +45,7 @@ relevant — open it before you write the thing, not after.
 
 | When you are about to… | Read |
 |---|---|
+| Return an error across the API boundary | [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — wrapping and sentinel errors (the logging half does not apply: libraries return, consumers log) |
 | Write a test | [patterns/go-testing.md](../patterns/go-testing.md) — plus the external-test-package and fuzz rules below |
 | Set up the repo's commands or CI | [stack/makefile.md](../stack/makefile.md), then [operations/ci.md](../operations/ci.md) — used verbatim; `make check` is CI locally |
 | Accept an HTTP client from a consumer | [patterns/go-http-client.md](../patterns/go-http-client.md) — what the consumer owns, and why the library never builds one |

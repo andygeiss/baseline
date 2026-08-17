@@ -24,14 +24,16 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 
 ## Required reading (in order)
 
-These five apply to every CLI, so read them before the first line of code. The order is
-dependency order.
+These three apply to every CLI, so read them before the first line of code. The order
+is dependency order.
 
 1. [stack/go.md](../stack/go.md) — language conventions and toolchain
 2. [patterns/go-cli.md](../patterns/go-cli.md) — the `run()` pattern, flags, streams, exit codes, version
-3. [patterns/go-config.md](../patterns/go-config.md) — flags over env over defaults, validated before any work starts
-4. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
-5. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+3. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+
+**A document is required only when it changes a decision you make before the first
+line of code.** Anything you can read at the moment you write the thing is a row in
+the table below — that is the difference, and it is what keeps this list short.
 
 ## Open when you reach the thing it covers
 
@@ -41,6 +43,8 @@ relevant — open it before you write the thing, not after.
 | When you are about to… | Read |
 |---|---|
 | Name a concept this tool owns — a domain type, a subcommand, a flag | [patterns/glossary.md](../patterns/glossary.md) — the optional root `GLOSSARY.md`: one word per concept, the runners-up under *Avoid* |
+| Read a flag, an environment variable, or a secret | [patterns/go-config.md](../patterns/go-config.md) — flags over env over defaults, validated before any work starts; §A CLI holds its secret differently |
+| Return an error, or log anything | [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — wrapping, sentinels, and slog |
 | Write a test | [patterns/go-testing.md](../patterns/go-testing.md) — what to test, and what never to fake |
 | Depend on someone else's system | [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port and its fake: build and test the tool before the API is integrated |
 | Call an external API over HTTP | [patterns/go-http-client.md](../patterns/go-http-client.md) — timeouts, retries, body limits |

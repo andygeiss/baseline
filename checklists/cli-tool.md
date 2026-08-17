@@ -72,7 +72,7 @@ here.
   - [ ] Comments say *why*, not what
   - [ ] The README leads with the point
   - [ ] Commits are semantic (`type(scope): subject`)
-  - [ ] Any LLM prompts follow its prompt rules
+  - [ ] Any LLM prompts follow [patterns/go-llm-adapter.md](../patterns/go-llm-adapter.md) *Writing the prompt*
 - **If the tool keeps a `GLOSSARY.md`** — [patterns/glossary.md](../patterns/glossary.md):
   - [ ] The README links it
   - [ ] Every term is the word the code, the subcommands, and the flags use

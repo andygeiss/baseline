@@ -1,6 +1,6 @@
 # Pattern: Go Library
 
-**Last verified: 2026-08-12**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-12
 
 The mechanics behind [project-types/library.md](../project-types/library.md):
 layout, doc comments, `Example` functions, fuzzing with a seed corpus, and the

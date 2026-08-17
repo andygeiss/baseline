@@ -22,30 +22,27 @@ hardened application without inventing anything.
 - **Format:** Markdown only, plus the MIT `LICENSE`. No code, no CI, no build
   steps. Documents are the product.
   The one piece of tooling is the root `Makefile`, which installs the baseline into
-  Claude Code (see below) — it builds nothing.
+  Claude Code and measures its size against the budgets below — it builds nothing.
 
-## How to use this repository (AI agents)
+## How to use this repository
 
-Follow this protocol top-down. Never skip to a leaf document without reading its parent.
+**AI agents: read [SKILL.md](SKILL.md), not this file.** It carries the whole protocol —
+the core values, the reading order, the date check, and the tier summary — in a fifth of
+the tokens, because everything below is written for whoever maintains the corpus rather
+than whoever is building with it. The one section here an agent ever needs is
+[Which rules can be waived](#which-rules-can-be-waived), and SKILL.md links straight to
+it at the moment a rule is about to be skipped.
 
-1. **Identify the project type** you are building (e.g. "web application").
-2. **Open the matching document in [`project-types/`](project-types/).**
-   It defines the mandated stack and links to everything that applies.
-3. **Read its *Required reading* list now** — the [`stack/`](stack/) and
-   [`patterns/`](patterns/) documents that apply to every project of that type. The rest
-   of the corpus sits below it in a table indexed by trigger, one row per moment a
-   document starts to matter. Open those rows as you hit them, not up front.
-4. **Check [`VERSIONS.md`](VERSIONS.md)** and adopt exactly those versions, the way its
-   version policy prescribes (e.g. `go 1.26` in `go.mod`, never a pinned toolchain patch). If a version in
-   your training data is newer than what is listed here, the baseline wins — flag the
-   discrepancy to the user instead of silently upgrading.
-5. **Before declaring work done,** walk the matching document in [`checklists/`](checklists/).
-   The checklist is the enforcement: it stands on its own, and it names the document
-   behind every box you cannot check from memory.
+Keeping the protocol in one file and not two is deliberate. It used to live in both, and
+a protocol stated twice is a protocol that drifts in one of the copies — the same reason
+[`patterns/security-headers.md`](patterns/security-headers.md) refuses to let any other
+document restate the CSP.
 
-Rules in these documents use RFC-2119 style keywords: **MUST**, **MUST NOT**, **SHOULD**, **MAY**.
-Which of them may be waived, and how a waiver is recorded, is defined in
-[Which rules can be waived](#which-rules-can-be-waived).
+For a human reading along: the corpus is a tree. [`project-types/`](project-types/) is
+the entry point per kind of project, and each one names a short *Required reading* list
+plus a table of triggers — one row per moment a [`stack/`](stack/) or
+[`patterns/`](patterns/) document starts to matter. [`checklists/`](checklists/) is the
+definition of done, and it stands on its own.
 
 **Check the dates before you trust any of it.** Every document carries a
 `Last verified:` date. If today is more than **90 days** after that date, say so to the
@@ -129,22 +126,23 @@ baseline/
 
 ## Core engineering values
 
-These apply to every project regardless of type:
-
-1. **Boring technology.** Standard library first. Every dependency must justify itself.
-2. **No JavaScript.** Interactivity comes from htmx and modern CSS. If a feature seems
-   to require custom JS, redesign the feature (see [stack/html.md](stack/html.md)).
-3. **Server is the source of truth.** State lives on the server; the client renders hypermedia.
-4. **Simplicity over cleverness.** Code is read far more often than written.
-5. **Current, not bleeding edge.** Latest *stable* versions, never betas/RCs in production.
-6. **Write for humans.** Every doc, comment, and prompt passes the 10-year-old
-   test in [STYLE.md](STYLE.md): point first, short sentences, plain words.
+The six that apply to every project regardless of type — boring technology, no
+JavaScript, server as the source of truth, simplicity over cleverness, current rather
+than bleeding edge, and writing for humans — are stated in full in
+[SKILL.md](SKILL.md) *Core values*, so that an agent gets them without reading this
+file. They are not repeated here for the same reason the protocol is not.
 
 ## Which rules can be waived
 
 Almost every rule here is a MUST, so a MUST alone does not tell you what is
 load-bearing. These three tiers do. They are the reading order when two rules collide
 and the answer to "can we skip this one?".
+
+**Every document in [`patterns/`](patterns/) and [`stack/`](stack/) stamps its tier on
+the line under its title** — `**Tier 2** · Last verified: 2026-08-17` — and names, in
+its own words, any rule inside it that sits in a different tier. That stamp is the local
+answer for an agent that opened one document mid-task; this section is the definition
+behind it. When the two disagree, this section wins and the document is the defect.
 
 **Tier 1 — Safety. Never waived.** A project that cannot meet one of these does not
 ship. Everything under *Security* in the checklists (CSRF, escaping user input,
@@ -210,14 +208,11 @@ Two mechanisms, and a release needs both.
   the reference resolves it.
 
 The standard, the tag gate, and what every run found live in
-[VERIFICATION.md](VERIFICATION.md). Current state: last run 2026-08-17, which
-added the LLM adapter pattern and the rule for retiring one, and found seventeen
-defects over twelve passes — three of them introduced by its own fixes and caught
-by the pass after. The reference is Go Chat, a chat application with a
-command-line client and an assistant you mention in a room, and `verify.sh` is
-green. v3.5.1 then wired up [`patterns/local-https.md`](patterns/local-https.md),
-which v3.5.0 had shipped with no trigger row and no checklist box: seven defects over
-five passes, and the reference now adopts the pattern and gates it.
+[VERIFICATION.md](VERIFICATION.md) — which also carries the running list of changes
+that have not been through a run yet. **Read its *Owed* section before tagging:** it is
+the one place that says whether the gate is currently open. Keeping the current state
+there and not here is deliberate — a status paragraph in two files is a status
+paragraph that goes stale in one of them.
 
 ## Maintenance protocol (humans)
 
@@ -237,6 +232,35 @@ five passes, and the reference now adopts the pattern and gates it.
   the same sweep *Retiring a pattern* spells out below.
 - New recurring decision in a project? Extract it into a pattern document here —
   the whole point is to never solve the same problem twice.
+
+### Size budgets
+
+Every token in this corpus is paid on every read, by every agent, forever. *Retiring a
+pattern* caps how many documents exist; nothing capped how big one gets, which is how a
+document came to spend 3,800 tokens saying "flags over env over defaults". These are the
+cap. `make tokens` prints all three numbers and flags anything over.
+
+- **A [`patterns/`](patterns/) or [`stack/`](stack/) document stays under 2,500 tokens of
+  prose.** Fenced code does not count: a snippet is the payload an agent copies, and
+  capping it would delete the answer. Prose is the overhead, and past that budget a
+  document is usually one of two things — one that owns two subjects and should split, or
+  prose that is arguing when it should be ruling. **Aim at 1,200 for a new document;**
+  2,500 is the ceiling, not the target. The median today is about 1,700.
+- **A project type's required reading stays under 19,000 tokens.** That is the floor an
+  agent pays before writing a line, so adding a document to a *Required reading* list
+  means moving another one to a trigger row. A document belongs on that list only if it
+  changes a decision made *before* the first line of code; everything you can read at the
+  moment you write the thing is a row in the table.
+- **Rationale earns one sentence per rule.** The evidence is a URL under *Facts
+  verified*, and the argument behind the decision belongs in
+  [VERIFICATION.md](VERIFICATION.md) — that file is the record of *why* the corpus says
+  what it says, and it is read by whoever is auditing a rule, not by whoever is
+  following it. A document that re-litigates its own history bills every future reader
+  for a debate that is already settled.
+
+The budgets are shape rules, so a document over one is waivable on the record like any
+other — but the waiver goes in [VERIFICATION.md](VERIFICATION.md), because the cost
+lands on this repository rather than on a project built from it.
 
 ### Retiring a pattern
 

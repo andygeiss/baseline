@@ -1,50 +1,38 @@
 # Pattern: Design System (DESIGN.md, Themes)
 
-**Last verified: 2026-08-15**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15
 
-Every web application records its design system in one file: `DESIGN.md` at the
-repo root, next to `README.md`. It holds the theme — the token values, measured
-contrast, and component inventory that make this project look like itself — in
-a format both humans and design tools parse. [stack/css.md](../stack/css.md)
-and the CSS patterns own *how* styling works; `DESIGN.md` owns *which values
-this project chose*. The two MUST stay lockstep: every CSS value quoted in
-`DESIGN.md` is identical, character for character, to the same value in
+Every web application records its design system in one file: `DESIGN.md` at the repo root.
+It holds the theme — the token values, measured contrast, and component inventory that make
+this project look like itself — in a format both humans and design tools parse.
+[stack/css.md](../stack/css.md) and the CSS patterns own *how* styling works; `DESIGN.md`
+owns *which values this project chose*. The two MUST stay lockstep: every CSS value quoted
+in `DESIGN.md` is identical, character for character, to the same value in
 `web/static/css/app.css`.
 
 ## The format
 
 `DESIGN.md` follows the `design.md` specification
-(https://github.com/google-labs-code/design.md, `version: alpha`): YAML
-frontmatter carries the machine-readable tokens; the markdown body explains the
-design in the spec's eight sections, in its order — Overview, Colors,
-Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts.
-The spec accepts any CSS color, `oklch()` included, so the frontmatter
-carries the tokens layer's values verbatim — no lossy hex conversion.
+(https://github.com/google-labs-code/design.md, `version: alpha`): YAML frontmatter carries
+the machine-readable tokens, and the markdown body explains the design in the spec's eight
+sections, in its order — Overview, Colors, Typography, Layout, Elevation & Depth, Shapes,
+Components, Do's and Don'ts. The spec accepts any CSS color, `oklch()` included, so the
+frontmatter carries the tokens layer's values verbatim.
 
-The file has two consumers beyond human readers:
+Two consumers beyond human readers:
 
-- **AI coding agents.** An agent styling any page reads `DESIGN.md` first and
-  takes every value from it — the same way it takes stack decisions from this
-  baseline.
-- **Claude Design** (claude.ai/design). The design tool extracts tokens,
-  typography, and components from uploaded sources; `DESIGN.md` is that
-  source. Push the file (or the repo), and push again when it changes — a
-  stale copy generates off-brand designs. Where a sync integration is
-  available it MAY be used; the repo's `DESIGN.md` stays the record either
-  way.
+- **AI coding agents.** An agent styling any page reads `DESIGN.md` first and takes every
+  value from it — the same way it takes stack decisions from this baseline.
+- **Claude Design** (claude.ai/design), which extracts tokens, typography, and components
+  from uploaded sources. Push the file when it changes; a stale copy generates off-brand
+  designs. The repo's `DESIGN.md` stays the record either way.
 
-An alpha-status spec is a sanctioned exception to the "never betas" rule
-([README](../README.md) core value 5, [VERSIONS.md](../VERSIONS.md)): it is a
-document format, not software — nothing ships it, nothing breaks at runtime.
-A tool that does not know the format still reads plain markdown with a YAML
-block at the top. Re-check the spec when updating this document's
-`Last verified:` date.
-
-The spec's format is a second sanctioned exception — to the Documents rules
-in [STYLE.md](../STYLE.md): category headings (`Overview`, `Colors`, …) are
-the names design tools parse, and a values record has no runnable example
-to open with. Inside this one file the spec's structure wins; STYLE.md
-still governs the prose within it.
+**Two sanctioned exceptions live here.** An alpha-status spec is allowed against the "never
+betas" rule because it is a document format, not software — nothing ships it, and a tool
+that does not know it still reads plain markdown with a YAML block. And the spec's category
+headings override the Documents rules in [STYLE.md](../STYLE.md): those names are what
+design tools parse, and a values record has no runnable example to open with. STYLE.md
+still governs the prose inside. Re-check the spec when updating this document's date.
 
 ## The file
 
@@ -176,87 +164,64 @@ Every component composes the roles above, and every interactive state
 
 ## Rules
 
-1. **`DESIGN.md` holds the theme; the baseline holds everything else.**
-   The theme's values are seventeen — the seven color roles in two schemes
-   (fourteen values), two font stacks, one radius — plus any color role the
-   project adds, which lands in both files at once (rule 2).
-   Spacing, widths, motion durations, the type scale, and layout mechanics
-   follow [css-tokens.md](css-tokens.md), [css-layout.md](css-layout.md),
-   [css-typography.md](css-typography.md), and
-   [css-motion.md](css-motion.md); the body restates their `app.css` values
-   only so a design tool sees the whole system — restated here, chosen there.
-2. **Token names mirror the tokens layer.** `--color-text-muted` →
-   `colors.text-muted`, its dark-scheme value → `colors.text-muted-dark`;
-   `--font-body` → `typography.body.fontFamily`; `--radius` →
-   `rounded.radius`. Within these vocabularies — colors, fonts, radius —
-   the two files carry exactly the same set: a token in one and not the
-   other is the invented token vocabulary
-   [css-tokens.md](css-tokens.md) exists to stop. The spacing, width,
-   and motion tokens stay body prose (rule 1 above). One alias sits outside
-   the mirror: `primary` and `primary-dark` restate the `accent` values
-   character for character. The spec does not require a `primary` palette — it
-   warns when one is missing, and tools then invent their own — so writing it
-   down is how the theme keeps that decision. Spec vocabulary, not a new role,
-   and not part of the seventeen.
-3. **Lockstep, same commit.** A commit that changes a token value in `app.css`
-   updates `DESIGN.md` too, and the reverse — the discipline `Makefile` and
-   `ci.yml` already use ([stack/makefile.md](../stack/makefile.md)). Every CSS
-   value quoted anywhere in `DESIGN.md`, frontmatter or body, is under this
-   rule. When the files disagree, that is a defect, not a choice to make:
-   flag it to the user — `git log` shows which edit missed its partner.
-4. **A theme is new values in the same structure.** To theme a project:
-   replace the neutral hue `260` with the brand hue everywhere it appears,
-   keep every lightness and chroma as is, and leave `error` on hue `25` — red
-   means failure regardless of brand. A brand hue near `25` would make
-   `accent` and `error` twins; then — and only then — separate `error` by
-   lightness so failure keeps its own color. Then re-measure contrast (the duty
-   [css-tokens.md](css-tokens.md) states) and record the new floors in the
-   Colors section. Fonts must be self-hosted, by the one recipe in
-   [css-typography.md](css-typography.md); the radius is any `px`, `em`, or
-   `rem` length — the only units the spec's dimension type allows — and an
-   unrounded theme writes `0rem` in both files. Body prose follows its
-   values: a sentence describing a replaced value — the Typography stack,
-   the Shapes radius — is rewritten to describe the new one.
-   The surface style composes the same way:
-   [css-surfaces.md](css-surfaces.md) defines the three sanctioned styles,
-   and the canonical file above *is* the minimal one — its Elevation & Depth
-   section names the style, so copying it unchanged records the default. A
-   neumorphic or glass project takes that pattern's token deltas as its
-   values — new values, added color roles (rule 2), prose rewritten to
-   follow them. It names its style in the same section. Like the theme,
-   the project chooses the style once.
-5. **Components reference tokens, never restate them.** The body bullets are
-   the inventory: one per component the project ships, growing and shrinking
-   with the app. The `components` map does not grow with them — it carries
-   exactly one composite recipe, the primary button. The map uses
-   `{colors.accent}`-style references; the body names roles (`accent`
-   background, `surface` panel). A literal color in either is the same tell
-   as a raw `oklch()` outside the tokens layer: a role is missing, or one
+1. **`DESIGN.md` holds the theme; the baseline holds everything else.** The theme is
+   seventeen values — seven color roles in two schemes, two font stacks, one radius — plus
+   any color role the project adds (rule 2). Spacing, widths, motion durations, the type
+   scale, and layout mechanics follow [css-tokens.md](css-tokens.md),
+   [css-layout.md](css-layout.md), [css-typography.md](css-typography.md), and
+   [css-motion.md](css-motion.md); the body restates their `app.css` values only so a
+   design tool sees the whole system — restated here, chosen there.
+2. **Token names mirror the tokens layer.** `--color-text-muted` → `colors.text-muted`,
+   its dark-scheme value → `colors.text-muted-dark`; `--font-body` →
+   `typography.body.fontFamily`; `--radius` → `rounded.radius`. Within those three
+   vocabularies the two files carry exactly the same set — a token in one and not the
+   other is the invented vocabulary [css-tokens.md](css-tokens.md) exists to stop. Spacing,
+   width, and motion tokens stay body prose (rule 1). One alias sits outside the mirror:
+   `primary` and `primary-dark` restate the `accent` values character for character,
+   because the spec warns when a `primary` palette is missing and tools then invent their
+   own. Spec vocabulary, not a new role, and not part of the seventeen.
+3. **Lockstep, same commit.** A commit that changes a token value in `app.css` updates
+   `DESIGN.md` too, and the reverse. Every CSS value quoted anywhere in `DESIGN.md`,
+   frontmatter or body, is under this rule. When the files disagree that is a defect, not a
+   choice: flag it to the user — `git log` shows which edit missed its partner.
+4. **A theme is new values in the same structure.** Replace the neutral hue `260` with the
+   brand hue everywhere it appears, keep every lightness and chroma as is, and leave
+   `error` on hue `25` — red means failure regardless of brand. A brand hue near `25` would
+   make `accent` and `error` twins; then, and only then, separate `error` by lightness. Then
+   re-measure contrast (the duty [css-tokens.md](css-tokens.md) states) and record the new
+   floors in Colors. Fonts are self-hosted by the one recipe in
+   [css-typography.md](css-typography.md); the radius is any `px`, `em`, or `rem` length —
+   the only units the spec's dimension type allows — and an unrounded theme writes `0rem`
+   in both files. **Body prose follows its values:** a sentence describing a replaced value
+   is rewritten to describe the new one.
+
+   The surface style composes the same way. [css-surfaces.md](css-surfaces.md) defines the
+   three sanctioned styles, and the canonical file above *is* the minimal one — its
+   Elevation & Depth section names the style, so copying it unchanged records the default.
+   A neumorphic or glass project takes that pattern's token deltas as its values, adds the
+   color roles it needs (rule 2), rewrites the prose to follow, and names its style in the
+   same section. Like the theme, the project chooses once.
+5. **Components reference tokens, never restate them.** The body bullets are the inventory,
+   one per component the project ships. The `components` map does not grow with them — it
+   carries exactly one composite recipe, the primary button. The map uses
+   `{colors.accent}`-style references; the body names roles. A literal color in either is
+   the same tell as a raw `oklch()` outside the tokens layer: a role is missing, or one
    already exists — use it.
-6. **What a design tool receives is derived, never maintained.** Uploading
-   (the Claude Design bullet above) means shipping a copy of the theme
-   somewhere the lockstep rule cannot reach. So no hand-written copy goes:
-   a committed script regenerates the upload from `app.css` and `DESIGN.md`,
-   and a project re-runs it in the commit that changes either. A second list
-   of the same token values — a `tokens.css` written for the tool, a class
-   inventory typed into a README — is the first thing to go stale (rule 3's
-   drift, one repo further out). Anything the upload states about the theme
-   is *read out of* the stylesheet at build time, so it cannot name what is
-   not there. Two things the script owes the reader:
-   - **Rewrite the app's absolute asset paths.** A self-hosted font at
-     `/static/fonts/…` ([css-typography.md](css-typography.md)) resolves to
-     nothing outside the app's root, and `font-display: optional` swallows
-     the failure — the tool renders the fallback font, shows no error, and
-     every design it produces loses the type hierarchy the theme is built
-     on. Point the upload's copy at its own directory and check the
-     rendered result, not the upload's exit code.
-   - **Say what is not there.** A baseline web application has no
-     JavaScript ([README](../README.md) core value 2) and therefore no
-     components to bundle: the upload is the stylesheet, the fonts, this
-     file, and the class vocabulary. A design tool with a component picker
-     will show an empty one. Write that down in the upload — an
-     unexplained empty picker reads as a broken import, and the next
-     person re-runs the sync looking for the failure.
+6. **What a design tool receives is derived, never maintained.** Uploading means shipping a
+   copy of the theme somewhere the lockstep rule cannot reach, so no hand-written copy
+   goes: a committed script regenerates the upload from `app.css` and `DESIGN.md`, and the
+   project re-runs it in the commit that changes either. A second list of the same values —
+   a `tokens.css` written for the tool, a class inventory typed into a README — is the
+   first thing to go stale. Two things the script owes the reader:
+   - **Rewrite the app's absolute asset paths.** A self-hosted font at `/static/fonts/…`
+     resolves to nothing outside the app's root, and `font-display: optional` swallows the
+     failure — the tool renders the fallback, shows no error, and every design it produces
+     loses the type hierarchy the theme is built on. Point the copy at its own directory
+     and check the rendered result, not the upload's exit code.
+   - **Say what is not there.** A baseline web application has no JavaScript and therefore
+     no components to bundle: the upload is the stylesheet, the fonts, this file, and the
+     class vocabulary. A tool with a component picker will show an empty one, and an
+     unexplained empty picker reads as a broken import.
 
 ## Anti-patterns
 

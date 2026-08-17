@@ -1,6 +1,10 @@
 # Stack: Make
 
-**Last verified: 2026-08-15**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15
+
+**Two of rule 6's four limits are tier 1 and never waived:** `.env` is gitignored in the
+same commit that adds the recipe, and production never uses it. A committed `.env` leaks
+a secret permanently.
 
 Every project ships one `Makefile` at the repository root. It is the single local
 command surface: `make` runs every gate CI runs, `make test`/`make run` serve the

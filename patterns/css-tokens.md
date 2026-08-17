@@ -1,6 +1,6 @@
 # Pattern: CSS Tokens (Colors, Spacing, Dark Mode)
 
-**Last verified: 2026-08-13**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-13
 
 The concrete `tokens` layer that [stack/css.md](../stack/css.md) mandates but
 leaves open. Copy it as the starting set, then change **values**, never the

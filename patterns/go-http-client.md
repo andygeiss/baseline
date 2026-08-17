@@ -1,6 +1,6 @@
 # Pattern: HTTP Client (Go)
 
-**Last verified: 2026-08-17**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
 
 Calling someone else's HTTP API. Stdlib only. The rule that matters most is the
 first one, because the default is wrong:
@@ -64,6 +64,59 @@ func NewClient(baseURL, key string) *Client {
   tests is one small interface, per [go-testing.md](go-testing.md).
 - MUST NOT set `InsecureSkipVerify`. A certificate that fails to verify is the
   system working.
+
+## The timeout ladder
+
+The two settings above are the outbound half of four: the server has `WriteTimeout`, and
+the handler may own a budget ([go-http-server.md](go-http-server.md)). Setting each
+sensibly on its own is not enough — **their order decides which one fires, and only the
+innermost one can still produce an answer.**
+
+A handler that calls somebody else's system owns a deadline of its own:
+
+```go
+// turnBudget bounds one whole unit of work: transcribe, reason, speak. It must
+// stay shorter than the server's write timeout, so a wedged dependency ends the
+// work rather than the connection.
+//
+// A budget this long does not fit the canonical ladder as shipped: it needs the
+// server's WriteTimeout widened past 30 s (the waiver below) and this client's
+// 10 s Timeout raised to match. Adopting a budget means setting all three, in
+// that order — a 90 s budget under a 30 s socket is the first failure below.
+const turnBudget = 90 * time.Second
+
+func (a *App) handleTurn(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), turnBudget)
+	defer cancel()
+	// every call below takes ctx, so one deadline governs the whole path
+}
+```
+
+| Layer | Setting | Where it sits |
+|---|---|---|
+| Server | `WriteTimeout` | **above** the budget — the handler ends the work, not the socket |
+| Handler | `context.WithTimeout` | **the budget**: one owner per request path |
+| Outbound client | `http.Client.Timeout` | **at or above** the budget — the budget is what gives up |
+| Outbound transport | `ResponseHeaderTimeout` | **below** the client timeout — tells a silent server from a slow download |
+
+Get the order wrong and the failure is silent in both directions. **`WriteTimeout` below
+the budget** kills the connection while the handler works on: the client sees a truncated
+response, the handler logs a success, and nothing names a timeout. **A client timeout
+below the budget** makes "this dependency is slow" and "we gave up on it" the same event,
+so the retries below spend the budget re-asking a dependency that was about to answer.
+
+**Raising the client timeout to meet the budget retires the retries on that path**, and
+that is the trade rather than an oversight: `Timeout` bounds one attempt, so once it
+reaches the budget the first attempt can use all of it and the context ends the work
+before a second starts. One owner gives up, and under a budget it is the budget.
+
+**A handler that inherits only `r.Context()` has no deadline of its own** — it runs until
+the client disconnects or `WriteTimeout` kills the socket. Fine for a query measured in
+milliseconds, wrong for anything that waits on another system.
+
+Widening the server's `WriteTimeout` past its canonical 30 s is a tier-2 waiver — record
+it, and name the handler budget that contains it. "The work takes longer than 30 s" is
+the reason to add a budget, not the reason to skip one.
 
 ## One request, end to end
 
@@ -276,11 +329,10 @@ probe, no capability lookup, no connection warm-up. Boot validates what is
 local — flags, files, the database this binary owns
 ([go-config.md](go-config.md)) — and stops there.
 
-A call at boot inverts who is allowed to be down. *Their* outage becomes *your*
-process failing to start, and under a supervisor that restarts on failure it
-becomes a crash loop that outlives the outage that caused it. A running app with
-one broken feature is strictly better: the rest of it works, `/healthz` still
-answers, and the failure is a log line instead of an incident.
+A call at boot inverts who is allowed to be down: *their* outage becomes *your* process
+failing to start, and under a supervisor that restarts on failure it becomes a crash loop
+that outlives the outage. A running app with one broken feature is strictly better — the
+rest works, `/healthz` still answers, and the failure is a log line instead of an incident.
 
 So fetch on first use, and keep the answer:
 
@@ -314,16 +366,15 @@ func (c *Client) speaker(ctx context.Context) (string, error) {
 }
 ```
 
-The mutex is the whole concurrency story: requests overlap, and the lookup
-should happen once. `sync.OnceValue` is the shorter form when the value needs no
-context and cannot fail — but note it also caches a *failure* forever if you
-bend it into one, which is why a fallible lookup uses the mutex and leaves the
-next request free to retry.
+The mutex is the whole concurrency story: requests overlap, and the lookup should happen
+once. `sync.OnceValue` is the shorter form when the value needs no context and cannot fail
+— but it caches a *failure* forever if you bend it into one, which is why a fallible lookup
+uses the mutex and leaves the next request free to retry.
 
-The one thing boot MAY refuse to start over is a **local** fact the binary
-cannot work without: the credential file missing for the mode the operator
-asked for, an unreadable database path, a file named by a flag that is not
-there. One line, name the fix, exit 2 ([go-config.md](go-config.md)).
+Boot MAY refuse to start over a **local** fact the binary cannot work without: a missing
+credential file for the mode the operator asked for, an unreadable database path, a file
+named by a flag that is not there. One line, name the fix, exit 2
+([go-config.md](go-config.md)).
 
 ## Testing
 
@@ -364,14 +415,12 @@ wait.
 
 ## Libraries do not build clients
 
-A library MUST accept the client instead of constructing one — either
-`*http.Client` or a one-method interface it defines
-([library.md](../project-types/library.md)). A library that builds its own has
-made a timeout and retry policy decision on behalf of every consumer, and given
-them no way to reverse it. Watch the nil case: the usual shortcut is to treat a
-nil client as `http.DefaultClient`, which is exactly how the missing timeout
-comes back. Either document nil as a programmer error, or substitute a client
-that has one.
+A library MUST accept the client instead of constructing one — either `*http.Client` or a
+one-method interface it defines ([library.md](../project-types/library.md)). A library that
+builds its own has chosen a timeout and retry policy for every consumer with no way to
+reverse it. Watch the nil case: treating a nil client as `http.DefaultClient` is exactly how
+the missing timeout comes back. Either document nil as a programmer error, or substitute a
+client that has one.
 
 ## Anti-patterns
 

@@ -1,6 +1,6 @@
 # Pattern: Errors & Logging (Go)
 
-**Last verified: 2026-08-17**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
 
 ## Errors
 

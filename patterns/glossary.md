@@ -1,6 +1,9 @@
 # Pattern: Glossary (GLOSSARY.md)
 
-**Last verified: 2026-08-16**
+**Tier 3** (taste — choosing is the rule, so no waiver is needed) · Last verified: 2026-08-16
+
+Once a project keeps the file, how it is written is tier 2: that part is not a
+per-project choice.
 
 `GLOSSARY.md` at the repo root is the project's word list: one entry per concept
 this project owns, and the words it turned down. It settles names and nothing
@@ -13,8 +16,7 @@ reasonable synonym, and the project ends up with `Room` in the domain,
 the first identifier, keeps the code, the UI, the URLs, and the commit messages
 saying the same word.
 
-**Opt-in per project — tier 3, taste** ([README](../README.md) *Which rules can
-be waived*). A project whose vocabulary is the baseline's plus plain English
+**Opt-in per project.** A project whose vocabulary is the baseline's plus plain English
 writes nothing down. The moment one concept has two names in the code, that
 project has a glossary — and its README links the file in one line, the way it
 links this baseline. A word list nobody is pointed at is one nobody reads.

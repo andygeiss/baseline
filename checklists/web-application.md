@@ -40,7 +40,7 @@ here.
 - [ ] Every mutation is a POST route — never GET, and no PUT/DELETE (they break the plain-form fallback)
 - [ ] Server sets read, write, and idle timeouts
 - [ ] Server shuts down gracefully
-- **The timeout ladder holds** — [patterns/go-http-server.md](../patterns/go-http-server.md):
+- **The timeout ladder holds** — [patterns/go-http-client.md](../patterns/go-http-client.md):
   - [ ] Any handler that waits on another system sets its own `context.WithTimeout` — that is the budget
   - [ ] `WriteTimeout` sits above the budget
   - [ ] Every outbound client timeout sits at or above the budget
@@ -98,7 +98,7 @@ here.
   - [ ] The README leads with the point
   - [ ] Commits are semantic (`type(scope): subject`)
   - [ ] Every startup and config error names the fix, and the flag or file to change
-  - [ ] Any LLM prompts follow its prompt rules
+  - [ ] Any LLM prompts follow [patterns/go-llm-adapter.md](../patterns/go-llm-adapter.md) *Writing the prompt*
 - **If the project keeps a `GLOSSARY.md`** — [patterns/glossary.md](../patterns/glossary.md):
   - [ ] The README links it
   - [ ] Every term is the word the code, the UI, and the URLs use

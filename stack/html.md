@@ -1,6 +1,9 @@
 # Stack: HTML
 
-**Last verified: 2026-08-13 · Target: WHATWG Living Standard**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-13 · Target: WHATWG Living Standard
+
+The no-JavaScript rule is the one the README's waiver example is written about, so read
+that example before waiving it.
 
 HTML is the application. Links and forms are the API; the DOM is the client-side state.
 

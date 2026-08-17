@@ -1,6 +1,6 @@
 # Stack: CSS
 
-**Last verified: 2026-08-13 · Target: CSS Baseline "Widely available"**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-13 · Target: CSS Baseline "Widely available"
 
 Pure CSS. No preprocessor (Sass/Less), no framework (Tailwind/Bootstrap), no build
 step. The platform has caught up — use it.

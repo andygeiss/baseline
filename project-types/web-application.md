@@ -30,7 +30,7 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 
 ## Required reading (in order)
 
-These eleven apply to every web application, so read them before the first line of
+These eight apply to every web application, so read them before the first line of
 code. The order is dependency order.
 
 1. [stack/go.md](../stack/go.md) — language conventions and toolchain
@@ -38,12 +38,15 @@ code. The order is dependency order.
 3. [stack/css.md](../stack/css.md) — styling architecture
 4. [stack/htmx.md](../stack/htmx.md) — hypermedia interactivity
 5. [patterns/go-project-layout.md](../patterns/go-project-layout.md) — directory structure
-6. [patterns/go-config.md](../patterns/go-config.md) — the `Config` struct: flags over env over defaults, validated at boot
-7. [patterns/go-http-server.md](../patterns/go-http-server.md) — server, routing, middleware, CSRF
-8. [patterns/security-headers.md](../patterns/security-headers.md) — the CSP and every other security header, in one place
-9. [patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md) — full pages vs fragments
-10. [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — errors and slog
-11. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+6. [patterns/go-http-server.md](../patterns/go-http-server.md) — server, routing, middleware, CSRF
+7. [patterns/security-headers.md](../patterns/security-headers.md) — the CSP and every other security header, in one place
+8. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
+
+**A document is required only when it changes a decision you make before the first
+line of code.** Anything you can read at the moment you write the thing is a row in
+the table below — that is the difference, and it is what keeps this list short.
+Security headers are the deliberate exception: the rule is tier 1, so it does not
+wait for an agent to notice a trigger.
 
 ## Open when you reach the thing it covers
 
@@ -55,6 +58,9 @@ checklist checks all of it either way.
 | When you are about to… | Read |
 |---|---|
 | Name a concept this project owns — a domain type, a route word, a UI label | [patterns/glossary.md](../patterns/glossary.md) — the optional root `GLOSSARY.md`: one word per concept, the runners-up under *Avoid* |
+| Read a flag, an environment variable, or a secret | [patterns/go-config.md](../patterns/go-config.md) — the `Config` struct: flags over env over defaults, validated at boot |
+| Return an error, or log anything | [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — wrapping, sentinels, and slog |
+| Render a response — a full page or a fragment | [patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md) — which one to send, and how the shell composes |
 | Write any CSS at all | [patterns/css-tokens.md](../patterns/css-tokens.md) — the tokens layer and dark mode |
 | Lay out a page or a component | [patterns/css-layout.md](../patterns/css-layout.md) — mobile-first grid, container queries, bottom nav |
 | Write the first line of `app.css` | [patterns/design-system.md](../patterns/design-system.md) — the root `DESIGN.md`, lockstep with the stylesheet |
@@ -84,29 +90,27 @@ document behind it, or sits under a bullet that does.
 ## Architecture defaults
 
 - **One binary, one process.** HTTP server, background jobs, and static assets in a
-  single Go binary, complete and correct on its own — no supervisor, no start script,
-  no second process it depends on. A deployment MAY run companion services beside it
-  (a TLS proxy, a backup replicator); the application MUST NOT need any of them to be
-  correct, and its code MUST NOT name one.
-- **Server-side state.** Session data lives in SQLite; the cookie (`HttpOnly`,
-  `SameSite=Lax`, and `Secure` in production — [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md))
-  carries only a random token. The browser holds a session token and
-  rendered HTML, nothing else.
+  single Go binary, correct on its own — no supervisor, no start script, no second
+  process it depends on. A deployment MAY run companion services beside it (a TLS proxy,
+  a backup replicator); the application MUST NOT need any of them to be correct, and its
+  code MUST NOT name one.
+- **Server-side state.** Session data lives in SQLite and the cookie carries only a
+  random token, so the browser holds that token and rendered HTML, nothing else. Cookie
+  flags: [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md).
 - **Progressive enhancement.** Every feature MUST work with plain HTML forms and links
-  if htmx fails to load. htmx upgrades the experience; it is not a dependency for correctness.
-- **HTTPS in public, plain HTTP inside.** The proxy terminates TLS and redirects
-  HTTP to it; the binary itself only ever speaks plain HTTP, so `curl` against it
-  works with nothing in front ([operations/web-application.md](../operations/web-application.md)).
-  HSTS and the rest of the policy come from the `secureHeaders` middleware
+  if htmx fails to load. htmx upgrades the experience; it is not a dependency for
+  correctness.
+- **HTTPS in public, plain HTTP inside.** The proxy terminates TLS and redirects HTTP to
+  it; the binary only ever speaks plain HTTP, so `curl` against it works with nothing in
+  front ([operations/web-application.md](../operations/web-application.md)). HSTS and the
+  rest of the policy come from `secureHeaders`
   ([patterns/security-headers.md](../patterns/security-headers.md)).
 
 ## Definition of done
 
-Walk [checklists/web-application.md](../checklists/web-application.md) before calling
-any milestone complete.
+Walk [checklists/web-application.md](../checklists/web-application.md) before calling any
+milestone complete.
 
-## Reference implementation
-
-[github.com/andygeiss/baseline-reference](https://github.com/andygeiss/baseline-reference) implements
-this document end to end (deviations recorded in its README). When a rule here is
-ambiguous, read how the reference does it.
+[baseline-reference](https://github.com/andygeiss/baseline-reference) implements this
+document end to end (deviations in its README). When a rule here is ambiguous, read how
+the reference does it.

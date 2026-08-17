@@ -1,9 +1,13 @@
 # Pattern: Go HTTP Server
 
-**Last verified: 2026-08-17**
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
 
-Stdlib only. `net/http.ServeMux` (Go 1.22+ pattern routing) covers everything a
-router package used to do.
+**Three rules here are tier 1 and never waived:** the `http.CrossOriginProtection` wrap,
+the 1 MiB request-body cap, and the ops listener staying localhost-only and never
+proxied. Widening `WriteTimeout` is the tier-2 waiver this document spells out below.
+
+Stdlib only. `net/http.ServeMux` (Go 1.22+ pattern routing) covers everything a router
+package used to do.
 
 ## Routing
 
@@ -36,16 +40,15 @@ func (a *App) Routes() http.Handler {
   those, so they'd break the no-JS fallback. Name the action in the path
   (`"POST /items/{id}/delete"`) — see [stack/htmx.md](../stack/htmx.md).
 - Wildcard `{$}` for exact root; avoid trailing-slash subtree matches unless serving files.
-- **`/static/` sits outside the middleware chain.** `sessions.LoadAndSave` would
-  query the session store on every asset request and `Add` `Vary: Cookie`, which
-  makes `immutable`-cached assets ([go-performance.md](go-performance.md))
-  unusable each time the session cookie changes (login, logout). CSRF and the
-  body cap have nothing to check on a bodiless GET. The trade — no request-log
-  line, no security headers on assets — is fine: `FileServerFS` sets the
-  `Content-Type` from the extension via Go's mime table, and CSP/HSTS do their
-  work on the HTML documents that reference the assets. That table is small,
-  so two extensions register themselves at boot: `.webmanifest`
-  ([pwa.md](pwa.md)) and `.woff2` ([css-typography.md](css-typography.md)).
+- **`/static/` sits outside the middleware chain.** `sessions.LoadAndSave` would query
+  the session store on every asset request and add `Vary: Cookie`, breaking the
+  `immutable` cache ([go-performance.md](go-performance.md)) on every login and logout;
+  CSRF and the body cap have nothing to check on a bodiless GET. The trade — no request
+  log, no security headers on assets — is covered in
+  [security-headers.md](security-headers.md). `FileServerFS` sets `Content-Type` from
+  Go's mime table, which is small enough that two extensions register themselves at boot:
+  `.webmanifest` ([pwa.md](pwa.md)) and `.woff2`
+  ([css-typography.md](css-typography.md)).
 
 ## Handlers
 
@@ -68,10 +71,9 @@ func (a *App) handleGameShow(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-- Early returns, no `else` ladders. One `serverError`/`clientError` pair centralizes
-  error responses (see [go-errors-logging.md](go-errors-logging.md)).
-- `a.render` handles the full-page vs htmx-fragment split
-  (see [htmx-server-rendering.md](htmx-server-rendering.md)).
+Early returns, no `else` ladders. One `serverError`/`clientError` pair centralizes error
+responses ([go-errors-logging.md](go-errors-logging.md)), and `a.render` handles the
+full-page vs fragment split ([htmx-server-rendering.md](htmx-server-rendering.md)).
 
 ## Middleware
 
@@ -92,25 +94,20 @@ Outermost → innermost:
 
 1. `logRequests` — slog: method, path, status, duration.
 2. `recoverPanic` — turn panics into 500s, log stack.
-3. `secureHeaders` — CSP, HSTS, nosniff, and Referrer-Policy. The policy string
-   and the middleware live in [security-headers.md](security-headers.md), which
-   owns every security header the app sends.
+3. `secureHeaders` — CSP, HSTS, nosniff, Referrer-Policy. The policy string and the
+   middleware live in [security-headers.md](security-headers.md).
 4. **CSRF: `http.NewCrossOriginProtection()`** (stdlib, Go 1.25+) — rejects unsafe
-   cross-origin requests via the `Sec-Fetch-Site` header (falling back to
-   Origin-vs-Host comparison). No tokens, no per-form wiring. Only pre-2020 browsers
-   lack these headers; `SameSite=Lax` session cookies are the independent second
-   layer. Do not add a token library on top.
-5. `sessions.LoadAndSave` (see [go-auth-sessions.md](go-auth-sessions.md)), then
-   `requireAuth` on protected route groups only. Static assets never reach it —
-   see Routing.
-6. `http.MaxBytesHandler(mux, 1<<20)` — innermost: request bodies capped at 1 MiB so
-   `ParseForm` on a hostile body can't exhaust memory. An outer cap **cannot be
-   raised downstream** — the body is already wrapped in the smaller
-   `MaxBytesReader` before the handler runs. When a route genuinely accepts
-   uploads, choose the limit at the cap site instead of the blanket wrapper:
-   replace `http.MaxBytesHandler` with a few lines that pick the limit by route
-   (`limit := int64(1<<20); if r.URL.Path == "/upload" { limit = 32<<20 };
-   r.Body = http.MaxBytesReader(w, r.Body, limit)`) before delegating to the mux.
+   cross-origin requests via `Sec-Fetch-Site`, falling back to Origin-vs-Host. No tokens,
+   no per-form wiring. Only pre-2020 browsers lack these headers, and `SameSite=Lax`
+   session cookies are the independent second layer. Do not add a token library on top.
+5. `sessions.LoadAndSave` ([go-auth-sessions.md](go-auth-sessions.md)), then
+   `requireAuth` on protected route groups only. Static assets never reach it.
+6. `http.MaxBytesHandler(mux, 1<<20)` — innermost: bodies capped at 1 MiB so `ParseForm`
+   on a hostile body can't exhaust memory. An outer cap **cannot be raised downstream**,
+   because the body is already wrapped in the smaller `MaxBytesReader` before the handler
+   runs. A route that genuinely accepts uploads picks its limit at the cap site instead
+   of the blanket wrapper: `limit := int64(1<<20); if r.URL.Path == "/upload" { limit =
+   32<<20 }; r.Body = http.MaxBytesReader(w, r.Body, limit)` before delegating to the mux.
 
 ## Server lifecycle
 
@@ -129,79 +126,25 @@ srv := &http.Server{
 - **Timeouts are mandatory** — the zero values mean "no timeout" and that's an outage.
 - **Graceful shutdown is mandatory:** listen for `os.Interrupt`/`SIGTERM` via
   `signal.NotifyContext`, then call `srv.Shutdown` with a **fresh** ~10 s deadline:
-  `context.WithTimeout(context.Background(), 10*time.Second)`. The signal context
-  only *triggers* shutdown — it is already canceled at that moment, so passing it
-  (or a context derived from it) makes `Shutdown` return immediately and kill
-  in-flight requests instead of waiting for them.
-- Request-scoped work uses `r.Context()` all the way down so client disconnects
-  cancel DB queries.
+  `context.WithTimeout(context.Background(), 10*time.Second)`. The signal context only
+  *triggers* shutdown — it is already canceled at that moment, so passing it (or anything
+  derived from it) makes `Shutdown` return immediately and kill in-flight requests.
+- Request-scoped work uses `r.Context()` all the way down, so client disconnects cancel
+  DB queries.
 
-## The timeout ladder
-
-Every layer above has a timeout, and [go-http-client.md](go-http-client.md) adds
-two more on the way out. Setting each one sensibly on its own is not enough:
-**their order decides which one fires, and only the innermost one can still
-produce an answer.**
-
-A handler that calls somebody else's system owns a deadline of its own:
-
-```go
-// turnBudget bounds one whole unit of work: transcribe, reason, speak. It must
-// stay shorter than the server's write timeout, so a wedged dependency ends the
-// work rather than the connection.
-//
-// A budget this long does not fit the canonical ladder as shipped: it needs
-// WriteTimeout widened past the 30 s above (the waiver below) and the outbound
-// client's 10 s Timeout raised to match (go-http-client.md). Adopting a budget
-// means setting all three, in that order — a 90 s budget under a 30 s socket is
-// the first failure in the list below.
-const turnBudget = 90 * time.Second
-
-func (a *App) handleTurn(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), turnBudget)
-	defer cancel()
-	// every call below takes ctx, so one deadline governs the whole path
-}
-```
-
-| Layer | Setting | Where it sits |
-|---|---|---|
-| Server | `WriteTimeout` | **above** the budget — the handler ends the work, not the socket |
-| Handler | `context.WithTimeout` | **the budget**: one owner per request path |
-| Outbound client | `http.Client.Timeout` | **at or above** the budget — the budget is what gives up |
-| Outbound transport | `ResponseHeaderTimeout` | **below** the client timeout — tells a silent server from a slow download |
-
-Get the order wrong and the failure is silent in both directions:
-
-- **`WriteTimeout` below the budget** kills the connection while the handler is
-  still working. The client sees a truncated response, the handler carries on
-  and logs a success, and nothing in the logs names a timeout.
-- **A client timeout below the budget** makes "this dependency is slow" and "we
-  gave up on it" the same event. The retry policy in
-  [go-http-client.md](go-http-client.md) then spends the budget re-asking a
-  dependency that was about to answer.
-
-**Raising the client timeout to meet the budget retires the retries on that
-path**, and that is the trade, not an oversight: `Timeout` bounds one attempt
-([go-http-client.md](go-http-client.md)), so once it reaches the budget the first
-attempt can use the whole of it and the context ends the work before a second one
-starts. One owner gives up, and under a budget it is the budget.
-
-**A handler that inherits only `r.Context()` has no deadline of its own.** It
-runs until the client disconnects or `WriteTimeout` kills the socket. That is
-fine for a query measured in milliseconds, and wrong for anything that waits on
-another system.
-
-Widening `WriteTimeout` past the 30 s above is a tier-2 waiver
-([README.md](../README.md)) — record it, and name the handler budget that
-contains it. "The work takes longer than 30 s" is the reason to add a budget,
-not the reason to skip one.
+**The four timeouts above are only half of the ladder.** A handler that calls someone
+else's system adds two more on the way out, and their order decides which one fires —
+get it wrong and the failure is silent in both directions. The full ladder, its two
+failure modes, and the waiver for widening `WriteTimeout` past 30 s live in
+[go-http-client.md](go-http-client.md) *The timeout ladder*. Read it before writing a
+handler that waits on another system; the settings above are correct on their own until
+then.
 
 ## Background work
 
 Anything periodic (session janitor, `VACUUM INTO` backups) runs under the same signal
-context as the server, via `errgroup` — this is the answer to "how does this stop?"
-from [stack/go.md](../stack/go.md). No bare `go func()` in `main`:
+context as the server, via `errgroup` — this is the answer to "how does this stop?" from
+[stack/go.md](../stack/go.md). No bare `go func()` in `main`:
 
 ```go
 ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -213,8 +156,8 @@ g.Go(func() error { return janitor(ctx, store, logger, 6*time.Hour) }) // ticker
 err := g.Wait()
 ```
 
-Every worker takes `ctx`, selects on `ctx.Done()` in its loop, and returns — process
-exit is gated on `g.Wait()`, so nothing is killed mid-write.
+Every worker takes `ctx`, selects on `ctx.Done()` in its loop, and returns — process exit
+is gated on `g.Wait()`, so nothing is killed mid-write.
 
 **Do the work once before the first tick:**
 
@@ -248,22 +191,20 @@ func janitor(ctx context.Context, store *store.Store, logger *slog.Logger, every
 }
 ```
 
-`time.NewTicker` does not fire at zero, so **a process restarted more often than
-the interval never reaches a tick at all.** That is every binary under
-development, and every service that deploys more often than it cleans up. The
-loop looks like it is running, `g.Wait()` is holding it open, and the table it
-was meant to trim grows forever. One call before the loop is the whole fix.
-
-The `context.Canceled` branch is the other half: shutdown cancels the context
-mid-purge, and without that case every orderly stop logs an error nobody should
-go looking at.
+`time.NewTicker` does not fire at zero, so **a process restarted more often than the
+interval never reaches a tick at all** — every binary under development, and every
+service that deploys more often than it cleans up. The loop looks like it is running,
+`g.Wait()` holds it open, and the table it was meant to trim grows forever. One call
+before the loop is the whole fix. The `context.Canceled` branch is the other half:
+shutdown cancels the context mid-purge, and without that case every orderly stop logs an
+error nobody should go looking at.
 
 ## The ops listener
 
-`/healthz` and `/debug/pprof` run on a second, localhost-only server — never on
-the app listener, so they are never proxied and being localhost-only *is* the
-access control ([operations/web-application.md](../operations/web-application.md)
-owns that contract). The handler lives in `internal/app/ops.go`:
+`/healthz` and `/debug/pprof` run on a second, localhost-only server — never on the app
+listener, so they are never proxied and being localhost-only *is* the access control
+([operations/web-application.md](../operations/web-application.md) owns that contract).
+The handler lives in `internal/app/ops.go`:
 
 ```go
 // OpsHandler serves /healthz and /debug/pprof on the localhost ops listener.
@@ -291,8 +232,7 @@ func OpsHandler(readDB *sql.DB, version string) http.Handler {
 }
 ```
 
-`main.go` wires it as a second `http.Server` under the same `errgroup` as the
-app server:
+`main.go` wires it as a second `http.Server` under the same `errgroup` as the app server:
 
 ```go
 ops := &http.Server{
@@ -310,15 +250,13 @@ ops := &http.Server{
 g.Go(func() error { return serve(ctx, ops) })
 ```
 
-- The pprof handlers come from `net/http/pprof` registered **explicitly** —
-  the blank `_ "net/http/pprof"` import registers on `http.DefaultServeMux`,
-  which this pattern never serves. `pprof.Index` dispatches the named runtime
-  profiles under `/debug/pprof/` itself; `Cmdline`, `Profile`, `Symbol`, and
-  `Trace` are the only handlers that need routes of their own. Their patterns
-  break the app mux's routing rules on purpose: method-less because `Symbol`
-  answers both GET and POST, and a subtree match because that is how `Index`
-  dispatches.
-- The ops mux takes **none** of the app middleware: no request log (a health
-  poll every few seconds is log noise), no sessions, no CSRF, no body cap.
-- `version` is read once at boot via `debug.ReadBuildInfo` — the same string
-  the asset cache-buster uses ([go-performance.md](go-performance.md)).
+- The pprof handlers are registered **explicitly** — the blank `_ "net/http/pprof"`
+  import registers on `http.DefaultServeMux`, which this pattern never serves.
+  `pprof.Index` dispatches the named runtime profiles itself; `Cmdline`, `Profile`,
+  `Symbol`, and `Trace` are the only ones needing their own routes. Their patterns break
+  the app mux's routing rules on purpose: method-less because `Symbol` answers GET and
+  POST, and a subtree match because that is how `Index` dispatches.
+- The ops mux takes **none** of the app middleware: no request log (a health poll every
+  few seconds is log noise), no sessions, no CSRF, no body cap.
+- `version` is read once at boot via `debug.ReadBuildInfo` — the same string the asset
+  cache-buster uses ([go-performance.md](go-performance.md)).

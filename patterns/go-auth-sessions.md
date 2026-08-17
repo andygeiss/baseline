@@ -1,6 +1,12 @@
 # Pattern: Authentication & Sessions (Go)
 
-**Last verified: 2026-08-15 · Sessions: `alexedwards/scs/v2` (v2.9.0) · Hashing: argon2id**
+**Tier 1** (safety — never waived) · Last verified: 2026-08-15 · Sessions: `alexedwards/scs/v2` (v2.9.0) · Hashing: argon2id
+
+The cookie flags, `RenewToken` and `Destroy`, the argon2id parameters, the
+no-enumeration rule, the rate limits, `FindCtx` treating expired rows as not found, and
+every machine-token rule are what the checklists file under *Security*. The scs wiring,
+the store implementation, and the redirect mechanics are tier 2 — shape, waived only on
+the record.
 
 Server-side sessions: the cookie carries only a random token; all session data lives in
 SQLite. Nothing is decrypted client-side, nothing to key-rotate, revocation is a DELETE.
