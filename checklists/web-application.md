@@ -230,6 +230,20 @@ once.
 - [ ] Read from `Authorization: Bearer`, never from the query string
 - [ ] Revoked by DELETE
 
+## Reading or writing a row somebody owns — tier 1, not waivable
+
+`patterns/go-authorization.md` — the actor in the signature, the predicate in the SQL, 404
+for somebody else's row.
+
+- [ ] Every store method touching an owned row takes the actor as a parameter
+- [ ] Ownership is a predicate in the SQL, never a comparison in Go
+- [ ] The actor comes from the session — never a form field, a query parameter, or the path
+- [ ] Somebody else's row answers 404, never 403
+- [ ] Lists, counts, and aggregates carry the same predicate
+- [ ] Writes prove ownership in their own statement and check `RowsAffected`
+- [ ] Private routes are registered on a mux mounted behind `requireLogin`, not wrapped one by one
+- [ ] The two-user test covers every handler that touches an owned row, reads and writes
+
 ## Accepting a form POST
 
 `patterns/go-forms-validation.md` — validator, 422 re-render, flash messages.

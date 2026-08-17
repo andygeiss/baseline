@@ -94,6 +94,7 @@ baseline/
 │   ├── design-system.md
 │   ├── glossary.md
 │   ├── go-auth-sessions.md
+│   ├── go-authorization.md
 │   ├── go-background-work.md
 │   ├── go-cli.md
 │   ├── go-config.md

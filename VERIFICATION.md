@@ -48,10 +48,11 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Owed: two shape defects, and the check that now catches them.** **No tag until a pass
-has run.** No rule was added, removed, or reworded, so the pass over the documents is
-short — but `make structure` is new code in a repository that has almost none, and that
-is where a pass should look.
+**Owed: two shape defects, the check that now catches them, and the rule that was
+missing.** **No tag until a pass has run.** Two places want a pass's attention:
+`make structure` is new code in a repository that has almost none, and
+[patterns/go-authorization.md](patterns/go-authorization.md) is a new tier-1 document,
+which is the highest bar the corpus has.
 
 1. **Two defects an eye missed and a machine would not have.** [README.md](README.md)'s
    tree printed `llm-prompting.md` between the two `htmx-` documents, breaking the
@@ -68,30 +69,56 @@ is where a pass should look.
    to the adversarial half rather than a fifth condition on the gate: **the gate keeps its
    four conditions.**
 
+3. **A new tier-1 pattern rules object-level authorization**
+   ([patterns/go-authorization.md](patterns/go-authorization.md)).
+   [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md) answered *who is signed in*
+   thoroughly — argon2id, renewal, rate limiting, constant-time login, machine tokens
+   hashed at rest — and **nothing answered *may this actor touch this row*.** No document
+   said a query for an owned row filters by the session's user, or that the id in the path
+   is untrusted input, so a handler that rendered another user's row passed every box in
+   every checklist. Broken object-level access control is the most common real
+   vulnerability in the exact shape of application this corpus builds, and by the tier-1
+   test — dropping it leaks data — the missing rule was tier 1 the whole time.
+
+   The rules: the actor is a parameter of every store method that touches an owned row, so
+   the unsafe call does not compile; the predicate lives in the SQL, never in Go; the actor
+   comes from the session and never from the request; somebody else's row answers **404,
+   not 403**, because a 403 confirms existence and turns the id space into a directory;
+   lists, counts and aggregates carry the predicate too; a write proves ownership in its
+   own statement and checks `RowsAffected`; private routes are registered on a mux mounted
+   behind `requireLogin`; and the two-user test uses a *second signed-in user*, because an
+   anonymous request tests the login wall and passes while every ownership bug survives.
+   It is a trigger document rather than required reading — the rule shapes a
+   before-the-first-line decision only in a project that has owned rows at all, which is
+   also what keeps the floor budget intact.
+
+   **Traced before it shipped, to the standard *What a review run is* sets.** The two-mux
+   mount ran as seven cases on Go 1.26.6: the inner mux matches the full path, a wrong
+   method inside the mounted prefix gives 405, and a route registered inside it whose
+   prefix was never mounted 404s instead of serving unchecked — that fail-closed property
+   is the document's whole argument for spending a second mux. The store method is
+   `gofmt`-clean, builds, and passes `go vet`; the ownership predicate and the
+   `RowsAffected` write ran against real SQLite. Its checklist section put two budgets
+   over, waived on the record under *Waived budgets*.
+
+   **What it still owes: the empirical half.** The reference implements neither the pattern
+   nor its two-user test, so gate condition 2 is open and every rule here is unexercised
+   until it does. This is the one item that must not be waved through — a tier-1 document
+   nothing has run is a claim, not a rule.
+
 **The lesson is the one the router fusion already taught.** A claim of mechanical
 checkability that nothing mechanically checks is a claim that decays, and both defects
 were in the layer this corpus polices hardest — which is where a reviewer's eye has
-stopped seeing. Structure caught them; five adversarial passes over v3.6.0 and v3.7.0 did
-not.
+stopped seeing. Structure caught them; twelve adversarial passes over v3.6.0 and v3.7.0
+did not.
 
-### Open finding: no document rules object-level authorization
-
-Not a change, and not owed to the run above — nothing here addresses it. Recorded here
-because this file is what an audit reads, and the baseline has no tracker.
-
-[patterns/go-auth-sessions.md](patterns/go-auth-sessions.md) answers *who is signed in*
-thoroughly: argon2id, renewal on login and password change, rate limiting, constant-time
-login, machine tokens hashed at rest. **Nothing anywhere answers *may this user act on
-this row*.** No document says a query for a user-owned resource filters by the session's
-user ID, or that an ID from the URL is untrusted input. A handler that renders
-`GET /games/{id}` for another user's game passes every box in every checklist today.
-
-By the tier-1 test — a rule is tier 1 when dropping it loses data, leaks it, or hands
-over an account — that gap is tier 1, and broken object-level access control is the most
-common real vulnerability in exactly the shape of application this corpus builds. Closing
-it needs its own pattern document, a checklist section that fires on every handler
-reading a user-owned row, and the reference implementation exercising it. Raised
-2026-08-17.
+**The second lesson is about absence, and it is new.** Those same twelve passes hunted
+contradictions between documents, traced snippets, and checked facts upstream — every one
+of them work on a document that exists. Nothing in that method asks *what does no document
+say*, which is why a tier-1 rule was missing for the corpus's whole life rather than
+wrong. **A pass now ends by naming the question the corpus cannot answer.** Absence is the
+defect class an adversarial reader handed a file is structurally worst at, and it is where
+the remaining tier-1 gaps will be.
 
 ## Run log
 
@@ -475,6 +502,31 @@ Why each absent header stays absent:
   content, and the app embeds none.
 - **CSP reporting (`report-to`)** — needs an endpoint and somebody to read it. Add it
   when a real policy question needs real data.
+
+## Waived budgets
+
+Every size budget this repository is deliberately over, and what pays it back.
+[README.md](README.md) *Size budgets* makes a budget a shape rule, waivable on the record
+like any other, with the record kept here because the cost lands on this repository rather
+than on a project built from it. Each entry carries the six fields a waiver carries
+anywhere: the rule, the document, the date, who decided, why, and what contains it.
+
+**`make tokens` stays red while an entry sits here, and that is the point.** The red run is
+the reminder, exactly as a `Last verified:` date past ninety days is the reminder. The way
+to clear it is the work under *Paid back by* — never an edit to the budget number, which
+would turn a waiver into a new normal without anyone deciding to.
+
+- **The 4,300-token checklist budget and the 7,000-token change path**
+  ([README.md](README.md) *Size budgets*) — waived 2026-08-17 by Andy.
+  `checklists/web-application.md` sits at 4,420 and the change path at 7,197, both because
+  *Reading or writing a row somebody owns* added eight tier-1 boxes. **When two rules
+  collide the lower tier wins**, and a tier-1 hole beats a tier-2 budget.
+  **Contained:** 120 tokens and 197 tokens, on one checklist of one project type. The floor
+  holds at 19,399 of 19,500, and no other project type moved.
+  **Paid back by:** a trim pass over the six wordiest boxes in that checklist, moving their
+  explanatory tails into the documents that own the facts — about 204 tokens, which covers
+  both overages. Held for its own change because a prose sweep folded into a safety
+  addition is how the v3.7.0 run introduced two of its seven defects.
 
 ## Where the numbers come from
 
