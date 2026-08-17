@@ -1,6 +1,6 @@
 # Pattern: PWA Install
 
-**Tier 3** (taste — choosing is the rule) · Last verified: 2026-08-14
+**Tier 3** (taste — choosing is the rule, so no waiver is needed) · Last verified: 2026-08-14
 
 Whether the app is installable at all is a per-project choice; once it is, everything
 below is tier 2. **The no-service-worker rule is not a choice either way** — an app that

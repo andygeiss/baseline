@@ -108,8 +108,8 @@ baseline/
 │   ├── go-sqlite.md
 │   ├── go-testing.md
 │   ├── htmx-live-updates.md
-│   ├── llm-prompting.md
 │   ├── htmx-server-rendering.md
+│   ├── llm-prompting.md
 │   ├── local-https.md
 │   ├── pwa.md
 │   └── security-headers.md
