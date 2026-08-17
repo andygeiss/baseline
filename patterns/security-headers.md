@@ -96,8 +96,8 @@ Every asset is compiled into the binary through `embed.FS` and reviewed like cod
 HTML documents that reference the assets — which is where an injection would land.
 
 The day the app serves user-uploaded files, they MUST NOT be served from this path or
-this handler: that is a different route with its own `Content-Type` and
-`Content-Disposition` rules.
+this handler: that is a different route, and its `Content-Type` and `Content-Disposition`
+rules are [go-file-uploads.md](go-file-uploads.md).
 
 ## Testing
 

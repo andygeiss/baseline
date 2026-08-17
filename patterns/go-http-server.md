@@ -110,6 +110,7 @@ Outermost → innermost:
    runs. A route that genuinely accepts uploads picks its limit at the cap site instead
    of the blanket wrapper: `limit := int64(1<<20); if r.URL.Path == "/upload" { limit =
    32<<20 }; r.Body = http.MaxBytesReader(w, r.Body, limit)` before delegating to the mux.
+   Everything after the cap is [go-file-uploads.md](go-file-uploads.md), and it is tier 1.
 
 ## Server lifecycle
 

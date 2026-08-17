@@ -120,3 +120,6 @@ pool and silently diverge from WAL behavior. `t.TempDir()` cleans up automatical
   boundary (sentinels live in `domain` — see
   [go-errors-logging.md](go-errors-logging.md)); callers never see `database/sql` errors.
 - Timestamps stored as UTC RFC 3339 text or Unix integers — pick per project, never mix.
+  That choice reaches further than it looks: a `time.Time` from `time.Unix` carries the
+  process's local zone, so what happens to one of these on the way to a page is
+  [time-and-dates.md](time-and-dates.md).

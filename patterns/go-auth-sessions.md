@@ -155,6 +155,11 @@ deleted on use; the plaintext token goes in the emailed link once. A used or exp
 token and an unknown email produce the same response (no enumeration). Consider
 sessions of that user revoked on successful reset.
 
+**How that link leaves the building is [go-email.md](go-email.md)** — the base URL it is
+built from, the outbox it waits in, and why nothing is sent inside the handler. Read it
+when the project grows its first outgoing message; the rules above are complete without
+it until then.
+
 ## Machine tokens (when a program is the user)
 
 A CLI or a script cannot hold a session cookie. Sessions are built for a browser:

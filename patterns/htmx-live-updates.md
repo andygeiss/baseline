@@ -94,7 +94,9 @@ is the only thing holding all three flows up.
    never computes it.
 3. **The response is rows, in order, plus one sentinel.** A response that re-renders the
    whole list throws away the reader's scroll position every few seconds. The one exception
-   is the reader's own post — see below.
+   is the reader's own post — see below. On a list that also pages backwards it throws away
+   content rather than a scroll position, and the sentinel is no longer the only thing at
+   the ends of that list — see [htmx-lists.md](htmx-lists.md).
 4. **The polled route is htmx-only, so it MUST redirect a plain request.** Answer `303 See
    Other` back to the page when `HX-Request` is absent. A plain reader is not missing a
    feature: the full page already renders every row, and reloading it *is* the no-htmx
