@@ -1,6 +1,6 @@
 # Pinned Versions
 
-**Last verified: 2026-08-15.** These are the versions all new projects MUST use.
+**Last verified: 2026-08-17.** These are the versions all new projects MUST use.
 If your training data disagrees, this file wins. Verify against the source links
 when updating this file.
 
@@ -22,7 +22,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 
 | Component | Pinned version | Released | Notes |
 |---|---|---|---|
-| Go | **1.26.6** | 2026-08-11 | Latest stable patch of the 1.26 line. Security release: fixes GO-2026-6089/6090/6091/5972, including an `html/template` JavaScript-context bug that reaches every rendering app. Go 1.27 expected Aug 2026 — re-verify after release. |
+| Go | **1.26.6** | 2026-08-13 | Latest stable patch of the 1.26 line. Security release: fixes GO-2026-6089/6090/6091/5972, including an `html/template` JavaScript-context bug that reaches every rendering app. Go 1.27 expected Aug 2026, and not out on 2026-08-17 — re-verify after release. |
 | htmx | **2.0.10** | 2026-04-21 | The 2.x line is stable and feature-complete. |
 | htmx 4.x | ❌ do not use | beta | 4.0.0-beta6 (July 2026). MUST NOT be used until stable *and* adopted here deliberately (breaking changes: fetch-based, new swap model). |
 | scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
@@ -51,7 +51,11 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
   green CI (the mechanism lives in [operations/ci.md](operations/ci.md)). Anything that
   breaks on a routine update is a candidate for removal.
 
-## Sources checked (2026-08-15)
+## Sources checked (2026-08-17)
+
+Every row above was checked against its source on this date, not just the ones that
+moved. Nothing moved: the only edit was Go 1.26.6's release date, which this table had
+as 2026-08-11 and the release history gives as 2026-08-13.
 
 - Go releases: https://go.dev/doc/devel/release
 - Go 1.26 notes: https://go.dev/doc/go1.26
@@ -62,4 +66,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 - GitHub Actions majors: https://github.com/actions/checkout/tags and
   https://github.com/actions/setup-go/tags — the `using:` line in each action's
   `action.yml` is the authoritative Node runtime
-- `design.md` spec: https://github.com/google-labs-code/design.md
+- `design.md` spec: https://github.com/google-labs-code/design.md — its README is where
+  the status lives, not the releases page: tagged releases reached 0.4.0 (2026-07-27)
+  while the format itself still says "The DESIGN.md format is at version `alpha`". The
+  release number is the CLI's, so it is not evidence the format settled.
