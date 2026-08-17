@@ -98,7 +98,9 @@ baseline/
 │   ├── go-background-work.md
 │   ├── go-cli.md
 │   ├── go-config.md
+│   ├── go-email.md
 │   ├── go-errors-logging.md
+│   ├── go-file-uploads.md
 │   ├── go-forms-validation.md
 │   ├── go-http-client.md
 │   ├── go-http-server.md
@@ -109,12 +111,14 @@ baseline/
 │   ├── go-project-layout.md
 │   ├── go-sqlite.md
 │   ├── go-testing.md
+│   ├── htmx-lists.md
 │   ├── htmx-live-updates.md
 │   ├── htmx-server-rendering.md
 │   ├── llm-prompting.md
 │   ├── local-https.md
 │   ├── pwa.md
-│   └── security-headers.md
+│   ├── security-headers.md
+│   └── time-and-dates.md
 ├── project-types/                  ← entry point per kind of project
 │   ├── cli-tool.md
 │   ├── library.md
@@ -171,6 +175,12 @@ below is what it currently catches, not the definition.
   signature, the predicate in the SQL, the two answers being indistinguishable, and a
   route's protection not being optional where it is registered
   ([patterns/go-authorization.md](patterns/go-authorization.md)).
+- Everything about a file a user handed you: the generated stored name, the type decided
+  by sniffing the bytes, the download served by a handler rather than a file server, and
+  the attachment default ([patterns/go-file-uploads.md](patterns/go-file-uploads.md)).
+- A link in an outgoing email built from `Config` and never from the request, and a
+  header value refused when it holds CR or LF
+  ([patterns/go-email.md](patterns/go-email.md)).
 - Any version pin whose note names a security fix.
 - Every rule about how a secret is handled: a secret arrives as a file and `LogValue`
   keeps it out of the logs ([patterns/go-config.md](patterns/go-config.md) *Secrets*), a

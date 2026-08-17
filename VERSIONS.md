@@ -53,9 +53,8 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 
 ## Sources checked (2026-08-17)
 
-Every row above was checked against its source on this date, not just the ones that
-moved. Nothing moved: the only edit was Go 1.26.6's release date, which this table had
-as 2026-08-11 and the release history gives as 2026-08-13.
+Every row above was checked against its source on this date, not only the ones that
+moved. What each run found is in [VERIFICATION.md](VERIFICATION.md).
 
 - Go releases: https://go.dev/doc/devel/release
 - Go 1.26 notes: https://go.dev/doc/go1.26
@@ -67,6 +66,5 @@ as 2026-08-11 and the release history gives as 2026-08-13.
   https://github.com/actions/setup-go/tags — the `using:` line in each action's
   `action.yml` is the authoritative Node runtime
 - `design.md` spec: https://github.com/google-labs-code/design.md — its README is where
-  the status lives, not the releases page: tagged releases reached 0.4.0 (2026-07-27)
-  while the format itself still says "The DESIGN.md format is at version `alpha`". The
-  release number is the CLI's, so it is not evidence the format settled.
+  the status lives, not the releases page: the tagged release number is the CLI's, and
+  the format itself still says `alpha`.

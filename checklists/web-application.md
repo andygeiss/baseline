@@ -6,14 +6,15 @@ One topic per section: **the moment it fires, the document that rules it, and wh
 looks like.** Read a section before you write the thing it covers; walk its boxes before
 you call the work complete. Paths are from the repository root.
 
-Every unchecked box is either fixed or waived on the record — the waiver format lives in
-`README.md` under *Which rules can be waived*. **Tier 1 is decided by what a rule
+Every unchecked box is either fixed or waived on the record — the format is in
+`README.md` *Which rules can be waived*. **Tier 1 is decided by what a rule
 protects, not by which section it landed in**, so a wholly tier-1 section says so in its
-heading. Four sections are only partly tier 1: `Config.LogValue` and the three `.env`
+heading. Five sections are only partly tier 1: `Config.LogValue` and the three `.env`
 boxes under *Reading a flag…*; the pragmas, both pools, and parameterized SQL under
 *Storing anything*; the zero-CSP-violations check under *Adding an icon*; every box under
-*Reading or writing a row somebody owns* except the one naming the shared rows. No waiver
-for any of those; there is a fix.
+*Reading or writing a row somebody owns* except the one naming the shared rows; the
+base-URL and the header box under *Sending an email*. No waiver for any of those; there
+is a fix.
 
 ## Every web application
 
@@ -21,55 +22,53 @@ No trigger: these fire for every project of this type.
 
 - [ ] `go.mod` says `go 1.26`, matching `VERSIONS.md`
 - [ ] The vendored htmx is 2.0.10, matching `VERSIONS.md`
-- [ ] No dependencies outside the approved list in `stack/go.md`, or each extra one is justified in the README
+- [ ] No dependency outside `stack/go.md`'s approved list, or the README justifies it
 - [ ] Zero hand-written JavaScript
 - [ ] htmx is the only `<script>`
 - [ ] No service worker registered
 - [ ] No CSS, font, icon, or script loaded from a third-party origin
-- [ ] Single static binary builds: `CGO_ENABLED=0 go build ./cmd/server` (assets embedded)
-- [ ] The binary never serves TLS — no `-tls-cert` flag, in development or anywhere else (`patterns/local-https.md`)
+- [ ] Single static binary builds: `CGO_ENABLED=0 go build ./cmd/server`
+- [ ] The binary never serves TLS, in development or anywhere else (`patterns/local-https.md`)
 - [ ] Routes registered in one file
-- [ ] Every mutation is a POST route — never GET, and no PUT/DELETE (they break the plain-form fallback)
+- [ ] Every mutation is a POST route — never GET, and no PUT/DELETE
 - [ ] Server sets read, write, and idle timeouts
 - [ ] Server shuts down gracefully
-- [ ] Valid HTML, spot-checked with the Nu validator (`hx-*` "attribute not allowed" errors are the only expected ones)
+- [ ] Valid HTML, spot-checked with the Nu validator
 - [ ] Landmarks + heading hierarchy correct
 - [ ] Every form control labeled
 - [ ] Keyboard-only walkthrough succeeds
 - [ ] Focus visible
 - [ ] `lang` set
 - [ ] README links to this baseline
-- [ ] Any waived rule recorded in the format `README.md` *Which rules can be waived* defines (rule, document, date, who, why, what contains it)
+- [ ] Any waived rule recorded in `README.md`'s six-field waiver format
 
 ### Security — tier 1, not waivable
 
-Required reading, not a trigger — the policy is tier 1, so it does not wait for an agent
-to notice a moment. `patterns/security-headers.md` owns the CSP and every other header.
+Required reading, not a trigger: the policy is tier 1. `patterns/security-headers.md` owns
+the CSP and every other header.
 
-- [ ] `secureHeaders` sends the full policy from `patterns/security-headers.md` — CSP, HSTS, nosniff, referrer
+- [ ] `secureHeaders` sends the full policy — CSP, HSTS, nosniff, referrer
 - [ ] The test pinning all four is green
 - [ ] CSP carries `img-src 'self' data:`
 - [ ] `http.CrossOriginProtection` wraps the mux (CSRF)
-- [ ] Request bodies capped at 1 MiB — `http.MaxBytesHandler`, or the route-aware limit chooser when upload routes need more (`patterns/go-http-server.md`)
+- [ ] Request bodies capped at 1 MiB by `http.MaxBytesHandler` (`patterns/go-http-server.md`)
 - [ ] All user input escaped via `html/template` (no `template.HTML` on user data)
 - [ ] `/debug/pprof` and `/healthz` on the localhost-only ops listener
 - [ ] The ops listener is never proxied
 
 ## Naming a concept this project owns — a domain type, a route word, a UI label
 
-`patterns/glossary.md` — the optional root `GLOSSARY.md`: one word per concept, the
-runners-up under *Avoid*.
+`patterns/glossary.md` — the optional root `GLOSSARY.md`: one word per concept.
 
 - **If the project keeps a `GLOSSARY.md`:**
   - [ ] The README links it
   - [ ] Every term is the word the code, the UI, and the URLs use
-  - [ ] A `git grep` for each *Avoid* word finds no use of it for that concept, except where its entry says so
+  - [ ] A `git grep` for each *Avoid* word finds no use for that concept
   - [ ] No term restates baseline or general-programming vocabulary
 
 ## Reading a flag, an environment variable, or a secret
 
-`patterns/go-config.md` — the `Config` struct: flags over env over defaults, validated at
-boot.
+`patterns/go-config.md` — the `Config` struct: flags over env over defaults.
 
 - [ ] Parsed and validated in `main` before the DB opens or the listener binds
 - [ ] `internal/` never calls `os.Getenv`
@@ -87,17 +86,16 @@ boot.
 - [ ] Errors wrapped with `%w`
 - [ ] Internal error text never rendered to the browser
 - [ ] `log/slog` structured logging
-- [ ] Every startup and config error names the fix, and the flag or file to change
+- [ ] Every startup and config error names the fix
 - **Each step of a multi-dependency operation is marked required or enhancement:**
-  - [ ] Every step carries one label or the other, decided when it was written
+  - [ ] Every step carries one label or the other
   - [ ] The irreplaceable result is persisted before any enhancement runs
   - [ ] Enhancement failures log at `Warn` and still answer
   - [ ] A test proves each one degrades instead of failing
 
 ## Writing a comment, a README, a commit message, an error message, or a prompt
 
-`STYLE.md` — point first, short sentences, plain words: the bar for everything a human
-reads.
+`STYLE.md` — point first, short sentences, plain words.
 
 - [ ] Comments say *why*, not what
 - [ ] The README leads with the point
@@ -110,12 +108,22 @@ reads.
 
 - [ ] Every feature works with htmx disabled (plain forms/links, full-page renders)
 - [ ] Navigation-like htmx GETs use `hx-push-url`; back button behaves
-- [ ] Requests >100ms show an indicator — except a background poll, which shows none (`patterns/htmx-live-updates.md`)
+- [ ] Requests >100 ms show an indicator, except a background poll (`patterns/htmx-live-updates.md`)
 - [ ] Destructive actions have `hx-confirm`
 - [ ] Dual-mode responses send `Vary: HX-Request, HX-Boosted`
-- [ ] The fragment-or-full-page test is one named function both `render` and the handlers call, never two copies of the header check
+- [ ] The fragment-or-full-page test is one named function
 - [ ] Boosted POSTs re-render with `HX-Push-Url: false`
 - [ ] Dual-mode handlers tested with and without `HX-Request: true`
+
+## Showing a time or a date
+
+`patterns/time-and-dates.md` — the zone the server picks, and formatting in the handler.
+
+- [ ] The project's zone answer is named in the README
+- [ ] Formatting happens in the handler, never in a template
+- [ ] Every `Format` call names a zone — `time.Local` appears nowhere
+- [ ] `time/tzdata` is imported, and every configured zone loads at boot
+- [ ] Every rendered moment carries `<time datetime>` with the UTC value
 
 ## Writing any CSS at all
 
@@ -159,8 +167,7 @@ reads.
 
 ## Sizing text, or adding a web font
 
-`patterns/css-typography.md` — the type scale, and the only sanctioned way to self-host a
-font.
+`patterns/css-typography.md` — the type scale, and how to self-host a font.
 
 - [ ] No root `font-size` override
 - [ ] Sizes in `rem`/`em`, with a `rem` term in every `clamp()`
@@ -204,7 +211,7 @@ font.
   - [ ] Writes on a single connection: `SetMaxOpenConns(1)` + `_txlock=immediate`
 - [ ] Migrations embedded and forward-only
 - [ ] Migrations applied at boot inside a transaction
-- [ ] The off-box question is answered on purpose — "if this server disappears right now, what have you lost?" — with the matching row running
+- [ ] The off-box question is answered on purpose, with the matching row running
 - [ ] **The restore rehearsed once**
 
 ## Adding users, login, or passwords — tier 1, not waivable
@@ -222,8 +229,7 @@ font.
 
 ## Letting a program sign in — a CLI, a script — tier 1, not waivable
 
-`patterns/go-auth-sessions.md` §Machine tokens — a bearer token, hashed at rest, shown
-once.
+`patterns/go-auth-sessions.md` §Machine tokens — a bearer token, hashed at rest.
 
 - [ ] 32 random bytes
 - [ ] Only its SHA-256 stored
@@ -233,19 +239,18 @@ once.
 
 ## Reading or writing a row somebody owns
 
-`patterns/go-authorization.md` — the actor in the signature, the predicate in the SQL, and
-somebody else's row answering like one that never existed.
+`patterns/go-authorization.md` — the actor in the signature, the predicate in the SQL.
 
 - [ ] Every store method touching an owned row takes the actor as a parameter
 - [ ] Ownership is a predicate in the SQL, never a comparison in Go
-- [ ] The actor comes from the session — never a form field, a query parameter, or the path
+- [ ] The actor comes from the session, never the request
 - [ ] Somebody else's row and a row that never existed answer identically
 - [ ] No route answers 403 for a row, only for a route the actor may never use
 - [ ] Lists, counts, and aggregates carry the same predicate
 - [ ] Writes prove ownership in their own statement and check `RowsAffected`
-- [ ] A route's protection is not optional where it is registered — omitting it fails closed or fails to compile
+- [ ] A route's protection is not optional where it is registered
 - [ ] The rows nobody owns are named in `README.md` or `DESIGN.md`
-- [ ] The two-user test covers every handler that touches an owned row, reads and writes
+- [ ] The two-user test covers every handler that touches an owned row
 
 ## Accepting a form POST
 
@@ -253,6 +258,27 @@ somebody else's row answering like one that never existed.
 
 - [ ] Invalid form POSTs return 422 with values + errors re-rendered
 - [ ] Each field error tied to its control (`aria-describedby` + `aria-invalid`)
+
+## Taking a file from a user — an upload, an attachment, an avatar — tier 1, not waivable
+
+`patterns/go-file-uploads.md` — the generated name, the sniffed type, and serving it back.
+
+- [ ] The route's cap is raised at the cap site, never on the blanket wrapper
+- [ ] The stored name is generated; the client's filename is data, never a path
+- [ ] The type is `http.DetectContentType`'s answer, checked against an exact allowlist
+- [ ] Downloads go through a handler, never a file server
+- [ ] Anything not rendered inline is sent `Content-Disposition: attachment`
+- [ ] The upload-that-lies test pins what those bytes are never served as
+
+## Sending an email — a reset link, a verification, any notification
+
+`patterns/go-email.md` — the port, the outbox, and the link that comes from `Config`.
+
+- [ ] Every link is built from `cfg.BaseURL`, never from `r.Host`
+- [ ] Any header value holding CR or LF is refused
+- [ ] The message is queued in the causing transaction; a ticker sends it
+- [ ] The response never changes with the send's outcome
+- [ ] The `Host: evil.example` test is green
 
 ## Keeping a page current while the reader watches it
 
@@ -263,19 +289,27 @@ somebody else's row answering like one that never existed.
 - [ ] The route 303s a non-htmx request
 - [ ] The poll carries no indicator and no rate limit
 
+## Showing a list longer than one page
+
+`patterns/htmx-lists.md` — keyset over `OFFSET`, and the control that carries the cursor.
+
+- [ ] The query is keyset, and its last sort term is unique
+- [ ] An index covers the sort key
+- [ ] The cursor rides in the query string, on an `<a href>` that works without htmx
+- [ ] A filter or sort change drops the cursor
+- [ ] Where the list also polls, the two cursors have different names
+
 ## Running anything on a schedule — a janitor, a backup, any ticker loop
 
-`patterns/go-background-work.md` — the errgroup, the run-before-the-first-tick rule, and
-cancellation at shutdown.
+`patterns/go-background-work.md` — the errgroup and the run-before-the-first-tick rule.
 
 - [ ] It runs under the `errgroup` tied to the signal context, never a bare `go func()`
 - [ ] It runs once before entering its ticker loop
-- [ ] It treats `context.Canceled` at shutdown as normal, not an error
+- [ ] It treats `context.Canceled` at shutdown as normal
 
 ## Depending on someone else's system
 
-`patterns/go-ports-adapters.md` — the port, the hand-written fake, finishing the feature
-before the API exists.
+`patterns/go-ports-adapters.md` — the port, and the hand-written fake.
 
 - [ ] The adapter sits in its own package
 - [ ] It defines no port of its own
@@ -291,21 +325,21 @@ before the API exists.
 - [ ] Uses an injected client with a timeout, never `http.DefaultClient`
 - [ ] Checks `resp.StatusCode`
 - [ ] Caps the body it reads
-- [ ] Nothing calls a remote system at boot — lookups are lazy and cached, so a dependency being down is a broken feature, not a crash loop
+- [ ] Nothing calls a remote system at boot
 - **The timeout ladder holds:**
-  - [ ] Any handler that waits on another system sets its own `context.WithTimeout` — that is the budget
+  - [ ] Any handler that waits on another system sets its own `context.WithTimeout` — the budget
   - [ ] `WriteTimeout` sits above the budget
   - [ ] Every outbound client timeout sits at or above the budget
 
 ## Adding an AI capability — a model that answers, summarises, extracts, or classifies
 
-`patterns/go-llm-adapter.md` — the port, the prompt in `domain`, refusals as sentinels,
-the degenerate adapter that ships. Load the `claude-api` skill for anything on the wire.
+`patterns/go-llm-adapter.md` — the port, the prompt in `domain`, refusals as sentinels.
+Load the `claude-api` skill for anything on the wire.
 
-- [ ] The `claude-api` skill was loaded before the request was written — no model ID, header, or field from memory
+- [ ] The `claude-api` skill was loaded before the request was written
 - [ ] The prompt and the conversation shape live in `domain`
 - [ ] A refusal is a domain sentinel, checked **before** the response text is read
-- [ ] The app still starts with an empty environment — a degenerate adapter shipped as a product mode
+- [ ] The app still starts with an empty environment
 - [ ] Boot never calls the model
 - **Its tests:**
   - [ ] The **request** is pinned against `httptest` — model, thinking setting, effort, token ceiling, headers
@@ -315,8 +349,7 @@ the degenerate adapter that ships. Load the `claude-api` skill for anything on t
 
 ## Writing or tuning a prompt, or reading what a model wrote back
 
-`patterns/llm-prompting.md` — prompt-writing rules, the thinking and effort settings, and
-the reasoning that leaks into the visible answer.
+`patterns/llm-prompting.md` — the thinking and effort settings, and leaked reasoning.
 
 - [ ] The thinking/effort setting is explicit
 - [ ] The token ceiling covers thinking plus answer
@@ -333,7 +366,7 @@ the reasoning that leaks into the visible answer.
 
 ## Making the app installable
 
-`patterns/pwa.md` — manifest, icons, and why there is never a service worker.
+`patterns/pwa.md` — manifest, icons, and no service worker.
 
 - [ ] Manifest, all four icons, and head lines in place
 - [ ] `.webmanifest` MIME registered at boot
@@ -341,37 +374,34 @@ the reasoning that leaks into the visible answer.
 
 ## Building anything a browser allows only over HTTPS — camera, microphone, geolocation, notifications, passkeys, install — or trying the app on a phone
 
-`patterns/local-https.md` — `Caddyfile.lan` in front on the developer's machine, and
-trusting its root on the device.
+`patterns/local-https.md` — `Caddyfile.lan` in front, and trusting its root on the device.
 
-- [ ] `Caddyfile.lan` is its own file, never an edited copy of `baseline-ops/templates/Caddyfile`
-- [ ] Nothing that ships reads it — the image does not build it in, the deployment never names it
+- [ ] `Caddyfile.lan` is its own file, not an edited copy of the deployment's
+- [ ] Nothing that ships reads it
 - [ ] The root certificate and its key were never committed
-- [ ] The authority stays on the machine that made it — nothing a user visits is served with a certificate it signed
+- [ ] The authority stays on the machine that made it
 - [ ] The README says the project opts in, next to how to run it
 
 ## Setting up the repo's commands or CI
 
 `stack/makefile.md`, then `operations/ci.md` — `make check` is CI locally.
 
-- [ ] CI workflow is in place and green (covers gofmt, vet, staticcheck, **govulncheck**, tidy, race tests, static build)
+- [ ] CI workflow is in place and green, with every gate that document lists
 - [ ] `Makefile` at the repo root
 - [ ] `make check` is green
 - [ ] `make check` is gate-for-gate identical to ci.yml
 
 ## Configuring the build, or serving a static asset
 
-`patterns/go-performance.md` — GOMEMLIMIT, cache headers, version busting: day-one
-defaults, not tuning.
+`patterns/go-performance.md` — GOMEMLIMIT, cache headers, version busting.
 
 - [ ] `GOMEMLIMIT` set by the deployment
-- [ ] Static assets served with `immutable` cache headers + version-busting query string
-- [ ] The buster is the three-case reader — a released version, the commit for a clean checkout, a per-boot id for an edited tree, never a constant like `unknown` or a repeated `+dirty`
+- [ ] Static assets served `immutable`, with a version-busting query string
+- [ ] The buster is that document's three-case reader, never a constant
 
 ## Shipping it
 
-`operations/web-application.md` — the deployment contract: listeners, signals, logs,
-secrets.
+`operations/web-application.md` — the deployment contract.
 
 - **The binary satisfies every line of the contract:**
   - [ ] Two listeners
@@ -379,13 +409,13 @@ secrets.
   - [ ] SIGTERM shutdown
   - [ ] State under `DATABASE_URL`
   - [ ] Secrets from `CREDENTIALS_DIRECTORY`
-- [ ] It starts with an empty environment on `127.0.0.1:8080` — no deployment needed to try it
+- [ ] It starts with an empty environment on `127.0.0.1:8080`
 - **The version is visible in `/healthz` and the boot log** (`debug.ReadBuildInfo`):
   - [ ] It appears in both places
-  - [ ] It is the git tag — not the commit id or the per-boot id the reader answers for an untagged or edited build, which mean you did not release from a clean tagged checkout
-  - [ ] It is not a pseudo-version off an older major — past v1 the module path carries the `/vN` suffix
+  - [ ] It is the git tag, not the commit id or the per-boot id
+  - [ ] Not a pseudo-version off an older major — past v1 the module path carries `/vN`
 - **In front of the app:**
   - [ ] TLS terminates in front of the app
   - [ ] The app is reachable from nothing else
   - [ ] The proxy writes its own `X-Forwarded-For`
-- [ ] Deployed and rolled back at least once by following the operations repository's runbook, not by improvising
+- [ ] Deployed and rolled back at least once by the operations runbook
