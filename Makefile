@@ -28,7 +28,7 @@ REACHED = grep -ohE '`(patterns|stack|operations)/[a-z0-9.-]+\.md`|`STYLE\.md`' 
 REQUIRED = sed -n '/^\#\# Required reading/,/^\#\# Open when/p' "$$base" \
 	| sed -n 's/^[0-9][0-9]*\. \[[^]]*\](\.\.\/\([^)\#]*\)).*/\1/p'
 
-.PHONY: install uninstall tokens
+.PHONY: install structure tokens uninstall
 
 # Symlink, not copy: the repo stays the single source of truth and
 # `git pull` is the update mechanism. Neither target ever removes anything
@@ -45,6 +45,51 @@ install:
 
 uninstall:
 	if [ -L "$(SKILL_DIR)" ]; then rm "$(SKILL_DIR)"; fi
+
+# The two claims this repository makes about its own shape, checked instead of
+# proofread. STYLE.md justifies alphabetical file trees on the grounds that a
+# tree is mechanically checkable against the real directory, and *Which rules
+# can be waived* prints the one format a tier stamp may take — both were claims
+# nothing enforced, and a tree entry one line out of place or a stamp missing
+# four words is exactly what an eye slides over on the tenth read. Exits
+# non-zero, so a review run calls it as a gate.
+#
+# The tree walk is two levels deep, which is every tree this repository has.
+structure:
+	@fail=0; \
+	want=$$(mktemp); got=$$(mktemp); \
+	trap 'rm -f "$$want" "$$got"' EXIT; \
+	echo "== README.md tree vs the real directory =="; \
+	ls -1 | LC_ALL=C sort -f | while read -r e; do \
+		if [ -d "$$e" ]; then \
+			printf '1 %s/\n' "$$e"; \
+			ls -1 "$$e" | LC_ALL=C sort -f | sed 's/^/2 /'; \
+		else printf '1 %s\n' "$$e"; fi; \
+	done > "$$want"; \
+	awk 'f && /^```/ {exit} \
+	     f {d = (index($$0, "│") == 1) ? 2 : 1; \
+	        n = $$0; sub(/.*── /, "", n); split(n, a, " "); print d " " a[1]} \
+	     /^baseline\/$$/ {f = 1}' README.md > "$$got"; \
+	if cmp -s "$$want" "$$got"; then echo "  matches, and in order"; else \
+		echo "  MISMATCH — '<' is the directory, '>' is what README.md prints:"; \
+		diff "$$want" "$$got" | sed 's/^/    /'; fail=1; fi; \
+	echo; \
+	echo "== tier stamp, line 3 of every patterns/ and stack/ document =="; \
+	bad=0; \
+	for f in patterns/*.md stack/*.md; do \
+		l=$$(sed -n '3p' "$$f"); \
+		case "$$l" in \
+		'**Tier 1** (safety — never waived) · Last verified: '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]*) ;; \
+		'**Tier 2** (shape — waived only on the record) · Last verified: '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]*) ;; \
+		'**Tier 3** (taste — choosing is the rule, so no waiver is needed) · Last verified: '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]*) ;; \
+		*) printf "  BAD   %s\n        %s\n" "$$f" "$$l"; bad=$$((bad + 1));; \
+		esac; \
+	done; \
+	if [ $$bad -eq 0 ]; then \
+		printf "  all %d stamped in the one format\n" \
+			$$(ls -1 patterns/*.md stack/*.md | wc -l | tr -d ' '); \
+	else echo "  $$bad off format"; fail=1; fi; \
+	exit $$fail
 
 # What the corpus costs an agent to READ — never what it costs to store. The
 # repository total is vanity: VERIFICATION.md is a twelfth of it and sits on no

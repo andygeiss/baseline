@@ -48,7 +48,50 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Nothing owed.** The gate is open.
+**Owed: two shape defects, and the check that now catches them.** **No tag until a pass
+has run.** No rule was added, removed, or reworded, so the pass over the documents is
+short — but `make structure` is new code in a repository that has almost none, and that
+is where a pass should look.
+
+1. **Two defects an eye missed and a machine would not have.** [README.md](README.md)'s
+   tree printed `llm-prompting.md` between the two `htmx-` documents, breaking the
+   alphabetical order [STYLE.md](STYLE.md) requires — in the tree of the file that states
+   the rule. [patterns/pwa.md](patterns/pwa.md)'s tier-3 stamp had lost the four words
+   *so no waiver is needed* that the other two tier-3 documents carry. Both fixed.
+2. **`make structure` checks the two claims this repository makes about its own shape.**
+   The README tree against the real directory, two levels deep, and the tier stamp on
+   line 3 of all 34 [patterns/](patterns/) and [stack/](stack/) documents against the one
+   format *Which rules can be waived* prints. Verified against a copy of the v3.7.0 tree:
+   it catches both defects above, a new pattern nobody added to the tree, and a retired
+   one still printed in it — which is step 3 of *Retiring a pattern* enforced rather than
+   remembered. It exits non-zero like `make tokens`, and like `make tokens` it is an input
+   to the adversarial half rather than a fifth condition on the gate: **the gate keeps its
+   four conditions.**
+
+**The lesson is the one the router fusion already taught.** A claim of mechanical
+checkability that nothing mechanically checks is a claim that decays, and both defects
+were in the layer this corpus polices hardest — which is where a reviewer's eye has
+stopped seeing. Structure caught them; five adversarial passes over v3.6.0 and v3.7.0 did
+not.
+
+### Open finding: no document rules object-level authorization
+
+Not a change, and not owed to the run above — nothing here addresses it. Recorded here
+because this file is what an audit reads, and the baseline has no tracker.
+
+[patterns/go-auth-sessions.md](patterns/go-auth-sessions.md) answers *who is signed in*
+thoroughly: argon2id, renewal on login and password change, rate limiting, constant-time
+login, machine tokens hashed at rest. **Nothing anywhere answers *may this user act on
+this row*.** No document says a query for a user-owned resource filters by the session's
+user ID, or that an ID from the URL is untrusted input. A handler that renders
+`GET /games/{id}` for another user's game passes every box in every checklist today.
+
+By the tier-1 test — a rule is tier 1 when dropping it loses data, leaks it, or hands
+over an account — that gap is tier 1, and broken object-level access control is the most
+common real vulnerability in exactly the shape of application this corpus builds. Closing
+it needs its own pattern document, a checklist section that fires on every handler
+reading a user-owned row, and the reference implementation exercising it. Raised
+2026-08-17.
 
 ## Run log
 

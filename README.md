@@ -21,8 +21,9 @@ hardened application without inventing anything.
 - **Last verified:** 2026-08-17
 - **Format:** Markdown only, plus the MIT `LICENSE`. No code, no CI, no build
   steps. Documents are the product.
-  The one piece of tooling is the root `Makefile`, which installs the baseline into
-  Claude Code and measures its size against the budgets below — it builds nothing.
+  The one piece of tooling is the root `Makefile`: it installs the baseline into
+  Claude Code, measures its read paths against the budgets below (`make tokens`),
+  and checks its own shape (`make structure`) — it builds nothing.
 
 ## How to use this repository
 
@@ -249,6 +250,13 @@ paragraph that goes stale in one of them.
   and always after a major release of Go (Feb/Aug) or htmx. Past 90 days an agent stops
   treating the document as authoritative and says so — that warning is the reminder,
   and the only way to clear it is a real re-verification.
+- **Run `make structure` and `make tokens` on any change to the corpus.** The first
+  checks the two claims this repository makes about its own shape — the tree above
+  against the real directory, and the tier stamp on every [`patterns/`](patterns/) and
+  [`stack/`](stack/) document against the one format *Which rules can be waived* prints.
+  Both exit non-zero, so a review pass gates on them instead of proofreading them. A
+  claim of mechanical checkability that nothing checks is how a tree entry sits one line
+  out of place through ten readings.
 - **Before tagging, walk the gate in [VERIFICATION.md](VERIFICATION.md).** Two clean
   adversarial passes, the reference synced, `./verify.sh` green against the commit being
   tagged, and the run written into the log. A release that skips the reference is not a
@@ -399,7 +407,8 @@ dead end for an agent mid-task. Removing one is therefore a sweep, in this order
 3. **Delete the file, then sweep every consumer** — `git grep` its filename and
    fix each hit: this README's tree, the [`project-types/`](project-types/)
    trigger tables, the [`checklists/`](checklists/) boxes, cross-links in other
-   patterns, and the reference implementation with its `SPEC.md`.
+   patterns, and the reference implementation with its `SPEC.md`. `make structure`
+   catches the tree on its own, so the grep is for the other five.
 4. **Ship it as a breaking change.** The corpus loses a rule, so the commit
    carries `!` and the release is a major — the operations split was v3.0.0 for
    exactly this reason.
