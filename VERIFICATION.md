@@ -48,81 +48,150 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Owed: two shape defects, the check that now catches them, and the rule that was
-missing.** **No tag until a pass has run.** Two places want a pass's attention:
-`make structure` is new code in a repository that has almost none, and
-[patterns/go-authorization.md](patterns/go-authorization.md) is a new tier-1 document,
-which is the highest bar the corpus has.
-
-1. **Two defects an eye missed and a machine would not have.** [README.md](README.md)'s
-   tree printed `llm-prompting.md` between the two `htmx-` documents, breaking the
-   alphabetical order [STYLE.md](STYLE.md) requires — in the tree of the file that states
-   the rule. [patterns/pwa.md](patterns/pwa.md)'s tier-3 stamp had lost the four words
-   *so no waiver is needed* that the other two tier-3 documents carry. Both fixed.
-2. **`make structure` checks the two claims this repository makes about its own shape.**
-   The README tree against the real directory, two levels deep, and the tier stamp on
-   line 3 of all 34 [patterns/](patterns/) and [stack/](stack/) documents against the one
-   format *Which rules can be waived* prints. Verified against a copy of the v3.7.0 tree:
-   it catches both defects above, a new pattern nobody added to the tree, and a retired
-   one still printed in it — which is step 3 of *Retiring a pattern* enforced rather than
-   remembered. It exits non-zero like `make tokens`, and like `make tokens` it is an input
-   to the adversarial half rather than a fifth condition on the gate: **the gate keeps its
-   four conditions.**
-
-3. **A new tier-1 pattern rules object-level authorization**
-   ([patterns/go-authorization.md](patterns/go-authorization.md)).
-   [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md) answered *who is signed in*
-   thoroughly — argon2id, renewal, rate limiting, constant-time login, machine tokens
-   hashed at rest — and **nothing answered *may this actor touch this row*.** No document
-   said a query for an owned row filters by the session's user, or that the id in the path
-   is untrusted input, so a handler that rendered another user's row passed every box in
-   every checklist. Broken object-level access control is the most common real
-   vulnerability in the exact shape of application this corpus builds, and by the tier-1
-   test — dropping it leaks data — the missing rule was tier 1 the whole time.
-
-   The rules: the actor is a parameter of every store method that touches an owned row, so
-   the unsafe call does not compile; the predicate lives in the SQL, never in Go; the actor
-   comes from the session and never from the request; somebody else's row answers **404,
-   not 403**, because a 403 confirms existence and turns the id space into a directory;
-   lists, counts and aggregates carry the predicate too; a write proves ownership in its
-   own statement and checks `RowsAffected`; private routes are registered on a mux mounted
-   behind `requireLogin`; and the two-user test uses a *second signed-in user*, because an
-   anonymous request tests the login wall and passes while every ownership bug survives.
-   It is a trigger document rather than required reading — the rule shapes a
-   before-the-first-line decision only in a project that has owned rows at all, which is
-   also what keeps the floor budget intact.
-
-   **Traced before it shipped, to the standard *What a review run is* sets.** The two-mux
-   mount ran as seven cases on Go 1.26.6: the inner mux matches the full path, a wrong
-   method inside the mounted prefix gives 405, and a route registered inside it whose
-   prefix was never mounted 404s instead of serving unchecked — that fail-closed property
-   is the document's whole argument for spending a second mux. The store method is
-   `gofmt`-clean, builds, and passes `go vet`; the ownership predicate and the
-   `RowsAffected` write ran against real SQLite. Its checklist section put two budgets
-   over, waived on the record under *Waived budgets*.
-
-   **What it still owes: the empirical half.** The reference implements neither the pattern
-   nor its two-user test, so gate condition 2 is open and every rule here is unexercised
-   until it does. This is the one item that must not be waved through — a tier-1 document
-   nothing has run is a claim, not a rule.
-
-**The lesson is the one the router fusion already taught.** A claim of mechanical
-checkability that nothing mechanically checks is a claim that decays, and both defects
-were in the layer this corpus polices hardest — which is where a reviewer's eye has
-stopped seeing. Structure caught them; twelve adversarial passes over v3.6.0 and v3.7.0
-did not.
-
-**The second lesson is about absence, and it is new.** Those same twelve passes hunted
-contradictions between documents, traced snippets, and checked facts upstream — every one
-of them work on a document that exists. Nothing in that method asks *what does no document
-say*, which is why a tier-1 rule was missing for the corpus's whole life rather than
-wrong. **A pass now ends by naming the question the corpus cannot answer.** Absence is the
-defect class an adversarial reader handed a file is structurally worst at, and it is where
-the remaining tier-1 gaps will be.
+**Nothing owed.** v3.8.0 closed its gate: eleven adversarial passes with the last two clean,
+the reference synced and tagged in step, `./verify.sh` green over 61 gates, and the run
+recorded below. One budget waiver stands on the record under *Waived budgets*, and the trim
+pass that pays it back is the next change to land here.
 
 ## Run log
 
 Newest first.
+
+### 2026-08-17 — the rule that was missing (v3.8.0)
+
+The release that closed a tier-1 hole the corpus had carried its whole life.
+[go-auth-sessions.md](patterns/go-auth-sessions.md) answered *who is signed in* in detail;
+**nothing answered *may this actor touch this row*.** A handler rendering somebody else's
+row passed every box in every checklist, and broken object-level access control is the most
+common real vulnerability in the exact shape of application this corpus builds.
+
+**Twenty defects over eleven passes**, the last two clean. Two came from the empirical half
+and refuted rules this file had already accepted, which is the whole reason the reference is
+a gate condition and not a nice-to-have. Two more were the shape defects that started the
+release, and the check written for them now catches their whole class.
+
+**How the gap was found is the part worth keeping.** Not by a pass over a document — by
+asking what no document said. Twelve passes across v3.6.0 and v3.7.0 hunted contradictions,
+traced snippets, and checked facts upstream, all of it work on files that exist. **A pass
+now ends by naming the question the corpus cannot answer**, because absence is the defect
+class a reader handed a file is structurally worst at.
+
+**The release opened with two shape defects, and they are why `make structure` exists.**
+[README.md](README.md)'s tree printed `llm-prompting.md` between the two `htmx-` documents,
+breaking the alphabetical order [STYLE.md](STYLE.md) requires — in the tree of the file that
+states the rule — and [patterns/pwa.md](patterns/pwa.md)'s tier-3 stamp had lost the four
+words *so no waiver is needed* the other two tier-3 documents carry. **A claim of mechanical
+checkability that nothing mechanically checks is a claim that decays.** Both sat in the layer
+this corpus polices hardest, which is where a reviewer's eye has stopped seeing: twelve
+passes over v3.6.0 and v3.7.0 read past both. `make structure` now walks the README tree
+against the real directory and line 3 of all 35 [patterns/](patterns/) and [stack/](stack/)
+documents against the one stamp format. It exits non-zero like `make tokens`, and like
+`make tokens` it is an input to the adversarial half rather than a fifth condition —
+**the gate keeps its four conditions.**
+
+**What the empirical half refuted.** Both rules read well and did not survive a real
+application:
+
+1. **The private-by-default rule mandated a mechanism instead of an invariant.** It said
+   "registered on a mux mounted behind `requireLogin`", which fits one class of private
+   route under one prefix. The reference has three classes on paths that do not nest, and
+   the mount silently loses the collection path: with only `/rooms/` registered,
+   `GET /rooms` becomes a redirect to `/rooms/`, which the inner mux — holding
+   `GET /rooms` — then 404s. Verified on Go 1.26.6 rather than argued. The rule now states
+   the invariant — **a route's protection MUST NOT be optional where it is registered** —
+   and gives both shapes: the mount for one class under one prefix, and a route table whose
+   access class is a required positional field for anything else. The trap is written down
+   where a reader meets it before the runtime does.
+2. **"404 for somebody else's row" could not be met by a mutation that redirects.** Token
+   revocation in the reference already did the right thing: its own 303 and "that token is
+   already gone", which is the same sentence whether the row belonged to somebody else or
+   was revoked in another tab. The rule is now that **the two answers match** and the status
+   code follows the route. Never 403 stands, and it is why: a 403 confirms the row exists.
+
+**What the adversarial half found.** Thirteen in this repository's documents over seven
+passes, then three more in the reference's own files over the two after that. The pattern is
+that the first pass over a new document catches it contradicting itself, and the later ones
+catch it contradicting everything else:
+
+- **A tier-1 document taught the wrong shape in required reading.**
+  [go-http-server.md](patterns/go-http-server.md) said `requireAuth` goes "on protected
+  route groups only" and showed a `Routes()` with no guard anywhere. It is one of the seven
+  required-reading documents; the new tier-1 rule is a trigger document read later. The
+  document paid first taught the shape the document paid later forbids. Found in pass 7,
+  and the latest-found defect of the run by six passes.
+- **The document's own tier line contradicted two rules the run had just rewritten**, and
+  rule 6 still said "the same 404" after rule 4 stopped saying 404. Both in pass 1: a
+  rewrite leaves its own summary behind.
+- **The mount snippet used `pub` without declaring it** — a variable lost in the rewrite.
+- **The testing section told a reader to assert 404 on write routes.** A write that
+  redirects cannot. It now says to assert the route's own answer *and* that the row did not
+  move, because a refused write and a successful one can share a status code.
+- **[README.md](README.md)'s tier-1 enumeration omitted the new document.** That section
+  says in its own words that a rule meeting the test and missing from the list is still
+  tier 1 and the list is the defect. It was.
+- **The checklist section claimed to be wholly tier 1 while holding a tier-2 box** —
+  naming the shared rows is shape, not safety. Moved to the preamble's partly-tier-1 list.
+  This is the v3.7.0 defect class, one release later, in a section written by the person
+  who had just read the v3.7.0 entry.
+- **The `❌ ownership in a middleware` bullet restated a rule the document had already
+  made.** Deleted, per *Write to the reader's competence*.
+- **A version-dependent status code stated flatly.** The trailing-slash redirect is 307 on
+  Go 1.26; the document now says so rather than implying it is eternal.
+- **The waiver's own numbers went stale twice inside the run that wrote them** — first
+  after the fix passes, then again after the fix for that. Waiver numbers are now measured
+  last. The recurrence is recorded because it is the run's clearest lesson about ordering.
+- **Three smaller ones**: the sibling document not pointing forward
+  ([go-auth-sessions.md](patterns/go-auth-sessions.md) now does), a checklist box holding
+  two checks against *One box, one check*, and the corrected rule 4 leaving a stale summary
+  line in the checklist's own section header.
+- **Then the pin itself, in pass 8.** The reference's `SPEC.md` named the commit where the
+  two refuted rules were fixed — and seven passes of fixes came after it. **A reference
+  pinned to a superseded commit claims a green gate against documents nobody shipped**, and
+  it would have satisfied conditions 2 and 3 while doing it. Found by re-reading the pin
+  against this repository's log instead of trusting a hash written an hour earlier. The pin
+  is the one field in this whole protocol that cannot be checked by reading the file it
+  sits in.
+- **Two in the reference's own prose, in pass 9**: the same flat 307 the baseline had just
+  corrected, and an ambiguous "that repository". A run that fixes a class of defect in one
+  repository should grep the other for it, and this one had not.
+
+**The floor was the run's real constraint, and it did not bend.** Wiring the new rule into
+required reading cost the floor budget 85 tokens against 52 of headroom — 33 over. Rather
+than waive the number [README.md](README.md) calls the one that actually hurts, the pointer
+was tightened and a duplicate paid for the rest: `go-http-server.md` had restated the
+`SameSite=Lax` second-layer fact that
+[security-headers.md](patterns/security-headers.md) owns and cross-references, and both
+documents are required reading, so the copy was duplication inside one read path. Floor
+closes at **19,498 of 19,500**. Two tokens. **The floor is now full**, and the next tier-1
+document that has to be reachable before the first line of code is a trade, not an
+addition — that is the finding this release leaves for the next one.
+
+**The empirical half.** Reference synced and tagged **v3.8.0** (`ba60701`), `SPEC.md`
+pinning **`5538323`**, `./verify.sh` **exit 0 over 61 gates** — 60 before this release. The
+pin names the commit that carries the final documents; the tag here sits one commit later on
+this file, which adds no rule — the same shape as v3.7.0, and the reason condition 2 is
+satisfied by a pin that is not the tagged commit.
+What changed there: `internal/app/routes.go` moved from wrapping each handler to one route
+table whose access class is a required positional field, with `guard` panicking at boot on
+a class it does not know; `internal/app/routes_test.go` walks that table so a route added
+without a guard fails there instead of serving, and pins the public surface at six routes;
+`README.md` gained *Who owns what*, naming `tokens` and `users` as owned and `rooms` and
+`messages` as shared on purpose.
+
+**Every new check was verified by breaking the thing it checks**, not by watching it pass:
+
+- `make structure` was run against a copy of the v3.7.0 tree and caught both mechanical
+  defects, a new pattern missing from the README tree, and a retired one still printed in it.
+- The route-table test was run with `GET /profile` marked `public` and named it.
+- The new `verify.sh` gate was run with the `user_id` dropped from the token `DELETE`. The
+  store test caught it first, so the gate never ran — muting that test proved the gate
+  fails on its own, naming the missing clause.
+
+**What the reference already did right is where the document came from.** `Tokens.Delete`
+has taken the actor as a parameter and carried `user_id` in the `WHERE` clause since machine
+tokens existed, `ByUser` scopes the list, and a cross-user revocation test existed at both
+layers. The pattern is mostly that code, written down and made general — which is the
+direction this corpus is supposed to run in.
 
 ### 2026-08-17 — the router folded into the checklist (v3.7.0)
 
@@ -313,77 +382,6 @@ run: `verify.sh` is byte-identical to this tag and has 60 `step` call sites), me
 checks through both
 booted binaries and the full smoke suite, run against the exact commit being tagged.
 
-### 2026-08-17 — a pattern nothing pointed at (v3.5.1)
-
-The release that wired up a document the protocol could not reach.
-[patterns/local-https.md](patterns/local-https.md) shipped inside v3.5.0 with no
-trigger row, no checklist box, and no line in this file — 204 lines of rules an agent
-following [README.md](README.md) top-down would meet only if it happened to be
-building a PWA. **Seven defects over five adversarial passes**, the last two clean.
-Six of the seven were in the fix rather than in the corpus, which is what a small
-change reviewed properly looks like.
-
-**No rule changed.** Every box carries a rule
-[patterns/local-https.md](patterns/local-https.md) already stated; the document was
-re-read clause by clause against the boxes to prove it. That is also why this is a
-patch and not a minor: the corpus gained navigation and enforcement, not rules.
-
-**What the fix added.** A trigger row in
-[project-types/web-application.md](project-types/web-application.md), placed after the
-install row. Six boxes in [checklists/web-application.md](checklists/web-application.md)
-— one unconditional in *Stack compliance*, five in a conditional block in *Code
-quality* beside the `.env` block it matches in kind. Web only: a CLI or a library has
-no browser, and the document says so itself.
-
-**What the passes found.**
-
-1. **The TLS rule was conditional, and the rule is not.** *The binary MUST NOT serve
-   TLS* was first written inside the opt-in block, so a project that never adopted
-   local HTTPS was never asked whether it had grown a `-tls-cert` flag — the one
-   anti-pattern the document exists to prevent. Moved out to *Stack compliance*, where
-   it is asked of every web application.
-2. **A box that could not be answered.** "That local authority signs nothing a user
-   touches" states a rule but is not a check. Rewritten to name what a walker looks
-   at: nothing a user visits is served with a certificate it signed.
-3. **A box that named a file the walker cannot see.** "an edited copy of the operations
-   repository's template" now names the path, `baseline-ops/templates/Caddyfile`, so
-   the check is a diff rather than a memory.
-4. **The trigger row's list was short.** It named camera, microphone, geolocation,
-   passkeys and install, and the document's table also carries notifications. Added.
-5. **The reference's own waiver read as violated.** *Never deployed* said the
-   deployment end is absent — "no image, no compose file, **no Caddy**" — and this
-   change adds a Caddyfile. The waiver now says *no deployment Caddyfile* and states
-   why the local one does not narrow it. A waiver that looks broken is a waiver nobody
-   trusts.
-6. **A verify.sh gate that would fail correct code.** The TLS gate grepped for
-   `crypto/tls`, which every outbound client that pins its own roots would trip. The
-   rule bans *serving* TLS, not using it, so the gate now looks for the serving calls.
-   A gate that cries wolf is deleted by the next person who meets it.
-7. **A comment that claimed a run CI does not do.** The skip branch said "CI installs
-   Go and nothing else"; CI runs the seven `make check` gates directly and never runs
-   `verify.sh` at all.
-
-**The empirical half went further than the gate asks.** Go Chat is installable and has
-no other secure-context feature, so the trigger fires for it and the reference adopts
-the pattern rather than recording it unexercised: `Caddyfile.lan` character-identical
-to the document's snippet, a `lan` target, the opt-in in its README, and six new
-`verify.sh` gates (54 → 60). Five of the six boxes are now machine-checked.
-
-**Then it was run, not read.** Caddy 2.11.4 in front of the real binary, on this
-machine, today: `ssl_verify_result=0` against the local root, the app answering
-through the proxy (`<title>Sign in · Go Chat`), and the proxied and direct response
-bodies **byte-identical** — the sharpest evidence that the binary is not made to know
-a proxy is there. `:80` stayed unbound, so `auto_https disable_redirects` does what
-the document says. Both of the document's numeric claims reproduced a day after it
-was written: the served certificate is valid **12 hours**, the root **10 years**. The
-run used port 8444 rather than 8443, because a Caddy started on 2026-08-16 still held
-8443; the config was generated from the committed file by `sed` and the diff printed,
-so the only difference was the port.
-
-**Empirical half: closed, before the tag.** Reference synced and tagged v3.5.1, its
-`SPEC.md` pinning this release's commit. `./verify.sh` exits 0 — 60 gates, including
-the six new ones.
-
 ### Earlier runs
 
 Compressed to what a future reader still needs: the counts, and the findings that would
@@ -392,6 +390,21 @@ otherwise be re-litigated. The full narratives are in this file's git history.
 **The three newest runs stay in full; everything older lives here.** A run log that only
 grows costs more to re-read than it saves, and the compression is what keeps a narrative
 from being re-litigated a year after it was settled.
+
+- **2026-08-17 — a pattern nothing pointed at (v3.5.1).** 7 defects over 5 passes, the last
+  two clean; six of the seven were in the fix rather than in the corpus, which is what a
+  small change reviewed properly looks like. [patterns/local-https.md](patterns/local-https.md)
+  had shipped inside v3.5.0 with no trigger row, no checklist box, and no line here — rules
+  an agent would meet only by accident. **No rule changed**, which is why it was a patch: the
+  corpus gained navigation and enforcement. Three findings survive. **A document nothing
+  points at is unreachable, not optional** — the defect class the v3.7.0 router fusion later
+  made unrepresentable. **The trust rule got its own box** because "the binary never serves
+  TLS" and "a developer needs HTTPS on a phone" are only compatible through a proxy the
+  binary cannot know about: proxied and direct response bodies were **byte-identical** under
+  Caddy 2.11.4 against the real binary, which is the sharpest evidence of that. **Both numeric
+  claims reproduced** a day after they were written — the served certificate valid 12 hours,
+  the root 10 years. Empirical half closed before the tag: reference synced and tagged
+  v3.5.1, `./verify.sh` exit 0 over 60 gates including the six new ones.
 
 - **2026-08-17 — the LLM adapter, the timeout ladder, one box one check (v3.5.0).** 17
   defects over 12 passes; 3 of them introduced by the fixes and caught by the pass after,
@@ -518,15 +531,24 @@ would turn a waiver into a new normal without anyone deciding to.
 
 - **The 4,300-token checklist budget and the 7,000-token change path**
   ([README.md](README.md) *Size budgets*) — waived 2026-08-17 by Andy.
-  `checklists/web-application.md` sits at 4,420 and the change path at 7,197, both because
-  *Reading or writing a row somebody owns* added eight tier-1 boxes. **When two rules
-  collide the lower tier wins**, and a tier-1 hole beats a tier-2 budget.
-  **Contained:** 120 tokens and 197 tokens, on one checklist of one project type. The floor
-  holds at 19,399 of 19,500, and no other project type moved.
-  **Paid back by:** a trim pass over the six wordiest boxes in that checklist, moving their
-  explanatory tails into the documents that own the facts — about 204 tokens, which covers
-  both overages. Held for its own change because a prose sweep folded into a safety
-  addition is how the v3.7.0 run introduced two of its seven defects.
+  `checklists/web-application.md` sits at **4,493** and the change path at **7,270**, both
+  because *Reading or writing a row somebody owns* added ten boxes, nine of them tier 1.
+  **When two rules collide the lower tier wins**, and a tier-1 hole beats a tier-2 budget.
+  **Contained:** 193 tokens and 270 tokens, on one checklist of one project type. **The
+  floor was not waived** — it holds at 19,498 of 19,500, and paying for that is written up
+  in the run below. No other project type moved.
+  **Paid back by:** a trim pass over the wordiest boxes in that checklist, moving their
+  explanatory tails into the documents that own the facts. The seven longest hold about 275
+  tokens between them, and 270 have to come out of this checklist specifically — it is the
+  file both blown budgets share, so the trim has to land there rather than anywhere cheaper.
+  Held for its own change because a prose sweep folded into a safety addition is how the
+  v3.7.0 run introduced two of its seven defects.
+
+  These numbers were measured after the last fix of the run, not carried over from the
+  first draft. That draft said 4,420 and 197, and two fix passes later both were wrong —
+  the same entry then went stale a second time, mid-run, which is how the recurrence below
+  got recorded. **A waiver's numbers are measured last, or they describe a repository that
+  no longer exists.**
 
 ## Where the numbers come from
 
