@@ -175,8 +175,6 @@ owns that policy; anyone tightening it starts here.
   in a diff.
 - ❌ `<img src="/static/icons/check.svg">` — one request per icon, and an
   `<img>` cannot be tinted by the text color around it.
-- ❌ A separate `--color-icon` token or a color on `.icon` — it forks the
-  measured contrast away from the text role (rule 3).
 - ❌ An icon-size ladder (`.icon-sm`, `.icon-lg`) — `em` already tracks the
   type; the ladder just restates the font size in a second vocabulary.
 - ❌ A spinner icon for loading — waiting is the indicator fade in

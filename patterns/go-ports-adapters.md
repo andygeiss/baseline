@@ -209,8 +209,6 @@ that document before the first request.
 
 ## Anti-patterns
 
-- ❌ Asserting call counts or call order instead of the outcome. `RemindDue` is right when
-  two reminders reached the right two addresses, not when `Notify` "was called twice".
 - ❌ A `ports/`, `interfaces/`, or `contracts/` package. It puts the interface next to the
   producer, which is rule 1 upside down, and every consumer then depends on every port.
 - ❌ An interface per struct, so that everything is mockable. Ports exist for dependencies

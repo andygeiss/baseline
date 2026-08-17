@@ -1,29 +1,33 @@
-# Checklist: Library — Definition of Done
+# Library — Triggers and Definition of Done
 
 **Last verified: 2026-08-15**
 
-Walk this before declaring any milestone complete. Every unchecked box is either
-fixed or waived on the record — the waiver format lives in [README.md](../README.md)
-under *Which rules can be waived*. The compatibility promises are not waivable: after
-v1.0.0 they are a promise to every consumer, not a preference.
+One topic per section: **the moment it fires, the document that rules it, and what done
+looks like.** Read a section before you write the thing it covers; walk its boxes before
+you call the work complete. Both halves live here because a trigger that routes you to a
+document the checklist never checks is how a rule goes missing — and a section with no
+box is the honest answer where the document rules something no milestone can verify.
 
-This checklist stands on its own. Every box — or the bold bullet it sits under — names
-the document behind it, so you can walk it without holding the whole corpus in your
-head.
+Paths are from the repository root.
 
-**One box, one check.** A box that needs two answers is two boxes: a box holding six
-conditions gets ticked while three of them fail. Where several checks share a scope,
-the scope is a bold bullet and the checks sit under it. Keep it that way when you add
-here.
+Every unchecked box is either fixed or waived on the record — the waiver format lives in
+`README.md` under *Which rules can be waived*. The compatibility promises are not
+waivable: after v1.0.0 they are a promise to every consumer, not a preference.
 
-## Justification
+## Every library
+
+No trigger: these fire for every library. Layout, doc comments, and release mechanics are
+ruled by `patterns/go-library.md`; the port rules by `patterns/go-ports-adapters.md`. Both
+are required reading.
+
+### Justification
 
 - [ ] A second project actually imports (or is about to import) this — extracted, not invented
 - [ ] `LICENSE` file present
 
-## Stack compliance
+### Stack compliance
 
-- [ ] `go.mod` says `go 1.26`, matching [VERSIONS.md](../VERSIONS.md)
+- [ ] `go.mod` says `go 1.26`, matching `VERSIONS.md`
 - [ ] Zero third-party dependencies, or each one justified in the README
 - [ ] No `main` package
 - [ ] No embedded assets
@@ -31,20 +35,18 @@ here.
 - [ ] Implementation detail is inaccessible to consumers: unexported in a single-package library, under `internal/` when multi-package
 - [ ] The exported surface is the minimum needed
 
-## API contract
+### API contract
 
 - [ ] Accept interfaces, return structs
 - [ ] `context.Context` is the first parameter on anything that blocks
 - [ ] Zero values usable, or a single `New(...)` with a config struct
 - [ ] No functional options without justification
 - [ ] No panics across the API boundary except documented programmer error
-- [ ] Branchable failures exported as sentinel errors
 - [ ] No `init()` side effects
 - [ ] No package-level mutable state
 - [ ] No unowned goroutines — lifecycles have `ctx` or `Close`
-- [ ] If it speaks HTTP: the client is a parameter, not built inside — the consumer owns timeouts and retries ([patterns/go-http-client.md](../patterns/go-http-client.md))
 
-## Compatibility
+### Compatibility
 
 - [ ] v0 until proven by ≥2 consumers
 - [ ] v1.0.0 tagged deliberately
@@ -52,30 +54,62 @@ here.
 - [ ] No `replace` directives on main
 - [ ] The module path would be `/v2` for any post-v1 break — and that was fought hard
 
-## Documentation
+### Documentation
 
 - [ ] Package doc comment shows the primary entry point; reads well on pkg.go.dev
 - [ ] Every exported symbol documented
 - [ ] Runnable `Example` functions for the main entry points (they compile in CI)
-- **README**:
+- **README:**
   - [ ] Install line
   - [ ] 30-second example
   - [ ] Link to this baseline
-  - [ ] Any waived rule recorded in the format [README.md](../README.md) *Which rules can be waived* defines
-- **Prose passes [STYLE.md](../STYLE.md)**:
-  - [ ] Doc comments follow godoc
-  - [ ] Other comments say *why*, not what
-  - [ ] The README leads with the point
-  - [ ] Commits are semantic (`type(scope): subject`)
-  - [ ] Any LLM prompts follow [patterns/go-llm-adapter.md](../patterns/go-llm-adapter.md) *Writing the prompt*
+  - [ ] Any waived rule recorded in the format `README.md` *Which rules can be waived* defines
 
-## Tests
+## Returning an error across the API boundary
 
-- [ ] CI workflow from [operations/ci.md](../operations/ci.md) in place and green
-- [ ] `Makefile` from [stack/makefile.md](../stack/makefile.md) at the repo root, with its rule-5 library adjustments
-- [ ] `make check` is green
-- [ ] `make check` is gate-for-gate identical to ci.yml
+`patterns/go-errors-logging.md` — wrapping and sentinel errors. The logging half does not
+apply: libraries return, consumers log.
+
+- [ ] Branchable failures exported as sentinel errors
+
+## Writing a comment, a doc comment, a README, or a commit message
+
+`STYLE.md` — point first, short sentences, plain words: the bar for everything a human
+reads.
+
+- [ ] Doc comments follow godoc
+- [ ] Other comments say *why*, not what
+- [ ] The README leads with the point
+- [ ] Commits are semantic (`type(scope): subject`)
+- [ ] Any LLM prompts follow `patterns/llm-prompting.md`
+
+## Writing a test
+
+`patterns/go-testing.md` — plus the external-test-package and fuzz rules in
+`project-types/library.md`.
+
 - [ ] `go test -race -shuffle=on ./...` passes
 - [ ] Exported API tested from `package foo_test` (consumer's view)
 - [ ] Edge cases and error paths covered exhaustively
 - [ ] Fuzz test + seed corpus for any parser of untrusted input
+
+## Setting up the repo's commands or CI
+
+`stack/makefile.md`, then `operations/ci.md` — used verbatim; `make check` is CI locally.
+
+- [ ] CI workflow in place and green
+- [ ] `Makefile` at the repo root, with its rule-5 library adjustments
+- [ ] `make check` is green
+- [ ] `make check` is gate-for-gate identical to ci.yml
+
+## Accepting an HTTP client from a consumer
+
+`patterns/go-http-client.md` — what the consumer owns, and why the library never builds
+one.
+
+- [ ] If it speaks HTTP: the client is a parameter, not built inside — the consumer owns timeouts and retries
+
+## Fixing something measurably slow
+
+`patterns/go-performance.md` — and not before. No box: the rule is *don't*, and a rule
+nobody can be in the middle of violating has nothing to check at the end.

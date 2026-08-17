@@ -13,7 +13,7 @@ precision and explain the hard part in plain words next to it. This baseline's o
 holds the same bar; its structure follows its own protocol, not the Documents rules below.
 
 Prompts for LLMs hold this bar too, and their extra rules live with the pattern that owns
-prompts: [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md) *Writing the prompt*.
+prompts: [patterns/llm-prompting.md](patterns/llm-prompting.md).
 
 ## The test
 

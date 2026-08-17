@@ -237,12 +237,9 @@ it participates in. The glass grounds are four, not two.
 - ❌ A theme toggle, style toggle, or per-page style — one project, one style,
   one theme ([css-tokens.md](css-tokens.md) rule 4).
 - ❌ A neumorphic control whose only boundary is its shadows — an unlabeled
-  one fails WCAG 1.4.11, and a labeled one hides its hit area; keep the
-  border.
-- ❌ Glass over scrolling content or images — the backdrop becomes
-  unmeasurable; glass sits on the page ground only.
-- ❌ Glass alpha below the measured 80% floor — the composite floors break.
-  "Frostier" comes from the blur radius, not from thinner paint.
+  one fails WCAG 1.4.11, and a labeled one hides its hit area.
+- ❌ Thinning the glass to make it "frostier" — that comes from the blur
+  radius, not from paint below the measured floor.
 - ❌ Shadow ladders (`--shadow-sm` … `--shadow-xl`) — minimal has no shadows,
   glass has one decorative edge, neumorphic has exactly two shadow roles.
   An elevation scale is a framework habit, not a role.

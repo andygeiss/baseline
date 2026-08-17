@@ -288,12 +288,10 @@ container a fixed height; use `min-height` when a floor is needed.
 
 ## Anti-patterns
 
-- ❌ Desktop-first `max-width` ladders — the base layout must be the phone layout.
 - ❌ Device breakpoints ("tablet", "iPhone") — break where the content breaks.
 - ❌ `display: none` per viewport to hide content or features.
 - ❌ Fixed pixel widths or heights on containers.
 - ❌ A global 12-column system (`.col-md-6`) — a framework habit; each layout declares the
   few tracks it actually has.
-- ❌ An icon-only bottom bar, or a taller icon buying a bigger tap target.
 - ❌ Absolute positioning for layout — it is for overlay decorations anchored to a
   `position: relative` parent, and for `.visually-hidden`, never page layout.

@@ -70,8 +70,8 @@ queries honor cancellation — the context rule in [go-sqlite.md](go-sqlite.md).
 scs performs no expiry check of its own, so a store that returns expired rows keeps
 those sessions alive and every request refreshes their idle deadline, silently
 disabling `IdleTimeout`. The janitor only reclaims disk; `Find` enforces expiry. A ticker goroutine deletes
-expired rows every few minutes (owned lifecycle: stopped on shutdown — see the
-background-work pattern in [go-http-server.md](go-http-server.md)).
+expired rows every few minutes (owned lifecycle: stopped on shutdown — see
+[go-background-work.md](go-background-work.md)).
 
 ## Login / logout flow
 

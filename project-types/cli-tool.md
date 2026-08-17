@@ -24,39 +24,25 @@ Versions: see [VERSIONS.md](../VERSIONS.md).
 
 ## Required reading (in order)
 
-These three apply to every CLI, so read them before the first line of code. The order
+These two apply to every CLI, so read them before the first line of code. The order
 is dependency order.
 
 1. [stack/go.md](../stack/go.md) — language conventions and toolchain
 2. [patterns/go-cli.md](../patterns/go-cli.md) — the `run()` pattern, flags, streams, exit codes, version
-3. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 **A document is required only when it changes a decision you make before the first
-line of code.** Anything you can read at the moment you write the thing is a row in
-the table below — that is the difference, and it is what keeps this list short.
+line of code.** Anything you can read at the moment you write the thing is a trigger
+section in the checklist — that is the difference, and it is what keeps this list short.
 
 ## Open when you reach the thing it covers
 
-A lookup table, not a reading assignment. Each row names the moment the document becomes
-relevant — open it before you write the thing, not after.
+The triggers are in [checklists/cli-tool.md](../checklists/cli-tool.md), one section
+each: the moment it fires, the document, and the boxes it will be checked against. Read
+it now to learn which moments fire which document, then open each document when you reach
+the thing it covers.
 
-| When you are about to… | Read |
-|---|---|
-| Name a concept this tool owns — a domain type, a subcommand, a flag | [patterns/glossary.md](../patterns/glossary.md) — the optional root `GLOSSARY.md`: one word per concept, the runners-up under *Avoid* |
-| Read a flag, an environment variable, or a secret | [patterns/go-config.md](../patterns/go-config.md) — flags over env over defaults, validated before any work starts; §A CLI holds its secret differently |
-| Return an error, or log anything | [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — wrapping, sentinels, and slog |
-| Write a test | [patterns/go-testing.md](../patterns/go-testing.md) — what to test, and what never to fake |
-| Depend on someone else's system | [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port and its fake: build and test the tool before the API is integrated |
-| Call an external API over HTTP | [patterns/go-http-client.md](../patterns/go-http-client.md) — timeouts, retries, body limits |
-| Add an AI capability — a model that answers, summarises, extracts, or classifies | [patterns/go-llm-adapter.md](../patterns/go-llm-adapter.md) — the port, the prompt in `domain`, refusals as sentinels. A tool holds its key differently: [patterns/go-config.md](../patterns/go-config.md) §A CLI holds its secret differently |
-| Store anything between runs | [patterns/go-sqlite.md](../patterns/go-sqlite.md) — pragmas, pools, migrations (prefer staying stateless) |
-| Set up the repo's commands or CI | [stack/makefile.md](../stack/makefile.md), then [operations/ci.md](../operations/ci.md) — `make check` is CI locally |
-| Tag and publish a release | [operations/cli-release.md](../operations/cli-release.md) — cross-compiling, checksums, `go install` |
-| Fix something measurably slow | [patterns/go-performance.md](../patterns/go-performance.md) — and not before |
-
-If you are ever unsure whether a row applies, walk
-[checklists/cli-tool.md](../checklists/cli-tool.md) — every box names the document
-behind it, or sits under a bullet that does.
+Working on a tool that already follows this document? That file is the only one you need
+— everything above it is a decision already made.
 
 ## Architecture defaults
 
@@ -90,8 +76,7 @@ behind it, or sits under a bullet that does.
 
 ## Definition of done
 
-Walk [checklists/cli-tool.md](../checklists/cli-tool.md) before calling any
-milestone complete.
+Walk the boxes of that same file before calling any milestone complete.
 
 ## Reference implementation
 

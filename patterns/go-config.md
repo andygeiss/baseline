@@ -90,24 +90,12 @@ func parseConfig(args []string, stderr io.Writer) (Config, error) {
 stdlib call — no helper to write, and empty counts as unset (`PORT= ./server` is a
 mistake, not a request for `""`).
 
-`main` maps the three outcomes to [go-cli.md](go-cli.md)'s exit codes, with one
-deliberate difference:
+`main` switches on the error from `parseConfig` and maps three outcomes to
+[go-cli.md](go-cli.md)'s exit codes: `flag.ErrHelp` returns with exit 0 (usage already
+printed), `errUsage` exits 2 printing nothing (the `FlagSet` already said what was wrong),
+and anything else prints `server: <err>` once and exits 2.
 
-```go
-cfg, err := parseConfig(os.Args[1:], os.Stderr)
-switch {
-case err == nil:
-case errors.Is(err, flag.ErrHelp):
-	return // -h: usage already printed, exit 0
-case errors.Is(err, errUsage):
-	os.Exit(2) // the FlagSet already said what was wrong
-default:
-	fmt.Fprintf(os.Stderr, "server: %v\n", err) // a validation failure, said once
-	os.Exit(2) // 2, not go-cli.md's 1 — see below
-}
-```
-
-**The `default` branch exits 2 here, where [go-cli.md](go-cli.md)'s exits 1.** That is
+**That last branch exits 2 here, where [go-cli.md](go-cli.md)'s exits 1.** That is
 not drift: this switch only ever sees errors from `parseConfig`, and every one of them
 means the operator configured the binary wrong, which is the definition of exit 2.
 `go-cli.md`'s `default` covers the work itself failing after the arguments parsed fine.
@@ -178,22 +166,11 @@ whatever inspects the running service. A file is neither. The deployment puts on
 per secret in a directory and names that directory in `$CREDENTIALS_DIRECTORY` — the
 contract is in [operations/web-application.md](../operations/web-application.md).
 
-```go
-// readCredential returns the credential file of that name, or "" when the
-// deployment passes none — which is the normal case in dev. The caller decides
-// whether an empty secret is fatal; that depends on the feature, not on config.
-func readCredential(name string) (string, error) {
-	dir := os.Getenv("CREDENTIALS_DIRECTORY")
-	if dir == "" {
-		return "", nil
-	}
-	b, err := os.ReadFile(filepath.Join(dir, name))
-	if err != nil {
-		return "", fmt.Errorf("credential %q: %w", name, err)
-	}
-	return strings.TrimSpace(string(b)), nil // the file usually ends in a newline
-}
-```
+`readCredential(name)` is the whole mechanism: an unset `$CREDENTIALS_DIRECTORY` returns
+`"", nil` — the normal case in dev, and **the caller decides whether an empty secret is
+fatal**, because that depends on the feature rather than on config. Otherwise it reads the
+named file in that directory and `strings.TrimSpace`s the result, since the file usually
+ends in a newline.
 
 `$CREDENTIALS_DIRECTORY` is set by the deployment, points somewhere only the service user
 can read, and is unset in a plain `go run`. It is the one environment variable the config
@@ -238,24 +215,8 @@ deployment does.
 ## Testing
 
 `parseConfig` takes its arguments and writes to an injected `stderr`, so it tests without
-a process:
-
-```go
-func TestParseConfig(t *testing.T) {
-	t.Setenv("PORT", "9000") // t.Setenv restores it and forbids t.Parallel
-
-	got, err := parseConfig([]string{"-host", "0.0.0.0"}, io.Discard)
-	if err != nil {
-		t.Fatalf("parseConfig: %v", err)
-	}
-	if got.Host != "0.0.0.0" {
-		t.Errorf("Host = %q, want 0.0.0.0", got.Host)
-	}
-	if got.Port != "9000" {
-		t.Errorf("Port = %q, want 9000 (from the environment)", got.Port)
-	}
-}
-```
+a process: call it with an `args` slice and `io.Discard`, and set the environment half
+with `t.Setenv` — which restores the variable afterwards and forbids `t.Parallel`.
 
 Table-test what can actually break: **precedence** (a flag overrides its environment
 variable), each **validation failure**, **each half of a paired setting** from rule 7,
@@ -273,8 +234,6 @@ leave out of `LogValue`.
   file adds a format, a path, a reload question, and a second place for the answer to
   live. When a project genuinely needs one, it is one flag pointing at one file — and the
   flag still wins over the file.
-- ❌ `os.Getenv` scattered through `internal/`. The value's origin becomes untraceable,
-  tests need the real environment, and nothing can list what the binary reads.
 - ❌ A package-level `var cfg Config`. Global mutable state, initialized by `init()` in
   the worst version, untestable in every version.
 - ❌ `log.Fatal` inside the parser. It skips deferred cleanup and cannot be tested;

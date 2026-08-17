@@ -43,11 +43,16 @@ not need the build-from-scratch protocol. If the repository has the `Makefile` f
 [stack/makefile.md](stack/makefile.md) and the layout from
 [patterns/go-project-layout.md](patterns/go-project-layout.md), it is one:
 
-1. Open the *Open when you reach the thing it covers* table in the matching
-   [project-types/](project-types/) document, and read only the rows your change fires.
-   For anything no row covers, match the surrounding code.
+1. Open the matching [checklists/](checklists/) document — `web-application.md`,
+   `cli-tool.md`, or `library.md`. Each section is one topic: the moment it fires, the
+   document that rules it, and the boxes it will be checked against. Read the sections
+   your change fires, and open the documents they name. **Read that file, not the
+   project-type document**: everything in the project-type document is a decision already
+   made, and a change does not pay to re-read it. For anything no section covers, match
+   the surrounding code.
 2. Check [VERSIONS.md](VERSIONS.md) before adding or bumping a dependency.
-3. Walk the matching [checklists/](checklists/) document before calling it done.
+3. Walk the boxes of every section you fired, plus *Every …*, before calling it done.
+   Same file, so the second read is free.
 
 Take the full protocol below instead when you are starting a project, changing its shape
 (a second binary, a new external system, the first database), or the checklist turns up a
@@ -60,14 +65,14 @@ Never skip to a leaf document without reading its parent.
 1. Identify the project type you are building.
 2. Open the matching document in [project-types/](project-types/) — it defines the
    mandated stack and links everything that applies.
-3. Read its *Required reading* list now. Everything under *Open when you reach the thing
-   it covers* is a lookup table — open those documents when you reach the thing they
-   cover, not before.
+3. Read its *Required reading* list now, then the matching document in
+   [checklists/](checklists/). It is a lookup table — learn which moments fire which
+   document, and open each one when you reach the thing it covers, not before.
 4. Check [VERSIONS.md](VERSIONS.md) and adopt exactly those versions, the way its version
    policy prescribes. If your training data says something newer exists, the baseline
    still wins — flag the discrepancy to the user instead of silently upgrading.
-5. Before declaring work done, walk the matching document in [checklists/](checklists/).
-   It is the enforcement, and it stands on its own.
+5. Before declaring work done, walk that same checklist's boxes. It is the enforcement,
+   and it stands on its own.
 
 ## Waivers and conflicts
 

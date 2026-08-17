@@ -1,87 +1,45 @@
-# Checklist: CLI Tool — Definition of Done
+# CLI Tool — Triggers and Definition of Done
 
 **Last verified: 2026-08-17**
 
-Walk this before declaring any milestone complete. Every unchecked box is either
-fixed or waived on the record — the waiver format lives in [README.md](../README.md)
-under *Which rules can be waived*. The safety tier is not waivable: partial work staying
-safe, a destructive action needing an explicit flag, and every box about how a secret is
-handled — a secret never arrives as a flag *value*, and `.env` is gitignored. Tier 1 is
-decided by what a rule protects, not by which section it landed in.
+One topic per section: **the moment it fires, the document that rules it, and what done
+looks like.** Read a section before you write the thing it covers; walk its boxes before
+you call the work complete. Both halves live here because a trigger that routes you to a
+document the checklist never checks is how a rule goes missing — and a section with no
+box is the honest answer where the document rules something no milestone can verify.
 
-This checklist stands on its own. Every box — or the bold bullet it sits under — names
-the document behind it, so you can walk it without holding the whole corpus in your
-head.
+Paths are from the repository root.
 
-**One box, one check.** A box that needs two answers is two boxes: a box holding six
-conditions gets ticked while three of them fail. Where several checks share a scope,
-the scope is a bold bullet and the checks sit under it. Keep it that way when you add
-here.
+Every unchecked box is either fixed or waived on the record — the waiver format lives in
+`README.md` under *Which rules can be waived*. The safety tier is not waivable: partial
+work staying safe, a destructive action needing an explicit flag, and every box about how
+a secret is handled — a secret never arrives as a flag *value*, and `.env` is gitignored.
+Tier 1 is decided by what a rule protects, not by which section it landed in.
 
-## Stack compliance
+## Every CLI tool
 
-- [ ] `go.mod` says `go 1.26`, matching [VERSIONS.md](../VERSIONS.md)
-- [ ] No dependencies outside the approved list in [stack/go.md](../stack/go.md), or each extra one is justified in the README
+No trigger: these fire for every tool. The `run()` pattern and the command-line contract
+are ruled by `patterns/go-cli.md`, which is required reading.
+
+- [ ] `go.mod` says `go 1.26`, matching `VERSIONS.md`
+- [ ] No dependencies outside the approved list in `stack/go.md`, or each extra one is justified in the README
 - [ ] Flags via stdlib `flag` only — no cobra, viper, or urfave
-- [ ] Config precedence is flags > env > defaults per [patterns/go-config.md](../patterns/go-config.md)
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build .` (or `./cmd/...` in a multi-binary module)
 - [ ] `main` package at module root — `cmd/<name>/` only when the module ships several binaries
 - [ ] Logic in `internal/`
-- [ ] The binary's name is free: `command -v <name>` finds nothing on a stock macOS and Linux box — a collision means the tool that runs is not the tool that was installed ([project-types/cli-tool.md](../project-types/cli-tool.md))
-
-## Code quality
-
-- [ ] CI workflow from [operations/ci.md](../operations/ci.md) is in place and green
-      (covers gofmt, vet, staticcheck, **govulncheck**, tidy, race tests, static build)
-- [ ] `Makefile` from [stack/makefile.md](../stack/makefile.md) at the repo root, with the rule-5 adjustments for its layout
-- [ ] `make check` is green
-- [ ] `make check` is gate-for-gate identical to ci.yml
-- [ ] `run(ctx, args, stdout, stderr)` pattern per [patterns/go-cli.md](../patterns/go-cli.md)
+- [ ] The binary's name is free: `command -v <name>` finds nothing on a stock macOS and Linux box — a collision means the tool that runs is not the tool that was installed (`project-types/cli-tool.md`)
+- [ ] `run(ctx, args, stdout, stderr)` pattern
 - [ ] `os.Exit` in `main` only
-- [ ] Errors wrapped with `%w`
 - [ ] Every failure surfaces as `tool: <cause>` on stderr, exit 1
-- [ ] Config parsed and validated before any work starts
-- [ ] A bad value exits 2 with one line, never a half-done run
-- **If the repo has a `.env`** — [stack/makefile.md](../stack/makefile.md) rule 6:
-  - [ ] It is gitignored
-  - [ ] Only `make run` reads it
-  - [ ] Production takes its secrets from credential files instead
-- **Any outbound HTTP** — [patterns/go-http-client.md](../patterns/go-http-client.md):
-  - [ ] Uses an injected client with a timeout, never `http.DefaultClient`
-  - [ ] Checks `resp.StatusCode`
-  - [ ] Caps the body it reads
-- **Any adapter for someone else's system** — [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md):
-  - [ ] It sits in its own package
-  - [ ] It defines no port of its own
-  - [ ] It exposes domain methods instead of `*http.Response`
-  - [ ] It imports `internal/domain` and nothing else of yours — `go list -deps` proves it
-- **Any secret (API token, key)** — [patterns/go-config.md](../patterns/go-config.md) *A CLI holds its secret differently*:
-  - [ ] It is read from a file named by `-token-file`/`$MYTOOL_TOKEN_FILE`
-  - [ ] `$MYTOOL_TOKEN` is documented as the leaky fallback
-  - [ ] It is **never** taken from a flag value
-- **Any AI capability** — [patterns/go-llm-adapter.md](../patterns/go-llm-adapter.md):
-  - [ ] The `claude-api` skill was loaded before the request was written
-  - [ ] The prompt and conversation shape live in `domain`
-  - [ ] A refusal is a domain sentinel, checked **before** the response text is read
-  - [ ] The thinking/effort setting is explicit
-  - [ ] The token ceiling covers thinking plus answer
-  - [ ] The request is pinned by an `httptest` test rather than the live API
 - [ ] Ctrl-C/SIGTERM cancels the context
 - [ ] In-flight work finishes or rolls back
 - [ ] Interrupted runs exit non-zero
 - [ ] Partial work is safe: units of work atomic (temp file + rename, transaction) or reruns idempotent
-- **Prose passes [STYLE.md](../STYLE.md)**:
-  - [ ] Comments say *why*, not what
-  - [ ] The README leads with the point
-  - [ ] Commits are semantic (`type(scope): subject`)
-  - [ ] Any LLM prompts follow [patterns/go-llm-adapter.md](../patterns/go-llm-adapter.md) *Writing the prompt*
-- **If the tool keeps a `GLOSSARY.md`** — [patterns/glossary.md](../patterns/glossary.md):
-  - [ ] The README links it
-  - [ ] Every term is the word the code, the subcommands, and the flags use
-  - [ ] A `git grep` for each *Avoid* word finds no use of it for that concept, except where its entry says so
-  - [ ] No term restates baseline or general-programming vocabulary
+- [ ] README links to this baseline
+- [ ] README shows the `go install` line + a 30-second usage example
+- [ ] Any waived rule recorded in the format `README.md` *Which rules can be waived* defines
 
-## Command-line contract
+### The command-line contract
 
 - [ ] stdout carries data only; diagnostics, progress, and usage go to stderr (`tool > out.txt 2>/dev/null` yields clean data)
 - [ ] Exit codes: 0 success, 1 failure, 2 usage error
@@ -89,31 +47,136 @@ here.
 - [ ] `-h` documents every flag including its env var default
 - [ ] README shows the same
 - [ ] `version` subcommand or `-version` flag reports via `debug.ReadBuildInfo` (correct under both `go install @tag` and checkout builds)
-- **If `-json` exists**:
+- [ ] No prompts, no colors, no ANSI sequences
+- [ ] Destructive actions require an explicit `-force`-style flag
+- **If `-json` exists:**
   - [ ] One object per line
   - [ ] It parses back with `encoding/json`
   - [ ] Field names treated as API
-- [ ] No prompts, no colors, no ANSI sequences
-- [ ] Destructive actions require an explicit `-force`-style flag
 
-## Tests
+## Naming a concept this tool owns — a domain type, a subcommand, a flag
+
+`patterns/glossary.md` — the optional root `GLOSSARY.md`: one word per concept, the
+runners-up under *Avoid*.
+
+- **If the tool keeps a `GLOSSARY.md`:**
+  - [ ] The README links it
+  - [ ] Every term is the word the code, the subcommands, and the flags use
+  - [ ] A `git grep` for each *Avoid* word finds no use of it for that concept, except where its entry says so
+  - [ ] No term restates baseline or general-programming vocabulary
+
+## Reading a flag, an environment variable, or a secret
+
+`patterns/go-config.md` — flags over env over defaults, validated before any work starts;
+§A CLI holds its secret differently.
+
+- [ ] Config precedence is flags > env > defaults
+- [ ] Config parsed and validated before any work starts
+- [ ] A bad value exits 2 with one line, never a half-done run
+- **Any secret (API token, key)** — §A CLI holds its secret differently:
+  - [ ] It is read from a file named by `-token-file`/`$MYTOOL_TOKEN_FILE`
+  - [ ] `$MYTOOL_TOKEN` is documented as the leaky fallback
+  - [ ] It is **never** taken from a flag value
+- **If the repo has a `.env`** — `stack/makefile.md` rule 6:
+  - [ ] It is gitignored
+  - [ ] Only `make run` reads it
+  - [ ] Production takes its secrets from credential files instead
+
+## Returning an error, or logging anything
+
+`patterns/go-errors-logging.md` — wrapping, sentinels, and slog.
+
+- [ ] Errors wrapped with `%w`
+
+## Writing a comment, a README, a commit message, an error message, or a prompt
+
+`STYLE.md` — point first, short sentences, plain words: the bar for everything a human
+reads.
+
+- [ ] Comments say *why*, not what
+- [ ] The README leads with the point
+- [ ] Commits are semantic (`type(scope): subject`)
+- [ ] Any LLM prompts follow `patterns/llm-prompting.md`
+
+## Writing a test
+
+`patterns/go-testing.md` — what to test, and what never to fake.
 
 - [ ] `go test -race -shuffle=on ./...` passes
 - [ ] Core logic in `internal/` covered exhaustively (all rules/edge cases)
-- **`run()` is table-tested**:
+- **`run()` is table-tested:**
   - [ ] Happy path per subcommand (or the single command)
   - [ ] Unknown command and top-level `-h` where dispatch exists
   - [ ] Bad flag (→ `errUsage`)
   - [ ] `-json` round-trips where the flag exists
-- [ ] Every port has a hand-written fake, never a mock — [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md)
+
+## Depending on someone else's system
+
+`patterns/go-ports-adapters.md` — the port and its fake: build and test the tool before
+the API is integrated.
+
+- [ ] The adapter sits in its own package
+- [ ] It defines no port of its own
+- [ ] It exposes domain methods instead of `*http.Response`
+- [ ] It imports `internal/domain` and nothing else of yours — `go list -deps` proves it
+- [ ] Every port has a hand-written fake, never a mock
 - [ ] Tests assert the outcome, not call counts or call order
 
-## Ship
+## Calling an external API over HTTP
 
-- [ ] README links to this baseline
-- [ ] README shows the `go install` line + a 30-second usage example
-- [ ] Any waived rule recorded in the format [README.md](../README.md) *Which rules can be waived* defines
-- [ ] Release workflow from [operations/cli-release.md](../operations/cli-release.md) in place
+`patterns/go-http-client.md` — timeouts, retries, body limits.
+
+- [ ] Uses an injected client with a timeout, never `http.DefaultClient`
+- [ ] Checks `resp.StatusCode`
+- [ ] Caps the body it reads
+
+## Adding an AI capability — a model that answers, summarises, extracts, or classifies
+
+`patterns/go-llm-adapter.md` — the port, the prompt in `domain`, refusals as sentinels. A
+tool holds its key differently: `patterns/go-config.md` §A CLI holds its secret
+differently.
+
+- [ ] The `claude-api` skill was loaded before the request was written
+- [ ] The prompt and conversation shape live in `domain`
+- [ ] A refusal is a domain sentinel, checked **before** the response text is read
+- [ ] The request is pinned by an `httptest` test rather than the live API
+
+## Writing or tuning a prompt, or reading what a model wrote back
+
+`patterns/llm-prompting.md` — prompt-writing rules, the thinking and effort settings, and
+the reasoning that leaks into the visible answer.
+
+- [ ] The thinking/effort setting is explicit
+- [ ] The token ceiling covers thinking plus answer
+- [ ] The visible answer was read: no reasoning leaked into it
+
+## Storing anything between runs
+
+`patterns/go-sqlite.md` — pragmas, pools, migrations. Prefer staying stateless.
+
+- [ ] Pragmas: WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)`
+- [ ] SQL only via parameterized queries
+- [ ] Migrations embedded and forward-only
+
+## Setting up the repo's commands or CI
+
+`stack/makefile.md`, then `operations/ci.md` — `make check` is CI locally.
+
+- [ ] CI workflow is in place and green (covers gofmt, vet, staticcheck, **govulncheck**, tidy, race tests, static build)
+- [ ] `Makefile` at the repo root, with the rule-5 adjustments for its layout
+- [ ] `make check` is green
+- [ ] `make check` is gate-for-gate identical to ci.yml
+
+## Tagging and publishing a release
+
+`operations/cli-release.md` — cross-compiling, checksums, `go install`.
+
+- [ ] Release workflow in place
 - [ ] A tag builds all six targets + `SHA256SUMS`
 - [ ] `go install github.com/andygeiss/<tool>@<tag>` (or `…/cmd/<name>@<tag>` in a multi-binary module) verified from a clean machine (or empty `GOMODCACHE`)
 - [ ] Semver honored: breaking changes to flags, exit codes, `-json` fields, or the meaning of stdout output only in a major release
+
+## Fixing something measurably slow
+
+`patterns/go-performance.md` — and not before. No box: the rule is *don't*, and a rule
+nobody can be in the middle of violating has nothing to check at the end.

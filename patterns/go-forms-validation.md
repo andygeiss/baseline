@@ -227,5 +227,3 @@ Three rules keep it honest:
   errors, then needs the session to smuggle them back. Re-render at 422.
 - ❌ Success feedback in the query string (`?created=1`) — bookmarkable and
   cacheable, so the message repeats on every visit. Flash pops exactly once.
-- ❌ 200 for an invalid POST — tests and htmx can no longer tell success from
-  failure; 422 is the contract.

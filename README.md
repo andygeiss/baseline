@@ -39,10 +39,14 @@ a protocol stated twice is a protocol that drifts in one of the copies — the s
 document restate the CSP.
 
 For a human reading along: the corpus is a tree. [`project-types/`](project-types/) is
-the entry point per kind of project, and each one names a short *Required reading* list
-plus a table of triggers — one row per moment a [`stack/`](stack/) or
-[`patterns/`](patterns/) document starts to matter. [`checklists/`](checklists/) is the
-definition of done, and it stands on its own.
+the entry point per kind of project — a short *Required reading* list and the decisions
+made before the first line of code. [`checklists/`](checklists/) is everything after
+that, one section per topic: **the moment it fires, the [`stack/`](stack/) or
+[`patterns/`](patterns/) document that rules it, and the boxes it will be checked
+against.** Routing and the definition of done are one file because a change to an
+existing project reads the sections it fires and nothing else — the most common thing
+anyone does here — and because a trigger pointing at a document no box ever checks is how
+a rule goes missing. It still stands on its own.
 
 **Check the dates before you trust any of it.** Every document carries a
 `Last verified:` date. If today is more than **90 days** after that date, say so to the
@@ -69,7 +73,7 @@ projects built *from* the baseline, not the baseline itself.
 
 ```
 baseline/
-├── checklists/                     ← definition of done per project type
+├── checklists/                     ← triggers + definition of done per project type
 │   ├── cli-tool.md
 │   ├── library.md
 │   └── web-application.md
@@ -89,6 +93,7 @@ baseline/
 │   ├── design-system.md
 │   ├── glossary.md
 │   ├── go-auth-sessions.md
+│   ├── go-background-work.md
 │   ├── go-cli.md
 │   ├── go-config.md
 │   ├── go-errors-logging.md
@@ -103,6 +108,7 @@ baseline/
 │   ├── go-sqlite.md
 │   ├── go-testing.md
 │   ├── htmx-live-updates.md
+│   ├── llm-prompting.md
 │   ├── htmx-server-rendering.md
 │   ├── local-https.md
 │   ├── pwa.md
@@ -247,35 +253,110 @@ paragraph that goes stale in one of them.
   the same sweep *Retiring a pattern* spells out below.
 - New recurring decision in a project? Extract it into a pattern document here —
   the whole point is to never solve the same problem twice.
+- **[VERIFICATION.md](VERIFICATION.md) keeps its three newest runs in full**; older ones
+  compress into *Earlier runs*, keeping the counts and the findings a future run would
+  otherwise re-derive. It is the one file that grows by construction — one narrative per
+  release, forever — and it is off every read path, so the cost it accumulates is the
+  re-reading, not the tokens. The full narratives stay in git history.
 
 ### Size budgets
 
-Every token in this corpus is paid on every read, by every agent, forever. *Retiring a
-pattern* caps how many documents exist; nothing capped how big one gets, which is how a
-document came to spend 3,800 tokens saying "flags over env over defaults". These are the
-cap. `make tokens` prints all three numbers and flags anything over.
+**Budget the read path, never the repository.** The repository total is vanity: this file
+and [VERIFICATION.md](VERIFICATION.md) are an eighth of it and sit on no read path at
+all, while the floor every web application pays before its first line of code is the
+number that actually hurts. `make tokens` prints every budget below, plus the repository
+total as a report it never gates on.
 
-- **A [`patterns/`](patterns/) or [`stack/`](stack/) document stays under 2,500 tokens of
-  prose.** Fenced code does not count: a snippet is the payload an agent copies, and
-  capping it would delete the answer. Prose is the overhead, and past that budget a
-  document is usually one of two things — one that owns two subjects and should split, or
-  prose that is arguing when it should be ruling. **Aim at 1,200 for a new document;**
-  2,500 is the ceiling, not the target. The median today is about 1,700.
-- **A project type's required reading stays under 19,000 tokens.** That is the floor an
-  agent pays before writing a line, so adding a document to a *Required reading* list
-  means moving another one to a trigger row. A document belongs on that list only if it
-  changes a decision made *before* the first line of code; everything you can read at the
-  moment you write the thing is a row in the table.
+Two budgets cap a single document:
+
+- **A [`patterns/`](patterns/) or [`stack/`](stack/) document stays under 3,800 tokens,
+  prose and fenced code together.** One number, because a reader pays for both and a
+  split budget only measures which side of the fence the author put the answer on — the
+  first sweep to move code into prose passed a code cap and blew a prose cap without
+  changing what anyone reads. `make tokens` still prints the split, as a diagnosis: past
+  budget on prose usually means a document that owns two subjects, or prose that is
+  arguing when it should be ruling; past budget on code means *Write to the reader's
+  competence* below. **Aim at 1,800 for a new document;** 3,800 is the ceiling, not the
+  target.
+- **A checklist stays under 4,300 tokens.** It is paid whole by every project of that
+  type, on every change and at every milestone — the most-paid document in the corpus,
+  and the reason it was worth folding the router into rather than beside it.
+
+Three budgets cap a path somebody walks:
+
+- **The floor stays under 19,500 tokens** — `SKILL.md`, `VERSIONS.md`, the project-type
+  document, its checklist, and every *Required reading* entry. That is what an agent pays
+  before writing a line, so adding a document to a *Required reading* list means moving
+  another one to a trigger section. A document belongs on that list only if it changes a
+  decision made *before* the first line of code; everything you can read at the moment
+  you write the thing is a trigger section in the checklist.
+- **A change stays under 7,000 tokens** — `SKILL.md`, `VERSIONS.md`, and the checklist.
+  This is the most common thing anyone does here and therefore the number paid most
+  often.
+- **Reach is reported, not budgeted.** Every document a project type can get to is a
+  ceiling no build ever pays, because no project fires every trigger. `make tokens` ranks
+  the heaviest documents on each reach path and marks whether every project of that type
+  pays them, because **size alone does not say what is worth shrinking — size times how
+  often it is read does.** How often is the maintainer's judgement; the report is what
+  that judgement gets applied to.
+
+And two rules keep all of them down:
+
 - **Rationale earns one sentence per rule.** The evidence is a URL under *Facts
   verified*, and the argument behind the decision belongs in
   [VERIFICATION.md](VERIFICATION.md) — that file is the record of *why* the corpus says
   what it says, and it is read by whoever is auditing a rule, not by whoever is
   following it. A document that re-litigates its own history bills every future reader
-  for a debate that is already settled.
+  for a debate that is already settled. **VERIFICATION.md is the sink, and it is free:**
+  moving an argument there costs nothing on any read path.
+- **Write to the reader's competence.** The reader is a capable Go engineer, not a blank
+  slate, and every line spent on what it already knows is a line it pays to skip. The test
+  for a snippet is one question: *would a competent engineer get this wrong from the rule
+  sentence alone?* A jittered backoff, a `time.Timer` raced against `ctx.Done()`, a table
+  test — no, so the contract is the payload and the body is overhead. `http.DefaultClient`
+  having no timeout, `Do` returning `nil` for a 500, a nil `GetBody` replaying an empty
+  body the server accepts — yes, so those stay in code. **The same test governs an
+  anti-pattern list:** keep the ❌ that names something you would otherwise reach for
+  (resty, viper, an icon font, Google Fonts) or carries a fact stated nowhere else; delete
+  the ❌ that restates a rule the document already made, which is duplication inside a
+  single read path and the kind that gets paid twice.
+
+**Duplication is only expensive when both copies land in one context.** The three
+checklists share hundreds of phrases and the three project-type documents share hundreds
+more — that costs nothing, because no task ever reads two of them. Do not factor out a
+shared file to fix it: an agent would then read two files for the same total, and a
+checklist would stop standing on its own. Duplication *within* a read path — a pattern
+restating what its project-type document already said — is the kind that gets paid twice
+and the kind to hunt.
 
 The budgets are shape rules, so a document over one is waivable on the record like any
 other — but the waiver goes in [VERIFICATION.md](VERIFICATION.md), because the cost
 lands on this repository rather than on a project built from it.
+
+### Writing a checklist
+
+**One box, one check.** A box that needs two answers is two boxes: a box holding six
+conditions gets ticked while three of them fail. Where several checks share a narrower
+scope inside a section, the scope is a bold bullet and the checks sit under it.
+
+**One section per topic, and the section is the trigger.** Its heading names the moment
+in gerund form, so it reads as *when you are about to…* on the way in and *if the project
+has…* on the way out; the line under it names the document and what is in it; the boxes
+follow. A new pattern is not wired up until it has a section here — that is the check
+that a document nothing points at cannot ship again. A section MAY carry no box, where
+the document rules something no milestone can verify; say so in the section rather than
+inventing a box to fill the shape.
+
+Boxes that fire for every project of the type go under *Every …* at the top, ahead of the
+triggers.
+
+**Name documents as bare repository-root paths**, not as markdown links. The link syntax
+spends a sixth of a router-sized table restating a path it just printed, an agent opens
+either one the same way, and `make tokens` reads these paths to compute the reach path.
+
+This guidance lives here rather than in the checklists themselves because it is an
+instruction to whoever *adds* a box, and a checklist is paid in full by every project of
+its type on every change. Guidance for authors belongs in the maintainer's file.
 
 ### Retiring a pattern
 

@@ -54,20 +54,12 @@ called `WriteHeader` is silently dropped — the status line is already on the w
 MUST NOT add `'unsafe-inline'` or `'unsafe-eval'` to any directive. Both undo the reason
 the policy exists, and no baseline pattern needs either.
 
-## What each feature needs from the policy
-
-The record of why the policy above is sufficient, so a future feature can be checked
-against it:
-
-| Feature | Needs | Covered by |
-|---|---|---|
-| htmx | `script-src 'self'` | `default-src`; htmx is self-hosted, no inline JS ([stack/htmx.md](../stack/htmx.md)). |
-| htmx indicators | nothing | htmx would inject an inline `<style>`, which `default-src 'self'` blocks. The canonical layout sets `"includeIndicatorStyles":false` and `app.css` owns those rules ([stack/css.md](../stack/css.md)). |
-| Mask icons | `img-src data:` | The one directive a default policy would get wrong. |
-| Self-hosted font | nothing | Same-origin `.woff2` ([css-typography.md](css-typography.md)). A third-party font host would need a `font-src` hole — one reason there isn't one. |
-| Web app manifest | nothing | `manifest-src` falls back to `default-src`, and the manifest is same-origin ([pwa.md](pwa.md)). |
-| View transitions, CSS motion | nothing | Pure CSS ([css-motion.md](css-motion.md)). |
-| Forms | `form-action 'self'` | Already in the policy. |
+**Every feature in this baseline is already covered.** htmx, its indicators, self-hosted
+fonts, the web app manifest, view transitions, and forms all need nothing beyond the five
+directives above; mask icons need `img-src data:`, and that is the only directive a
+default policy would get wrong. The feature-by-feature record is in
+[VERIFICATION.md](../VERIFICATION.md) *Why the CSP is what it is* — read it when adding a
+feature that loads something new, and add a row when the policy changes.
 
 ## The other three headers
 
@@ -84,18 +76,15 @@ against it:
 
 ## What is deliberately not here
 
-- **`X-Frame-Options`** — superseded by `frame-ancestors`, honored by every browser in
-  the support window. Two headers saying one thing is one more to keep in sync.
-- **`Permissions-Policy`** — it disables browser APIs only JavaScript can call, and this
-  baseline ships none ([stack/html.md](../stack/html.md)).
-- **`object-src 'none'`** — `default-src 'self'` already denies cross-origin plugin
-  content, and the app embeds none.
-- **CSP reporting (`report-to`)** — needs an endpoint and somebody to read it. Add it
-  when a real policy question needs real data.
-- **Cookie attributes.** `Secure`, `HttpOnly`, and `SameSite=Lax` are set by the session
-  manager, not here — [go-auth-sessions.md](go-auth-sessions.md) owns them, and that
-  `SameSite=Lax` cookie is the independent second layer behind the stdlib CSRF protection
-  in [go-http-server.md](go-http-server.md).
+**MUST NOT add `X-Frame-Options`, `Permissions-Policy`, `object-src`, or CSP reporting.**
+Each is superseded, unreachable without JavaScript, already covered by `default-src`, or
+needs an endpoint nobody reads. The reasoning per header is in
+[VERIFICATION.md](../VERIFICATION.md) *Why the CSP is what it is*.
+
+**Cookie attributes are not here either.** `Secure`, `HttpOnly`, and `SameSite=Lax` are
+set by the session manager — [go-auth-sessions.md](go-auth-sessions.md) owns them, and
+that `SameSite=Lax` cookie is the independent second layer behind the stdlib CSRF
+protection in [go-http-server.md](go-http-server.md).
 
 ## Static assets carry none of this
 

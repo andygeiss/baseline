@@ -24,36 +24,28 @@ hygiene as applications ([stack/go.md](../stack/go.md)).
 
 ## Required reading (in order)
 
-These four apply to every library, so read them before the first line of code. The
+These three apply to every library, so read them before the first line of code. The
 order is dependency order.
 
 1. [stack/go.md](../stack/go.md) — language conventions and toolchain
 2. [patterns/go-library.md](../patterns/go-library.md) — layout, doc comments, Example functions, fuzz corpus, release mechanics
 3. [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port rules a library lives by: take the consumer's interface, never invent one (the adapter and fake halves are for programs)
-4. [STYLE.md](../STYLE.md) — how everything for humans is written (docs, comments, prompts)
 
 **A document is required only when it changes a decision you make before the first
-line of code.** Anything you can read at the moment you write the thing is a row in
-the table below. Ports & adapters is required here for exactly that reason: "accept
+line of code.** Anything you can read at the moment you write the thing is a trigger
+section in the checklist. Ports & adapters is required here for exactly that reason: "accept
 the consumer's interface, never invent one" is an API design rule, and a library gets
 it wrong at design time or not at all.
 
 ## Open when you reach the thing it covers
 
-A lookup table, not a reading assignment. Each row names the moment the document becomes
-relevant — open it before you write the thing, not after.
+The triggers are in [checklists/library.md](../checklists/library.md), one section each:
+the moment it fires, the document, and the boxes it will be checked against. Read it now
+to learn which moments fire which document, then open each document when you reach the
+thing it covers.
 
-| When you are about to… | Read |
-|---|---|
-| Return an error across the API boundary | [patterns/go-errors-logging.md](../patterns/go-errors-logging.md) — wrapping and sentinel errors (the logging half does not apply: libraries return, consumers log) |
-| Write a test | [patterns/go-testing.md](../patterns/go-testing.md) — plus the external-test-package and fuzz rules below |
-| Set up the repo's commands or CI | [stack/makefile.md](../stack/makefile.md), then [operations/ci.md](../operations/ci.md) — used verbatim; `make check` is CI locally |
-| Accept an HTTP client from a consumer | [patterns/go-http-client.md](../patterns/go-http-client.md) — what the consumer owns, and why the library never builds one |
-| Fix something measurably slow | [patterns/go-performance.md](../patterns/go-performance.md) — and not before |
-
-If you are ever unsure whether a row applies, walk
-[checklists/library.md](../checklists/library.md) — every box names the document behind
-it, or sits under a bullet that does.
+Working on a library that already follows this document? That file is the only one you
+need — everything above it is a decision already made.
 
 ## API design rules
 
@@ -115,8 +107,7 @@ it, or sits under a bullet that does.
 
 ## Definition of done
 
-Walk [checklists/library.md](../checklists/library.md) before calling any
-milestone complete.
+Walk the boxes of that same file before calling any milestone complete.
 
 ## Reference implementation
 

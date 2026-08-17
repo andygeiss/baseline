@@ -206,8 +206,6 @@ across several files, which is machinery this stack does not need.
   stylesheet parse. `@font-face` in `app.css` is already the one request.
 - ❌ `html { font-size: 62.5% }` so `1rem` means `10px` — it silently shrinks
   type for everyone who raised their default size.
-- ❌ `font-size` in `px` — it ignores the user's font-size setting; only page
-  zoom rescues it.
 - ❌ A size-token ladder (`--text-xs` … `--text-4xl`) — a framework habit; the
   three heading clamps above are the whole scale.
 - ❌ Four static weight files (`400`, `500`, `600`, `700`) — four requests and

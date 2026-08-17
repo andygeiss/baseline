@@ -72,25 +72,10 @@ the handler may own a budget ([go-http-server.md](go-http-server.md)). Setting e
 sensibly on its own is not enough — **their order decides which one fires, and only the
 innermost one can still produce an answer.**
 
-A handler that calls somebody else's system owns a deadline of its own:
-
-```go
-// turnBudget bounds one whole unit of work: transcribe, reason, speak. It must
-// stay shorter than the server's write timeout, so a wedged dependency ends the
-// work rather than the connection.
-//
-// A budget this long does not fit the canonical ladder as shipped: it needs the
-// server's WriteTimeout widened past 30 s (the waiver below) and this client's
-// 10 s Timeout raised to match. Adopting a budget means setting all three, in
-// that order — a 90 s budget under a 30 s socket is the first failure below.
-const turnBudget = 90 * time.Second
-
-func (a *App) handleTurn(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), turnBudget)
-	defer cancel()
-	// every call below takes ctx, so one deadline governs the whole path
-}
-```
+A handler that calls somebody else's system owns a deadline of its own: one named
+constant, one `context.WithTimeout(r.Context(), turnBudget)` at the top, and every call
+below it taking that `ctx`. Name it for the unit of work it bounds — the next two rows
+are set by reading it.
 
 | Layer | Setting | Where it sits |
 |---|---|---|
@@ -103,20 +88,19 @@ Get the order wrong and the failure is silent in both directions. **`WriteTimeou
 the budget** kills the connection while the handler works on: the client sees a truncated
 response, the handler logs a success, and nothing names a timeout. **A client timeout
 below the budget** makes "this dependency is slow" and "we gave up on it" the same event,
-so the retries below spend the budget re-asking a dependency that was about to answer.
+so the retries spend the budget re-asking a dependency that was about to answer.
 
-**Raising the client timeout to meet the budget retires the retries on that path**, and
-that is the trade rather than an oversight: `Timeout` bounds one attempt, so once it
-reaches the budget the first attempt can use all of it and the context ends the work
-before a second starts. One owner gives up, and under a budget it is the budget.
+**Raising the client timeout to meet the budget retires the retries on that path** — the
+trade, not an oversight. `Timeout` bounds one attempt, so once it reaches the budget the
+first attempt can use all of it and the context ends the work before a second starts.
 
 **A handler that inherits only `r.Context()` has no deadline of its own** — it runs until
 the client disconnects or `WriteTimeout` kills the socket. Fine for a query measured in
 milliseconds, wrong for anything that waits on another system.
 
-Widening the server's `WriteTimeout` past its canonical 30 s is a tier-2 waiver — record
-it, and name the handler budget that contains it. "The work takes longer than 30 s" is
-the reason to add a budget, not the reason to skip one.
+Widening `WriteTimeout` past its canonical 30 s is a tier-2 waiver — record it, and name
+the budget that contains it. "The work takes longer than 30 s" is the reason to add a
+budget, not to skip one, and adopting one means setting all three rows in that order.
 
 ## One request, end to end
 
@@ -248,68 +232,32 @@ func (c *Client) do(req *http.Request) (*http.Response, error) {
 		}
 	}
 }
-
-// idempotent reports whether repeating the method is safe. POST is absent, so
-// a POST takes exactly one attempt through this function — repeating it can
-// create the same thing twice, and no status code tells you whether it did.
-func idempotent(method string) bool {
-	switch method {
-	case http.MethodGet, http.MethodHead, http.MethodPut, http.MethodDelete:
-		return true
-	}
-	return false
-}
-
-// retryableStatus reports whether the status is worth a second try. 500 is
-// absent on purpose: it usually means a bug on the other side, and retrying a
-// bug just multiplies the load at the worst moment.
-func retryableStatus(code int) bool {
-	switch code {
-	case http.StatusTooManyRequests, http.StatusBadGateway,
-		http.StatusServiceUnavailable, http.StatusGatewayTimeout:
-		return true
-	}
-	return false
-}
-
-// jitter returns a random duration in [d/2, d). A fleet of clients that failed
-// at the same moment must not retry at the same moment; keeping half the window
-// fixed means the backoff still has a floor.
-func jitter(d time.Duration) time.Duration {
-	return d/2 + time.Duration(rand.Int64N(int64(d/2)))
-}
-
-// sleep waits d, or returns early when the context ends.
-func sleep(ctx context.Context, d time.Duration) error {
-	t := time.NewTimer(d)
-	defer t.Stop()
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-t.C:
-		return nil
-	}
-}
-
-// retryAfter reads the Retry-After header, in its delay-seconds form. Zero is
-// rejected along with the negatives — "retry immediately" is what the backoff
-// is there to prevent — and the cap stops a server from parking a goroutine
-// for an hour. A Retry-After wait is used as given, never jittered: the server
-// asked for a specific delay.
-func retryAfter(resp *http.Response) (time.Duration, bool) {
-	secs, err := strconv.Atoi(resp.Header.Get("Retry-After"))
-	if err != nil || secs <= 0 || secs > 30 {
-		return 0, false
-	}
-	return time.Duration(secs) * time.Second, true
-}
 ```
 
-- **Idempotent requests only,** enforced in the code rather than left to the
-  caller's memory. A retried POST can charge a card twice. If a POST genuinely
-  must be retried, the API needs an idempotency key — that is the API's design
-  problem, and `idempotent` is where you would then make the exception,
-  deliberately and in one place.
+The five helpers are ordinary once their contract is fixed, so this is the contract
+rather than another sixty lines:
+
+- `idempotent(method)` — GET, HEAD, PUT, DELETE, **enforced here rather than left to the
+  caller's memory**. POST is absent: a retried POST can charge a card twice, and no
+  status code tells you whether it did. If a POST genuinely must be retried the API needs
+  an idempotency key — the API's design problem, and this function is where you would
+  then make the exception, deliberately and in one place.
+- `retryableStatus(code)` — 429, 502, 503, 504. **500 is absent on purpose:** it usually
+  means a bug on the other side, and retrying a bug multiplies the load at the worst
+  moment.
+- `jitter(d)` — a random duration in `[d/2, d)`, from `math/rand/v2`
+  ([stack/go.md](../stack/go.md)): no seeding, and jitter needs no cryptographic
+  randomness. A fleet that failed at the same moment must not retry at the same moment;
+  keeping half the window fixed leaves the backoff a floor.
+- `retryAfter(resp)` — the `Retry-After` header, delay-seconds form only. Reject zero
+  along with the negatives ("retry immediately" is what the backoff prevents) and
+  anything over 30 s, so a server cannot park a goroutine for an hour. Used as given,
+  **never jittered** — the server asked for a specific delay.
+- `sleep(ctx, d)` — a `time.Timer` raced against `ctx.Done()`, so a shutdown mid-backoff
+  returns instead of waiting.
+
+Three more rules, which no helper can enforce for you:
+
 - **A body that cannot be replayed cannot be retried.** An idempotent PUT built
   from a plain `io.Reader` (an open file, a pipe) has no `GetBody`, and the
   first attempt drains it. Retrying then sends *nothing* — and unlike a network
@@ -317,8 +265,6 @@ func retryAfter(resp *http.Response) (time.Duration, bool) {
   first if the retry matters more than the memory.
 - **The context outranks the retry budget.** Three attempts inside a 10-second
   context is three attempts *or* 10 seconds, whichever comes first.
-- **`rand` is `math/rand/v2`** ([stack/go.md](../stack/go.md)). Jitter needs no
-  cryptographic randomness, and v2 needs no seeding.
 - **Retries hide outages.** Log at the point of final failure, not per attempt,
   or one flapping dependency floods the logs.
 
@@ -334,37 +280,12 @@ failing to start, and under a supervisor that restarts on failure it becomes a c
 that outlives the outage. A running app with one broken feature is strictly better — the
 rest works, `/healthz` still answers, and the failure is a log line instead of an incident.
 
-So fetch on first use, and keep the answer:
-
-```go
-// Three fields on this adapter's own Client, beside the ones above:
-//
-//	voice    string     // from config at construction; never written again
-//	mu       sync.Mutex // guards resolved, and nothing else
-//	resolved string     // filled by the first lookup that succeeds
-
-// speaker reports which voice to synthesise with, asking the server only when
-// nothing local decides it. The lookup is lazy rather than done at startup, so
-// the app still boots when the speech machine is off — the first reply is what
-// fails, and a failed reply is already something the app survives.
-func (c *Client) speaker(ctx context.Context) (string, error) {
-	if c.voice != "" {
-		return c.voice, nil // configured: nothing to ask
-	}
-
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if c.resolved != "" {
-		return c.resolved, nil
-	}
-	name, err := c.serverDefault(ctx)
-	if err != nil {
-		return "", err // this request fails; the next one tries again
-	}
-	c.resolved = name
-	return name, nil
-}
-```
+So fetch on first use, and keep the answer. Three fields on the adapter's `Client` — the
+configured value, a `sync.Mutex`, and the resolved one — and a method that returns the
+configured value if there is one, otherwise takes the lock, returns the resolved value if
+the first caller already got it, and otherwise asks the server and stores the answer. A
+failed lookup returns the error and stores nothing, so **this request fails and the next
+one tries again**.
 
 The mutex is the whole concurrency story: requests overlap, and the lookup should happen
 once. `sync.OnceValue` is the shorter form when the value needs no context and cannot fail
@@ -378,40 +299,15 @@ named by a flag that is not there. One line, name the fix, exit 2
 
 ## Testing
 
-`httptest.Server` gives you the real client against a real socket — no mocking
-framework, per [go-testing.md](go-testing.md):
+`httptest.Server` gives you the real client against a real socket — no mocking framework,
+per [go-testing.md](go-testing.md). Point `NewClient` at `srv.URL`, and let the handler
+decide what to fail on.
 
-```go
-func TestClient_Forecast_retriesOn503(t *testing.T) {
-	// atomic, not a plain int: the handler runs on the server's goroutine and
-	// the assertions run on the test's, and CI runs -race.
-	var calls atomic.Int64
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		if calls.Add(1) == 1 {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
-		}
-		fmt.Fprint(w, `{"city":"Berlin","high_c":21}`)
-	}))
-	defer srv.Close()
-
-	got, err := NewClient(srv.URL, "test-key").Forecast(t.Context(), "Berlin")
-	if err != nil {
-		t.Fatalf("Forecast: %v", err)
-	}
-	if n := calls.Load(); n != 2 {
-		t.Errorf("calls = %d, want 2", n)
-	}
-	if got.HighC != 21 {
-		t.Errorf("HighC = %d, want 21", got.HighC)
-	}
-}
-```
-
-Test the failure paths that production will actually hit: a non-2xx status, a
-body that is not the JSON you expected, and a context canceled mid-flight.
-Timeout behavior belongs in `testing/synctest` rather than a real one-second
-wait.
+- **Count calls with `atomic.Int64`, never a plain `int`.** The handler runs on the
+  server's goroutine and the assertions run on the test's, and CI runs `-race`.
+- Test the failure paths production will actually hit: a non-2xx status, a body that is
+  not the JSON you expected, and a context canceled mid-flight.
+- Timeout behavior belongs in `testing/synctest` rather than a real one-second wait.
 
 ## Libraries do not build clients
 
@@ -424,16 +320,6 @@ client that has one.
 
 ## Anti-patterns
 
-- ❌ `http.Get(url)` anywhere outside a throwaway script. No timeout, no
-  context, no header control.
 - ❌ resty, retryablehttp, gorequest, a circuit-breaker package. The whole
   pattern above is stdlib and fits on two screens; none of these are on the
   approved list in [stack/go.md](../stack/go.md).
-- ❌ A package-level `var client = &http.Client{…}`. Untestable, and it hides
-  the dependency from the wiring in `main`.
-- ❌ Retrying on every error, or without a cap. That is a self-inflicted denial
-  of service against a dependency that is already unwell.
-- ❌ `io.ReadAll(resp.Body)` with no limit — how much memory you use is then
-  decided by someone else's server.
-- ❌ Ignoring `resp.StatusCode` because `err` was nil. It is the bug this
-  document exists to prevent.

@@ -200,9 +200,6 @@ https://web.dev/baseline at the next verification.
 
 ## Anti-patterns
 
-- ❌ `transition: all` — animates whatever any later rule touches.
-- ❌ Animating layout properties — reflow every frame; move with `translate`, reveal with
-  `opacity`.
 - ❌ Transitioning `outline` — the focus ring appears the instant focus lands, always.
 - ❌ Entrance animations on page load (hero fades, staggered reveals) — page load is not a
   state change the user caused.
@@ -213,4 +210,3 @@ https://web.dev/baseline at the next verification.
 - ❌ htmx class-based swap animation (`.htmx-added` fades, `swap:`/`settle:` delays) — that
   machinery predates view transitions, and a `settle:` delay slows the swap to buy what
   `"globalViewTransitions":true` gives free.
-- ❌ One-shot durations past `--motion-slow` — 300 ms is the ceiling, not a suggestion.

@@ -154,5 +154,3 @@ no-htmx full page and the htmx fragment.
 - ❌ Separate `_partial.html` files duplicating page markup — fragments are `define`
   blocks inside the page template, one source of truth.
 - ❌ Returning JSON to htmx.
-- ❌ Fragment responses for non-htmx requests (breaks the no-JS fallback, bookmarks,
-  and crawlers).

@@ -96,35 +96,21 @@ const SystemPrompt = `...`
    Test it against the failure that produces it — an unanswered question — not only
    against a tidy transcript.
 
-### Writing the prompt
-
-6. **Prompts are code:** version controlled next to the code that sends them, reviewed
-   like code, and written to the bar in [STYLE.md](../STYLE.md). A machine reads the
-   prompt, but the same style wins — models follow plain, concrete instructions better
-   than clever ones.
-
-   - One instruction per sentence, imperative mood: "Return JSON. Use only these
-     fields: …"
-   - Show one example of the desired output. It beats every adjective — "concise" and
-     "high quality" are vague to a model; an example is exact.
-   - State the audience and the bar inside the prompt: "Write so a smart 10-year-old
-     could follow it."
-   - Order it top-down: context → task → constraints → output format.
-   - A one-line role ("You are a Go code reviewer.") is enough. Stacked superlatives and
-     magic phrases add tokens, not quality.
+6. **How the prompt is written, and what the model writes back, is its own document.**
+   [llm-prompting.md](llm-prompting.md) owns both — the prompt-writing rules, the thinking
+   and effort settings, and the reasoning that leaks into the visible answer. Read it
+   before writing the prompt; nothing below depends on it.
 
 ## The adapter translates, in both directions
 
-7. **A refusal is a sentinel, not an error.** A model that declines to answer is a normal
-   outcome the caller branches on, so it becomes `domain.ErrRefused` and the product says
-   something out loud instead of showing a 500. Each vendor signals it differently — the
-   `claude-api` skill names the current field — and the adapter is where that vendor word
-   disappears.
+7. **A refusal is a sentinel, not an error.** A model declining to answer is a normal
+   outcome the caller branches on, so it becomes `domain.ErrRefused` instead of a 500.
+   Each vendor signals it differently — the `claude-api` skill names the current field —
+   and the adapter is where that vendor word disappears.
 
 8. **Check the refusal before you read the text.** A declined request is a **successful
-   HTTP 200** whose content is empty or partial, so code that reads the first content block
-   before checking the stop reason panics or returns nonsense on the path hardest to
-   reproduce by hand:
+   HTTP 200** with empty or partial content, so reading the first content block before
+   the stop reason panics or returns nonsense on the path hardest to reproduce by hand:
 
    ```go
    // refusalStopReason is the vendor's word for "the model declined", and this
@@ -143,56 +129,18 @@ const SystemPrompt = `...`
    ```
 
    Where the vendor offers a **server-side fallback** — a declined request answered by
-   another model inside the same call — prefer it to your own retry: one round trip, no
-   state. The skill has the current parameter and its beta header, plus the trap this
-   sentence cannot carry: the header and the parameter shape are a matched pair, and
-   mixing one form's header with another's body is a 400.
+   another model in the same call — prefer it to your own retry: one round trip, no state.
+   Take the parameter and its beta header from the skill together; they are a matched pair,
+   and mixing one form's header with another's body is a 400.
 
 9. **Everything else is transient.** Wrap it with what you were doing and let the caller
    decide ([go-errors-logging.md](go-errors-logging.md)). Transport, timeouts, body caps,
    and the `drainAndClose`/`statusError` helpers are
    [go-http-client.md](go-http-client.md)'s job and do not change here.
 
-## The visible text is the product
-
-This is the trap with no compile error and no failing test — only a reply that reads
-wrong.
-
-10. **A reasoning model can write its reasoning into the answer.** The text you render,
-    speak, or store is the product; a leaked scratchpad — "Here's my thinking process:
-    1. Analyze the user input…" — ships silently. It happens from **both** directions,
-    which is why one rule cannot cover it:
-
-    - **A frontier model with thinking switched off** may write longer reasoning into the
-      visible response. Leave adaptive thinking **on** and control cost with the effort
-      setting instead; on current models a low effort level also costs less than a
-      disabled-thinking request that rambles.
-    - **A local reasoning model with thinking switched on** writes its scratchpad into
-      the reply. Ask its chat template to turn thinking off — a server that does not know
-      the field ignores it.
-
-    Whichever you set, **set it explicitly.** Defaults differ between models and have
-    changed between releases, so an omitted field is a decision made by whatever you
-    happen to be pointed at.
-
-11. **Do not fix a leak by telling the model not to think** — it is the documented way to
-    make it worse. Delete any "do not reason" instruction, and if you must ask for clean
-    output, ask generically ("do not include internal or system tags in your response")
-    rather than naming the tags, which is measurably weaker. The skill carries the
-    current wording and which models need it.
-
-12. **Bound the output, and remember the ceiling covers thinking.** The token ceiling
-    caps thinking *plus* the visible answer, so a ceiling sized for a two-sentence reply
-    truncates the reply the moment the model thinks. Size it for both, and re-check
-    whenever thinking or effort changes.
-
-13. **Say the shape you want in the prompt, and say why.** "The reply is read aloud"
-    earns more than a list of banned characters. A prompt tuned for one model is not
-    automatically right for the next — re-baseline it on a model change.
-
 ## The default adapter ships
 
-14. **When the only real adapter needs a key or a second machine, write a degenerate one
+10. **When the only real adapter needs a key or a second machine, write a degenerate one
     and make it the default.** [go-config.md](go-config.md) rule 3 says an empty
     environment MUST start a working app, and a port whose only implementation needs an API
     key breaks that rule in spirit while satisfying its letter.
@@ -207,19 +155,19 @@ wrong.
     package echo
     ```
 
-    **Say in the package doc that it is a product mode.** It lives in `internal/`, not a
-    `_test.go` file, and config selects it — that is what separates it from the fake in
-    [go-ports-adapters.md](go-ports-adapters.md), and the next reader will otherwise
-    assume it is a stray test helper and delete it.
+    **Say in the package doc that it is a product mode.** It lives in `internal/` and
+    config selects it — that is what separates it from the fake in
+    [go-ports-adapters.md](go-ports-adapters.md), and the next reader otherwise deletes it
+    as a stray test helper.
 
-15. **Boot MUST NOT reach the model** ([go-http-client.md](go-http-client.md) *Boot does
+11. **Boot MUST NOT reach the model** ([go-http-client.md](go-http-client.md) *Boot does
     not wait on a dependency*). No warm-up call, no capability probe. Boot MAY refuse to
     start over a **local** fact the chosen mode needs — a missing credential file — and
     that error names the file to write.
 
 ## Testing
 
-16. **Pin the wire contract against `httptest`, never the live API.** One table over the
+12. **Pin the wire contract against `httptest`, never the live API.** One table over the
     statuses and stop reasons the vendor documents proves the translation:
 
     ```go
@@ -228,44 +176,30 @@ wrong.
     {"503 fails without a domain sentinel", "", errTransient},
     ```
 
-17. **Assert the request, not just the response.** The request body is the half a fake
-    cannot check and the half that silently rots: the model, the thinking setting, the
-    effort level, the token ceiling, the headers. That test is what makes a model
-    migration a green-or-red change rather than a hopeful one.
-18. **Never assert on model output.** The content is not under test and cannot be. Test
+13. **Assert the request, not just the response** — the model, the thinking setting, the
+    effort level, the token ceiling, the headers. That is the half a fake cannot check and
+    the half that silently rots, and pinning it makes a model migration green-or-red
+    rather than hopeful.
+14. **Never assert on model output.** The content is not under test and cannot be. Test
     the translation layer: shape in, shape out, sentinel on refusal.
-19. **The feature is finished against the fake**, before the adapter exists — the whole
+15. **The feature is finished against the fake**, before the adapter exists — the whole
     payoff of [go-ports-adapters.md](go-ports-adapters.md).
 
 ## SDK or standard library
 
-20. **Both are allowed; pick by what you are building, and record the choice.** Use the
-    **standard library** for a request you can write out in one struct — a reply to a
-    conversation is one endpoint and a handful of fields. That is the
+16. **Both are allowed; pick by what you are building, and record the choice.** Use the
+    **standard library** for a request you can write out in one struct — that is the
     [stack/go.md](../stack/go.md) default, it adds no dependency, and the wire-contract
     test keeps it honest. Take **the vendor's official SDK** the moment you need
-    streaming, a tool-use loop, structured outputs, or a hosted-agent surface;
-    hand-rolling those is a worse use of the same hours.
+    streaming, a tool-use loop, structured outputs, or a hosted-agent surface.
 
-    The SDK is not on the approved list in [stack/go.md](../stack/go.md), so taking it
-    means a written justification in the project README — the existing mechanism working,
-    not an obstacle. Calling the API directly departs from the `claude-api` skill's own
-    default, so record *that* in the README too. Either way the next reader learns why.
+    Either choice is a departure somebody has to justify in the project README: the SDK is
+    not on the approved list in [stack/go.md](../stack/go.md), and calling the API directly
+    departs from the `claude-api` skill's own default.
 
 ## Anti-patterns
 
-- ❌ The system prompt inside the adapter. The second adapter copies it, and the two
-  answers drift apart with nothing to catch it.
-- ❌ Model IDs, beta headers, or pricing written into a document instead of read from the
-  `claude-api` skill. They go stale between two verifications of this file.
-- ❌ Reading `content[0]` before checking the stop reason. The refusal path is the one you
-  will not reproduce by hand.
 - ❌ A port with an options struct (`Reply(ctx, history, opts)`). It has stopped being
   what the consumer needs and started being what the vendor offers.
-- ❌ Asserting on what the model said. The test then fails on a model upgrade that
-  improved the product.
-- ❌ The live API in CI. Slow, flaky, and billed.
-- ❌ An app that cannot start without a key. See rule 14 — the degenerate adapter is a
-  day-one decision, not a retrofit.
-- ❌ "Do not think" in a prompt, to stop reasoning leaking into the answer. It is
-  documented to make the leak worse.
+- ❌ The system prompt inside the adapter — the second adapter copies it, and the two
+  drift.

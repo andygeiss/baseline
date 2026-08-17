@@ -142,62 +142,11 @@ then.
 
 ## Background work
 
-Anything periodic (session janitor, `VACUUM INTO` backups) runs under the same signal
-context as the server, via `errgroup` — this is the answer to "how does this stop?" from
-[stack/go.md](../stack/go.md). No bare `go func()` in `main`:
-
-```go
-ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-defer stop()
-
-g, ctx := errgroup.WithContext(ctx)
-g.Go(func() error { return serve(ctx, srv) })  // ListenAndServe; Shutdown when ctx is done
-g.Go(func() error { return janitor(ctx, store, logger, 6*time.Hour) }) // ticker loop; returns when ctx is done
-err := g.Wait()
-```
-
-Every worker takes `ctx`, selects on `ctx.Done()` in its loop, and returns — process exit
-is gated on `g.Wait()`, so nothing is killed mid-write.
-
-**Do the work once before the first tick:**
-
-```go
-func janitor(ctx context.Context, store *store.Store, logger *slog.Logger, every time.Duration) error {
-	purge := func() {
-		n, err := store.PurgeExpired(ctx)
-		switch {
-		case errors.Is(err, context.Canceled):
-			// Shutting down over a purge is not a fault. Logging it as one puts
-			// an ERROR line in every orderly stop that lands on this.
-		case err != nil:
-			logger.Error("purge", "error", err)
-		case n > 0:
-			logger.Info("purged", "rows", n)
-		}
-	}
-
-	purge() // before the loop — see below
-
-	ticker := time.NewTicker(every)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case <-ticker.C:
-			purge()
-		}
-	}
-}
-```
-
-`time.NewTicker` does not fire at zero, so **a process restarted more often than the
-interval never reaches a tick at all** — every binary under development, and every
-service that deploys more often than it cleans up. The loop looks like it is running,
-`g.Wait()` holds it open, and the table it was meant to trim grows forever. One call
-before the loop is the whole fix. The `context.Canceled` branch is the other half:
-shutdown cancels the context mid-purge, and without that case every orderly stop logs an
-error nobody should go looking at.
+The server is one goroutine under an `errgroup` tied to the signal context, and anything
+periodic — a session janitor, a `VACUUM INTO` backup — is another. The wiring, the
+run-before-the-first-tick rule, and treating `context.Canceled` as an orderly stop live in
+[go-background-work.md](go-background-work.md). Read it when the process grows its first
+scheduled job; the lifecycle above is correct on its own until then.
 
 ## The ops listener
 
