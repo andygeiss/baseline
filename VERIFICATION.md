@@ -48,13 +48,84 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Nothing owed.** v3.5.0 closed its gate: two consecutive clean adversarial
-passes, the reference synced and tagged in step, `./verify.sh` green, and the run
-recorded below. The next change lands here.
+**Nothing owed.** v3.5.1 closed its gate: two consecutive clean adversarial passes,
+the reference synced and tagged in step, `./verify.sh` green, and the run recorded
+below. The next change lands here.
 
 ## Run log
 
 Newest first.
+
+### 2026-08-17 — a pattern nothing pointed at (v3.5.1)
+
+The release that wired up a document the protocol could not reach.
+[patterns/local-https.md](patterns/local-https.md) shipped inside v3.5.0 with no
+trigger row, no checklist box, and no line in this file — 204 lines of rules an agent
+following [README.md](README.md) top-down would meet only if it happened to be
+building a PWA. **Seven defects over five adversarial passes**, the last two clean.
+Six of the seven were in the fix rather than in the corpus, which is what a small
+change reviewed properly looks like.
+
+**No rule changed.** Every box carries a rule
+[patterns/local-https.md](patterns/local-https.md) already stated; the document was
+re-read clause by clause against the boxes to prove it. That is also why this is a
+patch and not a minor: the corpus gained navigation and enforcement, not rules.
+
+**What the fix added.** A trigger row in
+[project-types/web-application.md](project-types/web-application.md), placed after the
+install row. Six boxes in [checklists/web-application.md](checklists/web-application.md)
+— one unconditional in *Stack compliance*, five in a conditional block in *Code
+quality* beside the `.env` block it matches in kind. Web only: a CLI or a library has
+no browser, and the document says so itself.
+
+**What the passes found.**
+
+1. **The TLS rule was conditional, and the rule is not.** *The binary MUST NOT serve
+   TLS* was first written inside the opt-in block, so a project that never adopted
+   local HTTPS was never asked whether it had grown a `-tls-cert` flag — the one
+   anti-pattern the document exists to prevent. Moved out to *Stack compliance*, where
+   it is asked of every web application.
+2. **A box that could not be answered.** "That local authority signs nothing a user
+   touches" states a rule but is not a check. Rewritten to name what a walker looks
+   at: nothing a user visits is served with a certificate it signed.
+3. **A box that named a file the walker cannot see.** "an edited copy of the operations
+   repository's template" now names the path, `baseline-ops/templates/Caddyfile`, so
+   the check is a diff rather than a memory.
+4. **The trigger row's list was short.** It named camera, microphone, geolocation,
+   passkeys and install, and the document's table also carries notifications. Added.
+5. **The reference's own waiver read as violated.** *Never deployed* said the
+   deployment end is absent — "no image, no compose file, **no Caddy**" — and this
+   change adds a Caddyfile. The waiver now says *no deployment Caddyfile* and states
+   why the local one does not narrow it. A waiver that looks broken is a waiver nobody
+   trusts.
+6. **A verify.sh gate that would fail correct code.** The TLS gate grepped for
+   `crypto/tls`, which every outbound client that pins its own roots would trip. The
+   rule bans *serving* TLS, not using it, so the gate now looks for the serving calls.
+   A gate that cries wolf is deleted by the next person who meets it.
+7. **A comment that claimed a run CI does not do.** The skip branch said "CI installs
+   Go and nothing else"; CI runs the seven `make check` gates directly and never runs
+   `verify.sh` at all.
+
+**The empirical half went further than the gate asks.** Go Chat is installable and has
+no other secure-context feature, so the trigger fires for it and the reference adopts
+the pattern rather than recording it unexercised: `Caddyfile.lan` character-identical
+to the document's snippet, a `lan` target, the opt-in in its README, and six new
+`verify.sh` gates (54 → 60). Five of the six boxes are now machine-checked.
+
+**Then it was run, not read.** Caddy 2.11.4 in front of the real binary, on this
+machine, today: `ssl_verify_result=0` against the local root, the app answering
+through the proxy (`<title>Sign in · Go Chat`), and the proxied and direct response
+bodies **byte-identical** — the sharpest evidence that the binary is not made to know
+a proxy is there. `:80` stayed unbound, so `auto_https disable_redirects` does what
+the document says. Both of the document's numeric claims reproduced a day after it
+was written: the served certificate is valid **12 hours**, the root **10 years**. The
+run used port 8444 rather than 8443, because a Caddy started on 2026-08-16 still held
+8443; the config was generated from the committed file by `sed` and the diff printed,
+so the only difference was the port.
+
+**Empirical half: closed, before the tag.** Reference synced and tagged v3.5.1, its
+`SPEC.md` pinning this release's commit. `./verify.sh` exits 0 — 60 gates, including
+the six new ones.
 
 ### 2026-08-17 — the LLM adapter, the timeout ladder, one box one check (v3.5.0)
 
@@ -329,6 +400,26 @@ prompt asserted to live in `internal/domain`, the paired setting refused in
 binaries through the full smoke suite — including the new one: the assistant
 answers a mention and stays out of a message that does not mention it, with no
 key, no model, and no second machine, because `-assistant=echo` is the default.
+
+**Correction (2026-08-17): the tag carried a tenth change this entry never named.**
+[patterns/local-https.md](patterns/local-https.md) — a new 204-line pattern, commit
+`65a6018` — landed between the v3.4.0 and v3.5.0 tags, so v3.5.0 shipped it and the
+entry above lists nine changes. It reached no [`project-types/`](project-types/)
+trigger table and no [`checklists/`](checklists/) box either, so the only ways in were
+this repository's file tree, the tier-3 list in [README.md](README.md), and one
+cross-link from [patterns/pwa.md](patterns/pwa.md). An agent walking the protocol
+top-down never met it unless it was building a PWA — and the document argues that
+install is the one feature here nobody can check before it ships without it.
+
+**The bookkeeping defect this run did catch is why the tenth stayed hidden.** The run
+found "a change count of eight against nine listed changes" and fixed the count. That
+audit held the list against itself, so a change that never joined the list could not
+fail it. **Mechanical check for every run from here: `git diff --stat <last tag>..HEAD`
+is the list of changed documents, and the entry is written against that diff rather
+than against memory of what the release was about.** One command would have caught
+this.
+
+The wiring landed 2026-08-17 in v3.5.1, recorded above.
 
 ### 2026-08-16 — a word list for every project (v3.4.0)
 

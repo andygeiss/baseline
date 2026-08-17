@@ -215,7 +215,9 @@ added the LLM adapter pattern and the rule for retiring one, and found seventeen
 defects over twelve passes — three of them introduced by its own fixes and caught
 by the pass after. The reference is Go Chat, a chat application with a
 command-line client and an assistant you mention in a room, and `verify.sh` is
-green.
+green. v3.5.1 then wired up [`patterns/local-https.md`](patterns/local-https.md),
+which v3.5.0 had shipped with no trigger row and no checklist box: seven defects over
+five passes, and the reference now adopts the pattern and gates it.
 
 ## Maintenance protocol (humans)
 

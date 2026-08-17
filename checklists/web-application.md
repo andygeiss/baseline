@@ -27,6 +27,7 @@ here.
 - [ ] No service worker registered
 - [ ] No CSS, font, icon, or script loaded from a third-party origin
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build ./cmd/server` (assets embedded)
+- [ ] The binary never serves TLS — no `-tls-cert` flag, in development or anywhere else ([patterns/local-https.md](../patterns/local-https.md))
 
 ## Code quality
 
@@ -64,6 +65,12 @@ here.
   - [ ] It is gitignored
   - [ ] Only `make run` reads it
   - [ ] Production takes its secrets from credential files instead
+- **If a developer reaches the app over local HTTPS** — [patterns/local-https.md](../patterns/local-https.md):
+  - [ ] `Caddyfile.lan` is its own file, never an edited copy of `baseline-ops/templates/Caddyfile`
+  - [ ] Nothing that ships reads it — the image does not build it in, the deployment never names it
+  - [ ] The root certificate and its key were never committed
+  - [ ] The authority stays on the machine that made it — nothing a user visits is served with a certificate it signed
+  - [ ] The README says the project opts in, next to how to run it
 - **Any outbound HTTP** — [patterns/go-http-client.md](../patterns/go-http-client.md):
   - [ ] Uses an injected client with a timeout, never `http.DefaultClient`
   - [ ] Checks `resp.StatusCode`

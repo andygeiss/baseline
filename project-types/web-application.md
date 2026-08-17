@@ -72,6 +72,7 @@ checklist checks all of it either way.
 | Add an AI capability — a model that answers, summarises, extracts, or classifies | [patterns/go-llm-adapter.md](../patterns/go-llm-adapter.md) — the port, the prompt in `domain`, refusals as sentinels, and the reasoning that leaks into the answer. Load the `claude-api` skill for anything on the wire |
 | Write a test | [patterns/go-testing.md](../patterns/go-testing.md) — what to test, and what never to fake |
 | Make the app installable | [patterns/pwa.md](../patterns/pwa.md) — manifest, icons, and why there is never a service worker |
+| Build anything a browser allows only over HTTPS — camera, microphone, geolocation, notifications, passkeys, install — or try the app on a phone | [patterns/local-https.md](../patterns/local-https.md) — `Caddyfile.lan` in front on the developer's machine, and trusting its root on the device |
 | Set up the repo's commands or CI | [stack/makefile.md](../stack/makefile.md), then [operations/ci.md](../operations/ci.md) — `make check` is CI locally |
 | Configure the build, or serve a static asset | [patterns/go-performance.md](../patterns/go-performance.md) — GOMEMLIMIT, cache headers, version busting: day-one defaults, not tuning |
 | Ship it | [operations/web-application.md](../operations/web-application.md) — the deployment contract: listeners, signals, logs, secrets |
