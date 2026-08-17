@@ -48,105 +48,86 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Three changes owed.** None has been through a single adversarial pass, so **no tag until
-they have.** v3.5.1 closed its own gate cleanly; these landed on top of it.
+**Nothing owed.** v3.6.0 closed every item that stood here: the token sweep and the tier-1
+adjudication went through the run recorded below, and the `VERSIONS.md` re-verification
+shipped as its own `fix` in the same release.
 
-**1. The token sweep (2026-08-17).** The corpus was measured and cut for what it costs to
-read. **No rule was removed**, and that is the claim a pass has to attack hardest — the
-sweep rewrote prose in about a dozen documents, so every changed file needs re-reading
-clause by clause against its previous version, the way the local-https checklist boxes
-were. What changed structurally:
-
-- **[SKILL.md](SKILL.md) is now the whole agent protocol** and [README.md](README.md) is
-  the maintainer's document. The protocol used to be stated in both; README's copy is gone,
-  and *Core engineering values* moved into SKILL.md. An agent no longer reads README at
-  all, except *Which rules can be waived* when it is about to skip a rule. **What a pass
-  should check: that nothing an agent needs is now only in README.**
-- **Three documents left the web application's *Required reading*** for trigger rows
-  (`go-config`, `go-errors-logging`, `htmx-server-rendering`), two left the CLI's, and one
-  left the library's. The test applied was "does this change a decision made before the
-  first line of code?". `security-headers` stayed required despite having an obvious
-  trigger, because it is tier 1. **What a pass should check: that each moved document's
-  trigger row actually fires before the thing it governs is written.**
-- **The timeout ladder moved** from [patterns/go-http-server.md](patterns/go-http-server.md)
-  to [patterns/go-http-client.md](patterns/go-http-client.md), where the trigger for it
-  fires. The checklist box now points at the new home.
-- **The LLM prompt rules moved** from [STYLE.md](STYLE.md) to
-  [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md) *Writing the prompt*. The three
-  checklists still say "any LLM prompts follow its prompt rules" — **a pass should confirm
-  each of those boxes points at the document that now owns them.**
-- **The `Rule tier:` boilerplate collapsed** to a `**Tier N** (…) · Last verified:` stamp
-  in 31 documents, applied by script. The script double-encoded UTF-8 and flattened wrapped
-  lines; both were repaired, and four documents whose tier paragraph continued the sentence
-  (`go-cli`, `go-config`, `go-sqlite`, `stack/makefile`) were left with a stray leading
-  comma and rewritten by hand. **A pass should re-read those four headers and spot-check
-  the rest for mojibake** — `grep -rl $'\\xc3\\xa2\\xc2\\x80'` finds it.
-- **This file's run log lost its older narratives**, compressed into *Earlier runs* with
-  the counts and the durable findings kept. The full text is in git history.
-- **Size budgets and `make tokens`** are new ([README.md](README.md) *Size budgets*). The
-  numbers are calibrated to the swept corpus, so they ratchet rather than aspire.
-
-**One document is over budget, and it is recorded here rather than cut further.**
-[patterns/go-llm-adapter.md](patterns/go-llm-adapter.md) holds 3,155 tokens of prose
-against a 2,500 ceiling. It is not padding — it is twenty numbered rules with 300 tokens of
-code between them — which is the budget saying what it is designed to say: **this document
-owns two subjects.** The adapter *shape* (the port, the prompt's home, the wire test) and
-the model-specific *traps* (reasoning leaking into the answer, the refusal ordering, the
-token ceiling covering thinking) are read at different moments and could be two documents.
-**A pass should decide: split it, or waive the budget on the record.** Do not shave prose
-off it to make the number — that is fitting the corpus to the metric, and the first draft
-of this sweep did exactly that to two other files before catching itself.
-
-**2. Every `patterns/` and `stack/` document now states its tier (31 files).** A
-`**Tier N** (…) · Last verified:` stamp sits under each title — item 1 collapsed it from
-the original wordier line — and [README.md](README.md) *Which rules can be waived* says the
-stamp is there and that its own section outranks it. The problem it fixes: the corpus holds 117 MUST and MUST NOT rules against 7 SHOULD, so the tiers carry
-the whole signal — and they lived in one README section, assigned by category. Only four
-leaf documents mentioned a tier at all, so an agent that opened one mid-task through a
-trigger row had no local way to learn whether the rule in front of it was waivable.
-
-The assignment rule was deliberately conservative, and a review pass should check it as
-such: **tier 3 only where the README names it** (surfaces, install, local HTTPS, the
-glossary, a brand web font, a CLI's `-json` flag), **tier 1 only where the README
-enumerates it**, everything else tier 2. Nothing was moved *down* a tier by judgment.
-
-**Three tier-1 calls are adjudications, not readings, and need a decision.** The
-README defines tier 1 as "everything under *Security* in the checklists", but three
-secret-handling rules sit under *Code quality* instead while meeting the README's own
-tier-1 test — dropping one "leaks it":
-
-- [patterns/go-config.md](patterns/go-config.md) *Secrets* — a secret arrives as a file,
-  and `LogValue` keeps it out of the logs.
-- [patterns/go-cli.md](patterns/go-cli.md) — a secret never arrives as a flag *value*.
-- [stack/makefile.md](stack/makefile.md) rule 6 — `.env` is gitignored, and production
-  never uses it.
-
-All three were written as tier 1, per the README's instruction to pick the safer reading
-and say so. **The corpus defect behind them is that tier 1 is defined by a checklist
-section rather than by what a rule protects.** Either move these boxes into *Security*,
-or redefine tier 1 by its test. Deciding that is what makes this a `feat` and the next
-release a minor: no rule was lost, and three became explicitly unwaivable.
-
-A pass should also settle a smaller one: **no pattern document owns the escaping rule.**
-"All user input escaped via `html/template`" lives only in the checklists' *Security*
-section, so [patterns/go-forms-validation.md](patterns/go-forms-validation.md) and
-[patterns/htmx-server-rendering.md](patterns/htmx-server-rendering.md) now point there
-rather than at a pattern. A tier-1 rule with no owning document is thin.
-
-**3. `VERSIONS.md` re-verified against every source (`fix`).** Go 1.26.6's release date
-was wrong — the table said 2026-08-11, the release history says 2026-08-13. Nothing else
-had moved: htmx 2.0.10 is still the latest 2.x with 4.0.0-beta6 still the newest beta,
-`scs` is still v2.9.0, `actions/checkout` and `actions/setup-go` are both still v7, and
-Go 1.27 was not out on 2026-08-17. The `design.md` row keeps saying **alpha** on
-purpose, and the source list now records why: that project's tagged releases reached
-0.4.0, but the format's own README still says "The DESIGN.md format is at version
-`alpha`". Reading the releases page alone would have retired a sanctioned exception that
-is still needed. The file's date moved 2026-08-15 → 2026-08-17, and it was the oldest of
-the three entry points before this.
 
 ## Run log
 
 Newest first.
+
+### 2026-08-17 — what the corpus costs to read (v3.6.0)
+
+The release that measured the corpus against the thing nobody had been measuring: **what
+an agent has to read before it writes a line.** *Retiring a pattern* capped how many
+documents exist; nothing capped how big one got, and the answer had grown to 29,855
+tokens of required reading for a web application.
+
+  web application   29,855 → 18,252 tokens
+  cli tool          18,384 →  9,801
+  library           16,604 → 11,580
+
+**Two defects over three adversarial passes**, the last two clean. Both defects were
+losses the sweep itself introduced, which is the risk of a prose rewrite and the reason
+the first pass attacked exactly one claim: *no rule was removed*.
+
+**No rule was removed, and here is how that was checked** rather than asserted. Every
+RFC-2119 keyword in the corpus was counted before and after — 129 both times — and the
+five files whose local count moved were read line by line against their pre-sweep
+versions. Three of the five were relocations (the RFC-2119 sentence into
+[SKILL.md](SKILL.md), a rewrap, a heading rename). **Two were real losses:**
+
+1. **[patterns/go-config.md](patterns/go-config.md) rule 1 dropped a MUST NOT.** "A bad
+   `PORT` MUST NOT be discovered by a half-started process that already created files"
+   was gone; the rewrite had kept the timing and lost both the normative force and the
+   consequence that explains it. Restored.
+2. **[patterns/design-system.md](patterns/design-system.md) dropped a MAY.** The
+   permission to use a Claude Design sync integration where one exists had been
+   compressed away with the sentence around it. Restored.
+
+The later passes attacked different surfaces and found nothing: all 125 code blocks are
+byte-identical except the one deliberately moved and re-commented; every one of the nine
+headings that disappeared is accounted for by a move or the run-log compression; every
+cross-document `rule N` reference still lands on the rule it names; every required-reading
+entry and all 41 trigger rows resolve; no document still claims to own something that
+moved.
+
+**What changed structurally.** [SKILL.md](SKILL.md) is now the whole agent protocol and
+[README.md](README.md) is the maintainer's document, out of the read path — the protocol
+used to be stated in both, and a protocol stated twice drifts in one copy. Six documents
+left *Required reading* for trigger rows against one test: does this change a decision
+made before the first line of code? `security-headers` stayed required despite a clean
+trigger, because it is tier 1. The timeout ladder moved to
+[patterns/go-http-client.md](patterns/go-http-client.md) and the LLM prompt rules to
+[patterns/go-llm-adapter.md](patterns/go-llm-adapter.md), each to where its trigger fires.
+The `Rule tier:` boilerplate, byte-identical in 26 files, became a stamp. This file's
+older run narratives compressed into *Earlier runs*, keeping the counts and the findings
+that would otherwise be re-litigated.
+
+**Size budgets are the part that stops the regrowth** — 2,500 tokens of prose per
+document, 19,000 per project-type floor, enforced by `make tokens` and calibrated to the
+swept corpus so they ratchet rather than aspire. Fenced code is excluded: a snippet is the
+payload, not the overhead. **One document is over on purpose.**
+[patterns/go-llm-adapter.md](patterns/go-llm-adapter.md) holds 3,155 tokens of prose —
+twenty numbered rules, not padding — which is the budget saying it owns two subjects, the
+adapter shape and the model-specific traps. Splitting it is the next release's work; it is
+recorded here rather than solved by shaving prose to make a number, which the first draft
+of this sweep did to two other files before catching itself.
+
+**Tier 1 is now defined by what a rule protects** (`fix`, and the answer to an owed
+adjudication). The old definition was positional — "everything under *Security* in the
+checklists" — while three secret-handling rules met every part of the tier-1 test from
+under *Code quality*. The test is the definition now, the enumeration is what the test
+currently catches, and the web and CLI checklists say in their preambles that those three
+boxes are unwaivable where they sit. No box moved sections, and no rule changed tier by
+judgment.
+
+**Empirical half: closed, before the tag.** No rule this repository implements changed, so
+the reference needed no code change — which is itself the claim the run had to test rather
+than assume. Reference synced and tagged v3.6.0, its `SPEC.md` pinning this release's
+commit `60849e5`. `./verify.sh` exits 0 — **61 gates**, mechanical checks through both
+booted binaries and the full smoke suite, run against the exact commit being tagged.
 
 ### 2026-08-17 — a pattern nothing pointed at (v3.5.1)
 
