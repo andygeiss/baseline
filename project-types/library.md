@@ -51,7 +51,7 @@ relevant — open it before you write the thing, not after.
 
 If you are ever unsure whether a row applies, walk
 [checklists/library.md](../checklists/library.md) — every box names the document behind
-it.
+it, or sits under a bullet that does.
 
 ## API design rules
 

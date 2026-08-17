@@ -1,6 +1,6 @@
 # Verification Record
 
-**Last verified: 2026-08-16**
+**Last verified: 2026-08-17**
 
 How this repository proves it is right, and what every review run found. The
 README states the standard in a paragraph; this file holds the evidence and the
@@ -46,9 +46,289 @@ it is an unfinished release.** That sentence appeared in two consecutive runs
 before this gate existed, which is why the gate exists. If the reference cannot
 be synced, the tag waits.
 
+## Owed: changes not yet through a run
+
+**Nothing owed.** v3.5.0 closed its gate: two consecutive clean adversarial
+passes, the reference synced and tagged in step, `./verify.sh` green, and the run
+recorded below. The next change lands here.
+
 ## Run log
 
 Newest first.
+
+### 2026-08-17 — the LLM adapter, the timeout ladder, one box one check (v3.5.0)
+
+The release that gave the corpus a shape for AI capability and a rule for
+subtraction. **Seventeen defects over twelve adversarial passes** — the last two
+clean, which is what the gate asks for. Two came from the first two passes,
+fifteen from passes three through ten (twelve in the corpus, three introduced by
+the fixes and caught by the pass after). A run this long is what a new document
+plus eight edited ones costs; the count is recorded rather than rounded down.
+
+**The corrections did not move the reference.** Every one either sharpened prose,
+named a consequence, or fixed a snippet's completeness; the two that touch rules
+— the AI token ceiling reaching the CLI checklist, and the `/healthz` version box
+— leave Go Chat conforming (its ladder is a 10 s budget under a 15 s client
+timeout under the canonical 30 s `WriteTimeout`, and it releases from clean tagged
+checkouts). The CLI token-ceiling box is *unexercised* there rather than failing:
+the assistant lives in the server, and the `chat` client calls no model.
+
+**What the adversarial half found.** First, two defects, both fixed:
+
+- **[operations/web-application.md](operations/web-application.md) contradicted
+  the reader it had just declared canonical.** It said a missing `.git` means
+  "every binary just reports `unknown`. A version of `unknown` at `/healthz`
+  means one of the two" — but the canonical web-application reader is
+  `resolveVersion`, which never returns `unknown`; it falls through to a boot id.
+  The real symptom is a `/healthz` version that changes on every restart, and
+  `unknown` there now means the opposite thing: the wrong reader is wired in.
+  This is exactly the dangling claim the *attack first* note below predicted.
+- **[patterns/go-config.md](patterns/go-config.md) rule 7's snippet did not
+  compile.** It formatted an error with `beside` and never defined it. The
+  snippet now derives it (`voices/jarvis.opus` → `voices/jarvis.txt`).
+
+**What the later passes found.** Twelve more, all fixed. The three that were
+wrong rather than untidy:
+
+1. **[patterns/go-llm-adapter.md](patterns/go-llm-adapter.md) rule 5 promised a
+   vendor behavior that is not current.** It said two user turns in a row draw a
+   400. Held against the `claude-api` skill, consecutive same-role turns are
+   accepted and merged into one; what actually binds is user-first. The rule now
+   says the shape to send and refuses to promise what any vendor does with a
+   worse one — which is also the document's own scope rule, applied to itself.
+2. **The timeout ladder's own example does not fit the ladder.** `turnBudget =
+   90 * time.Second` sits above the canonical 30 s `WriteTimeout` *and* the
+   canonical 10 s outbound `http.Client.Timeout`, so a reader who copies it
+   verbatim builds the first failure the section warns about. The snippet now
+   names both consequences where the constant is declared.
+3. **The ladder and the retry policy disagreed, silently.** A client timeout at
+   or above the budget means `Timeout` never fires first, so the retry loop in
+   [patterns/go-http-client.md](patterns/go-http-client.md) cannot run inside a
+   budgeted handler. Both documents were right alone and unresolvable together;
+   the ladder now states the trade.
+
+The rest: rule 8's snippet spelled a vendor stop-reason the document delegates
+to the skill (now one named constant, which is what "the adapter is where that
+vendor word disappears" looks like in code); `systemctl show` in
+[patterns/go-config.md](patterns/go-config.md) rule 7, written **two days** after
+systemd left this corpus with the operations split — a retired concept walks
+back in through a new document's prose, not through the documents the extraction
+swept; [STYLE.md](STYLE.md)'s first error-message example not quoting the value
+its own next bullet says to quote with `%q`; the lazy-lookup snippet in
+[patterns/go-http-client.md](patterns/go-http-client.md) using three fields the
+`Client` struct that document shows never declares; the AI token ceiling — a
+silent truncation bug — enforced in the web-application checklist and not in the
+CLI one; a `/healthz` box still reading "not `unknown`" after item 1
+established that the canonical reader cannot answer `unknown` (the dangling
+claim the *attack first* note predicted, found in the checklist rather than the
+document); and three bookkeeping defects in this file — a change count of eight
+against nine listed changes, checklist box counts that no `git grep` reproduces,
+and README's new *Retiring a pattern* missing from a section whose whole job is
+to list what is owed a run.
+
+**Three more were introduced by the fixes themselves and caught by the next
+pass** — fifteen fixed in all, and that ratio is the argument for running the
+pass after the one that looks finished. One left `refusalStopReason` undefined in
+a snippet, repeating the exact defect class this run had already fixed once in
+`go-config.md`; one opened a second permitted timeout shape that no checklist
+box could express, withdrawn rather than enforced; and one asserted in a comment
+that the example budget *is* shorter than the write timeout, which is only true
+once the reader has done what the next paragraph tells them to.
+
+**Undeclared identifiers were the run's most repeated defect** — three times, in
+three documents: `beside` in `go-config.md`, `refusalStopReason` in
+`go-llm-adapter.md`, and `voice`/`mu`/`resolved` on the lazy-lookup `Client` in
+`go-http-client.md`. Worth a mechanical check next run: every identifier a
+snippet uses is declared in that snippet or in one the same document shows.
+
+**Item 1's snippet is now verified by execution, not by reading** — the thing the
+*attack first* note asked for. `resolveVersion` was compiled, vetted and run
+against Go 1.26.6 over every shape the toolchain produces, and the shapes
+themselves were produced rather than assumed: a real module built tagged
+(`v0.3.0`), tagged-and-dirty (`v0.3.0+dirty`), untagged (`v0.0.0-<ts>-<sha12>`),
+untagged-and-dirty (…`+dirty`), with `-buildvcs=false` (`(devel)`, no `vcs.*`
+settings), and with no commits at all. All six land where the corpus says: a
+per-commit-unique string when there is one, the 12-character revision for a clean
+checkout, a fresh boot id otherwise — and `min(len(revision), 12)` holds for a
+short revision. The `+dirty` and `(devel)` shapes the note singled out are
+confirmed against the toolchain rather than against this text.
+
+**The other new snippets were compiled too**, against the same toolchain: the
+lazy lookup, `janitor` with its run-once and its `context.Canceled` branch, the
+paired-setting check, and the refusal translation — `gofmt`, `go vet`, and
+`go build` clean. The paired-setting check was then *run*, and the error it
+produces is character-for-character the example [STYLE.md](STYLE.md) shows for
+"name the fix, not just the fault" — the two documents were diffed by execution,
+not by eye.
+
+**What the empirical half found.** Syncing the reference surfaced a live bug that
+document review had missed, which is the half's whole justification: Go Chat's
+session sweeper ran `every(ctx, 5*time.Minute, …)` with **no call before the
+loop**, so a reference app redeployed more often than five minutes never swept a
+single expired row. The run-once now lives inside `every`, where both workers get
+it. The reference was also still on the two-case `unknown` reader as its asset
+cache-buster — the precise defect item 1 describes, shipped.
+
+**Item 9's delegation was re-confirmed against the `claude-api` skill**, which is
+what the run's own note asked for. All five paraphrased facts hold: refusal is an HTTP 200 whose
+content is empty *or partial*; check the stop reason before reading content;
+thinking-off can push reasoning into the visible answer, and adaptive-on at low
+effort is both the fix and the cheaper request; "do not think" makes leakage
+worse and naming the tags is measurably weaker than a generic instruction; and
+the fallback header and parameter shape are a matched pair that 400s when mixed.
+A grep for a drifted model ID, header, or limit found none.
+
+**One reference feature closed five items at once.** Items 2, 4, 5, 6 and 9 had
+no path through Go Chat: no handler waited on another system, no operation had a
+step it could lose, no setting had a second half, and there was no AI capability
+at all. Go Chat now has an assistant you mention in a room, and it reaches all
+five — the port, the prompt in `domain`, `Alternating`, the refusal sentinel and
+the wire-contract test (9); persist-the-message-then-reply, with a test per
+failure proving the message still posts (4); `-assistant=anthropic` and its
+credential validated as a pair, in both directions (6); a 10 s handler budget
+under a 15 s client timeout under a 30 s `WriteTimeout` (2); and an adapter
+built at boot that sends nothing until somebody asks it something (5).
+
+Writing it was also the empirical half earning its place a second time. Building
+the paired-setting check broke the smoke suite's own boot, because a stray
+credential in a shared directory now stops the app — which is the rule working:
+a key sitting unused beside `-assistant=echo` is a deployment that thinks it is
+talking to a model and is not.
+
+**Since v3.4.0 — patterns extracted from the JARVIS orchestrator (2026-08-17).**
+Nine changes across seventeen documents, all sourced from one real project rather
+than from review:
+
+1. **[patterns/go-performance.md](patterns/go-performance.md) — the asset
+   version buster.** This one is a **defect fix, not an addition**: the corpus
+   mandated `immutable` static assets *and* pointed at a version reader that
+   answers a constant (`unknown`, or a repeated `+dirty`) for any build from an
+   edited tree. Together those pin a stale stylesheet in a developer's browser
+   with no reload able to shift it. Replaced with a three-case reader.
+   [patterns/go-cli.md](patterns/go-cli.md) and
+   [operations/web-application.md](operations/web-application.md) now say which
+   reader answers which question.
+2. **[patterns/go-http-server.md](patterns/go-http-server.md) — the timeout
+   ladder.** The corpus mandated timeouts at each layer and never ordered them.
+3. **[patterns/go-http-server.md](patterns/go-http-server.md) — periodic work
+   runs once before the first tick**, and `context.Canceled` at shutdown is not
+   an error.
+4. **[patterns/go-errors-logging.md](patterns/go-errors-logging.md) — required
+   steps and enhancement steps**, and the ordering that makes degrading possible.
+5. **[patterns/go-http-client.md](patterns/go-http-client.md) — boot does not
+   wait on a dependency.** Lazy, cached lookups instead of startup probes.
+6. **[patterns/go-config.md](patterns/go-config.md) rule 7 — paired settings are
+   validated as a pair**, plus the long-value-in-a-file convention.
+7. **[STYLE.md](STYLE.md) — error messages**, which the document did not cover
+   at all. Name the fix, not just the fault.
+
+8. **[patterns/htmx-server-rendering.md](patterns/htmx-server-rendering.md) —
+   one discriminator, one definition.** The fragment test becomes a named
+   function, `isFragment`, instead of the header pair written out in two places.
+
+**9. [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md) — a new document
+(2026-08-17).** Written on the decision that AI capability is the default in
+every service from here on, not an occasional integration — so the shape gets
+written down once rather than re-derived per project. It layers on
+[patterns/go-ports-adapters.md](patterns/go-ports-adapters.md): the prompt and
+the conversation shape live in `domain` so two adapters cannot drift, a refusal
+is a sentinel checked *before* the response text is read, the visible answer can
+leak the model's own reasoning (from both directions — thinking off on a
+frontier model, thinking on in a local one), and the degenerate adapter that
+lets the app start with an empty environment is a product mode in `internal/`
+rather than the fake in `_test.go`.
+
+**Its load-bearing rule is a refusal to own facts.** Model IDs, request fields,
+beta headers, and pricing are explicitly out of scope for the document *and* for
+[VERSIONS.md](VERSIONS.md); the `claude-api` skill owns them and is updated with
+the API, while this corpus is verified every ninety days. A pin here would be a
+stale answer wearing this repository's authority. Wired into both the
+web-application and cli-tool project types and checklists.
+
+**The delegation was checked, and it holds.** A grep across the whole corpus for
+a model ID, a beta header, a request field, or a token limit returns only
+references to the skill's *name* — nothing on the wire has drifted into these
+documents. Held against the `claude-api` skill, all five paraphrased facts stand
+(listed under *the empirical half* above), including the counter-intuitive one:
+telling a model not to think makes the leak worse.
+
+Each change has a matching box in
+[checklists/web-application.md](checklists/web-application.md), and the AI token
+ceiling now has one in [checklists/cli-tool.md](checklists/cli-tool.md) too —
+enforcement and verification both in place.
+
+**Where the run attacked first, it was right to.** All three predictions paid:
+
+- **Item 1 left a dangling claim**, exactly as expected — but in
+  [checklists/web-application.md](checklists/web-application.md) rather than in a
+  document, a `/healthz` box still reading "not `unknown`" after the item had
+  established the canonical reader cannot answer `unknown`. The `+dirty` and
+  `(devel)` shapes were then produced by a real toolchain rather than argued
+  from this text; both hold.
+- **Item 2's waiver did not bite hard enough.** The section blessed a
+  `WriteTimeout` above the canonical 30 s and then used a 90 s budget in its own
+  example — under the shipped 30 s socket *and* the shipped 10 s client timeout.
+  Two defects, both fixed above.
+- **Item 5's collision was not one.** [patterns/go-config.md](patterns/go-config.md)
+  rule 1, *Boot does not wait on a dependency*, and
+  [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md) rule 15 agree: boot
+  MUST NOT reach the model, MAY refuse over a local fact the requested mode
+  needs, and an empty environment still starts, because the mode an empty
+  environment selects is the degenerate one.
+
+**Also since v3.4.0 — the checklists split their compound boxes (2026-08-17).**
+This one comes from a review of the corpus rather than from a project. No rule
+changed; the enforcement did. A box that named six conditions in one line — the AI
+capability box was 556 characters — gets ticked while three of them fail, which
+is the failure the checklist exists to prevent. Every box that needed two answers
+is now two boxes. Counted against v3.4.0 — `git grep -c '^\s*- \[ \]'` — the
+checklists go web-application 65 → 177, cli-tool 33 → 75, library 23 → 44. Only
+library's number is the split alone; the other two also carry this run's new
+boxes, so do not read them as a split ratio. Where several checks share a scope
+or a document, the scope is a bold bullet and the checks nest under it, so an
+ungrouped box can never read as part of the group above it. Each checklist states
+the rule in its preamble ("One box, one check") so the next edit does not
+re-compound them. The three
+[`project-types/`](project-types/) pointers now say a box names its document *or
+sits under a bullet that does*, and [SKILL.md](SKILL.md) is re-dated to
+2026-08-17 after its protocol text was held against the current
+[README.md](README.md) and found unchanged.
+
+**Also since v3.4.0 — how a pattern leaves (2026-08-17).** [README.md](README.md)
+gains *Retiring a pattern*, and it is the only change here that came from neither
+a project nor a review: the corpus is at twenty-seven pattern documents with no
+rule for subtraction, so every re-verification costs more than the last. Three
+signals (subject gone, nothing reached it in a year, another document now says
+the same thing), tier 1 exempt from all but the first, and a removal is a sweep
+with the tombstone written into this file before the file is deleted. Nothing is
+retired under it yet — the rule ships ahead of its first use on purpose, so the
+first retirement is not also the argument about how to do one.
+
+**The split lost nothing.** Every code span and every link target survived the
+rewrite mechanically, and the handful of content words that changed are
+rewordings rather than dropped conditions ("no cobra/viper/urfave" became "no
+cobra, viper, or urfave"). Because a mechanical check cannot prove a condition
+kept its *meaning* once it lost the sentence around it, the split boxes were then
+read against their pattern documents one at a time — the timeout ladder (whose
+"at or above it" had an antecedent the split had to name: the budget), the
+required/enhancement ordering, and the session-cookie and machine-token groups,
+which are safety tier. All five machine-token boxes and all four session-cookie
+boxes match [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md)
+clause for clause. Only the checklists, the three project-type pointers, and
+`SKILL.md` were touched; the `Last verified:` date on
+[checklists/library.md](checklists/library.md) stays at 2026-08-15, because
+restructuring a document is not re-verifying it.
+
+**Empirical half: closed, before the tag.** Reference synced and tagged v3.5.0,
+its `SPEC.md` pinning this release's commit. `./verify.sh` exits 0 against it:
+every mechanical gate (gofmt, vet, staticcheck, govulncheck, tidy, race tests,
+the vendored htmx checksum, static builds of both binaries), the adapter's
+dependency direction proved by `go list -deps ./internal/anthropic`, the system
+prompt asserted to live in `internal/domain`, the paired setting refused in
+**both** directions with an error naming the file to write, and then the booted
+binaries through the full smoke suite — including the new one: the assistant
+answers a mention and stays out of a message that does not mention it, with no
+key, no model, and no second machine, because `-assistant=echo` is the default.
 
 ### 2026-08-16 — a word list for every project (v3.4.0)
 

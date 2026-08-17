@@ -1,6 +1,6 @@
 # Project Type: Web Application
 
-**Last verified: 2026-08-15**
+**Last verified: 2026-08-17**
 
 Server-rendered web application. This is the default and preferred shape for anything
 with a UI — from a todo list to a SaaS dashboard.
@@ -69,6 +69,7 @@ checklist checks all of it either way.
 | Keep a page current while the reader watches it | [patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md) — polling with a cursor, the 204, and why not SSE |
 | Depend on someone else's system | [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port, the hand-written fake, finishing the feature before the API exists |
 | Call an external API over HTTP | [patterns/go-http-client.md](../patterns/go-http-client.md) — timeouts, retries, body limits |
+| Add an AI capability — a model that answers, summarises, extracts, or classifies | [patterns/go-llm-adapter.md](../patterns/go-llm-adapter.md) — the port, the prompt in `domain`, refusals as sentinels, and the reasoning that leaks into the answer. Load the `claude-api` skill for anything on the wire |
 | Write a test | [patterns/go-testing.md](../patterns/go-testing.md) — what to test, and what never to fake |
 | Make the app installable | [patterns/pwa.md](../patterns/pwa.md) — manifest, icons, and why there is never a service worker |
 | Set up the repo's commands or CI | [stack/makefile.md](../stack/makefile.md), then [operations/ci.md](../operations/ci.md) — `make check` is CI locally |
@@ -77,7 +78,7 @@ checklist checks all of it either way.
 
 If you are ever unsure whether a row applies, walk
 [checklists/web-application.md](../checklists/web-application.md) — every box names the
-document behind it.
+document behind it, or sits under a bullet that does.
 
 ## Architecture defaults
 

@@ -1,6 +1,6 @@
 # Pattern: htmx Server Rendering (Go html/template)
 
-**Last verified: 2026-08-12**
+**Last verified: 2026-08-17**
 
 The one mechanic that makes Go + htmx work: **every dynamic view is a named template
 block; a handler renders either the full page or just the block, depending on
@@ -56,9 +56,7 @@ block; a handler renders either the full page or just the block, depending on
 // came from an htmx interaction. block == "" always renders the full page.
 func (a *App) render(w http.ResponseWriter, r *http.Request, status int, page, block string, data any) {
 	name := "layout.html" // full page: the layout shell that invokes the page's "main"
-	if block != "" &&
-		r.Header.Get("HX-Request") == "true" &&
-		r.Header.Get("HX-Boosted") != "true" {
+	if block != "" && isFragment(r) {
 		name = block // fragment only
 	}
 	var buf bytes.Buffer
@@ -70,13 +68,25 @@ func (a *App) render(w http.ResponseWriter, r *http.Request, status int, page, b
 	w.WriteHeader(status)
 	buf.WriteTo(w)
 }
+
+// isFragment reports whether this request wants a fragment back rather than a
+// whole page. Every handler that chooses between a fragment and a 303 calls it
+// too, so there is one copy of the rule and a handler can never disagree with
+// its own rendering.
+func isFragment(r *http.Request) bool {
+	return r.Header.Get("HX-Request") == "true" && r.Header.Get("HX-Boosted") != "true"
+}
 ```
 
 Four details are load-bearing:
 
-- **`HX-Boosted` check:** boosted links/forms send `HX-Request: true` but swap the
-  whole `<body>` — they need the full page. Without this check, `hx-boost` navigation
-  renders bare fragments into empty pages.
+- **The discriminator has one name and one definition.** Boosted links and forms
+  send `HX-Request: true` but swap the whole `<body>`, so they need the full page
+  — without the `HX-Boosted` half, `hx-boost` navigation renders bare fragments
+  into empty pages. Handlers need the same test to choose between a fragment and
+  a 303 (*Standard flows* below), so it is a function both call, never the header
+  pair written out twice. Two copies is two chances for a handler to 303 a
+  request that `render` would have answered with a fragment.
 - **Buffer first** — a template error after `WriteHeader` corrupts the response.
 - **No `HX-History-Restore-Request` handling needed** — the layout's `htmx-config`
   disables the history cache (`historyCacheSize: 0`, `refreshOnHistoryMiss: true`,
@@ -97,8 +107,9 @@ no-htmx full page and the htmx fragment.
 ## Standard flows
 
 - **Mutations follow POST-redirect-GET — except for fragment swaps.** The
-  discriminator is the same one the render helper uses:
-  `HX-Request: true` **and not** `HX-Boosted: true` → render the updated fragment
+  discriminator is `isFragment` above — the same function the render helper
+  calls, never a second copy of the header test. `isFragment(r)` → render the
+  updated fragment
   directly with 200. Everything else — plain forms *and boosted forms* — answers
   `303 See Other` back to the page. Boosted POSTs need the 303 too: a direct 200
   pushes the POST's URL into history, so refresh/back re-issues a GET against a

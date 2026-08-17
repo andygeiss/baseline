@@ -1,6 +1,6 @@
 # Pattern: Configuration (Go)
 
-**Last verified: 2026-08-15**
+**Last verified: 2026-08-17**
 
 Every knob the binary has, in one struct, parsed once at startup, validated
 before anything opens a socket or a file. This document owns the precedence
@@ -123,7 +123,11 @@ message twice — once from the `FlagSet`, once from `main`.
 1. **Parse before you build anything.** Configuration errors surface as a
    one-line message and exit 2, before the database opens and before the
    listener binds. A bad `PORT` MUST NOT be discovered by a half-started
-   process that already created files.
+   process that already created files. This covers **local** facts only — flags,
+   files, the database this binary owns. Nothing another system has to answer
+   runs at boot ([go-http-client.md](go-http-client.md) *Boot does not wait on a
+   dependency*): validating hard at startup and refusing to start over somebody
+   else's outage are different decisions, and only the first one is this rule.
 2. **Validate at the edge, store the parsed type.** `LogLevel` is a
    `slog.Level`, not a string that some later code re-parses and re-fails on.
    Parse once, at the boundary; after that the type carries the guarantee.
@@ -144,6 +148,35 @@ message twice — once from the `FlagSet`, once from `main`.
    it shares the environment with everything else on the box. A server does not
    need the prefix: it is deployed alone, and its deployment sets every variable
    it reads.
+7. **Settings that only make sense together are validated together.** Rule 2
+   checks one field at a time and cannot see a pair, so two flags that are
+   really one setting — a reference file and the text describing it, a host and
+   the credential for it — get their own check, and it says which half is
+   missing and what to do about it:
+
+   ```go
+   // beside is the transcript file the recording would carry if it had one:
+   // voices/jarvis.opus → voices/jarvis.txt. Naming it in the error is what
+   // turns "something is missing" into an instruction.
+   beside := strings.TrimSuffix(c.RefAudio, filepath.Ext(c.RefAudio)) + ".txt"
+
+   switch {
+   case c.RefAudio != "" && c.RefText == "":
+   	return Config{}, fmt.Errorf("tts-ref-audio %q: no transcript — set -tts-ref-text, or write what the recording says into %q", c.RefAudio, beside)
+   case c.RefAudio == "" && c.RefText != "":
+   	return Config{}, errors.New("tts-ref-text: no -tts-ref-audio — the words describe a recording that was not given")
+   }
+   ```
+
+   Without it the half-configured pair starts fine and fails on the first
+   request that needs it, which is the worst place to find out.
+
+   **A value too long for an environment variable is read from a file**, named
+   after the artefact it belongs to (`voices/jarvis.opus` → `voices/jarvis.txt`).
+   Pointing at the one file is then the whole setting, and the flag still
+   overrides the file. A paragraph in an environment variable is a paragraph
+   nobody can read back: every tool that prints a process's environment prints it
+   as one unbroken line, and the newlines that made it readable are gone.
 
 ## Secrets
 
@@ -241,7 +274,8 @@ func TestParseConfig(t *testing.T) {
 
 Table-test the parts that can actually break: **precedence** (a flag overrides
 its environment variable), each **validation failure** (bad port, bad log level,
-bad `ENV`), and the **empty environment** case from rule 3. Precedence is the
+bad `ENV`), **each half of a paired setting** from rule 7, and the **empty
+environment** case from rule 3. Precedence is the
 one most likely to regress silently, because a wrong answer still starts.
 
 One more test earns its place the moment the struct holds a secret: set one,

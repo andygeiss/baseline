@@ -1,6 +1,6 @@
 # Pattern: HTTP Client (Go)
 
-**Last verified: 2026-08-15**
+**Last verified: 2026-08-17**
 
 Calling someone else's HTTP API. Stdlib only. The rule that matters most is the
 first one, because the default is wrong:
@@ -268,6 +268,62 @@ func retryAfter(resp *http.Response) (time.Duration, bool) {
   cryptographic randomness, and v2 needs no seeding.
 - **Retries hide outages.** Log at the point of final failure, not per attempt,
   or one flapping dependency floods the logs.
+
+## Boot does not wait on a dependency
+
+**Nothing that a remote system has to answer may run at startup.** No health
+probe, no capability lookup, no connection warm-up. Boot validates what is
+local — flags, files, the database this binary owns
+([go-config.md](go-config.md)) — and stops there.
+
+A call at boot inverts who is allowed to be down. *Their* outage becomes *your*
+process failing to start, and under a supervisor that restarts on failure it
+becomes a crash loop that outlives the outage that caused it. A running app with
+one broken feature is strictly better: the rest of it works, `/healthz` still
+answers, and the failure is a log line instead of an incident.
+
+So fetch on first use, and keep the answer:
+
+```go
+// Three fields on this adapter's own Client, beside the ones above:
+//
+//	voice    string     // from config at construction; never written again
+//	mu       sync.Mutex // guards resolved, and nothing else
+//	resolved string     // filled by the first lookup that succeeds
+
+// speaker reports which voice to synthesise with, asking the server only when
+// nothing local decides it. The lookup is lazy rather than done at startup, so
+// the app still boots when the speech machine is off — the first reply is what
+// fails, and a failed reply is already something the app survives.
+func (c *Client) speaker(ctx context.Context) (string, error) {
+	if c.voice != "" {
+		return c.voice, nil // configured: nothing to ask
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.resolved != "" {
+		return c.resolved, nil
+	}
+	name, err := c.serverDefault(ctx)
+	if err != nil {
+		return "", err // this request fails; the next one tries again
+	}
+	c.resolved = name
+	return name, nil
+}
+```
+
+The mutex is the whole concurrency story: requests overlap, and the lookup
+should happen once. `sync.OnceValue` is the shorter form when the value needs no
+context and cannot fail — but note it also caches a *failure* forever if you
+bend it into one, which is why a fallible lookup uses the mutex and leaves the
+next request free to retry.
+
+The one thing boot MAY refuse to start over is a **local** fact the binary
+cannot work without: the credential file missing for the mode the operator
+asked for, an unreadable database path, a file named by a flag that is not
+there. One line, name the fix, exit 2 ([go-config.md](go-config.md)).
 
 ## Testing
 

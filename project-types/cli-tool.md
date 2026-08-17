@@ -1,6 +1,6 @@
 # Project Type: CLI Tool
 
-**Last verified: 2026-08-15**
+**Last verified: 2026-08-17**
 
 Command-line tool: starts, does one job, exits. If the process is meant to stay up
 and serve requests, it is not a CLI — build a [web application](web-application.md).
@@ -44,6 +44,7 @@ relevant — open it before you write the thing, not after.
 | Write a test | [patterns/go-testing.md](../patterns/go-testing.md) — what to test, and what never to fake |
 | Depend on someone else's system | [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md) — the port and its fake: build and test the tool before the API is integrated |
 | Call an external API over HTTP | [patterns/go-http-client.md](../patterns/go-http-client.md) — timeouts, retries, body limits |
+| Add an AI capability — a model that answers, summarises, extracts, or classifies | [patterns/go-llm-adapter.md](../patterns/go-llm-adapter.md) — the port, the prompt in `domain`, refusals as sentinels. A tool holds its key differently: [patterns/go-config.md](../patterns/go-config.md) §A CLI holds its secret differently |
 | Store anything between runs | [patterns/go-sqlite.md](../patterns/go-sqlite.md) — pragmas, pools, migrations (prefer staying stateless) |
 | Set up the repo's commands or CI | [stack/makefile.md](../stack/makefile.md), then [operations/ci.md](../operations/ci.md) — `make check` is CI locally |
 | Tag and publish a release | [operations/cli-release.md](../operations/cli-release.md) — cross-compiling, checksums, `go install` |
@@ -51,7 +52,7 @@ relevant — open it before you write the thing, not after.
 
 If you are ever unsure whether a row applies, walk
 [checklists/cli-tool.md](../checklists/cli-tool.md) — every box names the document
-behind it.
+behind it, or sits under a bullet that does.
 
 ## Architecture defaults
 

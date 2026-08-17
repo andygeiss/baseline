@@ -1,6 +1,6 @@
 # Pattern: Errors & Logging (Go)
 
-**Last verified: 2026-08-15**
+**Last verified: 2026-08-17**
 
 ## Errors
 
@@ -29,6 +29,53 @@
      renders a generic 500 page. **The internal error text never reaches the browser.**
 5. `panic` only for programmer errors (impossible states); `recoverPanic` middleware
    is the safety net, not a control-flow mechanism.
+
+## Required steps and enhancement steps
+
+An operation that calls several systems fails in parts. Decide per step which
+kind it is, once, when you write it:
+
+- **Required** — the operation is meaningless without it. Failure aborts:
+  `serverError`, nothing persisted, nothing half-done.
+- **Enhancement** — it improves the result and cannot replace it. Failure logs
+  at `Warn`, and the operation succeeds in a degraded form.
+
+**Order the steps so the irreplaceable result is safe before any enhancement is
+attempted.** That ordering is what makes degrading possible at all; backwards,
+an enhancement failure takes the real work down with it.
+
+```go
+// Required: without this the answer is lost, so nothing below it runs.
+reply, err := a.store.Append(ctx, conversation, domain.RoleAgent, said)
+if err != nil {
+	a.serverError(w, r, err)
+	return
+}
+
+// Enhancement, and it runs after the answer is safe: the worst case is a reply
+// the listener reads instead of hears.
+audio, mime, err := a.voice.Speak(ctx, said)
+if err != nil {
+	a.logger.Warn("synthesis failed", "error", err, "message_id", reply.ID)
+} else if err := a.store.SaveSpeech(ctx, reply.ID, mime, audio); err != nil {
+	a.logger.Warn("storing speech failed", "error", err, "message_id", reply.ID)
+}
+```
+
+- **`Warn`, not `Error`** — this is the level's definition below: degraded but
+  self-healing. Keep `Error` for the required steps, or the level stops meaning
+  anything.
+- **Say on the page what degraded**, in the reader's words, rather than leaving
+  them to notice something missing. A step that fails invisibly is an outage
+  nobody reports.
+- **Every enhancement needs an answer to "and if it never succeeds?"** Above,
+  the text is stored and can be synthesised again later. An enhancement whose
+  failure loses something permanently was a required step wearing the wrong
+  label.
+- **One test per enhancement failure**, asserting the operation still succeeds
+  when that dependency is down: the fake from
+  [go-ports-adapters.md](go-ports-adapters.md) returns the error, and the
+  assertion is on the response, never on the log line.
 
 ## Logging: `log/slog`, nothing else
 

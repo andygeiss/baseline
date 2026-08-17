@@ -1,6 +1,6 @@
 # Checklist: Web Application — Definition of Done
 
-**Last verified: 2026-08-15**
+**Last verified: 2026-08-17**
 
 Walk this before declaring any milestone complete. Every unchecked box is either fixed
 or waived on the record — the waiver format lives in [README.md](../README.md) under
@@ -8,14 +8,23 @@ or waived on the record — the waiver format lives in [README.md](../README.md)
 are the SQLite pragmas and the single-writer pool: those are the safety tier, so an
 unchecked box there means the work is not done.
 
-This checklist stands on its own. Every box names the document behind it, so you can
-walk it without holding the whole corpus in your head.
+This checklist stands on its own. Every box — or the bold bullet it sits under — names
+the document behind it, so you can walk it without holding the whole corpus in your
+head.
+
+**One box, one check.** A box that needs two answers is two boxes: a box holding six
+conditions gets ticked while three of them fail. Where several checks share a scope,
+the scope is a bold bullet and the checks sit under it. Keep it that way when you add
+here.
 
 ## Stack compliance
 
-- [ ] Versions match [VERSIONS.md](../VERSIONS.md) (`go.mod` says `go 1.26`; vendored htmx is 2.0.10)
+- [ ] `go.mod` says `go 1.26`, matching [VERSIONS.md](../VERSIONS.md)
+- [ ] The vendored htmx is 2.0.10, matching [VERSIONS.md](../VERSIONS.md)
 - [ ] No dependencies outside the approved list in [stack/go.md](../stack/go.md), or each extra one is justified in the README
-- [ ] Zero hand-written JavaScript; htmx is the only `<script>`; no service worker registered
+- [ ] Zero hand-written JavaScript
+- [ ] htmx is the only `<script>`
+- [ ] No service worker registered
 - [ ] No CSS, font, icon, or script loaded from a third-party origin
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build ./cmd/server` (assets embedded)
 
@@ -23,17 +32,71 @@ walk it without holding the whole corpus in your head.
 
 - [ ] CI workflow from [operations/ci.md](../operations/ci.md) is in place and green
       (covers gofmt, vet, staticcheck, **govulncheck**, tidy, race tests, static build)
-- [ ] `Makefile` from [stack/makefile.md](../stack/makefile.md) at the repo root; `make check` green and gate-for-gate identical to ci.yml
-- [ ] Routes registered in one file; every mutation is a POST route (never GET; no PUT/DELETE — they break the plain-form fallback)
-- [ ] Server has read/write/idle timeouts and graceful shutdown
-- [ ] Errors wrapped with `%w`; internal error text never rendered to the browser
-- [ ] `log/slog` structured logging; no secrets in logs (`Config.LogValue` allowlists the safe fields)
-- [ ] Config parsed and validated in `main` before the DB opens or the listener binds; `internal/` never calls `os.Getenv`
-- [ ] If the repo has a `.env`: it is gitignored, only `make run` reads it, and production takes its secrets from credential files instead — [stack/makefile.md](../stack/makefile.md) rule 6
-- [ ] Any outbound HTTP uses an injected client with a timeout (never `http.DefaultClient`), checks `resp.StatusCode`, and caps the body it reads — [patterns/go-http-client.md](../patterns/go-http-client.md)
-- [ ] Any adapter for someone else's system sits in its own package, defines no port of its own, exposes domain methods instead of `*http.Response`, and imports `internal/domain` and nothing else of yours — `go list -deps` proves it ([patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md))
-- [ ] Prose passes [STYLE.md](../STYLE.md): comments say *why* (not what), README leads with the point, commits are semantic (`type(scope): subject`), any LLM prompts follow its prompt rules
-- [ ] If the project keeps a `GLOSSARY.md` ([patterns/glossary.md](../patterns/glossary.md)): the README links it; every term is the word the code, the UI, and the URLs use; a `git grep` for each *Avoid* word finds no use of it for that concept, except where its entry says so; no term restates baseline or general-programming vocabulary
+- [ ] `Makefile` from [stack/makefile.md](../stack/makefile.md) at the repo root
+- [ ] `make check` is green
+- [ ] `make check` is gate-for-gate identical to ci.yml
+- [ ] Routes registered in one file
+- [ ] Every mutation is a POST route — never GET, and no PUT/DELETE (they break the plain-form fallback)
+- [ ] Server sets read, write, and idle timeouts
+- [ ] Server shuts down gracefully
+- **The timeout ladder holds** — [patterns/go-http-server.md](../patterns/go-http-server.md):
+  - [ ] Any handler that waits on another system sets its own `context.WithTimeout` — that is the budget
+  - [ ] `WriteTimeout` sits above the budget
+  - [ ] Every outbound client timeout sits at or above the budget
+- **Each step of a multi-dependency operation is marked required or enhancement** — [patterns/go-errors-logging.md](../patterns/go-errors-logging.md):
+  - [ ] Every step carries one label or the other, decided when it was written
+  - [ ] The irreplaceable result is persisted before any enhancement runs
+  - [ ] Enhancement failures log at `Warn` and still answer
+  - [ ] A test proves each one degrades instead of failing
+- [ ] Nothing calls a remote system at boot — lookups are lazy and cached, so a dependency being down is a broken feature, not a crash loop ([patterns/go-http-client.md](../patterns/go-http-client.md))
+- **Any periodic worker** — [patterns/go-http-server.md](../patterns/go-http-server.md):
+  - [ ] It runs once before entering its ticker loop
+  - [ ] It treats `context.Canceled` at shutdown as normal, not an error
+- [ ] Errors wrapped with `%w`
+- [ ] Internal error text never rendered to the browser
+- [ ] `log/slog` structured logging
+- [ ] No secrets in logs — `Config.LogValue` allowlists the safe fields
+- **Config** — [patterns/go-config.md](../patterns/go-config.md):
+  - [ ] Parsed and validated in `main` before the DB opens or the listener binds
+  - [ ] `internal/` never calls `os.Getenv`
+  - [ ] Settings that are only valid together are checked as a pair (rule 7)
+- **If the repo has a `.env`** — [stack/makefile.md](../stack/makefile.md) rule 6:
+  - [ ] It is gitignored
+  - [ ] Only `make run` reads it
+  - [ ] Production takes its secrets from credential files instead
+- **Any outbound HTTP** — [patterns/go-http-client.md](../patterns/go-http-client.md):
+  - [ ] Uses an injected client with a timeout, never `http.DefaultClient`
+  - [ ] Checks `resp.StatusCode`
+  - [ ] Caps the body it reads
+- **Any adapter for someone else's system** — [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md):
+  - [ ] It sits in its own package
+  - [ ] It defines no port of its own
+  - [ ] It exposes domain methods instead of `*http.Response`
+  - [ ] It imports `internal/domain` and nothing else of yours — `go list -deps` proves it
+- **Any AI capability** — [patterns/go-llm-adapter.md](../patterns/go-llm-adapter.md):
+  - [ ] The `claude-api` skill was loaded before the request was written — no model ID, header, or field from memory
+  - [ ] The prompt and the conversation shape live in `domain`
+  - [ ] A refusal is a domain sentinel, checked **before** the response text is read
+  - [ ] The thinking/effort setting is explicit
+  - [ ] The token ceiling covers thinking plus answer
+  - [ ] The app still starts with an empty environment — a degenerate adapter shipped as a product mode
+  - [ ] Boot never calls the model
+- **Any AI adapter's tests** — [patterns/go-llm-adapter.md](../patterns/go-llm-adapter.md):
+  - [ ] The **request** is pinned against `httptest` — model, thinking setting, effort, token ceiling, headers
+  - [ ] The refusal translation is pinned
+  - [ ] No test asserts on model output
+  - [ ] No test calls the live API
+- **Prose passes [STYLE.md](../STYLE.md)**:
+  - [ ] Comments say *why*, not what
+  - [ ] The README leads with the point
+  - [ ] Commits are semantic (`type(scope): subject`)
+  - [ ] Every startup and config error names the fix, and the flag or file to change
+  - [ ] Any LLM prompts follow its prompt rules
+- **If the project keeps a `GLOSSARY.md`** — [patterns/glossary.md](../patterns/glossary.md):
+  - [ ] The README links it
+  - [ ] Every term is the word the code, the UI, and the URLs use
+  - [ ] A `git grep` for each *Avoid* word finds no use of it for that concept, except where its entry says so
+  - [ ] No term restates baseline or general-programming vocabulary
 
 ## Tests
 
@@ -41,62 +104,144 @@ walk it without holding the whole corpus in your head.
 - [ ] Domain logic covered exhaustively (all rules/edge cases)
 - [ ] Each handler: happy path + error paths, via `httptest` against real routes
 - [ ] Dual-mode handlers tested with and without `HX-Request: true`
-- [ ] Every port has a hand-written fake, never a mock; tests assert the outcome, not call counts or call order — [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md)
+- [ ] Every port has a hand-written fake, never a mock — [patterns/go-ports-adapters.md](../patterns/go-ports-adapters.md)
+- [ ] Tests assert the outcome, not call counts or call order
 
 ## Hypermedia & progressive enhancement
 
 - [ ] Every feature works with htmx disabled (plain forms/links, full-page renders)
 - [ ] Navigation-like htmx GETs use `hx-push-url`; back button behaves
-- [ ] Requests >100ms show an indicator — except a background poll, which shows none ([patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md)); destructive actions have `hx-confirm`
+- [ ] Requests >100ms show an indicator — except a background poll, which shows none ([patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md))
+- [ ] Destructive actions have `hx-confirm`
 - [ ] Dual-mode responses send `Vary: HX-Request, HX-Boosted`
-- [ ] Invalid form POSTs return 422 with values + errors re-rendered (boosted POSTs: with `HX-Push-Url: false`)
-- [ ] Any live-updating region per [patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md): the cursor is a row id the server advances inside the swapped sentinel, an empty poll answers 204, the route 303s a non-htmx request, and the poll carries no indicator and no rate limit
+- [ ] The fragment-or-full-page test is one named function both `render` and the handlers call, never two copies of the header check ([patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md))
+- [ ] Invalid form POSTs return 422 with values + errors re-rendered
+- [ ] Boosted POSTs re-render with `HX-Push-Url: false`
+- **Any live-updating region** — [patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md):
+  - [ ] The cursor is a row id the server advances inside the swapped sentinel
+  - [ ] An empty poll answers 204
+  - [ ] The route 303s a non-htmx request
+  - [ ] The poll carries no indicator and no rate limit
 
 ## Security
 
-- [ ] `secureHeaders` sends the full policy from [patterns/security-headers.md](../patterns/security-headers.md) — CSP, HSTS, nosniff, referrer — and the test pinning all four is green
-- [ ] CSP carries `img-src 'self' data:`; a page with icons loads with **zero** CSP violations in the browser console
+- [ ] `secureHeaders` sends the full policy from [patterns/security-headers.md](../patterns/security-headers.md) — CSP, HSTS, nosniff, referrer
+- [ ] The test pinning all four is green
+- [ ] CSP carries `img-src 'self' data:`
+- [ ] A page with icons loads with **zero** CSP violations in the browser console
 - [ ] `http.CrossOriginProtection` wraps the mux (CSRF)
 - [ ] Request bodies capped at 1 MiB — `http.MaxBytesHandler`, or the route-aware limit chooser when upload routes need more (see [patterns/go-http-server.md](../patterns/go-http-server.md))
-- [ ] Session cookies: `HttpOnly` and `SameSite=Lax` always, `Secure` tied to `ENV` so production sets it and dev does not ([patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md)); `RenewToken` on login/password change, `Destroy` on logout
-- [ ] Auth endpoints rate limited; login timing identical for unknown user vs wrong password
-- [ ] Any machine token per [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) §Machine tokens: 32 random bytes, only its SHA-256 stored, shown once, read from `Authorization: Bearer` and never from the query string, revoked by DELETE
+- **Session cookies** — [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md):
+  - [ ] `HttpOnly` and `SameSite=Lax` always
+  - [ ] `Secure` tied to `ENV`, so production sets it and dev does not
+  - [ ] `RenewToken` on login and on password change
+  - [ ] `Destroy` on logout
+- [ ] Auth endpoints rate limited
+- [ ] Login timing identical for unknown user vs wrong password
+- **Any machine token** — [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) §Machine tokens:
+  - [ ] 32 random bytes
+  - [ ] Only its SHA-256 stored
+  - [ ] Shown once
+  - [ ] Read from `Authorization: Bearer`, never from the query string
+  - [ ] Revoked by DELETE
 - [ ] All user input escaped via `html/template` (no `template.HTML` on user data)
 - [ ] SQL only via parameterized queries
 - [ ] Passwords (if any) hashed with argon2id (OWASP params, PHC-encoded)
-- [ ] `/debug/pprof` and `/healthz` on the localhost-only ops listener, never proxied
+- [ ] `/debug/pprof` and `/healthz` on the localhost-only ops listener
+- [ ] The ops listener is never proxied
 
 ## Database (SQLite)
 
 - [ ] Pragmas per [patterns/go-sqlite.md](../patterns/go-sqlite.md): WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)`
-- [ ] Two pools: reads pooled, writes `SetMaxOpenConns(1)` + `_txlock=immediate`
-- [ ] Migrations embedded, forward-only, applied at boot inside a transaction
+- **Two pools** — [patterns/go-sqlite.md](../patterns/go-sqlite.md):
+  - [ ] Reads pooled
+  - [ ] Writes on a single connection: `SetMaxOpenConns(1)` + `_txlock=immediate`
+- [ ] Migrations embedded and forward-only
+- [ ] Migrations applied at boot inside a transaction
 - [ ] Backups: the off-box question is answered and its mechanism runs — the Ship section below is where it gets verified
 
 ## HTML/CSS/A11y
 
-- [ ] Valid HTML (spot-checked with the Nu validator; `hx-*` "attribute not allowed" errors are the only expected ones); landmarks + heading hierarchy correct
-- [ ] Every form control labeled, and each field error tied to its control (`aria-describedby` + `aria-invalid`); keyboard-only walkthrough succeeds; focus visible
-- [ ] Contrast ≥ 4.5:1; `prefers-reduced-motion` respected; `lang` set
-- [ ] CSS in cascade layers, no `!important` outside `utilities`
-- [ ] `DESIGN.md` at the repo root per [patterns/design-system.md](../patterns/design-system.md); every CSS value in it character-identical to `app.css`, measured contrast recorded
-- [ ] Motion follows [patterns/css-motion.md](../patterns/css-motion.md): transition properties listed explicitly (never `all`); paint/compositor properties only; one-shot durations from the two motion tokens; rapid-fire swaps opt out (`transition:false`); view-transition kill switch in `utilities`
-- [ ] Layout is mobile-first per [patterns/css-layout.md](../patterns/css-layout.md): layout media queries are `min-width` only and page-level only; components adapt via container queries; every list that drops its markers carries `role="list"`
-- [ ] Any bottom navigation per [patterns/css-layout.md](../patterns/css-layout.md): every destination keeps its word under the icon, at most five of them, targets ≥ 3.5rem, the current one marked by color *and* weight plus `aria-current="page"`, the bar opaque and clear of `env(safe-area-inset-bottom)`
-- [ ] One surface style per [patterns/css-surfaces.md](../patterns/css-surfaces.md), named in `DESIGN.md`; form controls keep a ≥ 3:1 `--color-border` boundary in every style; glass panels sit on the page ground only, alpha at the measured 80% floor
-- [ ] Type per [patterns/css-typography.md](../patterns/css-typography.md): no root `font-size` override, sizes in `rem`/`em` with a `rem` term in every `clamp()`, `font: inherit` on form controls
-- [ ] Any web font is self-hosted WOFF2, variable, one file per style, `font-display: optional`, versioned by filename, preloaded with `crossorigin` and no `?v=` on either URL; `.woff2` MIME registered at boot
-- [ ] Icons per [patterns/css-icons.md](../patterns/css-icons.md): CSS masks painted with `currentColor`, `aria-hidden` on every icon, accessible name on the control, no icon font and no meaning carried by icon alone
-- [ ] Works at 320 px width and at 200% zoom
+- [ ] Valid HTML, spot-checked with the Nu validator (`hx-*` "attribute not allowed" errors are the only expected ones)
+- [ ] Landmarks + heading hierarchy correct
+- [ ] Every form control labeled
+- [ ] Each field error tied to its control (`aria-describedby` + `aria-invalid`)
+- [ ] Keyboard-only walkthrough succeeds
+- [ ] Focus visible
+- [ ] Contrast ≥ 4.5:1
+- [ ] `prefers-reduced-motion` respected
+- [ ] `lang` set
+- [ ] CSS in cascade layers
+- [ ] No `!important` outside `utilities`
+- **`DESIGN.md`** — [patterns/design-system.md](../patterns/design-system.md):
+  - [ ] It sits at the repo root
+  - [ ] Every CSS value in it is character-identical to `app.css`
+  - [ ] Measured contrast recorded
+- **Motion** — [patterns/css-motion.md](../patterns/css-motion.md):
+  - [ ] Transition properties listed explicitly, never `all`
+  - [ ] Paint and compositor properties only
+  - [ ] One-shot durations from the two motion tokens
+  - [ ] Rapid-fire swaps opt out (`transition:false`)
+  - [ ] The view-transition kill switch is in `utilities`
+- **Layout is mobile-first** — [patterns/css-layout.md](../patterns/css-layout.md):
+  - [ ] Layout media queries are `min-width` only, and page-level only
+  - [ ] Components adapt via container queries
+  - [ ] Every list that drops its markers carries `role="list"`
+- **Any bottom navigation** — [patterns/css-layout.md](../patterns/css-layout.md):
+  - [ ] Every destination keeps its word under the icon
+  - [ ] At most five of them
+  - [ ] Targets ≥ 3.5rem
+  - [ ] The current one marked by color *and* weight, plus `aria-current="page"`
+  - [ ] The bar opaque and clear of `env(safe-area-inset-bottom)`
+- **Surfaces** — [patterns/css-surfaces.md](../patterns/css-surfaces.md):
+  - [ ] One surface style, named in `DESIGN.md`
+  - [ ] Form controls keep a ≥ 3:1 `--color-border` boundary in every style
+  - [ ] Glass panels sit on the page ground only, alpha at the measured 80% floor
+- **Type** — [patterns/css-typography.md](../patterns/css-typography.md):
+  - [ ] No root `font-size` override
+  - [ ] Sizes in `rem`/`em`, with a `rem` term in every `clamp()`
+  - [ ] `font: inherit` on form controls
+- **Any web font** — [patterns/css-typography.md](../patterns/css-typography.md):
+  - [ ] Self-hosted WOFF2, variable, one file per style
+  - [ ] `font-display: optional`
+  - [ ] Versioned by filename
+  - [ ] Preloaded with `crossorigin`, and no `?v=` on either URL
+  - [ ] `.woff2` MIME registered at boot
+- **Icons** — [patterns/css-icons.md](../patterns/css-icons.md):
+  - [ ] CSS masks painted with `currentColor`
+  - [ ] `aria-hidden` on every icon
+  - [ ] Accessible name on the control
+  - [ ] No icon font, and no meaning carried by icon alone
+- [ ] Works at 320 px width
+- [ ] Works at 200% zoom
 
 ## Ship
 
-- [ ] README links to this baseline; any waived rule recorded in the format [README.md](../README.md) *Which rules can be waived* defines (rule, document, date, who, why, what contains it)
-- [ ] The binary satisfies every line of [operations/web-application.md](../operations/web-application.md): two listeners, stdout logs, SIGTERM shutdown, state under `DATABASE_URL`, secrets from `CREDENTIALS_DIRECTORY`
+- [ ] README links to this baseline
+- [ ] Any waived rule recorded in the format [README.md](../README.md) *Which rules can be waived* defines (rule, document, date, who, why, what contains it)
+- **The binary satisfies every line of [operations/web-application.md](../operations/web-application.md)**:
+  - [ ] Two listeners
+  - [ ] stdout logs
+  - [ ] SIGTERM shutdown
+  - [ ] State under `DATABASE_URL`
+  - [ ] Secrets from `CREDENTIALS_DIRECTORY`
 - [ ] It starts with an empty environment on `127.0.0.1:8080` — no deployment needed to try it
-- [ ] `GOMEMLIMIT` set by the deployment; version visible in `/healthz` and the boot log (`debug.ReadBuildInfo`) — and it is the git tag, not `unknown` and not a pseudo-version off an older major (past v1 the module path carries the `/vN` suffix — [operations/web-application.md](../operations/web-application.md) *Version stamping*)
-- [ ] TLS terminates in front of the app, the app is reachable from nothing else, and the proxy writes its own `X-Forwarded-For`
-- [ ] The off-box question is answered on purpose — "if this server disappears right now, what have you lost?" — with the matching row from [patterns/go-sqlite.md](../patterns/go-sqlite.md) running, and **the restore rehearsed once**
+- [ ] `GOMEMLIMIT` set by the deployment
+- **The version is visible in `/healthz` and the boot log** (`debug.ReadBuildInfo`) — [operations/web-application.md](../operations/web-application.md) *Version stamping*:
+  - [ ] It appears in both places
+  - [ ] It is the git tag — not the commit id or the per-boot id the reader answers for an untagged or edited build, which mean you did not release from a clean tagged checkout
+  - [ ] It is not a pseudo-version off an older major — past v1 the module path carries the `/vN` suffix
+- **In front of the app**:
+  - [ ] TLS terminates in front of the app
+  - [ ] The app is reachable from nothing else
+  - [ ] The proxy writes its own `X-Forwarded-For`
+- [ ] The off-box question is answered on purpose — "if this server disappears right now, what have you lost?" — with the matching row from [patterns/go-sqlite.md](../patterns/go-sqlite.md) running
+- [ ] **The restore rehearsed once**
 - [ ] Static assets served with `immutable` cache headers + version-busting query string
-- [ ] If installable (PWA): manifest, all four icons, and head lines per [patterns/pwa.md](../patterns/pwa.md); `.webmanifest` MIME registered at boot; no service worker; manifest colors and `theme-color` metas are the current `--color-bg`, converted
+- [ ] The buster is the three-case reader from [patterns/go-performance.md](../patterns/go-performance.md) — a released version, the commit for a clean checkout, a per-boot id for an edited tree, never a constant like `unknown` or a repeated `+dirty`
+- **If installable (PWA)** — [patterns/pwa.md](../patterns/pwa.md):
+  - [ ] Manifest, all four icons, and head lines in place
+  - [ ] `.webmanifest` MIME registered at boot
+  - [ ] No service worker
+  - [ ] Manifest colors and `theme-color` metas are the current `--color-bg`, converted
 - [ ] Deployed and rolled back at least once by following the operations repository's runbook, not by improvising

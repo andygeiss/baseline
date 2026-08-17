@@ -1,6 +1,6 @@
 # Pattern: Go CLI
 
-**Last verified: 2026-08-15**
+**Last verified: 2026-08-17**
 
 The mechanics behind [project-types/cli-tool.md](../project-types/cli-tool.md):
 process skeleton, flags, streams, exit codes, version reporting, testing.
@@ -194,6 +194,11 @@ so `unknown` only appears for builds without VCS metadata (`-buildvcs=false`,
 source tarballs), which carry no `vcs.*` build settings to fall back on either.
 Expose it as a `version` subcommand or
 `-version` flag — one of the two, matching the tool's shape.
+
+**This reader is for printing, not for naming files.** `unknown` and a repeated
+`+dirty` are harmless in a `-version` line and destructive as a cache-buster on
+`immutable` static assets — a tool that also serves assets uses the three-case
+reader in [go-performance.md](go-performance.md) instead.
 
 One trap, silent in both directions: **a v2+ tag only stamps as itself when the
 module path carries the matching major suffix** (`github.com/you/tool/v2`).

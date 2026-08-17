@@ -1,6 +1,6 @@
 # Operations: The Deployment Contract
 
-**Last verified: 2026-08-15**
+**Last verified: 2026-08-17**
 
 What the binary MUST do, and what any deployment MUST give it. This document is
 an interface, deliberately short. **How** it is satisfied — the proxy, the
@@ -62,19 +62,29 @@ code, and there when it changes only the server.**
 No ldflags ceremony — the toolchain already embeds VCS info, and `-trimpath`
 keeps it. `debug.ReadBuildInfo` reports it as `info.Main.Version`: the tag when
 HEAD sits on one, a pseudo-version otherwise, with `+dirty` appended when the
-tree had uncommitted changes. The canonical reader is `version()` in
-[patterns/go-cli.md](../patterns/go-cli.md) — it checks the `ok` result, because
-a binary built outside module mode gets no `BuildInfo` at all, and reading a
-field off the nil it returns panics at boot.
+tree had uncommitted changes. Every reader checks the `ok` result, because a
+binary built outside module mode gets no `BuildInfo` at all, and reading a field
+off the nil it returns panics at boot.
 
 Read it once at boot. That one string is the boot log line, the `/healthz`
-field, and the static-asset cache-buster
-(see [patterns/go-performance.md](../patterns/go-performance.md)). Release from
-clean, tagged checkouts, so no deployed version carries `+dirty`.
+field, and the static-asset cache-buster. Release from clean, tagged checkouts,
+so no deployed version carries `+dirty`.
+
+**The canonical reader for a web application is `resolveVersion` in
+[patterns/go-performance.md](../patterns/go-performance.md)**, not the shorter
+`version()` in [patterns/go-cli.md](../patterns/go-cli.md). The two answer
+different questions. A tool printing `-version` may say `unknown` and lose
+nothing; an asset cache-buster that repeats itself pins a stale stylesheet in
+every developer's browser for as long as the cache lives. Anything serving
+`immutable` static assets uses the three-case reader.
 
 Two things silently break the stamp wherever the build happens: a missing `.git`,
-and a missing `git` binary. Neither produces an error — every binary just
-reports `unknown`. A version of `unknown` at `/healthz` means one of the two.
+and a missing `git` binary. Neither produces an error — the build simply carries
+no VCS metadata, and each reader answers that differently. The CLI reader says
+`unknown`. `resolveVersion` falls through to a fresh boot id, so the symptom in a
+web application is a `/healthz` version that **changes on every restart**, not
+the word `unknown`. Seeing `unknown` at `/healthz` means something else entirely:
+that binary is using the CLI reader where it should be using the canonical one.
 
 **Past v1, "the tag" holds only if the module path says so.** Go accepts a
 `vX.Y.Z` tag for the main module only when the path ends in the matching major

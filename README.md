@@ -18,7 +18,7 @@ layered defaults rather than a checklist. Every rule exists to make the *default
 path the correct one — an agent that follows the documents verbatim ships a correct,
 hardened application without inventing anything.
 
-- **Last verified:** 2026-08-16
+- **Last verified:** 2026-08-17
 - **Format:** Markdown only, plus the MIT `LICENSE`. No code, no CI, no build
   steps. Documents are the product.
   The one piece of tooling is the root `Makefile`, which installs the baseline into
@@ -99,6 +99,7 @@ baseline/
 │   ├── go-http-client.md
 │   ├── go-http-server.md
 │   ├── go-library.md
+│   ├── go-llm-adapter.md
 │   ├── go-performance.md
 │   ├── go-ports-adapters.md
 │   ├── go-project-layout.md
@@ -209,11 +210,12 @@ Two mechanisms, and a release needs both.
   the reference resolves it.
 
 The standard, the tag gate, and what every run found live in
-[VERIFICATION.md](VERIFICATION.md). Current state: last run 2026-08-16, which
-added the project glossary and found thirty defects in the documents it changed —
-two of them visible only once the reference's own word list was written against
-real code. The reference is Go Chat, a chat application with a command-line
-client, and `verify.sh` is green.
+[VERIFICATION.md](VERIFICATION.md). Current state: last run 2026-08-17, which
+added the LLM adapter pattern and the rule for retiring one, and found seventeen
+defects over twelve passes — three of them introduced by its own fixes and caught
+by the pass after. The reference is Go Chat, a chat application with a
+command-line client and an assistant you mention in a room, and `verify.sh` is
+green.
 
 ## Maintenance protocol (humans)
 
@@ -229,6 +231,45 @@ client, and `verify.sh` is green.
   references behavior of that version, then bump the `Last verified:` dates.
 - **After moving anything out of this repository, sweep every consumer.** The
   operations split dropped facts its readers still needed. An extraction is not done
-  when the file moves; it is done when nothing left behind still depends on it.
+  when the file moves; it is done when nothing left behind still depends on it —
+  the same sweep *Retiring a pattern* spells out below.
 - New recurring decision in a project? Extract it into a pattern document here —
   the whole point is to never solve the same problem twice.
+
+### Retiring a pattern
+
+Documents arrive and never leave, and a corpus that only grows eventually costs
+more to re-verify than it saves. Every pattern is a standing bill: a re-read
+every ninety days, a place in the trigger table, and one more thing an agent may
+have to hold. Retiring one is ordinary maintenance, not failure.
+
+**Three signals. Any one is enough.**
+
+1. **Its subject is gone.** The technology, the API, or the shape it describes is
+   no longer in the stack. The rule has nothing left to govern.
+2. **Nothing has reached it in a year.** Not one project hit its trigger, and the
+   reference never exercised it. One project not reaching a pattern means nothing
+   — that is *unexercised*, and it is normal. Every project missing it for a year
+   is the signal.
+3. **Another document now says the same thing.** Two documents on one subject is
+   a collision waiting to happen; merge them and retire the loser.
+
+**Tier 1 is retired only on signal 1.** A safety rule nobody happened to exercise
+is not a safety rule nobody needs — disuse is never a reason to drop CSRF,
+escaping, the SQLite pragmas, or a pin that names a security fix.
+
+**A half-removed pattern is worse than a kept one**, because a dangling link is a
+dead end for an agent mid-task. Removing one is therefore a sweep, in this order:
+
+1. **Write down why first**, in [VERIFICATION.md](VERIFICATION.md). That entry is
+   the tombstone — dated, and saying what replaced the document. There are no
+   stub files; the run log is where a retired name stays findable.
+2. **Move anything still true** to the document that now owns it. Retirement is
+   not a way to lose a rule by accident.
+3. **Delete the file, then sweep every consumer** — `git grep` its filename and
+   fix each hit: this README's tree, the [`project-types/`](project-types/)
+   trigger tables, the [`checklists/`](checklists/) boxes, cross-links in other
+   patterns, and the reference implementation with its `SPEC.md`.
+4. **Ship it as a breaking change.** The corpus loses a rule, so the commit
+   carries `!` and the release is a major — the operations split was v3.0.0 for
+   exactly this reason.

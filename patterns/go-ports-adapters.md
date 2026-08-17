@@ -1,6 +1,6 @@
 # Pattern: Ports & Adapters (Go)
 
-**Last verified: 2026-08-15**
+**Last verified: 2026-08-17**
 
 The one decision this document owns: **how your code meets somebody else's
 system.** A *port* is the small interface your code needs. An *adapter* is the
@@ -217,6 +217,17 @@ mechanism keeps it tied to reality, and at one adapter it is enough:
     do not control and cannot run in CI. Faking your own store replaces the SQL
     — the thing most likely to be wrong — with a Go map that always agrees with
     you.
+
+## When the other side is a language model
+
+Every rule above still holds, and [go-llm-adapter.md](go-llm-adapter.md) adds
+what a model needs on top of them: the prompt lives in `domain` so two adapters
+cannot drift, a refusal is a sentinel rather than an error, the visible text can
+leak the model's own reasoning, and the degenerate adapter that lets the app
+start with an empty environment is a **product mode** in `internal/` — not the
+fake in `_test.go`, which is rule 6 above and a different thing. Read that
+document before the first request; it also names the one skill that owns the
+wire details, which this repository deliberately does not.
 
 ## Anti-patterns
 

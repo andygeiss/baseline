@@ -1,10 +1,10 @@
 # House Style: Writing for Humans
 
-**Last verified: 2026-08-12**
+**Last verified: 2026-08-17**
 
 This document governs everything we write for people: README files and docs,
-commit messages, Go source comments, and prompts for LLMs (AI language
-models). One bar applies to all of it:
+commit messages, Go source comments, error messages, and prompts for LLMs (AI
+language models). One bar applies to all of it:
 
 > **A smart 10-year-old could follow it.**
 
@@ -123,6 +123,38 @@ POST /games/{id}/rematch creates the new game and 303s into it.
 // Good: states the constraint the code cannot show.
 // Process users in ID order so reruns produce byte-identical output.
 ```
+
+## Error messages
+
+An error message is the most-read writing in a binary, and the person reading it
+is stuck. Everything above applies, plus one rule of its own:
+
+> **Name the fix, not just the fault.**
+
+A message that names only the fault leaves the reader to guess the action. Say
+what is wrong, where, and what to do:
+
+```
+brain "claude": no key — put it in $CREDENTIALS_DIRECTORY/anthropic-key
+tts-ref-audio "voices/jarvis.opus": no transcript — set -tts-ref-text, or write
+what the recording says into "voices/jarvis.txt"
+port "http": want a number from 0 to 65535
+```
+
+- **Lowercase, no trailing period, no "failed to".** The caller adds its own
+  context and the chain reads as one sentence
+  ([patterns/go-errors-logging.md](patterns/go-errors-logging.md)).
+- **Quote the value you were given** with `%q`, so a stray space or an invisible
+  character shows up instead of hiding.
+- **Name the flag, file, or variable the reader has to change**, spelled the way
+  they type it — `-tts-ref-text`, not "the reference text setting".
+- **Do not apologise, and do not explain the internals.** "Something went wrong"
+  says nothing, and an internal chain says too much to the wrong person: that
+  goes to the log, and the operator gets the line above
+  ([patterns/go-errors-logging.md](patterns/go-errors-logging.md)).
+
+**Before:** `Error: invalid configuration`
+**After:** `brain "claude": no key — put it in $CREDENTIALS_DIRECTORY/anthropic-key`
 
 ## LLM prompts
 

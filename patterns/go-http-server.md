@@ -1,6 +1,6 @@
 # Pattern: Go HTTP Server
 
-**Last verified: 2026-08-15**
+**Last verified: 2026-08-17**
 
 Stdlib only. `net/http.ServeMux` (Go 1.22+ pattern routing) covers everything a
 router package used to do.
@@ -63,8 +63,8 @@ func (a *App) handleGameShow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	a.render(w, r, http.StatusOK, "game.html", "", game)
-	// "" = full page. Mutation handlers: fragment (200) only when
-	// HX-Request && !HX-Boosted, otherwise 303 (PRG) — see htmx-server-rendering.md.
+	// "" = full page. Mutation handlers: fragment (200) only when isFragment(r),
+	// otherwise 303 (PRG) — one discriminator, see htmx-server-rendering.md.
 }
 ```
 
@@ -136,6 +136,67 @@ srv := &http.Server{
 - Request-scoped work uses `r.Context()` all the way down so client disconnects
   cancel DB queries.
 
+## The timeout ladder
+
+Every layer above has a timeout, and [go-http-client.md](go-http-client.md) adds
+two more on the way out. Setting each one sensibly on its own is not enough:
+**their order decides which one fires, and only the innermost one can still
+produce an answer.**
+
+A handler that calls somebody else's system owns a deadline of its own:
+
+```go
+// turnBudget bounds one whole unit of work: transcribe, reason, speak. It must
+// stay shorter than the server's write timeout, so a wedged dependency ends the
+// work rather than the connection.
+//
+// A budget this long does not fit the canonical ladder as shipped: it needs
+// WriteTimeout widened past the 30 s above (the waiver below) and the outbound
+// client's 10 s Timeout raised to match (go-http-client.md). Adopting a budget
+// means setting all three, in that order — a 90 s budget under a 30 s socket is
+// the first failure in the list below.
+const turnBudget = 90 * time.Second
+
+func (a *App) handleTurn(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), turnBudget)
+	defer cancel()
+	// every call below takes ctx, so one deadline governs the whole path
+}
+```
+
+| Layer | Setting | Where it sits |
+|---|---|---|
+| Server | `WriteTimeout` | **above** the budget — the handler ends the work, not the socket |
+| Handler | `context.WithTimeout` | **the budget**: one owner per request path |
+| Outbound client | `http.Client.Timeout` | **at or above** the budget — the budget is what gives up |
+| Outbound transport | `ResponseHeaderTimeout` | **below** the client timeout — tells a silent server from a slow download |
+
+Get the order wrong and the failure is silent in both directions:
+
+- **`WriteTimeout` below the budget** kills the connection while the handler is
+  still working. The client sees a truncated response, the handler carries on
+  and logs a success, and nothing in the logs names a timeout.
+- **A client timeout below the budget** makes "this dependency is slow" and "we
+  gave up on it" the same event. The retry policy in
+  [go-http-client.md](go-http-client.md) then spends the budget re-asking a
+  dependency that was about to answer.
+
+**Raising the client timeout to meet the budget retires the retries on that
+path**, and that is the trade, not an oversight: `Timeout` bounds one attempt
+([go-http-client.md](go-http-client.md)), so once it reaches the budget the first
+attempt can use the whole of it and the context ends the work before a second one
+starts. One owner gives up, and under a budget it is the budget.
+
+**A handler that inherits only `r.Context()` has no deadline of its own.** It
+runs until the client disconnects or `WriteTimeout` kills the socket. That is
+fine for a query measured in milliseconds, and wrong for anything that waits on
+another system.
+
+Widening `WriteTimeout` past the 30 s above is a tier-2 waiver
+([README.md](../README.md)) — record it, and name the handler budget that
+contains it. "The work takes longer than 30 s" is the reason to add a budget,
+not the reason to skip one.
+
 ## Background work
 
 Anything periodic (session janitor, `VACUUM INTO` backups) runs under the same signal
@@ -147,13 +208,55 @@ ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SI
 defer stop()
 
 g, ctx := errgroup.WithContext(ctx)
-g.Go(func() error { return serve(ctx, srv) })     // ListenAndServe; Shutdown when ctx is done
-g.Go(func() error { return janitor(ctx, store) }) // ticker loop; returns when ctx is done
+g.Go(func() error { return serve(ctx, srv) })  // ListenAndServe; Shutdown when ctx is done
+g.Go(func() error { return janitor(ctx, store, logger, 6*time.Hour) }) // ticker loop; returns when ctx is done
 err := g.Wait()
 ```
 
 Every worker takes `ctx`, selects on `ctx.Done()` in its loop, and returns — process
 exit is gated on `g.Wait()`, so nothing is killed mid-write.
+
+**Do the work once before the first tick:**
+
+```go
+func janitor(ctx context.Context, store *store.Store, logger *slog.Logger, every time.Duration) error {
+	purge := func() {
+		n, err := store.PurgeExpired(ctx)
+		switch {
+		case errors.Is(err, context.Canceled):
+			// Shutting down over a purge is not a fault. Logging it as one puts
+			// an ERROR line in every orderly stop that lands on this.
+		case err != nil:
+			logger.Error("purge", "error", err)
+		case n > 0:
+			logger.Info("purged", "rows", n)
+		}
+	}
+
+	purge() // before the loop — see below
+
+	ticker := time.NewTicker(every)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+			purge()
+		}
+	}
+}
+```
+
+`time.NewTicker` does not fire at zero, so **a process restarted more often than
+the interval never reaches a tick at all.** That is every binary under
+development, and every service that deploys more often than it cleans up. The
+loop looks like it is running, `g.Wait()` is holding it open, and the table it
+was meant to trim grows forever. One call before the loop is the whole fix.
+
+The `context.Canceled` branch is the other half: shutdown cancels the context
+mid-purge, and without that case every orderly stop logs an error nobody should
+go looking at.
 
 ## The ops listener
 
