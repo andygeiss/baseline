@@ -12,7 +12,8 @@ package used to do.
 ## Routing
 
 All routes registered in one file (`internal/app/routes.go`) so the URL surface is
-readable at a glance:
+readable at a glance. What guards each one is tier 1 and lives in
+[go-authorization.md](go-authorization.md):
 
 ```go
 // Routes is exported: cmd/server/main.go sets it as the http.Server handler.
@@ -98,10 +99,11 @@ Outermost → innermost:
    middleware live in [security-headers.md](security-headers.md).
 4. **CSRF: `http.NewCrossOriginProtection()`** (stdlib, Go 1.25+) — rejects unsafe
    cross-origin requests via `Sec-Fetch-Site`, falling back to Origin-vs-Host. No tokens,
-   no per-form wiring. Only pre-2020 browsers lack these headers, and `SameSite=Lax`
-   session cookies are the independent second layer. Do not add a token library on top.
+   no per-form wiring. Only pre-2020 browsers lack these headers. Do not add a token
+   library on top.
 5. `sessions.LoadAndSave` ([go-auth-sessions.md](go-auth-sessions.md)), then
-   `requireAuth` on protected route groups only. Static assets never reach it.
+   `requireAuth` on the private routes — never one route at a time, which fails open
+   ([go-authorization.md](go-authorization.md)). Static assets never reach it.
 6. `http.MaxBytesHandler(mux, 1<<20)` — innermost: bodies capped at 1 MiB so `ParseForm`
    on a hostile body can't exhaust memory. An outer cap **cannot be raised downstream**,
    because the body is already wrapped in the smaller `MaxBytesReader` before the handler

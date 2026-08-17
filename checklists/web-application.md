@@ -9,10 +9,11 @@ you call the work complete. Paths are from the repository root.
 Every unchecked box is either fixed or waived on the record — the waiver format lives in
 `README.md` under *Which rules can be waived*. **Tier 1 is decided by what a rule
 protects, not by which section it landed in**, so a wholly tier-1 section says so in its
-heading. Three sections are only partly tier 1: `Config.LogValue` and the three `.env`
+heading. Four sections are only partly tier 1: `Config.LogValue` and the three `.env`
 boxes under *Reading a flag…*; the pragmas, both pools, and parameterized SQL under
-*Storing anything*; the zero-CSP-violations check under *Adding an icon*. No waiver for
-any of those; there is a fix.
+*Storing anything*; the zero-CSP-violations check under *Adding an icon*; every box under
+*Reading or writing a row somebody owns* except the one naming the shared rows. No waiver
+for any of those; there is a fix.
 
 ## Every web application
 
@@ -230,15 +231,16 @@ once.
 - [ ] Read from `Authorization: Bearer`, never from the query string
 - [ ] Revoked by DELETE
 
-## Reading or writing a row somebody owns — tier 1, not waivable
+## Reading or writing a row somebody owns
 
-`patterns/go-authorization.md` — the actor in the signature, the predicate in the SQL, 404
-for somebody else's row.
+`patterns/go-authorization.md` — the actor in the signature, the predicate in the SQL, and
+somebody else's row answering like one that never existed.
 
 - [ ] Every store method touching an owned row takes the actor as a parameter
 - [ ] Ownership is a predicate in the SQL, never a comparison in Go
 - [ ] The actor comes from the session — never a form field, a query parameter, or the path
-- [ ] Somebody else's row and a row that never existed answer identically, and never 403
+- [ ] Somebody else's row and a row that never existed answer identically
+- [ ] No route answers 403 for a row, only for a route the actor may never use
 - [ ] Lists, counts, and aggregates carry the same predicate
 - [ ] Writes prove ownership in their own statement and check `RowsAffected`
 - [ ] A route's protection is not optional where it is registered — omitting it fails closed or fails to compile

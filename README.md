@@ -167,6 +167,10 @@ below is what it currently catches, not the definition.
   machine-token rule ([patterns/go-auth-sessions.md](patterns/go-auth-sessions.md)).
 - Parameterized SQL, the SQLite pragmas, and the single-writer pool
   ([patterns/go-sqlite.md](patterns/go-sqlite.md)).
+- Whether the signed-in actor may touch the row it asked for: the actor in the store
+  signature, the predicate in the SQL, the two answers being indistinguishable, and a
+  route's protection not being optional where it is registered
+  ([patterns/go-authorization.md](patterns/go-authorization.md)).
 - Any version pin whose note names a security fix.
 - Every rule about how a secret is handled: a secret arrives as a file and `LogValue`
   keeps it out of the logs ([patterns/go-config.md](patterns/go-config.md) *Secrets*), a

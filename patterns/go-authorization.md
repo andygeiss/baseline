@@ -2,9 +2,9 @@
 
 **Tier 1** (safety — never waived) · Last verified: 2026-08-17
 
-The actor in the store signature, the predicate in the SQL, the 404 for a row the actor
-does not own, and the private-by-default mount are tier 1. Where a role check lives, once
-a project has roles at all, is tier 2.
+The actor in the store signature, the predicate in the SQL, the two answers being
+indistinguishable, and a route's protection not being optional where it is registered are
+tier 1. Naming the shared rows and deciding where a role check lives are tier 2.
 
 [go-auth-sessions.md](go-auth-sessions.md) answers *who is signed in*. This document
 answers the question after it, and that one is where data leaks: *may this actor touch
@@ -56,8 +56,8 @@ The rules behind it — all MUST:
 5. **Lists, counts, and every aggregate carry the predicate too.** The detail read is the
    one people remember; `SELECT count(*) FROM games` is the one that ships.
 6. **A write proves ownership in its own statement.** `UPDATE games SET state = ? WHERE id
-   = ? AND user_id = ?`, then check `RowsAffected` — zero means not theirs, and it is the
-   same 404. A read followed by an unqualified write is two statements where one would do.
+   = ? AND user_id = ?`, then check `RowsAffected` — zero means not theirs, and it answers
+   by rule 4. A read followed by an unqualified write is two statements where one would do.
 7. **Sentinels stay at the store boundary.** Callers see `domain.ErrNotFound`, never a
    `database/sql` error ([go-errors-logging.md](go-errors-logging.md)).
 
@@ -71,11 +71,13 @@ protection classes the app has.
 **One class, all under one prefix — mount a second mux.**
 
 ```go
+pub := http.NewServeMux() // the public routes are registered on this one
 app := http.NewServeMux() // everything registered here is behind requireLogin
+app.HandleFunc("GET /games", a.games)
 app.HandleFunc("GET /games/{id}", a.game)
 app.HandleFunc("POST /games/{id}/move", a.move)
 
-pub.Handle("/games", a.requireLogin(app)) // the collection path
+pub.Handle("/games", a.requireLogin(app))  // the collection path
 pub.Handle("/games/", a.requireLogin(app)) // and everything under it
 ```
 
@@ -83,9 +85,9 @@ The inner mux matches the full request path, so its patterns are written out in 
 Forgetting a mount fails closed — the route 404s rather than serving unchecked.
 
 ⚠️ **Mount both paths.** A pattern ending in `/` does not cover the collection path
-itself: with only `"/games/"` registered, `GET /games` becomes a 307 to `/games/`, which
-the inner mux — holding `GET /games` — then 404s. The list route disappears, and it
-disappears at runtime.
+itself: with only `"/games/"` registered, `GET /games` becomes a redirect to `/games/`
+(307 on Go 1.26), which the inner mux — holding `GET /games` — then 404s. The list route
+disappears, and it disappears at runtime.
 
 **More than one class, or paths that do not nest — put the class in a route table.**
 
@@ -93,17 +95,17 @@ disappears at runtime.
 type access int
 
 const (
-	_      access = iota // not a class: an omitted one must not mean "public"
-	public               // no credential
-	page                 // session or token; a browser without one gets the sign-in page
-	api                  // session or token; a program without one gets 401 and JSON
+	_        access = iota // not a class: an omitted one must not mean "public"
+	public                 // no credential
+	pageAuth               // session or token; a browser without one gets the sign-in page
+	apiAuth                // session or token; a program without one gets 401 and JSON
 )
 
 // Positional literals, so a route with no access class does not compile.
 routes := []route{
 	{"GET /login", public, a.handleLoginForm},
-	{"GET /rooms", page, a.handleRoomList},
-	{"GET /api/me", api, a.handleAPIMe},
+	{"GET /rooms", pageAuth, a.handleRoomList},
+	{"GET /api/me", apiAuth, a.handleAPIMe},
 }
 ```
 
@@ -151,9 +153,11 @@ if res := bob.get(t, "/games/"+game.ID); res.StatusCode != http.StatusNotFound {
 }
 ```
 
-Write it for the write routes as well as the read routes — a POST that moves someone
-else's game is the same bug with worse consequences. `-race` and the rest of the suite
-are unchanged ([go-testing.md](go-testing.md)).
+Write it for the write routes too — a POST that moves someone else's game is the same bug
+with worse consequences. There, assert the route's own answer *and* that the row did not
+move: a refused write and a successful one can share a status code, so the status alone
+proves nothing. `-race` and the rest of the suite are unchanged
+([go-testing.md](go-testing.md)).
 
 ## Anti-patterns
 
@@ -166,5 +170,3 @@ are unchanged ([go-testing.md](go-testing.md)).
 - ❌ An unguessable id as the protection. A random id is not a permission: it lands in
   logs, browser history, and pasted screenshots, and it stays valid for everyone who has
   ever seen it.
-- ❌ Ownership in a middleware. It has to fetch the row to answer, so the app pays two
-  queries for something the one query already knew — and the two can disagree.

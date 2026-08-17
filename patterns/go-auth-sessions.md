@@ -11,6 +11,10 @@ the record.
 Server-side sessions: the cookie carries only a random token; all session data lives in
 SQLite. Nothing is decrypted client-side, nothing to key-rotate, revocation is a DELETE.
 
+This document answers *who is signed in*, and stops there. *May that actor touch this
+row* is the next question and a separate tier-1 document:
+[go-authorization.md](go-authorization.md).
+
 ## Session manager
 
 Constructed in `main.go`, injected like every other dependency:
