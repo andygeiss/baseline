@@ -238,10 +238,11 @@ for somebody else's row.
 - [ ] Every store method touching an owned row takes the actor as a parameter
 - [ ] Ownership is a predicate in the SQL, never a comparison in Go
 - [ ] The actor comes from the session — never a form field, a query parameter, or the path
-- [ ] Somebody else's row answers 404, never 403
+- [ ] Somebody else's row and a row that never existed answer identically, and never 403
 - [ ] Lists, counts, and aggregates carry the same predicate
 - [ ] Writes prove ownership in their own statement and check `RowsAffected`
-- [ ] Private routes are registered on a mux mounted behind `requireLogin`, not wrapped one by one
+- [ ] A route's protection is not optional where it is registered — omitting it fails closed or fails to compile
+- [ ] The rows nobody owns are named in `README.md` or `DESIGN.md`
 - [ ] The two-user test covers every handler that touches an owned row, reads and writes
 
 ## Accepting a form POST

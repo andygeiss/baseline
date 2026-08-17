@@ -46,10 +46,13 @@ The rules behind it — all MUST:
 3. **The actor comes from the session, never from the request.** A `user_id` in a form
    field, a query parameter, or a hidden input is user input, and so is the id in the
    path.
-4. **A row the actor does not own is missing, not forbidden — `domain.ErrNotFound`, 404.**
-   A 403 confirms the row exists, which turns the id space into a directory an attacker
-   can walk. Reserve 403 for a route the actor may never use at all, where existence is
-   not the secret.
+4. **Somebody else's row and a row that never existed answer identically.** That property
+   is the rule; the status code follows the route. A render answers `domain.ErrNotFound` →
+   404, and a mutation that redirects answers with its ordinary redirect and a flash — "that
+   token is already gone" — because a revoked row and another user's row are the same
+   sentence to the person reading it. **Never 403**, which confirms the row exists and turns
+   the id space into a directory an attacker can walk. Reserve 403 for a route the actor may
+   never use at all, where existence is not the secret.
 5. **Lists, counts, and every aggregate carry the predicate too.** The detail read is the
    one people remember; `SELECT count(*) FROM games` is the one that ships.
 6. **A write proves ownership in its own statement.** `UPDATE games SET state = ? WHERE id
@@ -60,28 +63,67 @@ The rules behind it — all MUST:
 
 ## Private by default
 
-Two muxes, so a new route is signed-in because of where it was registered rather than
-because whoever added it remembered a wrapper:
+**A route's protection MUST NOT be optional where the route is registered.** Wrapping each
+handler by hand reads well and fails open: the day somebody adds a route and forgets the
+wrapper, it is public, and nothing says so. Two shapes hold the invariant. Pick by how many
+protection classes the app has.
+
+**One class, all under one prefix — mount a second mux.**
 
 ```go
-pub := http.NewServeMux()
-pub.HandleFunc("GET /{$}", a.home)
-pub.HandleFunc("POST /login", a.login)
-
-app := http.NewServeMux() // everything here is behind requireLogin
+app := http.NewServeMux() // everything registered here is behind requireLogin
 app.HandleFunc("GET /games/{id}", a.game)
 app.HandleFunc("POST /games/{id}/move", a.move)
 
-pub.Handle("/games/", a.requireLogin(app))
+pub.Handle("/games", a.requireLogin(app)) // the collection path
+pub.Handle("/games/", a.requireLogin(app)) // and everything under it
 ```
 
-The inner mux matches the full request path, so its patterns are written out in full and
-no prefix gets stripped. Forgetting the mount line fails closed — the route 404s instead
-of serving without a check — which is the whole reason to spend a second mux. Routing
-still lives in one file ([go-http-server.md](go-http-server.md)).
+The inner mux matches the full request path, so its patterns are written out in full.
+Forgetting a mount fails closed — the route 404s rather than serving unchecked.
+
+⚠️ **Mount both paths.** A pattern ending in `/` does not cover the collection path
+itself: with only `"/games/"` registered, `GET /games` becomes a 307 to `/games/`, which
+the inner mux — holding `GET /games` — then 404s. The list route disappears, and it
+disappears at runtime.
+
+**More than one class, or paths that do not nest — put the class in a route table.**
+
+```go
+type access int
+
+const (
+	_      access = iota // not a class: an omitted one must not mean "public"
+	public               // no credential
+	page                 // session or token; a browser without one gets the sign-in page
+	api                  // session or token; a program without one gets 401 and JSON
+)
+
+// Positional literals, so a route with no access class does not compile.
+routes := []route{
+	{"GET /login", public, a.handleLoginForm},
+	{"GET /rooms", page, a.handleRoomList},
+	{"GET /api/me", api, a.handleAPIMe},
+}
+```
+
+The wrapper that reads a class MUST panic on anything it does not know, the zero value
+included: an unrecognised class is a programming error, and answering it with "public" is
+the one wrong answer. Boot is the right time to find out. Routing still lives in one file
+([go-http-server.md](go-http-server.md)), and a test walks the table to prove every
+non-public row turns an anonymous request away.
 
 `requireLogin` decides only whether somebody is signed in. It MUST NOT decide who owns
 what: that answer needs the row, and the query that fetches the row already has it.
+
+## Say which rows are shared
+
+**A project MUST name the rows nobody owns.** Rooms everyone in the company can read,
+a public price list, an audit log every admin sees — for these there is no actor
+predicate, and that is correct. But a missing predicate and a forgotten one look
+identical in a diff, so the project states the answer where the shape lives: `README.md`
+or `DESIGN.md`, one line per table. A reader who cannot tell "shared by design" from
+"we forgot" has to re-derive the whole model before touching a query.
 
 ## Roles, when a project grows them
 
