@@ -48,68 +48,126 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Owed: the read-path sweep, and the fusion that ended the router.** Two rounds of work
-sit between the v3.6.0 tag and now. The first round is the one recorded at the bottom of
-this section, and it never shipped: it split each project type's trigger table into a
-`-triggers.md` router. The second round supersedes it. Nothing here adds, removes, or
-rewords a rule.
-
-1. **Router and checklist fused into one file per project type.** The routers are gone;
-   [`checklists/`](checklists/) now carries one section per topic — the moment it fires,
-   the document that rules it, and the boxes it will be checked against. Every one of the
-   twenty documents a checklist bold-bullet named was already a router row, so the two
-   files were the same rows with different payloads. A change reads the sections it
-   fires and gets both halves in one hop; a milestone walks the boxes in the same file.
-   `SKILL.md`, the three [`project-types/`](project-types/) documents, and README repoint.
-2. **The fusion made a whole defect class unrepresentable, and immediately caught one.**
-   A row pointing at a document no box checks cannot be written any more, because the row
-   *is* the box's heading. Wiring the CLI checklist surfaced exactly that: its router had
-   pointed at `patterns/go-sqlite.md` since it existed and no box ever checked it. Three
-   boxes added, verbatim from that document — pragmas, parameterized queries, forward-only
-   migrations. This is the v3.5.1 failure (*a pattern nothing pointed at*) caught by
-   structure rather than by a reviewer.
-3. **Write to the reader's competence** — a new rule in README *Size budgets*, applied to
-   `go-http-client.md` and `go-config.md`. Code that a competent Go engineer writes
-   correctly from the rule sentence (`sleep`, `jitter`, `retryAfter`, `idempotent`,
-   `retryableStatus`, a table test, a `main` switch, `readCredential`) is replaced by its
-   contract; code that carries a trap (`DefaultTransport` cloning, `Do` returning nil for
-   a 500, a nil `GetBody` replaying an empty body) stays. `go-http-client.md` fell
-   4,573 → 3,774, its code half halving.
-4. **Anti-pattern lists keep what names an alternative, and lose what restates a rule.**
-   2,627 → 2,129 words across twenty documents. `go-background-work.md` and
-   `llm-prompting.md` lose the section entirely — every bullet inverted a rule stated a
-   paragraph earlier. Every ❌ naming something a reader would otherwise reach for (resty,
-   viper, Google Fonts, an icon font, gomock) stays, as does every one carrying a fact.
-5. **`DOC_BUDGET` counts code as well as prose,** at 3,800 for the two together. The old
-   split budget was gameable in exactly the direction item 3 moves: the first pass over
-   `go-http-client.md` passed the code cap and blew the prose cap without changing a word
-   anybody reads. The split is still printed, as a diagnosis.
-6. **`make tokens` ranks the mass on each reach path** and marks each document *always* or
-   *trigger*. Size alone does not say what is worth shrinking; size times how often it is
-   read does, and how often is judgement the Makefile should not pretend to know.
-7. **The run log keeps its three newest entries in full**, and older ones compress into
-   *Earlier runs*. v3.5.0 is the first collapsed under it — this file was the largest in
-   the repository and the only one that grows by construction.
-
-**What a run must check.** That no rule was lost in the fusion — box counts reconcile at
-306 → 307 (−2 duplicate boxes merged in web-application, +3 from item 2) and RFC-2119
-keywords hold at 142 corpus-wide; that every trigger section names a document that exists
-and every document reachable by a project type has a section; that an agent handed only a
-checklist can do a change end to end *and* close out a milestone; that item 3 removed no
-rule with the code it removed, read snippet by snippet against the pre-sweep versions;
-and that the compressed v3.5.0 entry still carries every finding a future run would
-otherwise re-derive.
-
-Measured after the change, for a web application — an ordinary change 8,091 → 6,980
-(−14%), floor plus checklist 20,287 → 19,182 (−5%), reach 87,445 → 80,822 (−8%), hot
-corpus 95,068 → 91,918. `FLOOR_BUDGET` is 19,500 against a floor that now *includes* the
-checklist, where the old 16,500 excluded it: the number changed meaning, not just value.
-`make tokens` is green.
-
+**Nothing owed.** The gate is open.
 
 ## Run log
 
 Newest first.
+
+### 2026-08-17 — the router folded into the checklist (v3.7.0)
+
+The release that ended the router two days after inventing it. v3.6.0 measured what an
+agent reads; this one attacked the largest number that measurement produced — **an
+ordinary change to a conforming project**, which is the thing anyone does most often and
+was paying 8,091 tokens for a web application.
+
+  ordinary change   8,091 → 6,980 tokens   (−14%)
+  floor + checklist 20,287 → 19,182        (−5%)
+  reach             87,445 → 80,822        (−8%)
+  hot corpus        95,068 → 91,918 · 51 → 48 files
+
+**Seven defects over twelve adversarial passes**, the last two clean. Two of the seven
+were introduced by the run's own fixes and caught by the pass after — the same ratio, and
+the same lesson, as v3.5.0: run the pass after the one that looks finished.
+
+**The router and the checklist were the same rows with different payloads.** Every one of
+the twenty documents a checklist bold-bullet named was already a router row; one said
+*read this*, the other said *and this is what done looks like*. They are one file per
+project type now, one section per topic: the moment it fires in gerund form, the document
+that rules it, and the boxes it is checked against. A change reads the sections it fires
+and gets both halves in one hop; a milestone walks the same file's boxes. The routers
+split out for v3.6.0 never shipped — they existed only in a working tree, so nothing
+downstream ever saw them.
+
+**The fusion made a defect class unrepresentable, and caught one on the way in.** A row
+pointing at a document no box checks cannot be written any more, because the row *is* the
+box's heading. Wiring the CLI checklist surfaced exactly that: its router had pointed at
+[patterns/go-sqlite.md](patterns/go-sqlite.md) since it existed and **no box ever checked
+it**. Three boxes added, verbatim from that document. This is the v3.5.1 failure — *a
+pattern nothing pointed at* — caught by structure rather than by a reviewer, which is the
+only kind of fix that keeps working after everyone stops paying attention.
+
+**Write to the reader's competence**, a new rule in [README.md](README.md) *Size budgets*.
+The reader is a capable Go engineer, and every line spent on what it already knows is a
+line it pays to skip. The test is one question: *would a competent engineer get this wrong
+from the rule sentence alone?* No for `sleep`, `jitter`, `retryAfter`, `idempotent`,
+`retryableStatus`, a table test, a `main` switch, `readCredential` — so the contract is
+the payload and the body is overhead. Yes for `http.DefaultClient` having no timeout, `Do`
+returning nil for a 500, a nil `GetBody` replaying an empty body the server accepts — so
+those stay in code. [patterns/go-http-client.md](patterns/go-http-client.md) fell
+4,573 → 3,774 with its code half halved. [patterns/design-system.md](patterns/design-system.md)
+was held against the same test and left alone: its 120-line `DESIGN.md` template *is* the
+payload, and the test says so.
+
+**The same test governs an anti-pattern list.** 2,627 → 2,129 words across twenty
+documents. Every ❌ naming something a reader would otherwise reach for (resty, viper,
+Google Fonts, an icon font, gomock) stays, as does every one carrying a fact stated
+nowhere else; every ❌ that inverts a rule the document already made is gone, because that
+is duplication inside a single read path. `go-background-work.md` and `llm-prompting.md`
+lost the section entirely — every bullet restated a rule from a paragraph earlier.
+
+**What the adversarial half found.** Seven defects, all fixed. The first is the one that
+mattered:
+
+1. **Thirteen tier-1 boxes silently became waivable.** Tier 1 was defined positionally —
+   "everything under *Security* in the checklists" — and the fusion scattered those boxes
+   across the topic sections that fire them: session cookies, machine tokens, argon2id,
+   auth rate limiting, constant-time login, parameterized SQL, and the icon CSP check all
+   left *Security* for a section the preamble did not name. v3.6.0 had already replaced
+   the positional *definition* with a test; it left the positional *enumeration* in place,
+   and the fusion is what turned that into a safety hole. A wholly tier-1 section now says
+   so in its heading, and the three partly tier-1 sections name their boxes in the
+   preamble.
+2. **[README.md](README.md)'s tier-1 list still pointed at sections that no longer
+   exist** — *Security* and *Code quality*. Rewritten to name what each rule protects and
+   to say the checklists mark tier 1 rather than imply it.
+3. **Five documents claimed their rule lived "under *Security*" in a checklist.**
+   `go-auth-sessions`, `security-headers`, `go-sqlite`, `htmx-server-rendering`, and
+   `go-forms-validation` now say *tier 1 wherever a checklist files it*. Two of the five
+   were found only after a broader grep than the one that found the first three — the
+   first pattern searched for `under *Security*` and missed `the checklists' *Security*
+   section`.
+4. **One rule narrowed.** *Every form control labeled* had moved from an unconditional
+   section to *Accepting a form POST* — but a GET-only search box has form controls and
+   fires no such trigger. Back under *Every web application*. This is the fusion's
+   characteristic failure mode, and the pass that found it was the one that enumerated
+   every box that moved from an unconditional section into a conditional trigger. Every
+   other such move lands on a trigger that fires for effectively every project of the type
+   (writing CSS, laying out a page, rendering a response, writing a test) or is genuinely
+   conditional (icons, web fonts, a glossary, secrets).
+5. **Two budget regressions, both introduced by the fixes above**, both caught by the next
+   pass: the tier-1 preamble put the change path 50 tokens over, and the sentence
+   explaining defect 4 put it 13 over. Fixed by cutting rationale out of the most-paid
+   document in the corpus rather than by raising the budget to fit — a budget raised to
+   accommodate its own author's growth is not a budget.
+6. **The v3.6.0 entry overstates its gate count.** It records **61 gates**; `verify.sh` is
+   byte-identical to the v3.6.0 tag and runs **60**. Same bookkeeping class as the count
+   defect v3.5.0 found, and the reason that run's standing check exists.
+
+**No rule was lost, and here is how that was checked** rather than asserted. Checklist
+boxes reconcile at **306 → 307**: minus two duplicates merged in web-application (a second
+*No service worker*, and a backups box that restated the ship-section one), plus three
+from defect-class item 2. Every pre-fusion box was then matched to a counterpart in the
+fused files by keyword, all 306 accounted for. RFC-2119 keywords in governing documents
+hold at **135 → 136**, the one addition being a `MAY` permitting a trigger section to
+carry no box where the document rules something no milestone can verify. The first
+matcher written for this check was itself defective — it required three keywords, so every
+short box failed it — which is worth recording: *a clean result from a check nobody
+validated is not evidence.*
+
+Every trigger section names a document that exists; every `patterns/`, `stack/`, and
+`operations/` document is reachable from a checklist or a *Required reading* list; every
+markdown link in the corpus resolves; no checklist repeats a box; and the v3.5.0 standing
+check on undeclared identifiers passes for both documents item 3 touched.
+
+**Empirical half: closed, before the tag.** No rule this repository implements changed,
+which is the claim the run had to test rather than assume — so the three new CLI
+`go-sqlite` boxes were traced: SQLite in the reference lives only in `cmd/server` and
+`internal/store`, the `gochat` client stores nothing between runs, the trigger never
+fires, and those boxes are **unexercised** there rather than failing. Reference synced and
+tagged v3.7.0 (`23a54fd`), its `SPEC.md` pinning this release's commit `8795f18`.
+`./verify.sh` exits 0 — **60 gates**, mechanical checks through both booted binaries and
+the full smoke suite, run against the exact commit being tagged.
 
 ### 2026-08-17 — what the corpus costs to read (v3.6.0)
 
@@ -180,7 +238,9 @@ judgment.
 **Empirical half: closed, before the tag.** No rule this repository implements changed, so
 the reference needed no code change — which is itself the claim the run had to test rather
 than assume. Reference synced and tagged v3.6.0, its `SPEC.md` pinning this release's
-commit `60849e5`. `./verify.sh` exits 0 — **61 gates**, mechanical checks through both
+commit `60849e5`. `./verify.sh` exits 0 — **60 gates** (corrected from 61 by the v3.7.0
+run: `verify.sh` is byte-identical to this tag and has 60 `step` call sites), mechanical
+checks through both
 booted binaries and the full smoke suite, run against the exact commit being tagged.
 
 ### 2026-08-17 — a pattern nothing pointed at (v3.5.1)
