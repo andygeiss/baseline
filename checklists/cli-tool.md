@@ -4,8 +4,10 @@
 
 Walk this before declaring any milestone complete. Every unchecked box is either
 fixed or waived on the record — the waiver format lives in [README.md](../README.md)
-under *Which rules can be waived*. The safety tier is not waivable: partial work
-staying safe, and a destructive action needing an explicit flag.
+under *Which rules can be waived*. The safety tier is not waivable: partial work staying
+safe, a destructive action needing an explicit flag, and every box about how a secret is
+handled — a secret never arrives as a flag *value*, and `.env` is gitignored. Tier 1 is
+decided by what a rule protects, not by which section it landed in.
 
 This checklist stands on its own. Every box — or the bold bullet it sits under — names
 the document behind it, so you can walk it without holding the whole corpus in your

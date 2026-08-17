@@ -5,8 +5,10 @@
 Walk this before declaring any milestone complete. Every unchecked box is either fixed
 or waived on the record — the waiver format lives in [README.md](../README.md) under
 *Which rules can be waived*. **Nothing under Security below is waivable**, and neither
-are the SQLite pragmas and the single-writer pool: those are the safety tier, so an
-unchecked box there means the work is not done.
+are the SQLite pragmas and the single-writer pool, nor the three secret-handling boxes
+that sit under *Code quality* — `Config.LogValue`, the `.env` block, and secrets arriving
+as credential files. Tier 1 is decided by what a rule protects, not by which section it
+landed in, so an unchecked box in any of those means the work is not done.
 
 This checklist stands on its own. Every box — or the bold bullet it sits under — names
 the document behind it, so you can walk it without holding the whole corpus in your

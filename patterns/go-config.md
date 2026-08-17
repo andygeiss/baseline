@@ -117,8 +117,9 @@ package's own error *and* a `main` that prints it produces the message twice.
 ## Rules
 
 1. **Parse before you build anything.** Configuration errors surface as a one-line
-   message and exit 2, before the database opens and before the listener binds. This
-   covers **local** facts only — flags, files, the database this binary owns. Nothing
+   message and exit 2, before the database opens and before the listener binds. A bad
+   `PORT` MUST NOT be discovered by a half-started process that already created files.
+   This covers **local** facts only — flags, files, the database this binary owns. Nothing
    another system has to answer runs at boot ([go-http-client.md](go-http-client.md)
    *Boot does not wait on a dependency*): validating hard at startup and refusing to
    start over somebody else's outage are different decisions, and only the first is this

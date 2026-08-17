@@ -25,7 +25,8 @@ Two consumers beyond human readers:
   value from it — the same way it takes stack decisions from this baseline.
 - **Claude Design** (claude.ai/design), which extracts tokens, typography, and components
   from uploaded sources. Push the file when it changes; a stale copy generates off-brand
-  designs. The repo's `DESIGN.md` stays the record either way.
+  designs. Where a sync integration is available it MAY be used; the repo's `DESIGN.md`
+  stays the record either way.
 
 **Two sanctioned exceptions live here.** An alpha-status spec is allowed against the "never
 betas" rule because it is a document format, not software — nothing ships it, and a tool

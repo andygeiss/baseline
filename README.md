@@ -139,18 +139,33 @@ load-bearing. These three tiers do. They are the reading order when two rules co
 and the answer to "can we skip this one?".
 
 **Every document in [`patterns/`](patterns/) and [`stack/`](stack/) stamps its tier on
-the line under its title** — `**Tier 2** · Last verified: 2026-08-17` — and names, in
-its own words, any rule inside it that sits in a different tier. That stamp is the local
+the line under its title** — `**Tier 2** (shape — waived only on the record) · Last
+verified: 2026-08-17` — and names, in its own words, any rule inside it that sits in a
+different tier. That stamp is the local
 answer for an agent that opened one document mid-task; this section is the definition
 behind it. When the two disagree, this section wins and the document is the defect.
 
-**Tier 1 — Safety. Never waived.** A project that cannot meet one of these does not
-ship. Everything under *Security* in the checklists (CSRF, escaping user input,
-parameterized SQL, session cookie flags, password hashing, request body caps, the ops
-listener never proxied), the SQLite pragmas and the single-writer pool
-([patterns/go-sqlite.md](patterns/go-sqlite.md)), and any version pin whose note names a
-security fix. Dropping one of these loses data, leaks it, or hands over an account.
-There is no waiver form for a tier-1 rule; there is a fix.
+**Tier 1 — Safety. Never waived.** A project that cannot meet one of these does not ship.
+**The test is what the rule protects, not where it is written down: a rule is tier 1 when
+dropping it loses data, leaks it, or hands over an account.** Apply the test; the list
+below is what it currently catches, not the definition.
+
+- Everything under *Security* in the checklists — CSRF, escaping user input,
+  parameterized SQL, session cookie flags, password hashing, request body caps, the ops
+  listener never proxied.
+- The SQLite pragmas and the single-writer pool
+  ([patterns/go-sqlite.md](patterns/go-sqlite.md)).
+- Any version pin whose note names a security fix.
+- Every rule about how a secret is handled, wherever it sits in a checklist: a secret
+  arrives as a file and `LogValue` keeps it out of the logs
+  ([patterns/go-config.md](patterns/go-config.md) *Secrets*), a secret never arrives as a
+  flag *value* ([patterns/go-cli.md](patterns/go-cli.md)), and `.env` is gitignored and
+  never used in production ([stack/makefile.md](stack/makefile.md) rule 6). These three
+  sit under *Code quality* rather than *Security*, and they are tier 1 anyway — which is
+  the whole reason the test outranks the section.
+
+There is no waiver form for a tier-1 rule; there is a fix. **A rule that meets the test
+but is not listed here is still tier 1** — say so, and fix this section.
 
 **Tier 2 — Shape. Waived only on the record.** The mandated stack and the structural
 patterns: no framework, no hand-written JavaScript, the project layout, config
