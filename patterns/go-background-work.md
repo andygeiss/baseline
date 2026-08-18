@@ -5,7 +5,8 @@
 Anything the process runs outside a request. Two shapes, and both owe the same answer to
 "how does this stop?" from [stack/go.md](../stack/go.md): **work on a schedule**, which
 lives as long as the process, and **work a request starts and does not wait for**, which
-lives until it is done. **No bare `go func()` anywhere.**
+lives until it is done or the process stops, whichever comes first. **No bare `go func()`
+in a server** — not in `main`, and not in a handler.
 
 ## Work on a schedule
 
@@ -70,26 +71,31 @@ looking at.
 
 ## Work a request starts and does not wait for
 
-Transcoding an upload, building a long report, a model writing a reply a sentence at a
-time. The answer is not ready when the response has to go out, so the request answers at
-once with something the client can ask again about, and the work carries on without it.
+A model writing a reply a sentence at a time, a thumbnail for the picture just uploaded, a
+summary of what somebody just saved. The answer is not ready when the response has to go
+out, so the request answers at once with something the client can ask again about, and the
+work carries on without it. **Losing it has to be survivable** — *Work that must not be
+lost* below says why.
 
 **It is not request-scoped work, and that is the whole difference.**
 [go-http-server.md](go-http-server.md) says request-scoped work takes `r.Context()` all
 the way down, so a client that disconnects cancels the query. That is right for a handler
-answering what it was asked. This work outlives the asking, so it keeps the request's
-values and drops its cancellation:
+answering what it was asked. This work outlives the asking, so it drops the request's
+cancellation and keeps its values — but it does not outlive the process:
 
 ```go
 // The work outlives the request that asked for it: someone who closes the tab
 // still gets the result. WithoutCancel keeps the values the request carried and
-// drops the cancellation it would otherwise impose, and the budget below is
-// what ends a wedged dependency instead.
+// drops the cancellation it would otherwise impose. a.stopping puts the
+// process back in charge, so a shutdown ends this too, and jobBudget is only
+// what ends a wedged dependency.
 job := a.jobs.start() // the registry further down
 ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), jobBudget)
-a.running.Add(1) // a sync.WaitGroup on the app
+release := context.AfterFunc(a.stopping, cancel) // shutdown cancels it too
+a.running.Add(1)                                 // a sync.WaitGroup on the app
 go func() {
 	defer a.running.Done()
+	defer release() // or the AfterFunc registration outlives the job
 	defer cancel()
 	a.run(ctx, job)
 }()
@@ -99,15 +105,36 @@ go func() {
 in-flight *requests*, and this goroutine is not one — the request it came from returned
 seconds ago. Without a second wait the process exits mid-write, the work is lost, and
 nothing logs a fault, because from the server's side the shutdown was clean. So the app
-counts its own and `main` waits for both:
+counts its own, and the wait comes after the cancel:
 
 ```go
-err = g.Wait() // the listeners are down
-a.Wait()       // now the work they started; Wait wraps the WaitGroup
-return err     // the deferred db.Close() runs after this line, not before
+g, ctx := errgroup.WithContext(ctx)
+a.stopping = ctx // errgroup cancels it as Wait returns, whatever ends the process
+// … the listeners and the ticker go under g, as above …
+err := g.Wait() // the listeners are down, and ctx with them
+a.Wait()        // the work they started, now cancelled, returns like any other worker
+return err      // the deferred db.Close() runs after this line, not before
 ```
 
-**The budget is the only clock on it.** The ladder in
+**Cancel first, then wait.** `a.stopping` is the errgroup's context, which `errgroup`
+cancels as `Wait` returns — so by the time `a.Wait()` runs, every job has been told to
+stop. A bare wait would instead hold the process for `jobBudget`, and `return err`, with
+the deferred `db.Close()` behind it, would never run at all.
+
+**The stop grace bounds that wait.** `srv.Shutdown` takes a fresh ~10 s deadline
+([go-http-server.md](go-http-server.md)), and it runs inside the container's
+`stop_grace_period` — 15 s in `baseline-ops/templates/compose.yaml`. A slow shutdown can
+leave this wait as little as five seconds before SIGKILL takes whatever is still running.
+
+**Work that must not be lost is a table, not a registry.** Everything here lives in
+memory, so that SIGKILL, a crash, or a panic loses every job in flight. This shape is for
+work you can throw away — a reply the reader can ask for again, a thumbnail the next
+request regenerates. Work somebody paid for, or work that leaves half a file behind,
+belongs in a queue on disk written in the transaction that caused it.
+[go-email.md](go-email.md)'s outbox is that shape, and its rule that a second kind of work
+is a second table says to build your own rather than borrow that one.
+
+**The budget is the backstop, not the clock.** The ladder in
 [go-http-client.md](go-http-client.md) is built on a handler's budget sitting under
 `WriteTimeout`; this work has no socket above it, so it leaves the ladder and its budget
 stands alone. A project that widened `WriteTimeout` to cover the work while it was still
@@ -126,8 +153,9 @@ from becoming a leak:
 
 **A reader takes a snapshot, never the live state.** The goroutine writes while handlers
 read, so every field goes through a mutex, and one read copies everything that response
-will decide from. Hand out an append-only slice capped to its own length — `s[:len(s):len(s)]` — so a
-later append cannot write into the array the reader is still holding.
+will decide from. Hand out an append-only slice capped to its own length —
+`s[:len(s):len(s)]` — so a later append cannot write into the array the reader is still
+holding.
 
 **Tests wait on the counter, never on the clock.** `Wait()` is exported for shutdown, and
 a test gets it for free; a test that sleeps instead is a test that fails on a loaded

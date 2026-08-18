@@ -263,6 +263,8 @@ the CSP and every other header.
 ## Taking a file from a user — an upload, an attachment, an avatar — tier 1, not waivable
 
 `patterns/go-file-uploads.md` — the generated name, the sniffed type, and serving it back.
+Work the upload starts and does not wait for — a thumbnail — is
+`patterns/go-background-work.md`.
 
 - [ ] The route's cap is raised at the cap site, never on the blanket wrapper
 - [ ] The stored name is generated; the client's filename is data, never a path
@@ -313,14 +315,17 @@ the CSP and every other header.
 
 ## Running work outside a request — a ticker, or work a request starts and leaves
 
-`patterns/go-background-work.md` — the errgroup, the first tick, and the second wait.
+`patterns/go-background-work.md` — the errgroup, the first tick, and the cancel before
+the second wait.
 
 - [ ] A ticker runs under the `errgroup` tied to the signal context, never a bare `go func()`
 - [ ] It runs once before entering its ticker loop
 - [ ] It treats `context.Canceled` at shutdown as normal
 - [ ] Work that outlives its request takes `context.WithoutCancel` and a budget of its own
-- [ ] `main` waits for it after `g.Wait()`; `srv.Shutdown` does not
+- [ ] Shutdown cancels it, and `main` waits after `g.Wait()`; `srv.Shutdown` does neither
+- [ ] Losing it mid-flight costs nothing, or it is a durable queue instead
 - [ ] Its registry drops finished entries when the next one starts
+- [ ] A reader gets a snapshot taken under the mutex, never the live state
 
 ## Depending on someone else's system
 
@@ -348,12 +353,14 @@ the CSP and every other header.
 
 ## Adding an AI capability — a model that answers, summarises, extracts, or classifies
 
-`patterns/go-llm-adapter.md` — the port, the prompt in `domain`, refusals as sentinels.
-Load the `claude-api` skill for anything on the wire.
+`patterns/go-llm-adapter.md` — the port, the prompt in `domain`, refusals as sentinels,
+and the callback a streaming port takes. Load the `claude-api` skill for anything on the
+wire.
 
 - [ ] The `claude-api` skill was loaded before the request was written
 - [ ] The prompt and the conversation shape live in `domain`
-- [ ] A refusal is a domain sentinel, checked **before** the response text is read
+- [ ] A refusal is a domain sentinel — read **before** the text, or watched beside it on a stream
+- [ ] Where it streams, the port takes a callback whose doc comment still names the refusal
 - [ ] The app still starts with an empty environment
 - [ ] Boot never calls the model
 - **Its tests:**
@@ -378,6 +385,7 @@ Load the `claude-api` skill for anything on the wire.
 - [ ] `go test -race -shuffle=on ./...` passes
 - [ ] Domain logic covered exhaustively (all rules/edge cases)
 - [ ] Each handler: happy path + error paths, via `httptest` against real routes
+- [ ] A test for detached work waits on the app's `Wait()`, never on the clock
 
 ## Making the app installable
 

@@ -69,14 +69,17 @@ comes, and the shape stays one method with no vendor words in it:
 
 ```go
 // Reply hands each piece of the answer to emit as the model writes it, and
-// returns when the answer is complete.
+// returns when the answer is complete. It returns domain.ErrRefused when the
+// model declines, which on a stream can arrive after text has already been
+// emitted. Every other error is treated as transient.
 Reply(ctx context.Context, history []domain.Message, emit func(string) error) error
 ```
 
-The callback is what keeps the error handling in one place: the adapter returns why it
-stopped, and an error from `emit` comes back unwrapped so the caller recognises its own.
-A channel needs a second channel for the error and a goroutine to feed both; an iterator
-puts the failure in a loop variable a caller can forget to read.
+The callback is what keeps the error handling in one place: the adapter returns one error
+for why it stopped, and an error from `emit` is wrapped into that one, so a single
+`errors.Is` separates the caller's own failure from the model's. A channel needs a second
+channel for the error and a goroutine to feed both; an iterator puts the failure in a loop
+variable a caller can forget to read.
 
 ## The prompt is a product rule, so it lives in `domain`
 
@@ -219,8 +222,9 @@ const SystemPrompt = `...`
     adapter, not per project. A service with a vendor adapter and a local one —
     `internal/openai` against oMLX, Ollama, or vLLM — writes the second event reader by
     hand either way, so the SDK buys one of two while the dependency lands on the whole
-    module. A `data:` line reader over `bufio.Scanner` is about twenty lines, and rule 12
-    pins it.
+    module. A `data:` line reader is about twenty lines, and rule 12 pins it like any
+    other body. Read the lines with `bufio.Reader`: `bufio.Scanner` caps a line at 64 KiB,
+    and a loop that never checks `Err()` ends the answer early and silently.
 
     Either choice is a departure somebody has to justify in the project README: the SDK is
     not on the approved list in [stack/go.md](../stack/go.md), and calling the API directly

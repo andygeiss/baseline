@@ -86,12 +86,13 @@ is the only thing holding all three flows up.
 
 ## Rules
 
-1. **The cursor is a row id, never a timestamp.** Two messages written in the same second
-   sort at random by time, so a time cursor either repeats a row or skips one. Use the
-   monotonic `INTEGER PRIMARY KEY AUTOINCREMENT` column from
-   [go-sqlite.md](go-sqlite.md).
-2. **The server decides the next cursor,** and sends it inside the new sentinel. The browser
-   never computes it.
+1. **The cursor is a monotonic number, never a timestamp.** Two messages written in the
+   same second sort at random by time, so a time cursor either repeats a row or skips one.
+   On a list that number is a row id — the `INTEGER PRIMARY KEY AUTOINCREMENT` column from
+   [go-sqlite.md](go-sqlite.md). On a region it is a count of pieces the server has
+   appended.
+2. **The server decides the next cursor,** and sends it back inside whatever it swapped in.
+   The browser never computes it.
 3. **The response is rows, in order, plus one sentinel.** A response that re-renders the
    whole list throws away the reader's scroll position every few seconds. The one exception
    is the reader's own post — see below. On a list that also pages backwards it throws away
@@ -138,9 +139,12 @@ changes is the whole of it.
 **Then poll the region and swap the region.** The poller sits inside it and targets it:
 
 ```html
-<span hidden data-poll
-      hx-get="/jobs/7?since=3" hx-target="#job"
-      hx-swap="outerHTML transition:false" hx-trigger="every 1s"></span>
+<div id="job">
+  <p>… 3 pieces so far …</p>
+  <span hidden
+        hx-get="/jobs/7?since=3" hx-target="#job"
+        hx-swap="outerHTML transition:false" hx-trigger="every 5s"></span>
+</div>
 ```
 
 The answer is the region again, carrying a fresh poller with the advanced cursor. **Rule
@@ -150,9 +154,14 @@ have no place to lose. Everything else stands — the server still decides the n
 and sends it (rule 2), 204 still leaves the poller alone, 286 still stops it,
 `transition:false`, no indicator, and 303 to the page for a plain request.
 
-**The cursor is still a count of things the server appends and never rewrites** — pieces
-produced, lines logged. That is what makes "only what is new" true, and it matters most
-where sending a thing twice is not merely wasted bytes: audio sent twice is played twice.
+**Appended and never rewritten is what makes rule 1's count work** — pieces produced,
+lines logged. A count over anything the server edits in place hands the same piece over
+twice, and that is not merely wasted bytes: audio sent twice is played twice.
+
+**One second is the exception, and only for a region somebody consumes as it arrives.** The
+interval rule below still applies — pick it from how stale the reader may be — and a reply
+being read aloud is stale the moment the next sentence exists. A progress region is not
+one of those: five seconds, like the snippet above.
 
 ## The handler
 
@@ -223,7 +232,8 @@ to everything else the app serves. Both are arguments for server-sent events, an
 belong in a pull request against this baseline.
 
 Pick the interval from how stale the reader may be, not from how fast the server is: a chat
-room reads well at 3 s, a job status at 5 s, a dashboard at 30 s.
+room reads well at 3 s, a job status at 5 s, a dashboard at 30 s, and a reply somebody is
+listening to at 1 s.
 
 ## What polling cannot do
 
@@ -243,8 +253,9 @@ is the whole mitigation.
 
 ## Anti-patterns
 
-- ❌ `hx-trigger="every 1s"` because it feels responsive. It triples the cost model and no
-  reader notices.
+- ❌ `hx-trigger="every 1s"` on a list because it feels responsive. It triples the cost
+  model and no reader notices. The exception is a region consumed as it arrives, and
+  *When the polled thing is not a list* makes that case.
 - ❌ A cursor the browser keeps (in the URL hash, in a data attribute it edits). That is
   client-side state, and the server is the source of truth.
 - ❌ Polling a route that returns the full page. `hx-select` makes it look cheap; the server

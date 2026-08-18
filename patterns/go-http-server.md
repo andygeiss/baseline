@@ -129,7 +129,8 @@ srv := &http.Server{
   *triggers* shutdown — it is already canceled at that moment, so passing it (or anything
   derived from it) makes `Shutdown` return immediately and kill in-flight requests.
 - Request-scoped work uses `r.Context()` all the way down, so client disconnects cancel
-  DB queries.
+  DB queries. Work that outlives the request is the exception, and
+  [go-background-work.md](go-background-work.md) rules it.
 
 **The four timeouts above are only half of the ladder.** A handler that calls someone
 else's system adds two more on the way out, and their order decides which one fires. The
@@ -140,10 +141,12 @@ writing a handler that waits on another system.
 ## Background work
 
 The server is one goroutine under an `errgroup` tied to the signal context, and anything
-periodic — a session janitor, a `VACUUM INTO` backup — is another. The wiring, the
-run-before-the-first-tick rule, and treating `context.Canceled` as an orderly stop are in
+periodic — a session janitor, a `VACUUM INTO` backup — is another. Work a request starts
+and does not wait for is the second shape, and it needs a cancel and a wait of its own
+after `g.Wait()`. Both shapes, the run-before-the-first-tick rule, and treating
+`context.Canceled` as an orderly stop are in
 [go-background-work.md](go-background-work.md) — read it when the process grows its first
-scheduled job.
+job outside a request.
 
 ## The ops listener
 
