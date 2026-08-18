@@ -13,9 +13,9 @@ SKILL_DIR = $(HOME)/.claude/skills/engineering-baseline
 # printed, as a diagnosis: prose grows by arguing, code by spelling out what
 # the reader can already write. Every other budget is a read path.
 DOC_BUDGET       = 3800
-CHECKLIST_BUDGET = 4300
+CHECKLIST_BUDGET = 5000
 FLOOR_BUDGET     = 19500
-CHANGE_BUDGET    = 7000
+CHANGE_BUDGET    = 8000
 
 # Every document a checklist can send an agent to. The checklists name their
 # documents as bare repository-root paths, so this is the reach path with no

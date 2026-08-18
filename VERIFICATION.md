@@ -65,13 +65,14 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Nothing owed.** v3.9.0 closed its gate: twelve adversarial passes with the last two
-clean, the reference synced and tagged in step at `cbba3c2`, `./verify.sh` exiting 0
-against the commit its `SPEC.md` pins, nothing a project reads changed between that
-commit and the tag, and the run recorded below. One budget waiver stands on
-the record under *Waived budgets*, and it now carries a finding rather than a promise —
-there is nothing left in this repository to trim, so the next move on it is a decision
-about the budget number itself.
+**Two commits since v3.9.0, and nothing a project reads changed in either.** The tag-gate
+rewording of 2026-08-18 (`d80e015` — README and this file) and the budget decision of
+2026-08-18 (README, the `Makefile`, and this file). Both are maintainer-only surface, so
+neither owes a reference sync; they ride into the next release's record. v3.9.0 itself
+closed its gate: twelve adversarial passes with the last two clean, the reference synced and
+tagged in step at `cbba3c2`, `./verify.sh` exiting 0 against the commit its `SPEC.md` pins,
+nothing a project reads changed between that commit and the tag, and the run recorded below.
+**No budget is waived and `make tokens` is green.**
 
 ## Run log
 
@@ -625,43 +626,68 @@ like any other, with the record kept here because the cost lands on this reposit
 than on a project built from it. Each entry carries the six fields a waiver carries
 anywhere: the rule, the document, the date, who decided, why, and what contains it.
 
+**Nothing waived.** The one entry that stood here — the checklist and change-path budgets,
+first waived 2026-08-17 for the authorization section and re-measured 2026-08-17 when four
+patterns landed — was closed on 2026-08-18 by moving the two numbers instead. The decision
+is recorded under *Budget decisions* below, along with the rule that governs the next one.
+
 **`make tokens` stays red while an entry sits here, and that is the point.** The red run is
 the reminder, exactly as a `Last verified:` date past ninety days is the reminder. The way
-to clear it is the work under *Paid back by* — never an edit to the budget number, which
-would turn a waiver into a new normal without anyone deciding to.
+to clear it is the work under *Paid back by*, or a deliberate move of the number in a commit
+that moves nothing else — never an edit folded into the change that blew the budget, which
+turns a waiver into a new normal with nobody deciding to.
 
-- **The 4,300-token checklist budget and the 7,000-token change path**
-  ([README.md](README.md) *Size budgets*) — first waived 2026-08-17 by Andy for the
-  authorization section, re-measured the same day when four patterns landed.
-  `checklists/web-application.md` sits at **4,509** and the change path at **7,237**.
-  **When two rules collide the lower tier wins**, and one of the four
-  ([go-file-uploads.md](patterns/go-file-uploads.md)) is tier 1.
-  **Contained:** 209 tokens and 237 tokens, on one checklist of one project type. **The
-  floor was not waived** — it holds at 19,499 of 19,500, and one back-link in the review
-  run had to be trimmed and paid for to keep it there. No other project type moved.
+**A waiver's numbers are measured last, or they describe a repository that no longer
+exists.** The closed entry's first draft said 4,420 and 197; two fix passes later both were
+wrong, and the same entry went stale a second time mid-run. Measure after the last fix of
+the run, never carry a number over from the first draft.
 
-  **The promised trim was done, and it worked.** Every wordiest box lost its explanatory
-  tail to the document that owns the fact, twenty section leads went to one line, and the
-  run record in `VERSIONS.md` moved here where records belong: **509 tokens off the change
-  path, against the 270 the last entry promised.** Four trigger sections then cost 505, and
-  the review run gave 29 back. So the change path is **33 tokens smaller** than it was
-  before any of this landed, and still 237 over.
+## Budget decisions
 
-  **Paid back by:** nothing left in this repository to trim, and that is the finding. The
-  prose is now at the bar *Write to the reader's competence* sets; what remains is boxes
-  and section leads, one line and one check each, and cutting further deletes checks rather
-  than words. **A corpus that keeps its promise to extract every recurring decision into a
-  pattern adds about 125 tokens to this number per pattern, forever** — those two rules in
-  [README.md](README.md) cannot both hold as the corpus grows. Either *Size budgets* moves
-  the change number on purpose, or the web-application checklist stops taking sections.
-  That decision is a change to *Size budgets* and belongs in its own commit with a number
-  chosen deliberately, not folded into the change that discovered the tension.
+Why a budget number is the number it is. A number here moves only in a commit that moves
+nothing else — [README.md](README.md) *Size budgets* carries that rule; this is where the
+argument behind each move lives.
 
-  These numbers were measured after the last fix of the run, not carried over from the
-  first draft. That draft said 4,420 and 197, and two fix passes later both were wrong —
-  the same entry then went stale a second time, mid-run, which is how the recurrence below
-  got recorded. **A waiver's numbers are measured last, or they describe a repository that
-  no longer exists.**
+### 2026-08-18 — the checklist and change-path numbers, raised once
+
+**Decided by Andy.** `checklists/*.md` 4,300 → **5,000**, and the change path 7,000 →
+**8,000**. The per-document budget (3,800) and the floor (19,500) did not move.
+
+**The collision.** [README.md](README.md) *Maintenance protocol* promises that every
+recurring decision becomes a pattern, and *Writing a checklist* will not let a pattern ship
+without a trigger section — so each pattern costs the change path about 125 tokens, forever.
+A fixed change budget and that promise cannot both hold. v3.8.0 waived the two budgets for
+the authorization section; v3.9.0's four patterns re-measured them at 4,509 and 7,237 and
+found the waiver had no way to close. A 509-token trim had already taken the prose to the
+bar *Write to the reader's competence* sets, and what was left was boxes and one-line
+section leads, where cutting deletes checks rather than words.
+
+**Why raising was the right branch.** Three alternatives, each worse. *Budget the shape,
+report the total* — a cap on the shared head and a cap per trigger section, the way reach is
+already handled — dissolves the collision permanently, but leaves the most-paid path in the
+corpus with no ceiling at all. *Hold 4,300 and make a new section pay for itself by retiring
+an old one* caps the corpus's growth on purpose, which is the one thing this repository
+exists not to do. *Leave the waiver standing* keeps `make tokens` red indefinitely, which
+retires the gate by making it normal to ignore.
+
+**What the numbers buy, and what they do not.** 491 tokens of checklist headroom and 763 of
+change-path headroom: about six more patterns at the measured 125 apiece. This branch defers
+the collision rather than dissolving it, and after those six it returns. That is the honest
+cost, and it was chosen with it: four patterns in one release is not yet a growth curve, and
+the shape budget is a bigger change to make on one release's evidence.
+
+**The floor did not move, and it has one token of headroom.** 19,499 of 19,500 — and the
+checklist sits inside the floor, so the next trigger section blows it by about 125 even
+though the checklist itself now has room. That is not an oversight in this decision; it is
+the floor's existing rule doing its job. Anything added to what an agent pays before its
+first line of code gets paid for out of the same path, and the next pattern to land here
+pays about 125 tokens somewhere among the seven required documents. The floor is the number
+that hurts, and it is the last one that should ever move.
+
+**What would make these numbers wrong.** If the change path passes 8,000 while the checklist
+is still under 5,000, the shared head or `SKILL.md` grew rather than the corpus — trim, do
+not raise. Both going over together is the growth curve arriving, and that is the signal to
+take the branch not taken above rather than to raise a third time.
 
 ## Where the numbers come from
 

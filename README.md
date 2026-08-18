@@ -311,7 +311,7 @@ Two budgets cap a single document:
   arguing when it should be ruling; past budget on code means *Write to the reader's
   competence* below. **Aim at 1,800 for a new document;** 3,800 is the ceiling, not the
   target.
-- **A checklist stays under 4,300 tokens.** It is paid whole by every project of that
+- **A checklist stays under 5,000 tokens.** It is paid whole by every project of that
   type, on every change and at every milestone — the most-paid document in the corpus,
   and the reason it was worth folding the router into rather than beside it.
 
@@ -323,7 +323,7 @@ Three budgets cap a path somebody walks:
   another one to a trigger section. A document belongs on that list only if it changes a
   decision made *before* the first line of code; everything you can read at the moment
   you write the thing is a trigger section in the checklist.
-- **A change stays under 7,000 tokens** — `SKILL.md`, `VERSIONS.md`, and the checklist.
+- **A change stays under 8,000 tokens** — `SKILL.md`, `VERSIONS.md`, and the checklist.
   This is the most common thing anyone does here and therefore the number paid most
   often.
 - **Reach is reported, not budgeted.** Every document a project type can get to is a
@@ -332,6 +332,14 @@ Three budgets cap a path somebody walks:
   pays them, because **size alone does not say what is worth shrinking — size times how
   often it is read does.** How often is the maintainer's judgement; the report is what
   that judgement gets applied to.
+
+**A budget number moves only in a commit that moves nothing else.** The checklist and
+change numbers were raised once, on 2026-08-18, because the corpus's promise to extract
+every recurring decision into a pattern costs the change path about 125 tokens per
+pattern forever — a fixed number and a growing corpus cannot both hold, and the corpus is
+the point. The two numbers before and after, and the argument, are in
+[VERIFICATION.md](VERIFICATION.md) *Budget decisions*. Raising one to clear a red
+`make tokens` inside the change that blew it is the move this rule exists to stop.
 
 And two rules keep all of them down:
 
