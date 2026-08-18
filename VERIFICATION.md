@@ -1,6 +1,6 @@
 # Verification Record
 
-**Last verified: 2026-08-17**
+**Last verified: 2026-08-18**
 
 How this repository proves it is right, and what every review run found. The
 README states the standard in a paragraph; this file holds the evidence and the
@@ -65,32 +65,81 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Owed since 2026-08-18.** v3.10.0 closed its gate — eleven adversarial passes with the
-last two clean, the reference synced and tagged in step at `dadfb2f`, `./verify.sh`
-exiting 0 against the commit its `SPEC.md` pins, and the run recorded below. Six changes
-have landed since, and none has been through a run:
+**Owed since 2026-08-18: the empirical half only.** The adversarial half is closed — ten
+passes over the six changes, the last two clean, recorded below as *the six changes that
+were owed*. Every mechanical gate is green: `make tokens`, `make structure`, and every new
+Go snippet compiled, vetted, and `gofmt`-clean.
 
-- [SKILL.md](SKILL.md) *Handing the work back* — every piece of work ends with the next
-  steps. A protocol rule, so it has no checklist box and no reference to implement it.
-- [patterns/go-background-work.md](patterns/go-background-work.md) — the second shape,
-  work a request starts and does not wait for.
-- [patterns/htmx-live-updates.md](patterns/htmx-live-updates.md) — *When the polled thing
-  is not a list*, which gives way on rule 3 for a region that is not one.
-- [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md) — the streaming port, rule 8's
-  late refusal, rule 16's per-adapter count.
-- [checklists/web-application.md](checklists/web-application.md) — the schedule section
-  widened to route to the first of those, and the polling cursor box generalised.
-- The floor budget, 19,500 → 25,000, under *Budget decisions*.
-
-**No budget is waived and `make tokens` is green.** What is owed is the review. No
-adversarial pass has read any of it, the Go snippets in the new sections have not been
-compiled, and [baseline-reference](https://github.com/andygeiss/baseline-reference)
-implements none of it — detached work least of all, which is the shape the empirical half
-exists to catch, since its trap is a shutdown that looks clean.
+What is still owed is [baseline-reference](https://github.com/andygeiss/baseline-reference),
+which implements none of it — detached work least of all, and that is the shape the
+empirical half exists to catch, since its trap is a shutdown that looks clean. **No tag
+ships until it does**, and until then no document stamp moves either: the review re-checked
+their facts, but only a running binary closes conditions 2 through 4 of the gate.
 
 ## Run log
 
 Newest first.
+
+### 2026-08-18 — the six changes that were owed (adversarial half only)
+
+**Forty-six defects over ten passes**, the last two clean. No tag: the reference is not
+synced, so conditions 2 through 4 of the gate are open and this run closes condition 1
+alone.
+
+**The headline is a rule that was right on its own and wrong in a container.** The new
+detached-work shape told `main` to wait for work whose only clock was `jobBudget`, and
+`srv.Shutdown` sits inside a `stop_grace_period` of 15 s
+([baseline-ops/templates/compose.yaml](https://github.com/andygeiss/baseline-ops)). A
+report measured in minutes therefore held the process until SIGKILL dropped it mid-write
+with nothing logged — the exact failure the wait was added to prevent — and `return err`,
+with the deferred `db.Close()` behind it, never ran at all. The fix is two lines in the
+handler and one in `main`: `a.stopping` is the errgroup's context, `context.AfterFunc`
+hangs each job's `cancel` off it, and `errgroup` cancels that context as `Wait` returns,
+so every job has been told to stop before the wait begins.
+
+**The same change also had no boundary.** Its registry is in memory, so a crash or that
+SIGKILL loses every job — and the corpus already rules the durable case in
+[go-email.md](patterns/go-email.md). The first fix drew the line at duration, *seconds not
+minutes*, and a later pass killed it: a streamed reply runs for a minute and still belongs
+here. **The axis is whether losing it is survivable**, not how long it takes, and getting
+that wrong once is why the document now says so in those words.
+
+**A checklist and the document it routes to disagreed twice, in opposite directions.** The
+cursor box was widened to "a row id or a count" while `htmx-live-updates.md` rule 1 still
+said "a row id, never a timestamp"; the refusal box still demanded the check come *before*
+the text while `go-llm-adapter.md` had just written that a stream cannot do that. One rule
+moved without its box, one box moved without its rule. **Both halves have to move
+together**, and neither `make structure` nor `make tokens` can see it.
+
+**A canonical snippet was its own document's anti-pattern.** *When the polled thing is not
+a list* shipped `hx-trigger="every 1s"`, which the anti-pattern list forbids by that exact
+string and the cost section prices at 5 s for a job status. The reason the anti-pattern
+gives — "no reader notices" — is false for a region somebody consumes as it arrives, so
+the anti-pattern was too wide rather than the snippet wrong; it is now scoped to lists,
+the exception is argued where it applies, and the snippet polls at 5 s like the number it
+sits next to.
+
+**"No bare `go func()` anywhere" was a third one.** [go-cli.md](patterns/go-cli.md)
+recommends `go func() { <-ctx.Done(); stop() }()` as the force-kill escape hatch, and has
+for releases. The claim is now "in a server", which is the only place this document rules.
+
+**Two facts checked against upstream rather than memory.** `errgroup` cancels its derived
+context *as* `Wait` returns (x/sync `errgroup.go`), which is what makes cancel-before-wait
+free; and `bufio.Scanner` caps a line at `MaxScanTokenSize`, 64 KiB, reporting `ErrTooLong`
+only through `Err()` — so the twenty-line SSE reader rule 16 recommends ends a long answer
+early and silently. The rule now says to read the lines with `bufio.Reader`.
+
+**And the budget record missed the path the next commit took.** The floor entry named two
+ways its new number could be wrong, both about *Required reading* and trigger sections.
+`SKILL.md` is neither: it is the head every path starts from, it has no per-document
+budget, and `ebfc5e7` spent 265 tokens of the fresh headroom there one commit later.
+Recorded under *Budget decisions* rather than gated, because two documents do not need a
+gate and the floor already bounds them together.
+
+**Where the defects came from.** Sixteen from reading the six changes; the other thirty
+from re-reading the fixes. That ratio is the finding about the process — a fix is a change,
+and it earns the same passes the change did. The duration-versus-survivability mistake
+above was introduced by a fix and caught two passes later.
 
 ### 2026-08-18 — the document for data leaving (v3.10.0)
 
@@ -631,6 +680,16 @@ shared head, cap each trigger section. If an agent's output gets worse or slower
 floor grows, the floor is too high whatever `make tokens` says, and the reach report is
 where to look — rank by size times how often a document is read, and move the heaviest
 *Required reading* entry to a trigger.
+
+**A third path this entry missed.** `SKILL.md` and `VERSIONS.md` sit inside the floor
+*and* inside the change path, and neither has a per-document budget: `make tokens` caps
+`patterns/`, `stack/`, and `checklists/` and nothing else. The *Required reading* test does
+not govern them either — they are the head every path starts from, not entries on a list.
+`ebfc5e7` added *Handing the work back* to `SKILL.md` and spent 265 of this headroom, 5% of
+it, one commit after the number moved. A per-document cap on the head is the branch not
+taken: two documents do not need a gate, and the floor already bounds them together.
+Naming it is the fix — growth in the head is a judgement, and it now has to be made out
+loud.
 
 ### 2026-08-18 — the checklist and change-path numbers, raised once
 
