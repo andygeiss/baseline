@@ -65,12 +65,28 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Nothing owed.** v3.10.0 closed its gate: eleven adversarial passes with the last two
-clean, the reference synced and tagged in step at `dadfb2f`, `./verify.sh` exiting 0
-against the commit its `SPEC.md` pins, nothing a project reads changed between that commit
-and the tag, and the run recorded below. **No budget is waived and `make tokens` is
-green** — the two that were waived were decided rather than trimmed, under
-*Budget decisions*.
+**Owed since 2026-08-18.** v3.10.0 closed its gate — eleven adversarial passes with the
+last two clean, the reference synced and tagged in step at `dadfb2f`, `./verify.sh`
+exiting 0 against the commit its `SPEC.md` pins, and the run recorded below. Six changes
+have landed since, and none has been through a run:
+
+- [SKILL.md](SKILL.md) *Handing the work back* — every piece of work ends with the next
+  steps. A protocol rule, so it has no checklist box and no reference to implement it.
+- [patterns/go-background-work.md](patterns/go-background-work.md) — the second shape,
+  work a request starts and does not wait for.
+- [patterns/htmx-live-updates.md](patterns/htmx-live-updates.md) — *When the polled thing
+  is not a list*, which gives way on rule 3 for a region that is not one.
+- [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md) — the streaming port, rule 8's
+  late refusal, rule 16's per-adapter count.
+- [checklists/web-application.md](checklists/web-application.md) — the schedule section
+  widened to route to the first of those, and the polling cursor box generalised.
+- The floor budget, 19,500 → 25,000, under *Budget decisions*.
+
+**No budget is waived and `make tokens` is green.** What is owed is the review. No
+adversarial pass has read any of it, the Go snippets in the new sections have not been
+compiled, and [baseline-reference](https://github.com/andygeiss/baseline-reference)
+implements none of it — detached work least of all, which is the shape the empirical half
+exists to catch, since its trap is a shutdown that looks clean.
 
 ## Run log
 
