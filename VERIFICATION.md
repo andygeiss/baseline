@@ -31,15 +31,32 @@ that contradicts another one nothing points at.
 
 ## The tag gate
 
-**No tag ships until all four are true.** This is a gate, not a goal.
+**No tag ships until all five are true.** This is a gate, not a goal.
 
 1. Two consecutive adversarial passes over the changed documents find zero defects.
 2. The reference implementation is synced to the change, and `./verify.sh` exits
-   0 against the exact baseline commit being tagged.
+   0 against the baseline commit its `SPEC.md` pins.
 3. The reference's `SPEC.md` pins that commit, and its own tag mirrors the
    baseline version.
-4. The run is recorded below, naming the reference commit and the `verify.sh`
+4. **Nothing a project reads changed between the pinned commit and the tag.**
+   `git diff --name-only <pin> <tag>` names this file and nothing else.
+5. The run is recorded below, naming the reference commit and the `verify.sh`
    result.
+
+**Conditions 2 and 4 were one sentence until 2026-08-18, and it was one no release
+could meet.** It read "`./verify.sh` exits 0 against the exact baseline commit
+being tagged" — but condition 5 names the reference commit, so the record cannot
+be written until the reference is synced and tagged, and the reference cannot pin
+a commit that does not exist yet. The order is forced: the rules commit, the
+reference synced and tagged against it, the record, then the tag on the record.
+A reference pinning the tagged commit would be pinning a commit that names it.
+
+**Every release met that gate in substance and none met it literally.** v3.6.0
+through v3.9.0 each pinned a commit that is not the tagged one, and the whole
+difference is this file, every time — v3.6.0's two commits have identical trees.
+Condition 4 now checks that directly instead of demanding commit identity: the
+rules the reference verified are the rules being tagged, which was always the
+thing worth gating. It is one command, so it is checkable rather than assumed.
 
 **A release note that says "the reference was not re-synced" is not a waiver —
 it is an unfinished release.** That sentence appeared in two consecutive runs
@@ -50,7 +67,8 @@ be synced, the tag waits.
 
 **Nothing owed.** v3.9.0 closed its gate: twelve adversarial passes with the last two
 clean, the reference synced and tagged in step at `cbba3c2`, `./verify.sh` exiting 0
-against the commit being tagged, and the run recorded below. One budget waiver stands on
+against the commit its `SPEC.md` pins, nothing a project reads changed between that
+commit and the tag, and the run recorded below. One budget waiver stands on
 the record under *Waived budgets*, and it now carries a finding rather than a promise —
 there is nothing left in this repository to trim, so the next move on it is a decision
 about the budget number itself.

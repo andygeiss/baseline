@@ -249,7 +249,9 @@ Two mechanisms, and a release needs both.
 - **The reference implementation is the executable check.**
   [baseline-reference](https://github.com/andygeiss/baseline-reference) implements
   these rules end to end. It MUST be synced to every tagged release, and its
-  `./verify.sh` MUST pass against the commit being tagged. When a rule is ambiguous,
+  `./verify.sh` MUST pass against the rules that release tags — the gate in
+  [VERIFICATION.md](VERIFICATION.md) is the exact condition, and it is one
+  `git diff` away from being checked rather than assumed. When a rule is ambiguous,
   the reference resolves it.
 
 The standard, the tag gate, and what every run found live in
