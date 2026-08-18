@@ -65,18 +65,96 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Two commits since v3.9.0, and nothing a project reads changed in either.** The tag-gate
-rewording of 2026-08-18 (`d80e015` — README and this file) and the budget decision of
-2026-08-18 (README, the `Makefile`, and this file). Both are maintainer-only surface, so
-neither owes a reference sync; they ride into the next release's record. v3.9.0 itself
-closed its gate: twelve adversarial passes with the last two clean, the reference synced and
-tagged in step at `cbba3c2`, `./verify.sh` exiting 0 against the commit its `SPEC.md` pins,
-nothing a project reads changed between that commit and the tag, and the run recorded below.
-**No budget is waived and `make tokens` is green.**
+**Nothing owed.** v3.10.0 closed its gate: eleven adversarial passes with the last two
+clean, the reference synced and tagged in step at `dadfb2f`, `./verify.sh` exiting 0
+against the commit its `SPEC.md` pins, nothing a project reads changed between that commit
+and the tag, and the run recorded below. **No budget is waived and `make tokens` is
+green** — the two that were waived were decided rather than trimmed, under
+*Budget decisions*.
 
 ## Run log
 
 Newest first.
+
+### 2026-08-18 — the document for data leaving (v3.10.0)
+
+Every document in this corpus ruled data arriving. Nothing ruled a person leaving: what
+happens to their attachments, their queued mail, and the session their browser is still
+holding. [patterns/go-data-deletion.md](patterns/go-data-deletion.md) is tier 1 and closes
+that. The release also settled the budget tension v3.9.0 recorded and could not resolve.
+
+**Eighteen defects over eleven adversarial passes**, the last two clean. Three of the
+eighteen came from building the rules rather than from reading them, and that split is the
+finding about the process: the readings caught wording, scope and missing citations, while
+only running the rules caught the two places where they were *wrong*.
+
+**The budget decision came first, and alone.** v3.9.0 left `checklists/web-application.md`
+at 4,509 of 4,300 and the change path at 7,237 of 7,000, with a finding rather than a
+promise attached: the prose was already at the bar *Write to the reader's competence* sets,
+and what remained was boxes and one-line section leads. Andy raised the two numbers to
+5,000 and 8,000 in a commit that moved nothing else. The argument, the three branches not
+taken, and the signal that says which one to take next time are under *Budget decisions*.
+**The floor did not move**, so the new checklist section was paid for out of the seven
+required documents: `patterns/go-http-server.md` lost a repeated timeout block, a forward
+reference to the bullet below it, two comments restating their own code, and the upload
+cap-site fragment, which moved to [patterns/go-file-uploads.md](patterns/go-file-uploads.md)
+where an upload route is actually written. 19,487 of 19,500.
+
+**Three rules did not survive contact with the reference.** All three are fixed in the
+tagged commit.
+
+1. **The all-tables sweep does not find what it looks like it finds.** The document's
+   headline test reads `sqlite_master` at runtime and looks for the deleted id in every
+   text column — and it matches rows that name the person *by id*. The outbox holds an
+   address and, at that moment, no `user_id` at all, so it stayed green while the address
+   stayed on disk. Proved by deleting the column and watching the sweep pass. The rule now
+   says the sweep finds references, not copies, and asks for a by-value assertion beside it
+   on the columns holding a person's data under another name.
+2. **The schema is only the delete if the first migration got it right.** SQLite cannot
+   alter a constraint, so changing an `ON DELETE` action is create-copy-drop-rename — and
+   `DROP TABLE` with foreign keys on runs an implicit `DELETE FROM` that *does* fire
+   foreign key actions, so dropping a parent to rebuild it takes its children with it. The
+   usual escape is closed to a migration inside one transaction, where `PRAGMA
+   foreign_keys` is a no-op. Both facts are now cited. This is also why the reference keeps
+   **erase** for its messages rather than moving to **anonymize**: that answer is free
+   before the table ships and expensive after.
+3. **An anti-pattern was too wide.** "A confirmation that is a JavaScript dialog" would
+   have banned the `hx-confirm` the reference already uses on its token revoke, which is an
+   htmx attribute rather than hand-written JavaScript and is right for an action somebody
+   can redo. The rule now names what actually matters: an irreversible action asks for
+   something the *server* can check, and `hx-confirm` is nothing on the wire.
+
+**One rule the reference had already met**, which is the other kind of useful answer.
+`authenticate` resolved a session to a user row and destroyed the session when the row was
+gone, with the comment "the account is gone but the cookie is not" — written long before
+this document asserted it. Sessions are the hole no cascade reaches, because the row is
+keyed by token and its payload is opaque to SQL; the fix is not a column on the session
+table but the middleware loading the row. That rule shipped already proven.
+
+**The defect class the last two passes kept finding was a stale claim elsewhere.** Making
+an account deletable made two sentences false that nothing pointed at:
+[patterns/glossary.md](patterns/glossary.md)'s example entry said a message is "never
+edited, never deleted", and the reference's *Who owns what* row said the same. Both fixed,
+and the glossary example stays character-identical to the reference's file. **A new
+capability falsifies prose in documents it never touches**, and neither `make structure`
+nor `verify.sh` can see it — the sweep is a grep for the claims the change contradicts.
+
+**A box that was deliberately not added.** The by-value assertion from finding 1 has no
+checklist box of its own: the floor had thirteen tokens of headroom and a seventh box costs
+about twenty. Its concrete instance — outbox rows carrying an address — *is* boxed, and the
+general rule is in the document the section routes to. Recorded rather than quietly
+dropped, because "the checklist did not check it" is how a rule goes missing.
+
+**Empirical half: closed before the tag.** The reference could not delete a person at all,
+which is how the gap was found. It gained `/account/delete` — a page, not a dialog, asking
+for the account name retyped and the password, both checked by the server — one migration
+adding the outbox's `user_id` and an index on each of the five child columns, four handler
+tests, the schema sweep, and three new `verify.sh` gates: every user column declares an
+`ON DELETE` action, every child of `users` is indexed table-by-table, and the delete
+confirmation is server-checkable. **Both assertions of the sweep were proved to fail before
+they were trusted** — removing a cascade reddens the id sweep, removing `outbox.user_id`
+reddens the by-value check while the id sweep stays green. Reference synced and tagged
+v3.10.0 at `dadfb2f`, its `SPEC.md` pinning `c1ca89f`, `./verify.sh` exit 0.
 
 ### 2026-08-17 — four patterns, and the passes that rewrote them (v3.9.0)
 
@@ -294,195 +372,6 @@ tokens existed, `ByUser` scopes the list, and a cross-user revocation test exist
 layers. The pattern is mostly that code, written down and made general — which is the
 direction this corpus is supposed to run in.
 
-### 2026-08-17 — the router folded into the checklist (v3.7.0)
-
-The release that ended the router two days after inventing it. v3.6.0 measured what an
-agent reads; this one attacked the largest number that measurement produced — **an
-ordinary change to a conforming project**, which is the thing anyone does most often and
-was paying 8,091 tokens for a web application.
-
-  ordinary change   8,091 → 6,980 tokens   (−14%)
-  floor + checklist 20,287 → 19,182        (−5%)
-  reach             87,445 → 80,822        (−8%)
-  hot corpus        95,068 → 91,918 · 51 → 48 files
-
-**Seven defects over twelve adversarial passes**, the last two clean. Two of the seven
-were introduced by the run's own fixes and caught by the pass after — the same ratio, and
-the same lesson, as v3.5.0: run the pass after the one that looks finished.
-
-**The router and the checklist were the same rows with different payloads.** Every one of
-the twenty documents a checklist bold-bullet named was already a router row; one said
-*read this*, the other said *and this is what done looks like*. They are one file per
-project type now, one section per topic: the moment it fires in gerund form, the document
-that rules it, and the boxes it is checked against. A change reads the sections it fires
-and gets both halves in one hop; a milestone walks the same file's boxes. The routers
-split out for v3.6.0 never shipped — they existed only in a working tree, so nothing
-downstream ever saw them.
-
-**The fusion made a defect class unrepresentable, and caught one on the way in.** A row
-pointing at a document no box checks cannot be written any more, because the row *is* the
-box's heading. Wiring the CLI checklist surfaced exactly that: its router had pointed at
-[patterns/go-sqlite.md](patterns/go-sqlite.md) since it existed and **no box ever checked
-it**. Three boxes added, verbatim from that document. This is the v3.5.1 failure — *a
-pattern nothing pointed at* — caught by structure rather than by a reviewer, which is the
-only kind of fix that keeps working after everyone stops paying attention.
-
-**Write to the reader's competence**, a new rule in [README.md](README.md) *Size budgets*.
-The reader is a capable Go engineer, and every line spent on what it already knows is a
-line it pays to skip. The test is one question: *would a competent engineer get this wrong
-from the rule sentence alone?* No for `sleep`, `jitter`, `retryAfter`, `idempotent`,
-`retryableStatus`, a table test, a `main` switch, `readCredential` — so the contract is
-the payload and the body is overhead. Yes for `http.DefaultClient` having no timeout, `Do`
-returning nil for a 500, a nil `GetBody` replaying an empty body the server accepts — so
-those stay in code. [patterns/go-http-client.md](patterns/go-http-client.md) fell
-4,573 → 3,774 with its code half halved. [patterns/design-system.md](patterns/design-system.md)
-was held against the same test and left alone: its 120-line `DESIGN.md` template *is* the
-payload, and the test says so.
-
-**The same test governs an anti-pattern list.** 2,627 → 2,129 words across twenty
-documents. Every ❌ naming something a reader would otherwise reach for (resty, viper,
-Google Fonts, an icon font, gomock) stays, as does every one carrying a fact stated
-nowhere else; every ❌ that inverts a rule the document already made is gone, because that
-is duplication inside a single read path. `go-background-work.md` and `llm-prompting.md`
-lost the section entirely — every bullet restated a rule from a paragraph earlier.
-
-**What the adversarial half found.** Seven defects, all fixed. The first is the one that
-mattered:
-
-1. **Thirteen tier-1 boxes silently became waivable.** Tier 1 was defined positionally —
-   "everything under *Security* in the checklists" — and the fusion scattered those boxes
-   across the topic sections that fire them: session cookies, machine tokens, argon2id,
-   auth rate limiting, constant-time login, parameterized SQL, and the icon CSP check all
-   left *Security* for a section the preamble did not name. v3.6.0 had already replaced
-   the positional *definition* with a test; it left the positional *enumeration* in place,
-   and the fusion is what turned that into a safety hole. A wholly tier-1 section now says
-   so in its heading, and the three partly tier-1 sections name their boxes in the
-   preamble.
-2. **[README.md](README.md)'s tier-1 list still pointed at sections that no longer
-   exist** — *Security* and *Code quality*. Rewritten to name what each rule protects and
-   to say the checklists mark tier 1 rather than imply it.
-3. **Five documents claimed their rule lived "under *Security*" in a checklist.**
-   `go-auth-sessions`, `security-headers`, `go-sqlite`, `htmx-server-rendering`, and
-   `go-forms-validation` now say *tier 1 wherever a checklist files it*. Two of the five
-   were found only after a broader grep than the one that found the first three — the
-   first pattern searched for `under *Security*` and missed `the checklists' *Security*
-   section`.
-4. **One rule narrowed.** *Every form control labeled* had moved from an unconditional
-   section to *Accepting a form POST* — but a GET-only search box has form controls and
-   fires no such trigger. Back under *Every web application*. This is the fusion's
-   characteristic failure mode, and the pass that found it was the one that enumerated
-   every box that moved from an unconditional section into a conditional trigger. Every
-   other such move lands on a trigger that fires for effectively every project of the type
-   (writing CSS, laying out a page, rendering a response, writing a test) or is genuinely
-   conditional (icons, web fonts, a glossary, secrets).
-5. **Two budget regressions, both introduced by the fixes above**, both caught by the next
-   pass: the tier-1 preamble put the change path 50 tokens over, and the sentence
-   explaining defect 4 put it 13 over. Fixed by cutting rationale out of the most-paid
-   document in the corpus rather than by raising the budget to fit — a budget raised to
-   accommodate its own author's growth is not a budget.
-6. **The v3.6.0 entry overstates its gate count.** It records **61 gates**; `verify.sh` is
-   byte-identical to the v3.6.0 tag and runs **60**. Same bookkeeping class as the count
-   defect v3.5.0 found, and the reason that run's standing check exists.
-
-**No rule was lost, and here is how that was checked** rather than asserted. Checklist
-boxes reconcile at **306 → 307**: minus two duplicates merged in web-application (a second
-*No service worker*, and a backups box that restated the ship-section one), plus three
-from defect-class item 2. Every pre-fusion box was then matched to a counterpart in the
-fused files by keyword, all 306 accounted for. RFC-2119 keywords in governing documents
-hold at **135 → 136**, the one addition being a `MAY` permitting a trigger section to
-carry no box where the document rules something no milestone can verify. The first
-matcher written for this check was itself defective — it required three keywords, so every
-short box failed it — which is worth recording: *a clean result from a check nobody
-validated is not evidence.*
-
-Every trigger section names a document that exists; every `patterns/`, `stack/`, and
-`operations/` document is reachable from a checklist or a *Required reading* list; every
-markdown link in the corpus resolves; no checklist repeats a box; and the v3.5.0 standing
-check on undeclared identifiers passes for both documents item 3 touched.
-
-**Empirical half: closed, before the tag.** No rule this repository implements changed,
-which is the claim the run had to test rather than assume — so the three new CLI
-`go-sqlite` boxes were traced: SQLite in the reference lives only in `cmd/server` and
-`internal/store`, the `gochat` client stores nothing between runs, the trigger never
-fires, and those boxes are **unexercised** there rather than failing. Reference synced and
-tagged v3.7.0 (`23a54fd`), its `SPEC.md` pinning this release's commit `8795f18`.
-`./verify.sh` exits 0 — **60 gates**, mechanical checks through both booted binaries and
-the full smoke suite, run against the exact commit being tagged.
-
-### 2026-08-17 — what the corpus costs to read (v3.6.0)
-
-The release that measured the corpus against the thing nobody had been measuring: **what
-an agent has to read before it writes a line.** *Retiring a pattern* capped how many
-documents exist; nothing capped how big one got, and the answer had grown to 29,855
-tokens of required reading for a web application.
-
-  web application   29,855 → 18,252 tokens
-  cli tool          18,384 →  9,801
-  library           16,604 → 11,580
-
-**Two defects over three adversarial passes**, the last two clean. Both defects were
-losses the sweep itself introduced, which is the risk of a prose rewrite and the reason
-the first pass attacked exactly one claim: *no rule was removed*.
-
-**No rule was removed, and here is how that was checked** rather than asserted. Every
-RFC-2119 keyword in the corpus was counted before and after — 129 both times — and the
-five files whose local count moved were read line by line against their pre-sweep
-versions. Three of the five were relocations (the RFC-2119 sentence into
-[SKILL.md](SKILL.md), a rewrap, a heading rename). **Two were real losses:**
-
-1. **[patterns/go-config.md](patterns/go-config.md) rule 1 dropped a MUST NOT.** "A bad
-   `PORT` MUST NOT be discovered by a half-started process that already created files"
-   was gone; the rewrite had kept the timing and lost both the normative force and the
-   consequence that explains it. Restored.
-2. **[patterns/design-system.md](patterns/design-system.md) dropped a MAY.** The
-   permission to use a Claude Design sync integration where one exists had been
-   compressed away with the sentence around it. Restored.
-
-The later passes attacked different surfaces and found nothing: all 125 code blocks are
-byte-identical except the one deliberately moved and re-commented; every one of the nine
-headings that disappeared is accounted for by a move or the run-log compression; every
-cross-document `rule N` reference still lands on the rule it names; every required-reading
-entry and all 41 trigger rows resolve; no document still claims to own something that
-moved.
-
-**What changed structurally.** [SKILL.md](SKILL.md) is now the whole agent protocol and
-[README.md](README.md) is the maintainer's document, out of the read path — the protocol
-used to be stated in both, and a protocol stated twice drifts in one copy. Six documents
-left *Required reading* for trigger rows against one test: does this change a decision
-made before the first line of code? `security-headers` stayed required despite a clean
-trigger, because it is tier 1. The timeout ladder moved to
-[patterns/go-http-client.md](patterns/go-http-client.md) and the LLM prompt rules to
-[patterns/go-llm-adapter.md](patterns/go-llm-adapter.md), each to where its trigger fires.
-The `Rule tier:` boilerplate, byte-identical in 26 files, became a stamp. This file's
-older run narratives compressed into *Earlier runs*, keeping the counts and the findings
-that would otherwise be re-litigated.
-
-**Size budgets are the part that stops the regrowth** — 2,500 tokens of prose per
-document, 19,000 per project-type floor, enforced by `make tokens` and calibrated to the
-swept corpus so they ratchet rather than aspire. Fenced code is excluded: a snippet is the
-payload, not the overhead. **One document is over on purpose.**
-[patterns/go-llm-adapter.md](patterns/go-llm-adapter.md) holds 3,155 tokens of prose —
-twenty numbered rules, not padding — which is the budget saying it owns two subjects, the
-adapter shape and the model-specific traps. Splitting it is the next release's work; it is
-recorded here rather than solved by shaving prose to make a number, which the first draft
-of this sweep did to two other files before catching itself.
-
-**Tier 1 is now defined by what a rule protects** (`fix`, and the answer to an owed
-adjudication). The old definition was positional — "everything under *Security* in the
-checklists" — while three secret-handling rules met every part of the tier-1 test from
-under *Code quality*. The test is the definition now, the enumeration is what the test
-currently catches, and the web and CLI checklists say in their preambles that those three
-boxes are unwaivable where they sit. No box moved sections, and no rule changed tier by
-judgment.
-
-**Empirical half: closed, before the tag.** No rule this repository implements changed, so
-the reference needed no code change — which is itself the claim the run had to test rather
-than assume. Reference synced and tagged v3.6.0, its `SPEC.md` pinning this release's
-commit `60849e5`. `./verify.sh` exits 0 — **60 gates** (corrected from 61 by the v3.7.0
-run: `verify.sh` is byte-identical to this tag and has 60 `step` call sites), mechanical
-checks through both
-booted binaries and the full smoke suite, run against the exact commit being tagged.
-
 ### Earlier runs
 
 Compressed to what a future reader still needs: the counts, and the findings that would
@@ -491,6 +380,40 @@ otherwise be re-litigated. The full narratives are in this file's git history.
 **The three newest runs stay in full; everything older lives here.** A run log that only
 grows costs more to re-read than it saves, and the compression is what keeps a narrative
 from being re-litigated a year after it was settled.
+
+- **2026-08-17 — the router folded into the checklist (v3.7.0).** 7 defects over 12 passes,
+  the last two clean; 2 of the 7 were introduced by the run's own fixes. An ordinary change
+  to a conforming web application fell 8,091 → 6,980 tokens, floor + checklist 20,287 →
+  19,182, reach 87,445 → 80,822. **The router and the checklist were the same rows with
+  different payloads** — one said *read this*, the other *this is what done looks like* — so
+  they became one file per project type, one section per topic. **That fusion made a defect
+  class unrepresentable:** a row pointing at a document no box checks cannot be written any
+  more, because the row *is* the box's heading. Wiring the CLI checklist caught one on the
+  way in — its router had named [patterns/go-sqlite.md](patterns/go-sqlite.md) since it
+  existed and no box had ever checked it. **Write to the reader's competence** entered
+  [README.md](README.md) *Size budgets* here, and the test is one question: would a
+  competent Go engineer get this wrong from the rule sentence alone?
+  [patterns/go-http-client.md](patterns/go-http-client.md) fell 4,573 → 3,774 with its code
+  half halved; [patterns/design-system.md](patterns/design-system.md) was held against the
+  same test and left alone, because its `DESIGN.md` template *is* the payload.
+
+- **2026-08-17 — what the corpus costs to read (v3.6.0).** 2 defects over 3 passes, the last
+  two clean, and both were losses the sweep itself introduced — the risk of a prose rewrite.
+  Required reading for a web application fell 29,855 → 18,252 tokens, the CLI 18,384 →
+  9,801, the library 16,604 → 11,580. **"No rule was removed" was checked rather than
+  asserted:** every RFC-2119 keyword counted before and after (129 both times), and the five
+  files whose local count moved read line by line against their pre-sweep versions. Two were
+  real losses, both restored — [patterns/go-config.md](patterns/go-config.md) rule 1's MUST
+  NOT about a bad `PORT` reaching a half-started process that already created files, and
+  [patterns/design-system.md](patterns/design-system.md)'s MAY for a Claude Design sync
+  integration. **[SKILL.md](SKILL.md) became the whole agent protocol and
+  [README.md](README.md) the maintainer's document**, because a protocol stated twice drifts
+  in one copy; six documents left *Required reading* against one test — does this change a
+  decision made before the first line of code? — and `security-headers` stayed despite a
+  clean trigger, because it is tier 1. **Tier 1 became a test rather than a position**, after
+  three secret-handling rules met every part of it from under *Code quality*. Size budgets
+  were invented here; their numbers are superseded twice over, and *Budget decisions* below
+  is the current answer.
 
 - **2026-08-17 — a pattern nothing pointed at (v3.5.1).** 7 defects over 5 passes, the last
   two clean; six of the seven were in the fix rather than in the corpus, which is what a
