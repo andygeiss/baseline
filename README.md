@@ -322,12 +322,14 @@ Two budgets cap a single document:
 
 Three budgets cap a path somebody walks:
 
-- **The floor stays under 19,500 tokens** — `SKILL.md`, `VERSIONS.md`, the project-type
+- **The floor stays under 25,000 tokens** — `SKILL.md`, `VERSIONS.md`, the project-type
   document, its checklist, and every *Required reading* entry. That is what an agent pays
-  before writing a line, so adding a document to a *Required reading* list means moving
-  another one to a trigger section. A document belongs on that list only if it changes a
-  decision made *before* the first line of code; everything you can read at the moment
-  you write the thing is a trigger section in the checklist.
+  before writing a line, and the headroom is not an invitation. A document belongs on that
+  list only if it changes a decision made *before* the first line of code; everything you
+  can read at the moment you write the thing is a trigger section in the checklist. **That
+  test is what keeps the number down, not the number** — it held the floor for three
+  releases while the ceiling was thirteen tokens away, and it is the whole defence now
+  that the ceiling is further off.
 - **A change stays under 8,000 tokens** — `SKILL.md`, `VERSIONS.md`, and the checklist.
   This is the most common thing anyone does here and therefore the number paid most
   often.
@@ -338,13 +340,14 @@ Three budgets cap a path somebody walks:
   often it is read does.** How often is the maintainer's judgement; the report is what
   that judgement gets applied to.
 
-**A budget number moves only in a commit that moves nothing else.** The checklist and
-change numbers were raised once, on 2026-08-18, because the corpus's promise to extract
-every recurring decision into a pattern costs the change path about 125 tokens per
-pattern forever — a fixed number and a growing corpus cannot both hold, and the corpus is
-the point. The two numbers before and after, and the argument, are in
-[VERIFICATION.md](VERIFICATION.md) *Budget decisions*. Raising one to clear a red
-`make tokens` inside the change that blew it is the move this rule exists to stop.
+**A budget number moves only in a commit that moves nothing else.** Three have moved, all
+on 2026-08-18: the checklist and change numbers, then the floor. The reason is the same
+each time — the corpus's promise to extract every recurring decision into a pattern costs
+the paths about 125 tokens per pattern forever, and a fixed number and a growing corpus
+cannot both hold. The corpus is the point. Every number before and after, and the argument
+behind each move, is in [VERIFICATION.md](VERIFICATION.md) *Budget decisions*. Raising one
+to clear a red `make tokens` inside the change that blew it is the move this rule exists
+to stop.
 
 And two rules keep all of them down:
 

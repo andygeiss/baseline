@@ -571,6 +571,51 @@ Why a budget number is the number it is. A number here moves only in a commit th
 nothing else — [README.md](README.md) *Size budgets* carries that rule; this is where the
 argument behind each move lives.
 
+### 2026-08-18 — the floor, raised so the corpus can keep growing
+
+**Decided by Andy.** The floor 19,500 → **25,000**. The per-document budget (3,800), the
+checklist (5,000), and the change path (8,000) did not move.
+
+**The collision.** The entry below closed with the floor at 19,499 of 19,500 and said the
+quiet part out loud: *the floor is the number that hurts, and it is the last one that
+should ever move*. Thirteen tokens is not headroom, it is a stop, and the next rule proved
+it. Building a voice assistant turned up a shape the corpus had no document for — work a
+request starts and does not wait for, where `srv.Shutdown` waits for in-flight requests and
+silently drops the goroutine that outlived one. It landed in
+[patterns/go-background-work.md](patterns/go-background-work.md), which had 3,218 tokens
+spare and needed no new file. Its trigger section did not: widening the schedule section in
+`checklists/web-application.md` cost 61 tokens, the checklist absorbed it fine at 4,749 of
+5,000, and the floor went 48 over — because the checklist sits inside the floor. The rule
+that was meant to pay for it, move a document off *Required reading*, had nothing to move.
+All seven of them change a decision made before the first line of code, which is the test
+that list applies.
+
+**Why raising was the right branch.** Three alternatives, each worse. *Trim 192 bytes from
+the floor path* pays for one rule by cutting prose already at the bar *Write to the reader's
+competence* sets, and buys nothing for the rule after it. *Ship the document with no trigger
+section* is the failure [README.md](README.md) names outright — a document no box ever
+checks is how a rule goes missing, and it is why routing and the definition of done became
+one file. *Hold 19,500 and stop adding rules to the web-application path* caps the corpus's
+growth on purpose, which is the one thing this repository exists not to do.
+
+**What the number buys, and what it does not.** 5,452 tokens of headroom, against a floor
+that grows about 125 tokens per new trigger section — roughly forty more before this
+returns. The overshoot is deliberate: 19,700 would have cleared today's red and been full
+again by the next rule, which is how a gate gets retired by making it normal to ignore.
+What it does not buy is a cheaper read. An agent may now pay 25,000 tokens before its first
+line of code, and whether it should is a judgement this budget no longer makes for anybody.
+The two rules that kept the floor small still stand and are now the whole defence:
+*Required reading* takes a document only if it changes a decision made before the first
+line of code, and everything else is a trigger section.
+
+**What would make this number wrong.** If the floor climbs toward 25,000 on trigger
+sections rather than on *Required reading*, the checklist-inside-the-floor coupling is the
+defect and not the number — the fix is the branch the entry below deferred: budget the
+shared head, cap each trigger section. If an agent's output gets worse or slower as the
+floor grows, the floor is too high whatever `make tokens` says, and the reach report is
+where to look — rank by size times how often a document is read, and move the heaviest
+*Required reading* entry to a trigger.
+
 ### 2026-08-18 — the checklist and change-path numbers, raised once
 
 **Decided by Andy.** `checklists/*.md` 4,300 → **5,000**, and the change path 7,000 →
