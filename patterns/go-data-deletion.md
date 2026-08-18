@@ -80,6 +80,13 @@ The rules behind it — all MUST:
    have an unpaid invoice".
 5. **One transaction, on the write pool.** The cascade is part of the statement, so this
    is one `DELETE FROM users WHERE id = ?` and the rest is the schema keeping its promise.
+6. **Get the action right in the first migration.** SQLite cannot alter a constraint, so
+   changing one later is create-copy-drop-rename — and `DROP TABLE` with foreign keys on
+   runs an implicit `DELETE FROM` that *does* fire foreign key actions, so dropping a
+   parent to rebuild it takes its children with it. The usual escape, turning foreign keys
+   off around the rebuild, is closed to a migration that runs inside one transaction:
+   `PRAGMA foreign_keys` is a no-op there. Copy the children out first, or decide the
+   action before the table ships.
 
 ## A credential resolves to a row, not to an id
 
@@ -187,8 +194,14 @@ for _, table := range tableNames(t, db) {
 ```
 
 Seed one row for the user in every table the app writes before deleting, or the test proves
-only that empty tables are empty. **The session table is the one it cannot see** — the id
-is inside an opaque payload, not a column — which is what the next test is for.
+only that empty tables are empty.
+
+**It finds references, not copies**, and that is the limit worth knowing before you trust
+it. A row holding somebody's data under another name — an address in an outbox, a display
+name copied at write time — carries no id for the sweep to match, so it stays green while
+the data stays. Name those columns and assert on them by value. The session table is
+invisible for a third reason: its id sits inside an opaque payload rather than a column,
+which is what the next test is for.
 
 - **The signed-out test.** A request carrying the deleted user's cookie gets the sign-in
   page — not a 500, and not a rendered page.
