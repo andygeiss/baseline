@@ -158,6 +158,11 @@ binary cannot, so that gate is now a bounded retry. And the timeout ladder let g
 — `assistantBudget` used to sit under `WriteTimeout` and now stands alone, which is the
 waiver-narrowing the rule asks for, exercised rather than asserted.
 
+**No document stamp moved.** `patterns/go-background-work.md` is the one this run rebuilt
+and re-checked against upstream, and bumping its `Last verified` line would be a change to
+something a project reads *after* the pin — condition 4 — for one day of difference against
+a ninety-day window. The verification is recorded here instead.
+
 **The empirical half:** [baseline-reference](https://github.com/andygeiss/baseline-reference)
 `b3cdc7a`, tagged v3.11.0, pinning baseline `b94cbeb` — the commit the documents survived
 to. `./verify.sh` exits 0 there over 74 gates, including three new ones: the source check
