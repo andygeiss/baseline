@@ -108,7 +108,7 @@ decide about, and they should not have to work it out for themselves.
 - **Say when there is nothing.** A short list is the usual answer, an empty one a real
   answer, and padding spends the trust that makes the list worth reading.
 
-**A next step is never a piece of the work you decided to leave.** Finishing is still the
-job; this is how you hand over what finishing revealed.
+**The list says what you left; it is not permission to leave things.** Finishing is still
+the job; this is how you hand over what finishing revealed.
 
 Write every doc, comment, and prompt to the bar in [STYLE.md](STYLE.md).
