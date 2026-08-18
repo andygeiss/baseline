@@ -63,6 +63,21 @@ type Assistant interface {
 3. **The port's doc comment names every error a caller branches on.** That sentence is
    the contract the fake and the adapter both have to meet.
 
+**A port that streams takes a callback.** An answer read aloud, or typed onto a screen as
+it arrives, cannot wait for its last token — so the port hands each piece over as it
+comes, and the shape stays one method with no vendor words in it:
+
+```go
+// Reply hands each piece of the answer to emit as the model writes it, and
+// returns when the answer is complete.
+Reply(ctx context.Context, history []domain.Message, emit func(string) error) error
+```
+
+The callback is what keeps the error handling in one place: the adapter returns why it
+stopped, and an error from `emit` comes back unwrapped so the caller recognises its own.
+A channel needs a second channel for the error and a goroutine to feed both; an iterator
+puts the failure in a loop variable a caller can forget to read.
+
 ## The prompt is a product rule, so it lives in `domain`
 
 ```go
@@ -128,6 +143,13 @@ const SystemPrompt = `...`
    }
    ```
 
+   **On a stream the check cannot come first, so decide what a late refusal costs.** The
+   stop reason arrives after the text it applies to, and the vendor's advice — discard
+   the partial — assumes the partial is still yours to discard. It is not, once it has
+   been shown or read out loud. Watch for the refusal beside the text, stop the stream on
+   it, and report it without deciding anything about what already went out: the caller is
+   the only one that knows whether those words have left the building.
+
    Where the vendor offers a **server-side fallback** — a declined request answered by
    another model in the same call — prefer it to your own retry: one round trip, no state.
    Take the parameter and its beta header from the skill together; they are a matched pair,
@@ -192,6 +214,13 @@ const SystemPrompt = `...`
     [stack/go.md](../stack/go.md) default, it adds no dependency, and the wire-contract
     test keeps it honest. Take **the vendor's official SDK** the moment you need
     streaming, a tool-use loop, structured outputs, or a hosted-agent surface.
+
+    **Count the adapters the SDK would cover before you take it.** The trigger is per
+    adapter, not per project. A service with a vendor adapter and a local one —
+    `internal/openai` against oMLX, Ollama, or vLLM — writes the second event reader by
+    hand either way, so the SDK buys one of two while the dependency lands on the whole
+    module. A `data:` line reader over `bufio.Scanner` is about twenty lines, and rule 12
+    pins it.
 
     Either choice is a departure somebody has to justify in the project README: the SDK is
     not on the approved list in [stack/go.md](../stack/go.md), and calling the API directly
