@@ -80,13 +80,14 @@ The rules behind it — all MUST:
    have an unpaid invoice".
 5. **One transaction, on the write pool.** The cascade is part of the statement, so this
    is one `DELETE FROM users WHERE id = ?` and the rest is the schema keeping its promise.
-6. **Get the action right in the first migration.** SQLite cannot alter a constraint, so
-   changing one later is create-copy-drop-rename — and `DROP TABLE` with foreign keys on
+6. **A rebuild that changes an `ON DELETE` action copies the children out first.** SQLite
+   cannot alter a constraint, so changing one is create-copy-drop-rename — and
+   `DROP TABLE` with foreign keys on
    runs an implicit `DELETE FROM` that *does* fire foreign key actions, so dropping a
    parent to rebuild it takes its children with it. The usual escape, turning foreign keys
    off around the rebuild, is closed to a migration that runs inside one transaction:
-   `PRAGMA foreign_keys` is a no-op there. Copy the children out first, or decide the
-   action before the table ships.
+   `PRAGMA foreign_keys` is a no-op there. Decide the action before the table ships and
+   none of this comes up.
 
 ## A credential resolves to a row, not to an id
 
@@ -158,10 +159,11 @@ no user to reference. Send it in an earlier transaction, or do not send it.
 never the form, the predicate in the statement, `RowsAffected` checked, and somebody else's
 account answering exactly like one that was never there. Three things it adds:
 
-- **The route is a POST behind a confirmation the reader has to mean** — a page that asks
-  them to type the account name, which is a second request the server can require. There is
-  no JavaScript here to put a dialog in ([stack/html.md](../stack/html.md)), and a dialog
-  was never a guard the server could check anyway.
+- **The route is a POST behind a confirmation the server can check** — a page that asks
+  them to type the account name, which is a second request with something in it to verify.
+  `hx-confirm` is enough for a revoke somebody can redo; for this it is a dialog htmx
+  draws, so with htmx switched off there is no confirmation at all, and there was never
+  anything on the wire for the server to check either way.
 - **A self-service delete asks for the password again.** A session found unlocked is
   otherwise enough to erase somebody.
 - **A restore is out of the binary's hands.** The rows come back with the backup, so the
@@ -219,7 +221,7 @@ which is what the next test is for.
 - ❌ Deleting table by table in a handler, or a `DELETE` loop over a list of table names.
 - ❌ `ON DELETE CASCADE` on a shared row to make an error go away. That deletes the room
   because its creator left.
-- ❌ A confirmation that is a JavaScript dialog, or a GET link that deletes.
+- ❌ A GET link that deletes.
 - ❌ Keeping "just the email" of a deleted account for a mailing list. That is the one
   field they asked you to lose.
 
@@ -237,3 +239,9 @@ which is what the next test is for.
   https://www.sqlite.org/foreignkeys.html#fk_indexes
 - Foreign key actions count as trigger programs against `SQLITE_MAX_TRIGGER_DEPTH`, so
   cascades are recursive and bounded: https://www.sqlite.org/foreignkeys.html#fk_actions
+- `DROP TABLE` "performs an implicit DELETE FROM command before removing the table", and
+  that implicit delete "does cause any configured foreign key actions to take place":
+  https://www.sqlite.org/lang_droptable.html
+- `PRAGMA foreign_keys` "is a no-op within a transaction; foreign key constraint
+  enforcement may only be enabled or disabled when there is no pending BEGIN or SAVEPOINT":
+  https://www.sqlite.org/pragma.html#pragma_foreign_keys

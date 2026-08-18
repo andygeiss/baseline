@@ -123,9 +123,9 @@ broken download the reader sees; bytes whose row is gone are garbage nobody sees
 of those is safe to have, so a janitor sweeps files with no row
 ([go-background-work.md](go-background-work.md)).
 
-**Deleting the person who uploaded them inverts that order**, because the cascade takes the
-row away before you can ask it which files were theirs —
-[go-data-deletion.md](go-data-deletion.md).
+**Deleting the person who uploaded them keeps that order and adds a step**, because the
+cascade takes the row away before you can ask it which files were theirs: the names are
+collected first ([go-data-deletion.md](go-data-deletion.md)).
 
 ## Serving them back
 

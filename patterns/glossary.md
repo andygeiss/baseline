@@ -45,8 +45,8 @@ the browser claimed. _Avoid: upload, file, media._
 **Invite code** — the shared secret somebody must type to make an account, when
 the deployment sets one. _Avoid: access code, signup code._
 
-**Message** — one thing somebody said in a room. Never edited, never deleted.
-_Avoid: post._
+**Message** — one thing somebody said in a room. Never edited, and deleted only
+when its author's account is. _Avoid: post._
 
 **Outbox** — the table a message waiting to be emailed sits in. A handler writes
 to it and one background sender drains it, so nothing is ever sent inside a
