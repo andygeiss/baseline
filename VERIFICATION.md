@@ -65,26 +65,19 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Owed since 2026-08-18: the empirical half only.** The adversarial half is closed — ten
-passes over the six changes, the last two clean, recorded below as *the six changes that
-were owed*. Every mechanical gate is green: `make tokens`, `make structure`, and every new
-Go snippet compiled, vetted, and `gofmt`-clean.
-
-What is still owed is [baseline-reference](https://github.com/andygeiss/baseline-reference),
-which implements none of it — detached work least of all, and that is the shape the
-empirical half exists to catch, since its trap is a shutdown that looks clean. **No tag
-ships until it does**, and until then no document stamp moves either: the review re-checked
-their facts, but only a running binary closes conditions 2 through 4 of the gate.
+**Nothing.** v3.11.0 closed its gate on 2026-08-18 — the adversarial half over the six
+changes that were owed, then the empirical half, which found one more and is recorded
+below.
 
 ## Run log
 
 Newest first.
 
-### 2026-08-18 — the six changes that were owed (adversarial half only)
+### 2026-08-18 — the six changes that were owed (v3.11.0)
 
-**Forty-six defects over ten passes**, the last two clean. No tag: the reference is not
-synced, so conditions 2 through 4 of the gate are open and this run closes condition 1
-alone.
+**Forty-seven defects over ten adversarial passes and one empirical pass**, the last two
+readings clean. The forty-seventh came from building the rules rather than reading them,
+and it is the one worth the most.
 
 **The headline is a rule that was right on its own and wrong in a container.** The new
 detached-work shape told `main` to wait for work whose only clock was `jobBudget`, and
@@ -136,10 +129,42 @@ budget, and `ebfc5e7` spent 265 tokens of the fresh headroom there one commit la
 Recorded under *Budget decisions* rather than gated, because two documents do not need a
 gate and the floor already bounds them together.
 
-**Where the defects came from.** Sixteen from reading the six changes; the other thirty
-from re-reading the fixes. That ratio is the finding about the process — a fix is a change,
-and it earns the same passes the change did. The duration-versus-survivability mistake
-above was introduced by a fix and caught two passes later.
+**Where the defects came from.** Sixteen from reading the six changes; thirty from
+re-reading the fixes; one from building them. That middle number is the finding about the
+process — a fix is a change, and it earns the same passes the change did. The
+duration-versus-survivability mistake above was introduced by a fix and caught two passes
+later.
+
+**Empirical half: the rule that was half an answer.** *Tests wait on the counter, never on
+the clock* reads like a complete rule and is not. The reference detached its assistant
+reply, and deleting `a.running.Add(1)` left **every test green** — an uncounted goroutine
+still finishes first on an idle machine, and nothing in the suite could see it. The first
+answer was to give up and grep the build for the line, which is what the reference's README
+said for one commit.
+
+The corpus already had the better answer and the rule had not been pointed at it.
+[patterns/go-testing.md](patterns/go-testing.md) mandates `testing/synctest` for goroutine
+coordination; in a bubble `synctest.Wait` returns only once every other goroutine is
+durably blocked, so a `Wait` that returned early is visible to a `select` with a `default`.
+The reference's test is red in 0.04 s without the counter, with no clock and no deadlock.
+Two constraints came with it, and only running it produces them: **a listener has to stay
+outside the bubble**, because a goroutine blocked on a socket is never durably blocked, and
+**so does anything holding a ticker that never exits** — `scs`'s in-memory session store
+does, and the bubble waits for it. Both are in the rule now.
+
+**Two more things only the reference could say.** Detaching the reply took the smoke test's
+happens-before edge away: `go test` can wait on the app's counter, a shell driving the real
+binary cannot, so that gate is now a bounded retry. And the timeout ladder let go of a rung
+— `assistantBudget` used to sit under `WriteTimeout` and now stands alone, which is the
+waiver-narrowing the rule asks for, exercised rather than asserted.
+
+**The empirical half:** [baseline-reference](https://github.com/andygeiss/baseline-reference)
+`b3cdc7a`, tagged v3.11.0, pinning baseline `b94cbeb` — the commit the documents survived
+to. `./verify.sh` exits 0 there over 74 gates, including three new ones: the source check
+that `main` waits after `g.Wait()`, the mention gate rewritten as a bounded retry, and the
+quiet gate given time to be wrong. **Every new assertion was proved to fail first** —
+deleting the `AfterFunc` reddens the shutdown test after exactly the ten-second budget,
+which is the hang measured rather than argued.
 
 ### 2026-08-18 — the document for data leaving (v3.10.0)
 
