@@ -385,7 +385,7 @@ wire.
 - [ ] `go test -race -shuffle=on ./...` passes
 - [ ] Domain logic covered exhaustively (all rules/edge cases)
 - [ ] Each handler: happy path + error paths, via `httptest` against real routes
-- [ ] A test for detached work waits on the app's `Wait()`, never on the clock
+- [ ] Detached work is waited on, never slept on, and a `synctest` test proves the counter
 
 ## Making the app installable
 

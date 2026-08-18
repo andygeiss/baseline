@@ -160,3 +160,16 @@ holding.
 **Tests wait on the counter, never on the clock.** `Wait()` is exported for shutdown, and
 a test gets it for free; a test that sleeps instead is a test that fails on a loaded
 machine.
+
+**Waiting is the easy half. Proving the counter counts takes `testing/synctest`.** Delete
+the `Add` and every ordinary test stays green, because an uncounted goroutine still
+finishes first on an idle machine. In a bubble ([go-testing.md](go-testing.md)),
+`synctest.Wait` returns only once every other goroutine is durably blocked — so a `Wait`
+that has already returned is visible to a plain `select` with a `default`, and no clock or
+deadlock is involved. Two things have to stay outside the bubble: a listener, because a
+goroutine blocked on a socket is never durably blocked, and anything holding a ticker that
+never exits, because the bubble waits for it.
+
+**A test outside the process has no counter to reach.** A shell driving the real binary
+retries until the work shows up — bounded, so work that never comes fails the gate rather
+than hanging it.
