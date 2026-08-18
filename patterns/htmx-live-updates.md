@@ -128,6 +128,32 @@ That is the opposite of rule 3, and the difference is who asked. The reader pres
 they are looking at the bottom of the list and expect it to change. A poll doing the same
 thing every three seconds would move the ground under somebody who is reading.
 
+## When the polled thing is not a list
+
+The sentinel row is a *list's* mechanism: the cursor advances because the last row is
+what the response replaces. Some polled things have no last row — a job reporting
+progress, one status line, a reply being written a sentence at a time. The part that
+changes is the whole of it.
+
+**Then poll the region and swap the region.** The poller sits inside it and targets it:
+
+```html
+<span hidden data-poll
+      hx-get="/jobs/7?since=3" hx-target="#job"
+      hx-swap="outerHTML transition:false" hx-trigger="every 1s"></span>
+```
+
+The answer is the region again, carrying a fresh poller with the advanced cursor. **Rule
+3 is the only one that gives way,** and it gives way for its own stated reason: it
+protects a reader's place in a long list, and a few lines somebody is watching change
+have no place to lose. Everything else stands — the server still decides the next cursor
+and sends it (rule 2), 204 still leaves the poller alone, 286 still stops it,
+`transition:false`, no indicator, and 303 to the page for a plain request.
+
+**The cursor is still a count of things the server appends and never rewrites** — pieces
+produced, lines logged. That is what makes "only what is new" true, and it matters most
+where sending a thing twice is not merely wasted bytes: audio sent twice is played twice.
+
 ## The handler
 
 ```go

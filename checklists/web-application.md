@@ -296,7 +296,7 @@ the CSP and every other header.
 
 `patterns/htmx-live-updates.md` — polling with a cursor, the 204, and why not SSE.
 
-- [ ] The cursor is a row id the server advances inside the swapped sentinel
+- [ ] The cursor is a row id or a count, never a time, and the server advances it
 - [ ] An empty poll answers 204
 - [ ] The route 303s a non-htmx request
 - [ ] The poll carries no indicator and no rate limit
@@ -311,13 +311,16 @@ the CSP and every other header.
 - [ ] A filter or sort change drops the cursor
 - [ ] Where the list also polls, the two cursors have different names
 
-## Running anything on a schedule — a janitor, a backup, any ticker loop
+## Running work outside a request — a ticker, or work a request starts and leaves
 
-`patterns/go-background-work.md` — the errgroup and the run-before-the-first-tick rule.
+`patterns/go-background-work.md` — the errgroup, the first tick, and the second wait.
 
-- [ ] It runs under the `errgroup` tied to the signal context, never a bare `go func()`
+- [ ] A ticker runs under the `errgroup` tied to the signal context, never a bare `go func()`
 - [ ] It runs once before entering its ticker loop
 - [ ] It treats `context.Canceled` at shutdown as normal
+- [ ] Work that outlives its request takes `context.WithoutCancel` and a budget of its own
+- [ ] `main` waits for it after `g.Wait()`; `srv.Shutdown` does not
+- [ ] Its registry drops finished entries when the next one starts
 
 ## Depending on someone else's system
 
