@@ -28,8 +28,8 @@ hardened application without inventing anything.
 ## How to use this repository
 
 **AI agents: read [SKILL.md](SKILL.md), not this file.** It carries the whole protocol —
-the core values, the reading order, the date check, and the tier summary — in a fifth of
-the tokens, because everything below is written for whoever maintains the corpus rather
+the core values, the reading order, the date check, the tier summary, and how work is
+handed back — in a quarter of the tokens, because everything below is written for whoever maintains the corpus rather
 than whoever is building with it. The one section here an agent ever needs is
 [Which rules can be waived](#which-rules-can-be-waived), and SKILL.md links straight to
 it at the moment a rule is about to be skipped.

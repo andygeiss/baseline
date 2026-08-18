@@ -93,4 +93,22 @@ Before you actually skip a tier-2 rule or record a waiver, read *Which rules can
 waived* in [README.md](README.md): it defines the tiers in full and gives the six fields
 a waiver entry MUST carry.
 
+## Handing the work back
+
+**Every piece of work ends with the next steps** — not a summary of what you did, which
+the diff says, but a short list the reader can act on. Where you stopped is theirs to
+decide about, and they should not have to work it out for themselves.
+
+- **Order the steps, and say who each waits on:** a decision only they can make, a command
+  only they can run, or work you would pick up yourself.
+- **Everything you left undone goes on it** — a part you scoped out, a check you could not
+  run, a gate you left red. What nobody writes down gets done twice, or never.
+- **One line each, concrete enough to start from.** "Add tests" is noise; "the plain-form
+  path has no test — the existing one covers only htmx" is a step.
+- **Say when there is nothing.** A short list is the usual answer, an empty one a real
+  answer, and padding spends the trust that makes the list worth reading.
+
+**A next step is never a piece of the work you decided to leave.** Finishing is still the
+job; this is how you hand over what finishing revealed.
+
 Write every doc, comment, and prompt to the bar in [STYLE.md](STYLE.md).
