@@ -9,12 +9,13 @@ you call the work complete. Paths are from the repository root.
 Every unchecked box is either fixed or waived on the record — the format is in
 `README.md` *Which rules can be waived*. **Tier 1 is decided by what a rule
 protects, not by which section it landed in**, so a wholly tier-1 section says so in its
-heading. Five sections are only partly tier 1: `Config.LogValue` and the three `.env`
+heading. Six sections are only partly tier 1: `Config.LogValue` and the three `.env`
 boxes under *Reading a flag…*; the pragmas, both pools, and parameterized SQL under
 *Storing anything*; the zero-CSP-violations check under *Adding an icon*; every box under
 *Reading or writing a row somebody owns* except the one naming the shared rows; the
-base-URL and the header box under *Sending an email*. No waiver for any of those; there
-is a fix.
+base-URL and the header box under *Sending an email*; every box under *Deleting a
+person* except the one naming where each table's answer is written. No waiver for any of
+those; there is a fix.
 
 ## Every web application
 
@@ -279,6 +280,17 @@ the CSP and every other header.
 - [ ] The message is queued in the causing transaction; a ticker sends it
 - [ ] The response never changes with the send's outcome
 - [ ] The `Host: evil.example` test is green
+
+## Deleting a person, or anything they own
+
+`patterns/go-data-deletion.md` — what the delete reaches, and what stops authenticating.
+
+- [ ] Every table holding the person's rows declares an `ON DELETE` action
+- [ ] Each table's answer — erase, anonymize, refuse — is written where the shared rows are
+- [ ] The credential middleware loads the user row, so a deleted account is signed out
+- [ ] Outbox rows carrying their address go with the account
+- [ ] Bytes on disk are unlinked after the commit, from names collected inside it
+- [ ] The all-tables test reads the schema at runtime and finds the id in no table
 
 ## Keeping a page current while the reader watches it
 

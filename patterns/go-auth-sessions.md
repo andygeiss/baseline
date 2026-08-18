@@ -160,6 +160,10 @@ built from, the outbox it waits in, and why nothing is sent inside the handler. 
 when the project grows its first outgoing message; the rules above are complete without
 it until then.
 
+**Deleting the account is the case no session store can answer**, because the session row
+names no user: [go-data-deletion.md](go-data-deletion.md) puts the check in the middleware
+that resolves the credential.
+
 ## Machine tokens (when a program is the user)
 
 A CLI or a script cannot hold a session cookie. Sessions are built for a browser:
@@ -199,7 +203,8 @@ MUST rules:
    the row carry a human label and a `last_used_at` the handler touches. Both
    exist so a person can tell which token to revoke. **Revocation is a DELETE.**
 6. **One function resolves either credential** — a bearer token or a session —
-   and puts the same user in the request context. Everything downstream stops
+   and puts the same user *row* in the request context, never just the id it came
+   from. Everything downstream stops
    caring which one arrived.
 
    What it MUST NOT do is decide the answer when there is no user, because the

@@ -16,7 +16,9 @@ every other box in the checklist.
 ## Taking the bytes
 
 The route raises its own cap at the cap site — never by widening the blanket 1 MiB, which
-cannot be raised downstream ([go-http-server.md](go-http-server.md) rule 6).
+cannot be raised downstream ([go-http-server.md](go-http-server.md) rule 6). In the
+middleware, before delegating to the mux:
+`limit := int64(1<<20); if r.URL.Path == "/upload" { limit = 32<<20 }; r.Body = http.MaxBytesReader(w, r.Body, limit)`.
 
 ```go
 // ParseMultipartForm, not ParseForm — see rule 1 below. Its argument is how
@@ -120,6 +122,10 @@ cannot disagree. That is most of why the blob answer wins for small files.
 broken download the reader sees; bytes whose row is gone are garbage nobody sees. Only one
 of those is safe to have, so a janitor sweeps files with no row
 ([go-background-work.md](go-background-work.md)).
+
+**Deleting the person who uploaded them inverts that order**, because the cascade takes the
+row away before you can ask it which files were theirs —
+[go-data-deletion.md](go-data-deletion.md).
 
 ## Serving them back
 

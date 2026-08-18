@@ -107,7 +107,10 @@ An outbox table, written in the same transaction as the thing that caused the ma
   saw. Whether an address exists MUST NOT be observable in the response — the
   no-enumeration rule in [go-auth-sessions.md](go-auth-sessions.md) is the reason the
   answer cannot depend on the send.
-- **Log the recipient and the outbox id, never the body.** The body holds the token.
+- **Log the outbox id, never the address or the body.** The body holds the token, and an
+  address in a log line is a copy of somebody's data that no account deletion reaches. The
+  id resolves to the row for as long as the row exists — and the row goes when the account
+  does ([go-data-deletion.md](go-data-deletion.md)).
 
 ## Which transport
 

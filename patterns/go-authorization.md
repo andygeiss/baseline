@@ -55,9 +55,11 @@ The rules behind it — all MUST:
    never use at all, where existence is not the secret.
 5. **Lists, counts, and every aggregate carry the predicate too.** The detail read is the
    one people remember; `SELECT count(*) FROM games` is the one that ships.
-6. **A write proves ownership in its own statement.** `UPDATE games SET state = ? WHERE id
-   = ? AND user_id = ?`, then check `RowsAffected` — zero means not theirs, and it answers
-   by rule 4. A read followed by an unqualified write is two statements where one would do.
+6. **A write proves ownership in its own statement**, deletes included. `UPDATE games SET
+   state = ? WHERE id = ? AND user_id = ?`, then check `RowsAffected` — zero means not
+   theirs, and it answers by rule 4. A read followed by an unqualified write is two
+   statements where one would do. What a delete has to reach past the row it named is
+   [go-data-deletion.md](go-data-deletion.md).
 7. **Sentinels stay at the store boundary.** Callers see `domain.ErrNotFound`, never a
    `database/sql` error ([go-errors-logging.md](go-errors-logging.md)).
 

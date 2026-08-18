@@ -47,6 +47,8 @@ The rules behind it — all MUST:
 3. **`synchronous(NORMAL)`.** Safe in WAL mode (durable at checkpoint, atomic always);
    `FULL` costs an fsync per commit for little gain here.
 4. **`foreign_keys(1)`.** Off by default in SQLite for historic reasons. Turn it on.
+   It is also what makes an `ON DELETE` clause do anything, and those are a schema's whole
+   answer to deleting a person ([go-data-deletion.md](go-data-deletion.md)).
 5. **Single-writer pool.** SQLite has one writer at a time — model that in Go
    (`SetMaxOpenConns(1)`) instead of discovering it as lock errors. All INSERT/UPDATE/
    DELETE go through `writeDB`, all SELECTs through `readDB`. The store struct takes

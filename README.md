@@ -98,6 +98,7 @@ baseline/
 │   ├── go-background-work.md
 │   ├── go-cli.md
 │   ├── go-config.md
+│   ├── go-data-deletion.md
 │   ├── go-email.md
 │   ├── go-errors-logging.md
 │   ├── go-file-uploads.md
@@ -178,6 +179,10 @@ below is what it currently catches, not the definition.
 - Everything about a file a user handed you: the generated stored name, the type decided
   by sniffing the bytes, the download served by a handler rather than a file server, and
   the attachment default ([patterns/go-file-uploads.md](patterns/go-file-uploads.md)).
+- What a delete reaches, and what still authenticates once it has: an `ON DELETE` action on
+  every table holding a person's rows, their queued mail and their bytes going with them,
+  and a credential resolving to a row rather than to an id
+  ([patterns/go-data-deletion.md](patterns/go-data-deletion.md)).
 - A link in an outgoing email built from `Config` and never from the request, and a
   header value refused when it holds CR or LF
   ([patterns/go-email.md](patterns/go-email.md)).

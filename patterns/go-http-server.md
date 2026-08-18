@@ -27,7 +27,6 @@ func (a *App) Routes() http.Handler {
 
 	// a.staticFS = fs.Sub(embedded, "web") so URL /static/css/… resolves to
 	// web/static/css/… (see go-project-layout.md); cacheImmutable: go-performance.md.
-	// Static sits outside the chain — see the routing notes below.
 	root := http.NewServeMux()
 	root.Handle("GET /static/", cacheImmutable(http.FileServerFS(a.staticFS)))
 	root.Handle("/", a.middleware(mux)) // the one canonical chain — see Middleware below
@@ -63,12 +62,10 @@ func (a *App) handleGameShow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		a.serverError(w, r, err) // logs with slog, renders 500 page
+		a.serverError(w, r, err)
 		return
 	}
-	a.render(w, r, http.StatusOK, "game.html", "", game)
-	// "" = full page. Mutation handlers: fragment (200) only when isFragment(r),
-	// otherwise 303 (PRG) — one discriminator, see htmx-server-rendering.md.
+	a.render(w, r, http.StatusOK, "game.html", "", game) // "" = full page
 }
 ```
 
@@ -107,10 +104,9 @@ Outermost → innermost:
 6. `http.MaxBytesHandler(mux, 1<<20)` — innermost: bodies capped at 1 MiB so `ParseForm`
    on a hostile body can't exhaust memory. An outer cap **cannot be raised downstream**,
    because the body is already wrapped in the smaller `MaxBytesReader` before the handler
-   runs. A route that genuinely accepts uploads picks its limit at the cap site instead
-   of the blanket wrapper: `limit := int64(1<<20); if r.URL.Path == "/upload" { limit =
-   32<<20 }; r.Body = http.MaxBytesReader(w, r.Body, limit)` before delegating to the mux.
-   Everything after the cap is [go-file-uploads.md](go-file-uploads.md), and it is tier 1.
+   runs, so a route that genuinely accepts uploads picks its limit at the cap site
+   instead. That route and everything after it is
+   [go-file-uploads.md](go-file-uploads.md), and it is tier 1.
 
 ## Server lifecycle
 
@@ -136,20 +132,18 @@ srv := &http.Server{
   DB queries.
 
 **The four timeouts above are only half of the ladder.** A handler that calls someone
-else's system adds two more on the way out, and their order decides which one fires —
-get it wrong and the failure is silent in both directions. The full ladder, its two
-failure modes, and the waiver for widening `WriteTimeout` past 30 s live in
-[go-http-client.md](go-http-client.md) *The timeout ladder*. Read it before writing a
-handler that waits on another system; the settings above are correct on their own until
-then.
+else's system adds two more on the way out, and their order decides which one fires. The
+full ladder, its two failure modes, and the waiver for widening `WriteTimeout` past 30 s
+are in [go-http-client.md](go-http-client.md) *The timeout ladder* — read it before
+writing a handler that waits on another system.
 
 ## Background work
 
 The server is one goroutine under an `errgroup` tied to the signal context, and anything
 periodic — a session janitor, a `VACUUM INTO` backup — is another. The wiring, the
-run-before-the-first-tick rule, and treating `context.Canceled` as an orderly stop live in
-[go-background-work.md](go-background-work.md). Read it when the process grows its first
-scheduled job; the lifecycle above is correct on its own until then.
+run-before-the-first-tick rule, and treating `context.Canceled` as an orderly stop are in
+[go-background-work.md](go-background-work.md) — read it when the process grows its first
+scheduled job.
 
 ## The ops listener
 
@@ -188,16 +182,12 @@ func OpsHandler(readDB *sql.DB, version string) http.Handler {
 
 ```go
 ops := &http.Server{
-	Addr:              "127.0.0.1:6060", // fixed, not a flag: never public, never proxied
-	Handler:           app.OpsHandler(readDB, version),
-	ReadHeaderTimeout: 5 * time.Second,
-	ReadTimeout:       10 * time.Second,
-	WriteTimeout:      30 * time.Second,
-	IdleTimeout:       2 * time.Minute,
-	ErrorLog:          slog.NewLogLogger(logger.Handler(), slog.LevelError),
-	// WriteTimeout does not cap long profiles: profile?seconds=30 writes nothing
-	// until profiling ends, but net/http/pprof extends its own write deadline to
-	// WriteTimeout + seconds on every seconds-based handler.
+	Addr:    "127.0.0.1:6060", // fixed, not a flag: never public, never proxied
+	Handler: app.OpsHandler(readDB, version),
+	// The same four timeouts and ErrorLog as the app server. They do not cap a
+	// long profile: profile?seconds=30 writes nothing until profiling ends, but
+	// net/http/pprof extends its own write deadline to WriteTimeout + seconds on
+	// every seconds-based handler.
 }
 g.Go(func() error { return serve(ctx, ops) })
 ```
