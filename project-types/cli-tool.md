@@ -1,6 +1,6 @@
 # Project Type: CLI Tool
 
-**Last verified: 2026-08-17**
+**Last verified: 2026-08-25**
 
 Command-line tool: starts, does one job, exits. If the process is meant to stay up
 and serve requests, it is not a CLI — build a [web application](web-application.md).
@@ -17,7 +17,7 @@ and serve requests, it is not a CLI — build a [web application](web-applicatio
 | Outbound HTTP | stdlib `http.Client`, built in `run()` | MUST when the tool calls an API. Never `http.DefaultClient` — see [patterns/go-http-client.md](../patterns/go-http-client.md). |
 | Persistence | none; SQLite (`modernc.org/sqlite`) if the tool keeps state | SHOULD prefer stateless. |
 | Deployment | single static binary (`CGO_ENABLED=0`) | MUST. |
-| Distribution | `go install` + GitHub release binaries | MUST. See [operations/cli-release.md](../operations/cli-release.md). |
+| Distribution | `go install`; the release is a tag, no binaries | MUST. See [operations/cli-release.md](../operations/cli-release.md). |
 | Local commands | Make | MUST. `Makefile` from [stack/makefile.md](../stack/makefile.md), with the rule-5 adjustments for its layout. |
 
 Versions: see [VERSIONS.md](../VERSIONS.md).
@@ -89,7 +89,8 @@ It is the sanctioned multi-binary case: the module ships a server and a client,
 so `main` sits in `cmd/gochat/` rather than at the module root, and the install
 path gains the suffix.
 
-**The one part it does not exercise is the release** — that repository's tags
-mirror baseline versions rather than the tool's own contract, so it publishes no
-artifacts and [operations/cli-release.md](../operations/cli-release.md) has no
-reference yet.
+**The one part it does not exercise is semver** — that repository's tags mirror
+baseline versions rather than the tool's own contract, so its version numbers say
+nothing about `gochat`. The rest of
+[operations/cli-release.md](../operations/cli-release.md) it does: `go install` from a
+tag works, and the version stamp is gated.

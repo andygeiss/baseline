@@ -9,15 +9,17 @@ fix.
 ## Toolchain
 
 - Format with `gofmt` (via `goimports`). Non-negotiable; no custom style.
-- Vet on every CI run: `go vet ./...`.
+- Vet on every run of the gates: `go vet ./...`.
 - Run the modernizers periodically: `go fix ./...` — since Go 1.26 this applies
   ~two dozen analyzers that rewrite code to current idioms. Trust it.
 - Lint with `staticcheck` (the only third-party lint tool allowed).
-- Scan for known vulnerabilities: `govulncheck ./...` — in CI on every push to
-  `main` *and* weekly on a schedule (see [operations/ci.md](../operations/ci.md)).
-- Race detector in CI: `go test -race -shuffle=on ./...`.
-- Locally, all the CI gates above run as one command: `make check`
-  (see [stack/makefile.md](makefile.md) — the Makefile every project copies).
+- Scan for known vulnerabilities: `govulncheck ./...` — on every `make check`, and
+  once per 90-day cycle even when nothing changed
+  (see [operations/ci.md](../operations/ci.md)).
+- Race detector on every test run: `go test -race -shuffle=on ./...`.
+- All the gates above are one command, `make check`, and `make ci` runs it against
+  the commit (see [stack/makefile.md](makefile.md) — the Makefile every project
+  copies).
 
 ## Language conventions
 

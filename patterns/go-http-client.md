@@ -304,7 +304,7 @@ per [go-testing.md](go-testing.md). Point `NewClient` at `srv.URL`, and let the 
 decide what to fail on.
 
 - **Count calls with `atomic.Int64`, never a plain `int`.** The handler runs on the
-  server's goroutine and the assertions run on the test's, and CI runs `-race`.
+  server's goroutine and the assertions run on the test's, and `make check` runs `-race`.
 - Test the failure paths production will actually hit: a non-2xx status, a body that is
   not the JSON you expected, and a context canceled mid-flight.
 - Timeout behavior belongs in `testing/synctest` rather than a real one-second wait.

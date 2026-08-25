@@ -1,6 +1,6 @@
 # Web Application — Triggers and Definition of Done
 
-**Last verified: 2026-08-17**
+**Last verified: 2026-08-25**
 
 One topic per section: **the moment it fires, the document that rules it, and what done
 looks like.** Read a section before you write the thing it covers; walk its boxes before
@@ -407,12 +407,13 @@ wire.
 
 ## Setting up the repo's commands or CI
 
-`stack/makefile.md`, then `operations/ci.md` — `make check` is CI locally.
+`stack/makefile.md`, then `operations/ci.md` — there is no CI server; the Makefile is the
+gate.
 
-- [ ] CI workflow is in place and green, with every gate that document lists
-- [ ] `Makefile` at the repo root
+- [ ] `Makefile` at the repo root, targets alphabetical, `check` the default
 - [ ] `make check` is green
-- [ ] `make check` is gate-for-gate identical to ci.yml
+- [ ] `make ci` is green on the commit being pushed — nothing runs it for you
+- [ ] Nothing under `.github/`: no workflow, no Dependabot
 
 ## Configuring the build, or serving a static asset
 

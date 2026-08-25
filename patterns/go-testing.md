@@ -62,7 +62,7 @@ caught it.
 - **htmx paths:** test each dual-mode handler twice — once plain, once with
   `HX-Request: true` — asserting full page vs fragment.
 - **Concurrency:** `testing/synctest` (`synctest.Test`) for anything with timers or
-  goroutine coordination — never `time.Sleep`. CI always runs
+  goroutine coordination — never `time.Sleep`. `make check` always runs
   `go test -race -shuffle=on ./...`.
 - **Fuzzing** (`go test -fuzz`) for parsers and any function taking untrusted input.
 

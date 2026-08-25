@@ -1,6 +1,6 @@
 # CLI Tool — Triggers and Definition of Done
 
-**Last verified: 2026-08-17**
+**Last verified: 2026-08-25**
 
 One topic per section: **the moment it fires, the document that rules it, and what done
 looks like.** Read a section before you write the thing it covers; walk its boxes before
@@ -159,20 +159,21 @@ the reasoning that leaks into the visible answer.
 
 ## Setting up the repo's commands or CI
 
-`stack/makefile.md`, then `operations/ci.md` — `make check` is CI locally.
+`stack/makefile.md`, then `operations/ci.md` — there is no CI server; the Makefile is the
+gate.
 
-- [ ] CI workflow is in place and green (covers gofmt, vet, staticcheck, **govulncheck**, tidy, race tests, static build)
-- [ ] `Makefile` at the repo root, with the rule-5 adjustments for its layout
-- [ ] `make check` is green
-- [ ] `make check` is gate-for-gate identical to ci.yml
+- [ ] `Makefile` at the repo root, with the rule-5 adjustments for its layout, targets alphabetical, `check` the default
+- [ ] `make check` is green (gofmt, vet, staticcheck, **govulncheck**, tidy, race tests, static build)
+- [ ] `make ci` is green on the commit being pushed — nothing runs it for you
+- [ ] Nothing under `.github/`: no workflow, no Dependabot
 
 ## Tagging and publishing a release
 
-`operations/cli-release.md` — cross-compiling, checksums, `go install`.
+`operations/cli-release.md` — the release is a tag, and `go install` is the channel.
 
-- [ ] Release workflow in place
-- [ ] A tag builds all six targets + `SHA256SUMS`
-- [ ] `go install github.com/andygeiss/<tool>@<tag>` (or `…/cmd/<name>@<tag>` in a multi-binary module) verified from a clean machine (or empty `GOMODCACHE`)
+- [ ] `make ci` is green on the commit being tagged
+- [ ] `go install github.com/andygeiss/<tool>@<tag>` (or `…/cmd/<name>@<tag>` in a multi-binary module) verified with an empty `GOMODCACHE`, and `-version` prints the tag
+- [ ] No release binaries — not until a user without a Go toolchain asks
 - [ ] Semver honored: breaking changes to flags, exit codes, `-json` fields, or the meaning of stdout output only in a major release
 
 ## Fixing something measurably slow

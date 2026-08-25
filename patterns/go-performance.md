@@ -27,8 +27,8 @@ HTML over the wire with no client framework tax. Performance work is therefore
   auto-detects it (the repo root is *not* checked). Typically 2–7 % CPU reduction;
   refresh the profile when the workload shifts materially.
 - Release builds: `CGO_ENABLED=0 go build -trimpath ./cmd/server` (static binary,
-  reproducible paths) — the same flags CI's build gate, `make build`, and the
-  release workflow use, and no extra ones; one definition of "release-shaped".
+  reproducible paths) — the same flags `make check`'s build gate and `make build`
+  use, and no extra ones; one definition of "release-shaped".
 
 ## Runtime configuration
 

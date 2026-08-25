@@ -1,6 +1,6 @@
 # Library — Triggers and Definition of Done
 
-**Last verified: 2026-08-15**
+**Last verified: 2026-08-25**
 
 One topic per section: **the moment it fires, the document that rules it, and what done
 looks like.** Read a section before you write the thing it covers; walk its boxes before
@@ -55,7 +55,7 @@ are required reading.
 
 - [ ] Package doc comment shows the primary entry point; reads well on pkg.go.dev
 - [ ] Every exported symbol documented
-- [ ] Runnable `Example` functions for the main entry points (they compile in CI)
+- [ ] Runnable `Example` functions for the main entry points (they compile under `make check`)
 - **README:**
   - [ ] Install line
   - [ ] 30-second example
@@ -92,12 +92,13 @@ reads.
 
 ## Setting up the repo's commands or CI
 
-`stack/makefile.md`, then `operations/ci.md` — used verbatim; `make check` is CI locally.
+`stack/makefile.md`, then `operations/ci.md` — there is no CI server; the Makefile is the
+gate.
 
-- [ ] CI workflow in place and green
-- [ ] `Makefile` at the repo root, with its rule-5 library adjustments
+- [ ] `Makefile` at the repo root, with its rule-5 library adjustments, targets alphabetical, `check` the default
 - [ ] `make check` is green
-- [ ] `make check` is gate-for-gate identical to ci.yml
+- [ ] `make ci` is green on the commit being pushed — nothing runs it for you
+- [ ] Nothing under `.github/`: no workflow, no Dependabot
 
 ## Accepting an HTTP client from a consumer
 

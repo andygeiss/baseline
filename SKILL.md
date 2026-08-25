@@ -16,7 +16,7 @@ documents here instead.
 **First, check the date.** Every document carries a `Last verified:` date. If today is
 more than **90 days** after the date on a document you are about to follow, tell the user
 before you use it, and name what you think has moved (a Go release, an htmx release, a
-GitHub action major). Then keep going with what is here. A stale baseline still beats a
+staticcheck major). Then keep going with what is here. A stale baseline still beats a
 guess — it does not beat asking. This is the one place where "the baseline wins over
 training data" softens: past 90 days, put both numbers in front of the user instead of
 silently picking one.

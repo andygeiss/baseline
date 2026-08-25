@@ -18,7 +18,7 @@ layered defaults rather than a checklist. Every rule exists to make the *default
 path the correct one — an agent that follows the documents verbatim ships a correct,
 hardened application without inventing anything.
 
-- **Last verified:** 2026-08-17
+- **Last verified:** 2026-08-25
 - **Format:** Markdown only, plus the MIT `LICENSE`. No code, no CI, no build
   steps. Documents are the product.
   The one piece of tooling is the root `Makefile`: it installs the baseline into
@@ -80,7 +80,7 @@ baseline/
 │   └── web-application.md
 ├── LICENSE                         ← MIT
 ├── Makefile                        ← make install / make uninstall (Claude Code)
-├── operations/                     ← CI, releases, and the deployment contract
+├── operations/                     ← the gates, releases, and the deployment contract
 │   ├── ci.md
 │   ├── cli-release.md
 │   └── web-application.md

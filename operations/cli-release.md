@@ -1,31 +1,30 @@
 # Operations: CLI Release
 
-**Last verified: 2026-08-15**
+**Last verified: 2026-08-25**
 
-How a [CLI tool](../project-types/cli-tool.md) reaches its users. For a CLI, the
-release *is* the deployment — so unlike a web application, which a person ships
-to a server they own (the operations repository has that runbook), a
-tag-triggered release workflow is sanctioned here. It is the only workflow in
-this baseline that produces artifacts.
+How a [CLI tool](../project-types/cli-tool.md) reaches its users. For a CLI the
+release *is* the deployment — and the release is a tag. There is no build server and
+no artifact: `go install` builds the tool on the machine that will run it, from the
+tag, with the same static-binary flags every gate proves.
 
-## Distribution channels
+## Distribution
 
-1. **`go install github.com/andygeiss/<tool>@latest`** — primary channel for
-   anyone with a Go toolchain. Works because the `main` package sits at the module
-   root and version reporting uses `debug.ReadBuildInfo`
-   (see [patterns/go-cli.md](../patterns/go-cli.md)) — no build flags required.
-   In the sanctioned multi-binary layout (`cmd/<name>/`), the install path gains
-   the suffix — `go install github.com/andygeiss/<tool>/cmd/<name>@latest` — and
-   the cross-compile loop below builds `./cmd/<name>` per binary instead of `.`.
-2. **GitHub release binaries** — for everyone else. Cross-compiled, static,
-   checksummed, built by the workflow below.
+**`go install github.com/andygeiss/<tool>@latest`** — the one channel. It works because
+the `main` package sits at the module root and version reporting uses
+`debug.ReadBuildInfo` (see [patterns/go-cli.md](../patterns/go-cli.md)) — no build
+flags required. In the sanctioned multi-binary layout (`cmd/<name>/`), the install
+path gains the suffix: `go install github.com/andygeiss/<tool>/cmd/<name>@latest`.
 
-Nothing more until real demand exists: no Homebrew tap, no apt/rpm repos, no
-Docker images, no install-script-piped-to-shell.
+Nothing more until real demand exists: no release binaries, no Homebrew tap, no
+apt/rpm repos, no Docker images, no install-script-piped-to-shell. A user without a Go
+toolchain is real demand — when one appears, cross-compile for that machine by hand
+(`CGO_ENABLED=0 GOOS=… GOARCH=… go build -trimpath .`) and hand the file over the way
+that user takes files. Automate it the second time it happens, not the first.
 
 ## Versioning
 
-- Semver tags, `vX.Y.Z`, on `main` only, with green CI.
+- Semver tags, `vX.Y.Z`, on `main` only, with `make ci` green on the commit being
+  tagged.
 - Patch = fixes, minor = new flags/subcommands, **major = any breaking change to
   the observable contract**: flag names and defaults, exit codes, `-json` field
   names, or the meaning of stdout output. Scripts depend on all of these; treat
@@ -37,75 +36,23 @@ Docker images, no install-script-piped-to-shell.
   ([patterns/go-cli.md](../patterns/go-cli.md)).
 - Human-facing stderr text MAY change in any release.
 
-## Release workflow
+## Cutting a release
 
-`.github/workflows/release.yml` — runs only on tags; the standard
-[ci.yml](ci.md) still gates every push to `main` and every PR:
-
-```yaml
-name: release
-on:
-  push:
-    tags: ["v*"]
-
-permissions:
-  contents: write   # create the release and upload assets
-
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: go.mod
-          check-latest: true
-
-      - name: Test
-        run: go test -race -shuffle=on ./...
-
-      - name: Cross-compile
-        run: |
-          mkdir dist
-          for os in linux darwin windows; do
-            for arch in amd64 arm64; do
-              ext=""; [ "$os" = "windows" ] && ext=".exe"
-              CGO_ENABLED=0 GOOS=$os GOARCH=$arch \
-                go build -trimpath -o "dist/${TOOL}_${os}_${arch}${ext}" .
-            done
-          done
-        env:
-          TOOL: mytool   # ← the binary name
-
-      - name: Checksums
-        run: cd dist && sha256sum * > SHA256SUMS
-
-      - name: Publish
-        run: gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --generate-notes
-        env:
-          GH_TOKEN: ${{ github.token }}
+```sh
+make ci                        # the gates, against the commit you are about to tag
+git tag vX.Y.Z && git push origin main vX.Y.Z
+GOMODCACHE=$(mktemp -d) go install github.com/andygeiss/<tool>@vX.Y.Z && <tool> -version
 ```
 
-## Why it looks like this
-
-- **No goreleaser.** The 12-line loop above is the entire feature set this
-  baseline needs from it; a release tool would be one more dependency with its own
-  config file, versions, and CVEs.
-- **Six targets** (linux/darwin/windows × amd64/arm64) cover every machine that
-  matters; add a target when a user actually asks.
-- **`-trimpath` + `CGO_ENABLED=0`** — same static-binary invariant CI proves on
-  every push to `main`, plus paths stripped so builds don't leak the runner's filesystem
-  and stay reproducible across machines.
-- **Tests run again on the tag** — the tag commit is what ships; "it was green
-  when I pushed" is not the same commit guarantee.
-- **`SHA256SUMS`** — lets any downloader verify integrity with stock tooling:
-  `sha256sum -c SHA256SUMS`.
+The last line is the release check: an empty module cache proves the tag resolves
+from the proxy and not from this machine, and the version line proves the stamp.
+Tests ran on the tagged commit because `make ci` ran on it — "it was green when I
+pushed" and "it is green on the tag" are the same commit here, which was the whole
+reason the old release workflow ran them twice.
 
 ## Rollback
 
 A bad release is fixed by tagging `vX.Y.Z+1`, never by moving or deleting a
 published tag — `go install` proxies (proxy.golang.org) cache tags forever, so a
 moved tag ships two different binaries under one version. If a release is
-actively harmful, retract it in `go.mod` (`retract vX.Y.Z`) in the next release
-and mark the GitHub release as such.
+actively harmful, retract it in `go.mod` (`retract vX.Y.Z`) in the next release.

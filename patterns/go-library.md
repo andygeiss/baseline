@@ -56,7 +56,7 @@ matter beyond the godoc rules in [STYLE.md](../STYLE.md):
 
 `example_test.go`, in the external test package. `go test` compiles every
 example, and **runs** any example with an `// Output:` comment, asserting its
-output — so the ordinary CI test gate keeps the documentation true. Write the
+output — so the ordinary test gate keeps the documentation true. Write the
 `// Output:` comment wherever output is deterministic; a compile-only example
 (no comment) is the fallback for nondeterministic output, `// Unordered
 output:` the middle ground:
@@ -102,7 +102,7 @@ func FuzzParse(f *testing.F) {
 }
 ```
 
-- Plain `go test` (so CI and `make check`) runs the function over the seeds —
+- Plain `go test` (so `make check`) runs the function over the seeds —
   `f.Add` calls plus every file in `testdata/fuzz/FuzzParse/`. Only
   `go test -fuzz=FuzzParse`, run locally, explores new inputs.
 - When fuzzing finds a failure it writes the input to

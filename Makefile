@@ -1,7 +1,8 @@
 # Repository tooling, not a project Makefile — stack/makefile.md governs
 # projects; this repo has no code to build. These targets wire the baseline
-# into the current user's Claude Code as a personal skill. `install` is the
-# first target: a bare `make` installs.
+# into the current user's Claude Code as a personal skill. Targets are
+# alphabetical, as stack/makefile.md asks, and `install` is first either way:
+# a bare `make` installs.
 
 SKILL_DIR = $(HOME)/.claude/skills/engineering-baseline
 
@@ -42,9 +43,6 @@ install:
 		echo "refusing to replace $(SKILL_DIR): not a symlink" >&2; exit 1; fi
 	rm -f "$(SKILL_DIR)"
 	ln -s "$(CURDIR)" "$(SKILL_DIR)"
-
-uninstall:
-	if [ -L "$(SKILL_DIR)" ]; then rm "$(SKILL_DIR)"; fi
 
 # The two claims this repository makes about its own shape, checked instead of
 # proofread. STYLE.md justifies alphabetical file trees on the grounds that a
@@ -169,3 +167,6 @@ tokens:
 	printf "  cold %6d  README + VERIFICATION: maintainers only, on no read path\n" $$cold; \
 	printf "  %d files\n" $$(find . -name '*.md' -not -path './.git/*' | wc -l); \
 	exit $$fail
+
+uninstall:
+	if [ -L "$(SKILL_DIR)" ]; then rm "$(SKILL_DIR)"; fi

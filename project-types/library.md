@@ -91,7 +91,7 @@ need — everything above it is a decision already made.
   shows the primary entry point — write it for the pkg.go.dev rendering.
 - Every exported symbol has a doc comment.
 - Runnable `Example` functions (`func ExampleParse()`) for the main entry points —
-  they render on pkg.go.dev *and* compile in CI, so the docs can't rot.
+  they render on pkg.go.dev *and* compile under `make check`, so the docs can't rot.
 - README: install line, the 30-second example, link to this baseline, and any waived
   rule in the format [README.md](../README.md) *Which rules can be waived* defines.
 
@@ -103,7 +103,7 @@ need — everything above it is a decision already made.
 - White-box tests (`package foo`) only for internals genuinely unreachable from
   the public surface.
 - Parsers and anything consuming untrusted bytes get a fuzz test (`go test -fuzz`
-  locally; the seed corpus runs in normal CI).
+  locally; the seed corpus runs in a plain `go test`).
 
 ## Definition of done
 
