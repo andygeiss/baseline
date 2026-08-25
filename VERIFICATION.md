@@ -65,13 +65,82 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**v4.0.0 — the CI server dropped.** The rules are in `c3d2438` and the commit after
-it; the run is recorded, and this section emptied, once the reference pins the later
-of the two and its `./verify.sh` is green against it.
+**Nothing.** v4.0.0 closed its gate on 2026-08-25 — the CI server dropped, recorded
+below.
 
 ## Run log
 
 Newest first.
+
+### 2026-08-25 — the CI server dropped (v4.0.0)
+
+**A second machine was doing the first machine's work.** The runner bought a run on a
+clean checkout, a weekly `govulncheck` over untouched code, and a per-gate red/green
+view; it cost a hosting vendor, a YAML dialect, an action-major deprecation cycle
+carried in [VERSIONS.md](VERSIONS.md), and a bot opening pull requests only the pusher
+read. `make ci` buys the first back — `git archive HEAD` into an empty directory, then
+the same `check`, so nothing missing from `git add` and no `.env` can make it green.
+The other two moved to a person, and [operations/ci.md](operations/ci.md) now names
+who: the toolchain is whichever Go the machine resolves, and the scan of code nobody
+touched runs on the 90-day cycle with the pins.
+
+**The `ci` recipe was wrong twice before it was right, and only running it said so.**
+The first form piped `git archive` into `tar`, so the shell reported the pipe's last
+status and a failed archive still ran the gates against an empty directory — reproduced
+in a repository with no `HEAD`, where the piped form exits 0 and the file form exits
+128. The second put `go version` on its own recipe line, outside the copy, where
+`GOTOOLCHAIN` resolves against the *working tree's* `go.mod` rather than the archived
+one; `go -C "$d" version` inside the copy reports the toolchain `check` will actually
+use. Both forms read correctly. Neither survived being run.
+
+**Four claims about the go command were settled by executing them, not by reading the
+documentation.** Under `GOTOOLCHAIN=go1.26.7`, `go get` against a `go.mod` that says
+`go 1.27` refuses with `go.mod requires go >= 1.27 (running go 1.26.7;
+GOTOOLCHAIN=go1.26.7)` and leaves the file alone; under `auto` the same command prints
+one line, `go: upgraded go 1.26 => 1.27`, and raises it; `go mod tidy` raises it with
+**no output at all**, which is why the document tells you to look; and `go mod edit`
+works either way, because it never reads the module graph. A module cache's directories
+really are read-only, so the release check's `rm -rf` fails with *Permission denied* and
+`go clean -modcache` is the line that works.
+
+**The defect class this release names is the absent file.** No passing suite notices a
+workflow that should not be there, so the reference gates it instead: nothing under
+`.github/workflows/`, no `dependabot.yml`, and no `export-ignore` in `.gitattributes` —
+the last because `git archive` honours that attribute and the go command does not, so a
+marked file makes `make ci` green against a tree `go install` never builds. A second new
+gate reads the Makefile itself: targets alphabetical, `check` named as `.DEFAULT_GOAL`.
+Both are cheap, and both check something ten readings had not.
+
+**The budget went red, and was paid rather than moved.** The new boxes pushed
+[checklists/web-application.md](checklists/web-application.md) to 5,008 against its
+5,000 — 8 tokens over. `make tokens` said so on the first run after the change, before
+any of it was tagged. It was paid by taking the web checklist's Makefile box back to the
+CLI checklist's exact wording and by dropping one clause the section already said twice
+("nothing runs it for you", on the `make ci` box and again on the `GOOS` box). 4,995
+now, and no number moved.
+
+**Eleven defects in the closing rounds, the last two clean, and the record should say
+what the passes were.** They were sequential rather than independent: one reviewer,
+several passes, each checking a different surface — cross-document references and
+section names, then the go-command claims by execution, then every changed document's
+margin and the corpus's own `make structure` and `make tokens` gates, then the reference
+against each new box. Two of the eleven came from the earlier rules commit rather than
+this one, both prose pushed past the margin in
+[patterns/go-ports-adapters.md](patterns/go-ports-adapters.md). The repository's own
+`Makefile` was one too: `c3d2438` made its targets alphabetical and cited
+[stack/makefile.md](stack/makefile.md) rule 3 for it, while leaving the second half of
+that rule — name the default — unadopted. It has `.DEFAULT_GOAL = install` now. A
+repository that exempts its own tooling from the rule it just tightened is the cheapest
+kind of wrong to be.
+
+**The empirical half:** [baseline-reference](https://github.com/andygeiss/baseline-reference)
+`9edcd6a`, tagged v4.0.0, pinning baseline `7703305`. `GOTOOLCHAIN=go1.26.7 ./verify.sh`
+exits 0 over **76 gates**, two of them the new ones above;
+`GOTOOLCHAIN=go1.26.7 make ci` is green on that commit and its first line reads
+`go version go1.26.7 darwin/arm64` — the toolchain pin still stands in for the machine's
+own Go 1.27.0, which the policy does not adopt until 1.27.1. The reference's module path
+moved `/v3` → `/v4` in `go.mod` and every import, because a v4 tag on a `/v3` module
+never stamps.
 
 ### 2026-08-25 — the pins, checked against their sources (v3.11.1)
 
