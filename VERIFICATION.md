@@ -67,14 +67,13 @@ be synced, the tag waits.
 
 **Nothing.** v3.11.0 closed its gate on 2026-08-18 — the adversarial half over the six
 changes that were owed, then the empirical half, which found one more and is recorded
-below. The 2026-08-25 pin move went through its own run, also below: verified, not yet
-tagged, and that entry says what a v3.11.1 needs.
+below. v3.11.1 closed its gate on 2026-08-25 — the pin move, also below.
 
 ## Run log
 
 Newest first.
 
-### 2026-08-25 — the pins, checked against their sources
+### 2026-08-25 — the pins, checked against their sources (v3.11.1)
 
 **One row moved, and the others were checked rather than assumed.** Every numbered row in
 [VERSIONS.md](VERSIONS.md) was read against the source its own list names, on the day; the
@@ -107,7 +106,9 @@ built with 1.26, refuses 1.27's standard library outright. **The run below was p
 `GOTOOLCHAIN=go1.26.7`**, and until 1.27.1 lands so should any local run.
 
 **The empirical half:** [baseline-reference](https://github.com/andygeiss/baseline-reference)
-`b3cdc7a` (v3.11.0, unchanged), `GOTOOLCHAIN=go1.26.7 ./verify.sh` exits 0 over 74 gates.
+`bb315d5`, tagged v3.11.1, pinning baseline `b342f17` — `SPEC.md` is the only file that moved
+there. `GOTOOLCHAIN=go1.26.7 ./verify.sh` exits 0 over 74 gates, run once against `b3cdc7a`
+before the pin moved and once after.
 `govulncheck` under the same toolchain: 0 vulnerabilities called, 0 in imported packages,
 one in a required module — GO-2026-5932, `golang.org/x/crypto/openpgp` "unsafe by design",
 never imported here and with no fixed version — informational.
@@ -124,9 +125,9 @@ default.
 
 **No document stamp moved except the pin line.** [stack/go.md](stack/go.md) names the pinned
 version on its stamp line and now says 1.26.7; its *Last verified* date did not move, the
-same shape as the 1.26.6 bump. **Not tagged.** This changes a file every project reads, so
-the reference's pin now names a commit that lacks it; a v3.11.1 needs `SPEC.md` re-pinned
-to this commit and the mirror tag, nothing else — the gate is otherwise green.
+same shape as the 1.26.6 bump. **Tagged v3.11.1** on the commit that records this run, one
+past the pin `b342f17` — the shape every release since v3.6.0 has had, and condition 4
+holds by construction: the diff between them is this file.
 
 ### 2026-08-18 — the six changes that were owed (v3.11.0)
 
