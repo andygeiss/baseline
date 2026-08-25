@@ -6,12 +6,11 @@
 same commit that adds the recipe, and production never uses it. A committed `.env` leaks
 a secret permanently.
 
-Every project ships one `Makefile` at the repository root. It is the single command
-surface, and since there is no CI server it is the only one: `make` runs every gate,
-`make ci` runs them against the commit, `make test`/`make run` serve the inner loop.
-Make is chosen because it is boring and already installed on every machine —
-including macOS, which bundles GNU Make **3.81** (2006; Apple ships no GPLv3
-software). That version is the compatibility floor.
+Every project ships one `Makefile` at the repository root, and it is the only command
+surface: `make` runs every gate, `make ci` runs them against the commit, `make test`
+and `make run` serve the inner loop.
+Make is boring and already installed on every machine. macOS's Command Line Tools
+ship GNU Make **3.81**; that version is the compatibility floor.
 
 Make here is a **command runner, not a build system**. The Go toolchain owns all
 dependency tracking and caching; Make-level file dependencies would only redo that
@@ -46,13 +45,13 @@ check:
 	go test -race -shuffle=on ./...
 	CGO_ENABLED=0 go build -trimpath ./...
 
-# The same gates against the commit, not the working tree: what a CI server
-# saw. A file never added, or a .env, cannot make it green. Run before every
-# push. go version first, because nothing else records which toolchain ran.
-# One shell line, so the trap removes the copy however check ends.
+# The same gates against the commit: a file never added, or a .env, cannot
+# make it green. Run before every push. go version runs first, inside the
+# copy, so the run records which toolchain ran. The archive goes through a
+# file so git's exit status stops the run; one shell line so the trap cleans
+# up however check ends.
 ci:
-	go version
-	d=$$(mktemp -d); trap 'rm -rf "$$d"' EXIT; git archive HEAD | tar -x -C "$$d" && $(MAKE) -C "$$d" check
+	t=$$(mktemp); d=$$(mktemp -d); trap 'rm -rf "$$t" "$$d"' EXIT; git archive -o "$$t" HEAD && tar -xf "$$t" -C "$$d" && go -C "$$d" version && $(MAKE) -C "$$d" check
 
 clean:
 	rm -rf bin/
@@ -74,10 +73,10 @@ test:
 ## Rules
 
 1. **`check` is the one list of gates, and `ci` runs that list against the
-   commit.** [operations/ci.md](../operations/ci.md) explains the gates; the
-   Makefile is where they live. `ci` MUST call `check` rather than list gates of
-   its own, so there is nothing to keep in lockstep — a gate added to `check` is
-   in `ci` by construction.
+   commit.** `ci` MUST call `check` rather than list gates of its own: a gate
+   added to `check` is in `ci` by construction. No `export-ignore` in
+   `.gitattributes`: `git archive` honours it and the go command does not, so
+   `make ci` would test a tree `go install` never builds.
 2. **Portable subset only.** The file MUST run under GNU Make 3.81: `=`
    assignment, `.PHONY`, `.DEFAULT_GOAL` (new in 3.81, so exactly at the floor),
    plain tab-indented recipes. MUST NOT use post-3.81 features (`.ONESHELL` —
@@ -86,27 +85,25 @@ test:
    Make keeps the whitespace before `#` as part of the value.
 3. **Target names are the interface, and they are alphabetical.** `build`,
    `check`, `ci`, `clean`, `fmt`, `run`, `test` mean the same thing in every
-   repository, and a target is found by its name rather than its place — which
-   is why `.DEFAULT_GOAL` names the default instead of the first line being it.
+   repository. You find a target by its name, not its place, which is why
+   `.DEFAULT_GOAL` names the default instead of the first line being it.
    A project MAY add a target for a real recurring command (`db-reset`, …), in
    its alphabetical place, never speculatively; a Makefile growing past one
    screen is over-engineering.
 4. **No tool bootstrapping, no ldflags, no release logic, no deployment.** Dev
    tools run via `go run …@latest` — the dev-tool exception in
    [stack/go.md](go.md)'s approved list, with the rationale in
-   [operations/ci.md](../operations/ci.md); downloads are cached, but the
+   [operations/ci.md](../operations/ci.md). Go caches the downloads, but the
    `@latest` lookup asks the proxy on every run, so `check` and `fmt` need the
    network. Versions come from `debug.ReadBuildInfo`, never `-ldflags`
    ([patterns/go-cli.md](../patterns/go-cli.md)). A CLI's release is a tag
    ([operations/cli-release.md](../operations/cli-release.md)). **A web
    application's deployment belongs to the operations repository**, which knows
-   the server; this Makefile serves the person editing the code, and that person
-   is not sitting at the server.
+   the server.
 5. **Per-layout adjustments** — exactly these, nothing else:
-   - *Single-binary CLI* (`MAIN = .`): a bare `go build .` (the checklist's
-     static-build verification, or habit) drops `./<tool>` into the repo
-     root — extend `clean` to `rm -rf bin/ <tool>` and add `<tool>` to
-     `.gitignore`.
+   - *Single-binary CLI* (`MAIN = .`): `go build .` drops `./<tool>` into the
+     repository root. Extend `clean` to `rm -rf bin/ <tool>` and add `<tool>`
+     to `.gitignore`.
    - *Multi-binary CLI module* (the sanctioned `cmd/<name>/` layout): set
      `MAIN = ./cmd/<name>` for the binary `run` serves, and in `build` replace
      `$(MAIN)` with `./cmd/...` so every binary lands in `bin/`.
@@ -118,10 +115,9 @@ test:
    the second one is the one people forget. The recipe above is the whole
    mechanism — `set -a` exports what the file sets, `if [ -f .env ]` makes the
    file optional. Four limits keep it honest, and all four are MUST:
-   - **`run` only.** A `check` or `test` that read `.env` would pass because a
-     developer's machine happened to hold a value and fail in `make ci`, which
-     has no such file. The gates run against the committed repository, nothing
-     else — and `ci` runs them against nothing else by construction.
+   - **`run` only.** A `check` or `test` that read `.env` would pass on the
+     developer's machine and fail in `make ci`. `ci` runs the gates against the
+     committed repository and nothing else, and `.env` is not committed.
    - **The file is optional.** A fresh clone must still start, and fail on the
      binary's own missing-configuration message
      ([patterns/go-config.md](../patterns/go-config.md) rule 1) rather than on
@@ -142,12 +138,8 @@ test:
   matters before a commit: are the gates green? It duplicates the `test` line
   instead of depending on the target so the gates run in one fixed order; two
   identical lines beat a clever prerequisite graph.
-- **`ci`** — the question before a push: are they green *on the commit*? `git
-  archive HEAD` writes the committed tree and nothing else into an empty
-  directory, so a file never added, a gitignored `.env`, or an edit not yet
-  committed cannot turn it green. It is what a CI server did, minus the server;
-  `go version` on the first line is the one fact the server used to record for
-  you. Commit, `make ci`, push.
+- **`ci`** — the question before a push: are they green *on the commit*? Read
+  the `go version` line.
 - **`clean`** — removes local build outputs only (`bin/`, plus the root binary
   in a `MAIN = .` layout, rule 5). MUST NOT touch Go's build or module caches;
   they are correct and shared.
@@ -155,9 +147,7 @@ test:
   per [stack/go.md](go.md)). The read-only gofmt gate in `check` stays the
   authority on "is it formatted".
 - **`run`** — `go run`, not build-then-execute; the build cache makes it fast
-  and there is no stale binary to accidentally re-run. It is also the one
-  target that reads `.env` (rule 6), so starting the app locally stays a
-  single command.
+  and there is no stale binary to accidentally re-run.
 - **`test`** — always `-race -shuffle=on`, exactly as `check` runs it. If that is
   too slow for the inner loop, fix the suite, don't fork the flags.
 
@@ -165,15 +155,7 @@ test:
 
 The classic Makefile over-engineering, all banned: self-documenting `help`
 targets (awk over `##` comments), colored output, `install` and `deploy`
-targets, Docker targets, GOOS/GOARCH matrix loops (`go install` builds on the
-user's machine, so nobody cross-compiles), includes, and conditionals on the
-host OS.
-
-`deploy` is the one worth naming twice, because it is the tempting one. A deploy
-target puts one server's name, one server's paths, and one server's SSH account
-into every repository that ships there — and then into every repository that
-copies this Makefile. The operations repository holds them once instead.
-
-`.env` loading sits half on this list: rule 6 allows it in `run` and nowhere
-else. Reading it in `check` or `test` is the banned version, because it makes a
-gate depend on a file `make ci` does not have.
+targets, Docker targets, GOOS/GOARCH matrix loops (the rare by-hand
+cross-compile is one shell line in
+[operations/cli-release.md](../operations/cli-release.md), never a target),
+includes, and conditionals on the host OS.

@@ -76,7 +76,7 @@ need — everything above it is a decision already made.
 ## Compatibility discipline
 
 - **Start at v0** and stay there until the API has survived contact with at least
-  two real consumers. v0 is the design phase; break freely, note it in the release.
+  two real consumers. v0 is the design phase; break freely, note it in the tag message.
 - **Tagging v1.0.0 is the promise:** from then on, nothing exported is renamed,
   removed, or changed in behavior that consumers can observe. Additions are minor
   releases; fixes are patches.

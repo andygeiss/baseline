@@ -16,8 +16,8 @@ and serve requests, it is not a CLI — build a [web application](web-applicatio
 | Machine output | `encoding/json` behind a `-json` flag | SHOULD, when other programs consume the output. |
 | Outbound HTTP | stdlib `http.Client`, built in `run()` | MUST when the tool calls an API. Never `http.DefaultClient` — see [patterns/go-http-client.md](../patterns/go-http-client.md). |
 | Persistence | none; SQLite (`modernc.org/sqlite`) if the tool keeps state | SHOULD prefer stateless. |
-| Deployment | single static binary (`CGO_ENABLED=0`) | MUST. |
-| Distribution | `go install`; the release is a tag, no binaries | MUST. See [operations/cli-release.md](../operations/cli-release.md). |
+| Build | static (`CGO_ENABLED=0`), gated by `make check` | MUST. |
+| Distribution | `go install`; the release is a tag, no release binaries until a user without a Go toolchain asks | MUST. See [operations/cli-release.md](../operations/cli-release.md). |
 | Local commands | Make | MUST. `Makefile` from [stack/makefile.md](../stack/makefile.md), with the rule-5 adjustments for its layout. |
 
 Versions: see [VERSIONS.md](../VERSIONS.md).
@@ -91,6 +91,8 @@ path gains the suffix.
 
 **The one part it does not exercise is semver** — that repository's tags mirror
 baseline versions rather than the tool's own contract, so its version numbers say
-nothing about `gochat`. The rest of
-[operations/cli-release.md](../operations/cli-release.md) it does: `go install` from a
-tag works, and the version stamp is gated.
+nothing about `gochat`. The channel in
+[operations/cli-release.md](../operations/cli-release.md) works:
+`go install github.com/andygeiss/baseline-reference/vN/cmd/gochat@<tag>` (`N` the
+tag's major) resolves and `gochat version` prints the tag. The author checks that by
+hand at each tag, because `verify.sh` cannot gate a tag that does not exist yet.

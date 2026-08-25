@@ -85,7 +85,7 @@ POST /games/{id}/rematch creates the new game and 303s into it.
 ```
 
 - **Six types.** `feat` (new behavior), `fix` (corrected behavior), `docs`, `refactor`
-  (same behavior, restructured), `test`, `chore` (housekeeping: deps, Makefile, CI). A
+  (same behavior, restructured), `test`, `chore` (housekeeping: deps, Makefile). A
   commit that needs two types is two commits.
 - **`!` marks a breaking change** (`feat!: drop the CSV export`). For a released module
   the type encodes the semver decision

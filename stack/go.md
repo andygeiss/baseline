@@ -1,6 +1,6 @@
 # Stack: Go
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-14 · Pinned:
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-25 · Pinned:
 Go 1.26.7 ([VERSIONS.md](../VERSIONS.md))
 
 The Go pin itself is tier 1: its note in [VERSIONS.md](../VERSIONS.md) names a security
@@ -17,9 +17,9 @@ fix.
   once per 90-day cycle even when nothing changed
   (see [operations/ci.md](../operations/ci.md)).
 - Race detector on every test run: `go test -race -shuffle=on ./...`.
-- All the gates above are one command, `make check`, and `make ci` runs it against
-  the commit (see [stack/makefile.md](makefile.md) — the Makefile every project
-  copies).
+- The gates above, `go fix` aside, are one command, `make check`, and `make ci`
+  runs it against the commit (see [stack/makefile.md](makefile.md) — the Makefile
+  every project copies).
 
 ## Language conventions
 

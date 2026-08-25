@@ -21,7 +21,7 @@ those; there is a fix.
 
 No trigger: these fire for every project of this type.
 
-- [ ] `go.mod` says `go 1.26`, matching `VERSIONS.md`
+- [ ] `go.mod` says `go 1.26`, matching `VERSIONS.md`, and has no `toolchain` line
 - [ ] The vendored htmx is 2.0.10, matching `VERSIONS.md`
 - [ ] No dependency outside `stack/go.md`'s approved list, or the README justifies it
 - [ ] Zero hand-written JavaScript
@@ -410,10 +410,16 @@ wire.
 `stack/makefile.md`, then `operations/ci.md` — there is no CI server; the Makefile is the
 gate.
 
-- [ ] `Makefile` at the repo root, targets alphabetical, `check` the default
+- [ ] `Makefile` at the repo root is `stack/makefile.md`'s, differing only by rule 5's adjustments for its layout and any rule-3 target
+- [ ] Targets alphabetical
+- [ ] `check` named as `.DEFAULT_GOAL`
 - [ ] `make check` is green
 - [ ] `make ci` is green on the commit being pushed — nothing runs it for you
-- [ ] Nothing under `.github/`: no workflow, no Dependabot
+- [ ] Nothing under `.github/workflows/`
+- [ ] No `.github/dependabot.yml`
+- [ ] No `export-ignore` in `.gitattributes`
+- **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
+  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push
 
 ## Configuring the build, or serving a static asset
 

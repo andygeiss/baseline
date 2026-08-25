@@ -132,8 +132,8 @@ func (f *fakeNotifier) Notify(_ context.Context, to, _, _ string) error {
    changes — and if something does, the port was shaped by the vendor rather than the need.
 
 Add a mutex to the fake only when the code under test calls the port from more than one
-goroutine. `make check` runs `-race` ([operations/ci.md](../operations/ci.md)), so the suite says
-which case you are in.
+goroutine. `make check` runs `-race` ([operations/ci.md](../operations/ci.md)), so the
+suite says which case you are in.
 
 ## Keeping the fake honest
 
@@ -195,8 +195,8 @@ it tied to reality, and at one adapter it is enough:
 10. **Never fake what you own and can run for real.** SQLite runs for real in a temp file
     ([go-sqlite.md](go-sqlite.md)); time gets `testing/synctest`; files get `t.TempDir()`;
     your own HTTP handlers get `httptest`. A fake is for a system across a network that you
-    do not control and cannot run in the test suite. Faking your own store replaces the SQL — the thing
-    most likely to be wrong — with a Go map that always agrees with you.
+    do not control and cannot run in the test suite. Faking your own store replaces the
+    SQL — the thing most likely to be wrong — with a Go map that always agrees with you.
 
 ## When the other side is a language model
 

@@ -52,7 +52,7 @@ a rule goes missing. It still stands on its own.
 **Check the dates before you trust any of it.** Every document carries a
 `Last verified:` date. If today is more than **90 days** after that date, say so to the
 user before following the document, and name what you think has moved (a Go release, an
-htmx release, an action major). A stale baseline still beats a guess — it does not beat
+htmx release, an scs release). A stale baseline still beats a guess — it does not beat
 asking. This is the one place where "the baseline wins over training data" softens: past
 90 days, put both numbers in front of the user instead of silently picking one.
 
@@ -204,7 +204,7 @@ but is not listed here is still tier 1** — say so, and fix this section.
 
 **Tier 2 — Shape. Waived only on the record.** The mandated stack and the structural
 patterns: no framework, no hand-written JavaScript, the project layout, config
-precedence, the error and logging conventions, the CI gates, the testing strategy. These
+precedence, the error and logging conventions, the gates, the testing strategy. These
 are what make every project here interchangeable — an agent that knows one knows all of
 them. Waiving one is a real decision with a real cost, so it gets written down in the
 format below.
@@ -279,12 +279,22 @@ paragraph that goes stale in one of them.
   Both exit non-zero, so a review pass gates on them instead of proofreading them. A
   claim of mechanical checkability that nothing checks is how a tree entry sits one line
   out of place through ten readings.
+- **On every re-verification, update and re-scan every repository that is live:**
+  under `export GOTOOLCHAIN=go<pin>`, `go get -u ./... && go mod tidy && make check`,
+  one `chore(deps)` commit, then `make ci`. No bot updates dependencies and no server
+  scans untouched code ([operations/ci.md](operations/ci.md)). This cycle does both
+  jobs.
 - **Before tagging, walk the gate in [VERIFICATION.md](VERIFICATION.md).** Two clean
   adversarial passes, the reference synced, `./verify.sh` green against the commit being
   tagged, and the run written into the log. A release that skips the reference is not a
   release.
 - When updating a version: update `VERSIONS.md` first, then any stack document that
-  references behavior of that version, then bump the `Last verified:` dates.
+  references behavior of that version, then bump the `Last verified:` dates. The Go
+  pin also sits on [stack/go.md](stack/go.md)'s stamp line and in the
+  `GOTOOLCHAIN=go<pin>` commands in [operations/ci.md](operations/ci.md);
+  `git grep -n '1\.26'` lists every place the major sits, the run log included. A
+  `Last verified:` date moves when a run reviewed the document's rules, not when an
+  edit touched its wording.
 - **After moving anything out of this repository, sweep every consumer.** The
   operations split dropped facts its readers still needed. An extraction is not done
   when the file moves; it is done when nothing left behind still depends on it —

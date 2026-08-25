@@ -1,7 +1,7 @@
 # Repository tooling, not a project Makefile — stack/makefile.md governs
 # projects; this repo has no code to build. These targets wire the baseline
 # into the current user's Claude Code as a personal skill. Targets are
-# alphabetical, as stack/makefile.md asks, and `install` is first either way:
+# alphabetical and the default is named, as stack/makefile.md rule 3 asks:
 # a bare `make` installs.
 
 SKILL_DIR = $(HOME)/.claude/skills/engineering-baseline
@@ -29,6 +29,7 @@ REACHED = grep -ohE '`(patterns|stack|operations)/[a-z0-9.-]+\.md`|`STYLE\.md`' 
 REQUIRED = sed -n '/^\#\# Required reading/,/^\#\# Open when/p' "$$base" \
 	| sed -n 's/^[0-9][0-9]*\. \[[^]]*\](\.\.\/\([^)\#]*\)).*/\1/p'
 
+.DEFAULT_GOAL = install
 .PHONY: install structure tokens uninstall
 
 # Symlink, not copy: the repo stays the single source of truth and

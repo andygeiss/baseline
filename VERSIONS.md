@@ -22,11 +22,11 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 
 | Component | Pinned version | Released | Notes |
 |---|---|---|---|
-| Go | **1.26.7** | 2026-08-19 | Latest patch of the 1.26 line. A point release, not a security one: it restores unencrypted HTTP/2, which 1.26.6's `net/http` fix broke (go.dev/issue/80876); no baseline app enables h2c. 1.26.6 stays the floor — it fixed GO-2026-6089/6090/6091/5972, including an `html/template` JavaScript-context bug that reaches every rendering app. Go 1.27.0 shipped the same day; the policy adopts a major at its first patch, so re-verify at 1.27.1. |
+| Go | **1.26.7** | 2026-08-19 | Latest patch of the 1.26 line. A point release, not a security one: it stops `ReadHeaderTimeout` from cutting long-lived unencrypted HTTP/2 streams, a regression of 1.26.6's `net/http` fix (go.dev/issue/80876); no baseline app enables h2c. 1.26.6 stays the floor — its fixes include GO-2026-6089/6090/6091/5972; 6091 is an `html/template` escaping bug (an unescaped `/`, XSS) that reaches every rendering app. Go 1.27.0 shipped the same day; the policy adopts a major at its first patch, so re-verify at 1.27.1. |
 | htmx | **2.0.10** | 2026-04-21 | The 2.x line is stable and feature-complete. |
 | htmx 4.x | ❌ do not use | beta | 4.0.0-beta6 (July 2026). MUST NOT be used until stable *and* adopted here deliberately (breaking changes: fetch-based, new swap model). |
 | scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
-| Make | system default | — | Command runner only, and the only gate there is: `make check` against the tree, `make ci` against the commit. Makefile MUST stay runnable by macOS's bundled GNU Make 3.81 — portable subset, see [stack/makefile.md](stack/makefile.md). |
+| Make | system default | — | Command runner only, and the only gate: `make check` against the tree, `make ci` against the commit. Makefile MUST stay runnable by GNU Make 3.81, the version macOS's Command Line Tools ship — portable subset, see [stack/makefile.md](stack/makefile.md). |
 | CSS | Baseline "Widely available" | rolling | No preprocessor, no framework. Allowed feature set defined in [stack/css.md](stack/css.md). |
 | `design.md` spec (`DESIGN.md`) | **alpha** | rolling | Google Labs format for the project design file — see [patterns/design-system.md](patterns/design-system.md). Sanctioned alpha exception: a document format, not software; worst case it reads as plain markdown. |
 | HTML | Living Standard | rolling | Semantic HTML5, validated. |
@@ -39,11 +39,9 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
   patches are security fixes. Set `go 1.26` in `go.mod`; do not pin toolchain patch
   versions in the repo.
 - **htmx:** Track the latest 2.x patch. Vendor the file (self-host, no CDN in production).
-- **Dependencies:** Updated by hand on this file's 90-day cycle — `go get -u ./... &&
-  go mod tidy && make check`, one `chore(deps)` commit
-  ([operations/ci.md](operations/ci.md)). No bot, no CI server: the same cycle that
-  re-verifies this table re-runs `govulncheck` on every live repository. Anything that
-  breaks on a routine update is a candidate for removal.
+- **Dependencies:** Update by hand on this file's 90-day cycle. The procedure is in
+  [operations/ci.md](operations/ci.md), with the `make ci` re-scan of every live
+  repository that goes with it. No bot, no CI server.
 
 ## Sources checked (2026-08-25)
 
@@ -56,6 +54,7 @@ moved. What each run found is in [VERIFICATION.md](VERIFICATION.md).
 - htmx versions: `npm view htmx.org version` or https://github.com/bigskysoftware/htmx/tags —
   **not** the GitHub releases page: upstream tags 2.x patches without creating a
   Release object there (2.0.10 never appeared on it)
+- scs: https://github.com/alexedwards/scs/tags
 - CSS Baseline: https://web.dev/baseline
 - `design.md` spec: https://github.com/google-labs-code/design.md — its README is where
   the status lives, not the releases page: the tagged release number is the CLI's, and

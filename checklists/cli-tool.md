@@ -20,7 +20,7 @@ for any of them; there is a fix.
 No trigger: these fire for every tool. The `run()` pattern and the command-line contract
 are ruled by `patterns/go-cli.md`, which is required reading.
 
-- [ ] `go.mod` says `go 1.26`, matching `VERSIONS.md`
+- [ ] `go.mod` says `go 1.26`, matching `VERSIONS.md`, and has no `toolchain` line
 - [ ] No dependencies outside the approved list in `stack/go.md`, or each extra one is justified in the README
 - [ ] Flags via stdlib `flag` only — no cobra, viper, or urfave
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build .` (or `./cmd/...` in a multi-binary module)
@@ -162,19 +162,28 @@ the reasoning that leaks into the visible answer.
 `stack/makefile.md`, then `operations/ci.md` — there is no CI server; the Makefile is the
 gate.
 
-- [ ] `Makefile` at the repo root, with the rule-5 adjustments for its layout, targets alphabetical, `check` the default
-- [ ] `make check` is green (gofmt, vet, staticcheck, **govulncheck**, tidy, race tests, static build)
+- [ ] `Makefile` at the repo root is `stack/makefile.md`'s, differing only by rule 5's adjustments for its layout and any rule-3 target
+- [ ] Targets alphabetical
+- [ ] `check` named as `.DEFAULT_GOAL`
+- [ ] `make check` is green
 - [ ] `make ci` is green on the commit being pushed — nothing runs it for you
-- [ ] Nothing under `.github/`: no workflow, no Dependabot
+- [ ] Nothing under `.github/workflows/`
+- [ ] No `.github/dependabot.yml`
+- [ ] No `export-ignore` in `.gitattributes`
+- **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
+  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push
 
 ## Tagging and publishing a release
 
 `operations/cli-release.md` — the release is a tag, and `go install` is the channel.
 
 - [ ] `make ci` is green on the commit being tagged
-- [ ] `go install github.com/andygeiss/<tool>@<tag>` (or `…/cmd/<name>@<tag>` in a multi-binary module) verified with an empty `GOMODCACHE`, and `-version` prints the tag
+- [ ] The tag's message is the release note (an annotated tag)
+- [ ] `go install github.com/andygeiss/<tool>@<tag>` (or `…/cmd/<name>@<tag>` in a multi-binary module) resolves with an empty `GOMODCACHE`
+- [ ] `<tool> -version` (or `<tool> version`) prints the tag
 - [ ] No release binaries — not until a user without a Go toolchain asks
 - [ ] Semver honored: breaking changes to flags, exit codes, `-json` fields, or the meaning of stdout output only in a major release
+- [ ] Past v1 the module path carries `/vN`
 
 ## Fixing something measurably slow
 

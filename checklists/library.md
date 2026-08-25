@@ -24,7 +24,7 @@ are required reading.
 
 ### Stack compliance
 
-- [ ] `go.mod` says `go 1.26`, matching `VERSIONS.md`
+- [ ] `go.mod` says `go 1.26`, matching `VERSIONS.md`, and has no `toolchain` line
 - [ ] Zero third-party dependencies, or each one justified in the README
 - [ ] No `main` package
 - [ ] No embedded assets
@@ -95,10 +95,25 @@ reads.
 `stack/makefile.md`, then `operations/ci.md` — there is no CI server; the Makefile is the
 gate.
 
-- [ ] `Makefile` at the repo root, with its rule-5 library adjustments, targets alphabetical, `check` the default
+- [ ] `Makefile` at the repo root is `stack/makefile.md`'s, differing only by rule 5's library cut (no `MAIN`, `run`, `build`, `clean`; `.PHONY: check ci fmt test`) and any rule-3 target
+- [ ] Targets alphabetical
+- [ ] `check` named as `.DEFAULT_GOAL`
 - [ ] `make check` is green
 - [ ] `make ci` is green on the commit being pushed — nothing runs it for you
-- [ ] Nothing under `.github/`: no workflow, no Dependabot
+- [ ] Nothing under `.github/workflows/`
+- [ ] No `.github/dependabot.yml`
+- [ ] No `export-ignore` in `.gitattributes`
+- **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
+  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push
+
+## Tagging a release
+
+`patterns/go-library.md` §Release mechanics — semver tags under
+`operations/cli-release.md`'s tag discipline, with the library's contract in place of
+the CLI's.
+
+- [ ] `make ci` is green on the commit being tagged
+- [ ] The tag's message is the release note (an annotated tag)
 
 ## Accepting an HTTP client from a consumer
 

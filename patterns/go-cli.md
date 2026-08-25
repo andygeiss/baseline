@@ -193,7 +193,8 @@ func version() string {
 
 `go install github.com/andygeiss/<tool>@v1.2.3` reports `v1.2.3`. Since Go 1.24
 a build from a git checkout also reports a VCS-derived version — the tag when
-HEAD sits exactly on one, `+dirty` when modified, otherwise a pseudo-version —
+HEAD sits exactly on one, `+dirty` when the tree has uncommitted changes or untracked
+files git does not ignore, otherwise a pseudo-version —
 so `unknown` only appears for builds without VCS metadata (`-buildvcs=false`,
 source tarballs), which carry no `vcs.*` build settings to fall back on either.
 Expose it as a `version` subcommand or

@@ -17,8 +17,8 @@ A run has two halves, and a release needs both.
    repeat until **two consecutive passes find zero defects**. Reading is not
    enough on its own: every canonical Go snippet gets compiled and run through
    `gofmt`, `go vet`, `staticcheck`, and `govulncheck`, the canonical `Makefile`
-   runs end to end under macOS's bundled GNU Make 3.81, and every measured color
-   claim gets recomputed from its oklch values.
+   runs end to end under GNU Make 3.81, the version macOS's Command Line Tools
+   ship, and every measured color claim gets recomputed from its oklch values.
 2. **The empirical half.** [baseline-reference](https://github.com/andygeiss/baseline-reference)
    implements the corpus end to end. It is synced to the change, and its
    `./verify.sh` runs every mechanical gate, then boots the real binary and
@@ -65,9 +65,9 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Nothing.** v3.11.0 closed its gate on 2026-08-18 — the adversarial half over the six
-changes that were owed, then the empirical half, which found one more and is recorded
-below. v3.11.1 closed its gate on 2026-08-25 — the pin move, also below.
+**v4.0.0 — the CI server dropped.** The rules are in `c3d2438` and the commit after
+it; the run is recorded, and this section emptied, once the reference pins the later
+of the two and its `./verify.sh` is green against it.
 
 ## Run log
 
