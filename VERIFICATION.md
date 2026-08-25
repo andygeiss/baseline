@@ -65,20 +65,94 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**One change, not yet through a run.** The self-improvement rule, `99a94e0`: one bullet in
-`SKILL.md` *Handing the work back* that puts a baseline gap on the next-steps list, and
-three edits in `README.md` — *Ask what the release absorbed* under the version bump, where
-extraction candidates come from, and *Absorption is usually a rewrite* under *Retiring a
-pattern*. The adversarial half is done: ten passes, nine defects, the last two clean. **It
-still owes the reference run.** It also spent the last of the change-path headroom — 7,939
-of 8,000, 61 left, below any trigger section yet measured. See *Budget decisions*,
-2026-08-18.
-
-v4.0.0 closed its own gate on 2026-08-25 — the CI server dropped, recorded below.
+**Nothing.** v4.1.0 closed its gate on 2026-08-25 — the self-improvement rule,
+recorded below.
 
 ## Run log
 
 Newest first.
+
+### 2026-08-25 — gaps flow back from projects (v4.1.0)
+
+**The corpus could learn from projects and had no way to hear about it.** Every rule here
+was written by looking at the corpus. The two things only a project can show — a decision
+the checklist has no section for, and a rule naming a dependency the standard library has
+since absorbed — were visible exactly once, to whoever hit them, and died with the task.
+`SKILL.md` *Handing the work back* now takes the first as a next step and `README.md`
+*Maintenance protocol* takes the second at every Go major, where the release notes get
+read for what moved into stdlib and not only for what changed.
+
+**The rule's failure mode is noise, not silence, so the bar is the whole design.** A
+reflect-on-your-work rule with a soft trigger fires on every task and is skimmed past by
+the third one. Two kinds qualify and the bullet says so: the checklist had no section and
+you settled it by inventing rather than by matching the surrounding code, or a baseline
+rule names a dependency stdlib now covers. Both are facts the agent already holds when it
+finishes; neither needs a survey. "This looked reusable" is named and excluded. It was
+tested by looking for a gap rather than by reading the rule: inbound webhooks — the HMAC,
+the replay window, the raw body read before parsing — are genuinely uncovered by this
+corpus, and CSV downloads look uncovered and are not — they are boxes under *Taking a
+file from a user*. The false guess is the point of the bar.
+
+**Absorption is a rewrite, not a retirement, and that had to be said where retirement is
+decided.** A pattern whose dependency moves into the standard library still has something
+to say — the mechanism changes and the document stays. Only a pattern that existed solely
+to cover the gap meets signal 1. Without that paragraph, *Retiring a pattern* reads as a
+licence to delete a document the day Go absorbs its dependency, which is the moment its
+rules are most likely to be got wrong.
+
+**Nine defects over ten passes, the last two clean, and two more in this entry as it was
+written; the interesting ones were arithmetic.** They were sequential rather than
+independent again: one reviewer, each pass on a different surface — cross-document section
+names, then the budget numbers re-derived from `git show` rather than read, then the rules
+tested against a real gap and a real false gap, then margins and the corpus's own `make
+structure` and `make tokens`, then the whole diff. The first draft of this release's
+budget paragraph said the six patterns the 2026-08-18 raise bought had never landed. One
+had: `9c0be4a`, *Deleting a person*, on the same day the number moved. The same paragraph
+called the 125-tokens-per-pattern figure a rate; the sections measured since cost 61, 179,
+and 201, so it is an average nobody pays. A third claim was off by one token, because
+`make tokens` divides the whole path's bytes once and the per-file deltas each round down.
+The two caught in this entry are the same kind: a 380 said to have accrued since a
+paragraph that reports 265 of it itself, and that 265, which today's per-file measure
+makes 266. Every one of them came from re-deriving a number that had been carried over
+from a draft — the failure *Waived budgets* already names.
+
+**A judgement the entry above demanded, made out loud.** *A third path this entry missed*
+recorded on 2026-08-18 that `SKILL.md` and `VERSIONS.md` sit inside both the floor and the
+change path with no per-document budget over either, and asked that growth there be argued
+rather than absorbed. This release grew `SKILL.md` by 116, the second such edit and 380 in
+total since the raise — nearly half the 763 it bought — and the argument is in *Budget
+decisions* below with the full accounting. The change path is at **7,939 of 8,000**, 61
+left, which buys no trigger section; the floor at 20,089 of 25,000. What the next pattern
+costs is now a decision Andy makes before it lands, and *What would make these numbers
+wrong* already names the branch: trim, do not raise.
+
+**One defect was found and not fixed.** The new bullet ends "nothing else qualifies", and
+`SKILL.md` *Waivers and conflicts* separately tells an agent that an unresolvable rule
+collision is a defect in the baseline, to be told to the user at the moment it happens. A
+reader could take the first sentence to scope out the second. It was left alone: the two
+have different mechanisms and different timing — the collision is reported when it blocks
+you, the gap when you hand the work back — and the clause that would join them costs about
+15 of the 61 tokens left on the corpus's most-paid path. Spending the last of a budget to
+pre-empt a misreading, in the same release that says the budget is spent, is the wrong
+trade. It is written down here instead, which is what this file is for.
+
+**Two runs compressed on the way out.** v3.11.0 and v3.10.0 moved into *Earlier runs*,
+which is [README.md](README.md)'s three-newest rule doing its job rather than a decision
+this release made: with this entry the log had five in full. What a future reader would
+otherwise re-derive stayed — the counts, the reference commits, and the findings that cost
+a pass to reach.
+
+**The empirical half:**
+[baseline-reference](https://github.com/andygeiss/baseline-reference) `6239e4e`, tagged
+v4.1.0, pinning baseline `99a94e0`. `SPEC.md` is the only file that moved there, and that
+is the finding: both rules govern what an agent reports and what a maintainer does on the
+90-day cycle, so neither is a property a repository can gate. `GOTOOLCHAIN=go1.26.7
+./verify.sh` exits 0 over **76 gates**, the same count as v4.0.0 since no gate moved, and
+`GOTOOLCHAIN=go1.26.7 make ci` is green on `6239e4e` with `go version go1.26.7
+darwin/arm64` as its first line. The toolchain pin still stands in for this machine's Go
+1.27.0, which the policy does not adopt until 1.27.1. A rules change the reference cannot
+gate is exactly the kind that gets tagged on a reading, so it was run rather than reasoned
+about.
 
 ### 2026-08-25 — the CI server dropped (v4.0.0)
 
@@ -206,184 +280,6 @@ same shape as the 1.26.6 bump. **Tagged v3.11.1** on the commit that records thi
 past the pin `b342f17` — the shape every release since v3.6.0 has had, and condition 4
 holds by construction: the diff between them is this file.
 
-### 2026-08-18 — the six changes that were owed (v3.11.0)
-
-**Forty-seven defects over ten adversarial passes and one empirical pass**, the last two
-readings clean. The forty-seventh came from building the rules rather than reading them,
-and it is the one worth the most.
-
-**The headline is a rule that was right on its own and wrong in a container.** The new
-detached-work shape told `main` to wait for work whose only clock was `jobBudget`, and
-`srv.Shutdown` sits inside a `stop_grace_period` of 15 s
-([baseline-ops/templates/compose.yaml](https://github.com/andygeiss/baseline-ops)). A
-report measured in minutes therefore held the process until SIGKILL dropped it mid-write
-with nothing logged — the exact failure the wait was added to prevent — and `return err`,
-with the deferred `db.Close()` behind it, never ran at all. The fix is two lines in the
-handler and one in `main`: `a.stopping` is the errgroup's context, `context.AfterFunc`
-hangs each job's `cancel` off it, and `errgroup` cancels that context as `Wait` returns,
-so every job has been told to stop before the wait begins.
-
-**The same change also had no boundary.** Its registry is in memory, so a crash or that
-SIGKILL loses every job — and the corpus already rules the durable case in
-[go-email.md](patterns/go-email.md). The first fix drew the line at duration, *seconds not
-minutes*, and a later pass killed it: a streamed reply runs for a minute and still belongs
-here. **The axis is whether losing it is survivable**, not how long it takes, and getting
-that wrong once is why the document now says so in those words.
-
-**A checklist and the document it routes to disagreed twice, in opposite directions.** The
-cursor box was widened to "a row id or a count" while `htmx-live-updates.md` rule 1 still
-said "a row id, never a timestamp"; the refusal box still demanded the check come *before*
-the text while `go-llm-adapter.md` had just written that a stream cannot do that. One rule
-moved without its box, one box moved without its rule. **Both halves have to move
-together**, and neither `make structure` nor `make tokens` can see it.
-
-**A canonical snippet was its own document's anti-pattern.** *When the polled thing is not
-a list* shipped `hx-trigger="every 1s"`, which the anti-pattern list forbids by that exact
-string and the cost section prices at 5 s for a job status. The reason the anti-pattern
-gives — "no reader notices" — is false for a region somebody consumes as it arrives, so
-the anti-pattern was too wide rather than the snippet wrong; it is now scoped to lists,
-the exception is argued where it applies, and the snippet polls at 5 s like the number it
-sits next to.
-
-**"No bare `go func()` anywhere" was a third one.** [go-cli.md](patterns/go-cli.md)
-recommends `go func() { <-ctx.Done(); stop() }()` as the force-kill escape hatch, and has
-for releases. The claim is now "in a server", which is the only place this document rules.
-
-**Two facts checked against upstream rather than memory.** `errgroup` cancels its derived
-context *as* `Wait` returns (x/sync `errgroup.go`), which is what makes cancel-before-wait
-free; and `bufio.Scanner` caps a line at `MaxScanTokenSize`, 64 KiB, reporting `ErrTooLong`
-only through `Err()` — so the twenty-line SSE reader rule 16 recommends ends a long answer
-early and silently. The rule now says to read the lines with `bufio.Reader`.
-
-**And the budget record missed the path the next commit took.** The floor entry named two
-ways its new number could be wrong, both about *Required reading* and trigger sections.
-`SKILL.md` is neither: it is the head every path starts from, it has no per-document
-budget, and `ebfc5e7` spent 265 tokens of the fresh headroom there one commit later.
-Recorded under *Budget decisions* rather than gated, because two documents do not need a
-gate and the floor already bounds them together.
-
-**Where the defects came from.** Sixteen from reading the six changes; thirty from
-re-reading the fixes; one from building them. That middle number is the finding about the
-process — a fix is a change, and it earns the same passes the change did. The
-duration-versus-survivability mistake above was introduced by a fix and caught two passes
-later.
-
-**Empirical half: the rule that was half an answer.** *Tests wait on the counter, never on
-the clock* reads like a complete rule and is not. The reference detached its assistant
-reply, and deleting `a.running.Add(1)` left **every test green** — an uncounted goroutine
-still finishes first on an idle machine, and nothing in the suite could see it. The first
-answer was to give up and grep the build for the line, which is what the reference's README
-said for one commit.
-
-The corpus already had the better answer and the rule had not been pointed at it.
-[patterns/go-testing.md](patterns/go-testing.md) mandates `testing/synctest` for goroutine
-coordination; in a bubble `synctest.Wait` returns only once every other goroutine is
-durably blocked, so a `Wait` that returned early is visible to a `select` with a `default`.
-The reference's test is red in 0.04 s without the counter, with no clock and no deadlock.
-Two constraints came with it, and only running it produces them: **a listener has to stay
-outside the bubble**, because a goroutine blocked on a socket is never durably blocked, and
-**so does anything holding a ticker that never exits** — `scs`'s in-memory session store
-does, and the bubble waits for it. Both are in the rule now.
-
-**Two more things only the reference could say.** Detaching the reply took the smoke test's
-happens-before edge away: `go test` can wait on the app's counter, a shell driving the real
-binary cannot, so that gate is now a bounded retry. And the timeout ladder let go of a rung
-— `assistantBudget` used to sit under `WriteTimeout` and now stands alone, which is the
-waiver-narrowing the rule asks for, exercised rather than asserted.
-
-**No document stamp moved.** `patterns/go-background-work.md` is the one this run rebuilt
-and re-checked against upstream, and bumping its `Last verified` line would be a change to
-something a project reads *after* the pin — condition 4 — for one day of difference against
-a ninety-day window. The verification is recorded here instead.
-
-**The empirical half:** [baseline-reference](https://github.com/andygeiss/baseline-reference)
-`b3cdc7a`, tagged v3.11.0, pinning baseline `b94cbeb` — the commit the documents survived
-to. `./verify.sh` exits 0 there over 74 gates, including three new ones: the source check
-that `main` waits after `g.Wait()`, the mention gate rewritten as a bounded retry, and the
-quiet gate given time to be wrong. **Every new assertion was proved to fail first** —
-deleting the `AfterFunc` reddens the shutdown test after exactly the ten-second budget,
-which is the hang measured rather than argued.
-
-### 2026-08-18 — the document for data leaving (v3.10.0)
-
-Every document in this corpus ruled data arriving. Nothing ruled a person leaving: what
-happens to their attachments, their queued mail, and the session their browser is still
-holding. [patterns/go-data-deletion.md](patterns/go-data-deletion.md) is tier 1 and closes
-that. The release also settled the budget tension v3.9.0 recorded and could not resolve.
-
-**Eighteen defects over eleven adversarial passes**, the last two clean. Three of the
-eighteen came from building the rules rather than from reading them, and that split is the
-finding about the process: the readings caught wording, scope and missing citations, while
-only running the rules caught the two places where they were *wrong*.
-
-**The budget decision came first, and alone.** v3.9.0 left `checklists/web-application.md`
-at 4,509 of 4,300 and the change path at 7,237 of 7,000, with a finding rather than a
-promise attached: the prose was already at the bar *Write to the reader's competence* sets,
-and what remained was boxes and one-line section leads. Andy raised the two numbers to
-5,000 and 8,000 in a commit that moved nothing else. The argument, the three branches not
-taken, and the signal that says which one to take next time are under *Budget decisions*.
-**The floor did not move**, so the new checklist section was paid for out of the seven
-required documents: `patterns/go-http-server.md` lost a repeated timeout block, a forward
-reference to the bullet below it, two comments restating their own code, and the upload
-cap-site fragment, which moved to [patterns/go-file-uploads.md](patterns/go-file-uploads.md)
-where an upload route is actually written. 19,487 of 19,500.
-
-**Three rules did not survive contact with the reference.** All three are fixed in the
-tagged commit.
-
-1. **The all-tables sweep does not find what it looks like it finds.** The document's
-   headline test reads `sqlite_master` at runtime and looks for the deleted id in every
-   text column — and it matches rows that name the person *by id*. The outbox holds an
-   address and, at that moment, no `user_id` at all, so it stayed green while the address
-   stayed on disk. Proved by deleting the column and watching the sweep pass. The rule now
-   says the sweep finds references, not copies, and asks for a by-value assertion beside it
-   on the columns holding a person's data under another name.
-2. **The schema is only the delete if the first migration got it right.** SQLite cannot
-   alter a constraint, so changing an `ON DELETE` action is create-copy-drop-rename — and
-   `DROP TABLE` with foreign keys on runs an implicit `DELETE FROM` that *does* fire
-   foreign key actions, so dropping a parent to rebuild it takes its children with it. The
-   usual escape is closed to a migration inside one transaction, where `PRAGMA
-   foreign_keys` is a no-op. Both facts are now cited. This is also why the reference keeps
-   **erase** for its messages rather than moving to **anonymize**: that answer is free
-   before the table ships and expensive after.
-3. **An anti-pattern was too wide.** "A confirmation that is a JavaScript dialog" would
-   have banned the `hx-confirm` the reference already uses on its token revoke, which is an
-   htmx attribute rather than hand-written JavaScript and is right for an action somebody
-   can redo. The rule now names what actually matters: an irreversible action asks for
-   something the *server* can check, and `hx-confirm` is nothing on the wire.
-
-**One rule the reference had already met**, which is the other kind of useful answer.
-`authenticate` resolved a session to a user row and destroyed the session when the row was
-gone, with the comment "the account is gone but the cookie is not" — written long before
-this document asserted it. Sessions are the hole no cascade reaches, because the row is
-keyed by token and its payload is opaque to SQL; the fix is not a column on the session
-table but the middleware loading the row. That rule shipped already proven.
-
-**The defect class the last two passes kept finding was a stale claim elsewhere.** Making
-an account deletable made two sentences false that nothing pointed at:
-[patterns/glossary.md](patterns/glossary.md)'s example entry said a message is "never
-edited, never deleted", and the reference's *Who owns what* row said the same. Both fixed,
-and the glossary example stays character-identical to the reference's file. **A new
-capability falsifies prose in documents it never touches**, and neither `make structure`
-nor `verify.sh` can see it — the sweep is a grep for the claims the change contradicts.
-
-**A box that was deliberately not added.** The by-value assertion from finding 1 has no
-checklist box of its own: the floor had thirteen tokens of headroom and a seventh box costs
-about twenty. Its concrete instance — outbox rows carrying an address — *is* boxed, and the
-general rule is in the document the section routes to. Recorded rather than quietly
-dropped, because "the checklist did not check it" is how a rule goes missing.
-
-**Empirical half: closed before the tag.** The reference could not delete a person at all,
-which is how the gap was found. It gained `/account/delete` — a page, not a dialog, asking
-for the account name retyped and the password, both checked by the server — one migration
-adding the outbox's `user_id` and an index on each of the five child columns, four handler
-tests, the schema sweep, and three new `verify.sh` gates: every user column declares an
-`ON DELETE` action, every child of `users` is indexed table-by-table, and the delete
-confirmation is server-checkable. **Both assertions of the sweep were proved to fail before
-they were trusted** — removing a cascade reddens the id sweep, removing `outbox.user_id`
-reddens the by-value check while the id sweep stays green. Reference synced and tagged
-v3.10.0 at `dadfb2f`, its `SPEC.md` pinning `c1ca89f`, `./verify.sh` exit 0.
-
 ### Earlier runs
 
 Compressed to what a future reader still needs: the counts, and the findings that would
@@ -392,6 +288,63 @@ otherwise be re-litigated. The full narratives are in this file's git history.
 **The three newest runs stay in full; everything older lives here.** A run log that only
 grows costs more to re-read than it saves, and the compression is what keeps a narrative
 from being re-litigated a year after it was settled.
+
+- **2026-08-18 — the six changes that were owed (v3.11.0).** 47 defects over ten
+  adversarial passes and one empirical pass, the last two clean. **The headline was a rule
+  right on its own and wrong in a container:** detached work told `main` to wait on a
+  budget measured in minutes, inside a 15 s `stop_grace_period`, so SIGKILL dropped it
+  mid-write with nothing logged — the exact failure the wait was added to prevent. The fix
+  is `context.AfterFunc` hanging each job's cancel off the errgroup's context, which is
+  cancelled *as* `Wait` returns (checked in x/sync's `errgroup.go`, not remembered). The
+  same change had no boundary; the first fix drew it at duration, *seconds not minutes*,
+  and a later pass killed that — **the axis is whether losing the work is survivable**,
+  since a streamed reply runs for a minute and still belongs there. A checklist and the
+  document it routes to disagreed twice in opposite directions — one rule moved without
+  its box, one box without its rule, and neither `make structure` nor `make tokens` can
+  see it. A canonical snippet was its own document's anti-pattern (`hx-trigger="every
+  1s"`, forbidden by that exact string), which scoped the anti-pattern to lists rather
+  than fixing the snippet; "no bare `go func()` anywhere" became "in a server", because
+  [go-cli.md](patterns/go-cli.md) had recommended one for releases; and `bufio.Scanner`
+  caps a line at 64 KiB reporting `ErrTooLong` only through `Err()`, so the SSE reader
+  rule ended a long answer early and silently. **Where the defects came from:** 16 from
+  reading the changes, 30 from re-reading the fixes, 1 from building them — a fix is a
+  change and earns the same passes. **The empirical half refuted a rule this file had
+  accepted:** *tests wait on the counter* is half an answer, since deleting
+  `a.running.Add(1)` left every test green — an uncounted goroutine still finishes first
+  on an idle machine. `testing/synctest` is the real answer, red in 0.04 s with no clock,
+  and it brought two constraints only running it produces: a listener stays outside the
+  bubble, and so does anything holding a ticker that never exits (`scs`'s in-memory store
+  does). Reference `b3cdc7a` tagged v3.11.0, pinning `b94cbeb`, `./verify.sh` exit 0 over
+  74 gates, three new — and **every new assertion was proved to fail first.**
+
+- **2026-08-18 — the document for data leaving (v3.10.0).** 18 defects over eleven passes,
+  the last two clean; 3 came from building the rules, and only those caught rules that
+  were *wrong* rather than badly worded. Every document ruled data arriving and nothing
+  ruled a person leaving — [go-data-deletion.md](patterns/go-data-deletion.md) is tier 1
+  and closes it. **Three rules did not survive contact with the reference.** The headline
+  all-tables sweep reads `sqlite_master` at runtime and finds the deleted id in every text
+  column — so it matches rows naming the person *by id*, while the outbox held an address
+  and no `user_id`, and stayed green with the address on disk; the rule now says the sweep
+  finds references, not copies, and asks for a by-value assertion beside it. SQLite cannot
+  alter a constraint, so changing an `ON DELETE` action is create-copy-drop-rename, and
+  `DROP TABLE` with foreign keys on fires an implicit `DELETE FROM` that takes the
+  children — with the usual escape closed inside one transaction, where `PRAGMA
+  foreign_keys` is a no-op; that is why the reference keeps **erase** rather than
+  **anonymize**, an answer free before the table ships and expensive after. And an
+  anti-pattern was too wide: banning "a confirmation that is a JavaScript dialog" would
+  have banned the `hx-confirm` the reference already uses, so the rule now says an
+  irreversible action asks for something the *server* can check. **One rule the reference
+  had already met:** `authenticate` loaded the user row and destroyed the session when it
+  was gone, written long before this document asserted it — sessions are the hole no
+  cascade reaches, because the row is keyed by token and opaque to SQL. **The defect class
+  the last passes kept finding was a stale claim elsewhere:** deletability made
+  [glossary.md](patterns/glossary.md)'s example and the reference's *Who owns what* row
+  false where they said a message is never deleted — a new capability falsifies prose in
+  documents it never touches, and only a grep for the contradicted claim finds it. A
+  by-value checklist box was deliberately not added, at thirteen tokens of floor headroom
+  against about twenty, and recorded rather than quietly dropped. The budget raise to
+  5,000 and 8,000 came first and alone, in a commit that moved nothing else. Reference
+  `dadfb2f` tagged v3.10.0, pinning `c1ca89f`, `./verify.sh` exit 0.
 
 - **2026-08-17 — four patterns, and the passes that rewrote them (v3.9.0).** 44 defects over
   12 passes, the last two clean; every one of the four new documents was wrong about
@@ -739,14 +692,15 @@ nobody pays, not a rate.
 
 **The head took 380 of it, which is *A third path this entry missed* firing.** Both edits
 landed in `SKILL.md`, which no per-document budget caps and no *Required reading* test
-governs: *Handing the work back* at 266, and the self-improvement rule's gap bullet at
-116. The floor pays for both too — 19,973 → 20,089 of 25,000. The judgement that paragraph
-asked to be made out loud, made: the bullet is worth 116 because a gap nobody writes down
-is a gap found again by the next project, and it is the last thing this path can carry.
-*What would make these numbers wrong* names this cause exactly, and its threshold has not
-been crossed — 7,939 is under 8,000 — so the reading is *trim, do not raise*. Which trim,
-or the shape budget instead, is a decision rather than a measurement, and the next pattern
-waits on it: 61 tokens buys no trigger section, least of all a 179-token one.
+governs: *Handing the work back* at 266 — 265 as that paragraph counted it, the same
+rounding — and the gap bullet at 116. The floor pays for both too — 19,973 → 20,089 of
+25,000. The judgement that paragraph asked to be made out loud, made: the bullet is worth
+116 because a gap nobody writes down is a gap found again by the next project, and it is
+the last thing this path can carry. *What would make these numbers wrong* names this cause
+exactly, and its threshold has not been crossed — 7,939 is under 8,000 — so the reading is
+*trim, do not raise*. Which trim, or the shape budget instead, is a decision rather than a
+measurement, and the next pattern waits on it: 61 tokens buys no trigger section, least of
+all a 179-token one.
 
 ## Where the numbers come from
 
