@@ -65,8 +65,16 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Nothing.** v4.0.0 closed its gate on 2026-08-25 — the CI server dropped, recorded
-below.
+**One change, not yet through a run.** The self-improvement rule, `99a94e0`: one bullet in
+`SKILL.md` *Handing the work back* that puts a baseline gap on the next-steps list, and
+three edits in `README.md` — *Ask what the release absorbed* under the version bump, where
+extraction candidates come from, and *Absorption is usually a rewrite* under *Retiring a
+pattern*. The adversarial half is done: ten passes, nine defects, the last two clean. **It
+still owes the reference run.** It also spent the last of the change-path headroom — 7,939
+of 8,000, 61 left, below any trigger section yet measured. See *Budget decisions*,
+2026-08-18.
+
+v4.0.0 closed its own gate on 2026-08-25 — the CI server dropped, recorded below.
 
 ## Run log
 
@@ -715,6 +723,30 @@ that hurts, and it is the last one that should ever move.
 is still under 5,000, the shared head or `SKILL.md` grew rather than the corpus — trim, do
 not raise. Both going over together is the growth curve arriving, and that is the signal to
 take the branch not taken above rather than to raise a third time.
+
+**Since then, and the head took nearly half of it.** The 763 is spent: **7,939 of 8,000**
+on 2026-08-25, 61 left. [checklists/web-application.md](checklists/web-application.md)
+took 486 of it, `SKILL.md` 380, and `VERSIONS.md` gave 165 back when v4.0.0 dropped the CI
+rows — 701, against the 702 the path itself grew, because `make tokens` divides the whole
+path's bytes once and not each file's. Only 179 of the 486 was a new pattern —
+[patterns/go-data-deletion.md](patterns/go-data-deletion.md) in `9c0be4a`, the one of the
+six the headroom was raised to buy that actually landed. The other 307 is catch-up and
+boxes: sections at v3.11.0 for two patterns that had landed a release earlier — background
+work, and the streaming rules — and the `make ci` boxes at v4.0.0, which have no pattern
+behind them at all. Against the sections measured — 61 for background work in `34ab524`,
+179 here, 201 for authorization in `64babfb` — the 125 this entry budgets by is an average
+nobody pays, not a rate.
+
+**The head took 380 of it, which is *A third path this entry missed* firing.** Both edits
+landed in `SKILL.md`, which no per-document budget caps and no *Required reading* test
+governs: *Handing the work back* at 266, and the self-improvement rule's gap bullet at
+116. The floor pays for both too — 19,973 → 20,089 of 25,000. The judgement that paragraph
+asked to be made out loud, made: the bullet is worth 116 because a gap nobody writes down
+is a gap found again by the next project, and it is the last thing this path can carry.
+*What would make these numbers wrong* names this cause exactly, and its threshold has not
+been crossed — 7,939 is under 8,000 — so the reading is *trim, do not raise*. Which trim,
+or the shape budget instead, is a decision rather than a measurement, and the next pattern
+waits on it: 61 tokens buys no trigger section, least of all a 179-token one.
 
 ## Where the numbers come from
 
