@@ -1,6 +1,6 @@
 # Pinned Versions
 
-**Last verified: 2026-08-17.** These are the versions all new projects MUST use.
+**Last verified: 2026-08-25.** These are the versions all new projects MUST use.
 If your training data disagrees, this file wins. Verify against the source links
 when updating this file.
 
@@ -22,7 +22,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 
 | Component | Pinned version | Released | Notes |
 |---|---|---|---|
-| Go | **1.26.6** | 2026-08-13 | Latest stable patch of the 1.26 line. Security release: fixes GO-2026-6089/6090/6091/5972, including an `html/template` JavaScript-context bug that reaches every rendering app. Go 1.27 expected Aug 2026, and not out on 2026-08-17 — re-verify after release. |
+| Go | **1.26.7** | 2026-08-19 | Latest patch of the 1.26 line. A point release, not a security one: it restores unencrypted HTTP/2, which 1.26.6's `net/http` fix broke (go.dev/issue/80876); no baseline app enables h2c. 1.26.6 stays the floor — it fixed GO-2026-6089/6090/6091/5972, including an `html/template` JavaScript-context bug that reaches every rendering app. Go 1.27.0 shipped the same day; the policy adopts a major at its first patch, so re-verify at 1.27.1. |
 | htmx | **2.0.10** | 2026-04-21 | The 2.x line is stable and feature-complete. |
 | htmx 4.x | ❌ do not use | beta | 4.0.0-beta6 (July 2026). MUST NOT be used until stable *and* adopted here deliberately (breaking changes: fetch-based, new swap model). |
 | scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
@@ -51,13 +51,14 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
   green CI (the mechanism lives in [operations/ci.md](operations/ci.md)). Anything that
   breaks on a routine update is a candidate for removal.
 
-## Sources checked (2026-08-17)
+## Sources checked (2026-08-25)
 
 Every row above was checked against its source on this date, not only the ones that
 moved. What each run found is in [VERIFICATION.md](VERIFICATION.md).
 
 - Go releases: https://go.dev/doc/devel/release
-- Go 1.26 notes: https://go.dev/doc/go1.26
+- Go 1.26 notes: https://go.dev/doc/go1.26 — and https://go.dev/doc/go1.27 for the
+  adoption pass at 1.27.1
 - htmx versions: `npm view htmx.org version` or https://github.com/bigskysoftware/htmx/tags —
   **not** the GitHub releases page: upstream tags 2.x patches without creating a
   Release object there (2.0.10 never appeared on it)
