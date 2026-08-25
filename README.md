@@ -295,12 +295,23 @@ paragraph that goes stale in one of them.
   `git grep -n '1\.26'` lists every place the major sits, the run log included. A
   `Last verified:` date moves when a run reviewed the document's rules, not when an
   edit touched its wording.
+- **Ask what the release absorbed.** Every Go major (Feb/Aug) can take a rule's job into
+  the standard library. Read the release notes with that question too, not only for
+  behavior changes: a capability that lands in stdlib usually means a row leaves
+  *Approved third-party dependencies* in [stack/go.md](stack/go.md) and arrives in
+  *Modern stdlib choices*, and any pattern that prescribed the dependency is rewritten in
+  the same commit. A dependency whose justification has expired is a live defect against
+  core value 1, *Boring technology* — and the only two things that go looking for one
+  are this bullet and the gap rule in [SKILL.md](SKILL.md) *Handing the work back*.
 - **After moving anything out of this repository, sweep every consumer.** The
   operations split dropped facts its readers still needed. An extraction is not done
   when the file moves; it is done when nothing left behind still depends on it —
   the same sweep *Retiring a pattern* spells out below.
 - New recurring decision in a project? Extract it into a pattern document here —
-  the whole point is to never solve the same problem twice.
+  the whole point is to never solve the same problem twice. Candidates arrive on the
+  next-steps list of the work that found them ([SKILL.md](SKILL.md) *Handing the work
+  back*). One project inventing something is not yet a pattern — a second project
+  solving it the same way is the signal, and deciding is yours.
 - **[VERIFICATION.md](VERIFICATION.md) keeps its three newest runs in full**; older ones
   compress into *Earlier runs*, keeping the counts and the findings a future run would
   otherwise re-derive. It is the one file that grows by construction — one narrative per
@@ -438,6 +449,12 @@ have to hold. Retiring one is ordinary maintenance, not failure.
 **Tier 1 is retired only on signal 1.** A safety rule nobody happened to exercise
 is not a safety rule nobody needs — disuse is never a reason to drop CSRF,
 escaping, the SQLite pragmas, or a pin that names a security fix.
+
+**Absorption is usually a rewrite, not a retirement.** When the standard library
+starts doing what a pattern's dependency did, ask whether the rule still has
+anything to say once stdlib does the work. Usually it does — the mechanism
+changes, the document stays, and only its body is rewritten. Signal 1 applies
+only to the pattern that existed solely to cover the gap.
 
 **A half-removed pattern is worse than a kept one**, because a dangling link is a
 dead end for an agent mid-task. Removing one is therefore a sweep, in this order:

@@ -107,6 +107,12 @@ decide about, and they should not have to work it out for themselves.
   path has no test — the existing one covers only htmx" is a step.
 - **Say when there is nothing.** A short list is the usual answer, an empty one a real
   answer, and padding spends the trust that makes the list worth reading.
+- **A baseline gap goes on the list too.** Two kinds count, both visible only from
+  inside a project: a decision the checklist had no section for, which you settled by
+  inventing rather than by matching the surrounding code; and a baseline rule that names
+  a dependency the standard library now covers. Name it as a step and leave it — do not
+  edit the baseline as a side effect of project work. Nothing else qualifies; "this
+  looked reusable" is not a gap.
 
 **The list says what you left; it is not permission to leave things.** Finishing is still
 the job; this is how you hand over what finishing revealed.
