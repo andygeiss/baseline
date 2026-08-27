@@ -1,6 +1,6 @@
 # Operations: CI
 
-**Last verified: 2026-08-25**
+**Last verified: 2026-08-27**
 
 **There is no CI server.** One person writes the code, runs the gates, and pushes; a
 second machine repeating that work is not worth its upkeep. The mechanical items in the
@@ -10,14 +10,20 @@ project copies ([stack/makefile.md](../stack/makefile.md)), and you push a commi
 workflow, or a dependency bot: nothing under `.github/workflows/`, no
 `dependabot.yml`.
 
-## Seven gates, one order
+## Eight gates, one order
 
-Format, Vet, Staticcheck, Vulncheck, Tidy, Test, Build (static). The recipe under
+Format, Vet, Fix, Staticcheck, Vulncheck, Tidy, Test, Build (static). The recipe under
 `check` in [stack/makefile.md](../stack/makefile.md) is the list, and the only copy
 of it: the Makefile says what runs, and this document says why.
 
 ## Why each gate exists
 
+- **`go fix -diff`** — fails while a rewrite to current idiom is pending; `make fmt`
+  applies it. Read that diff before you commit it: Go says the fixes *should* not
+  change behavior, not that they cannot. Switch a fix you judge wrong off by name on
+  both `go fix` lines, `-<fixer>=false`, in the commit that says why, and back on once
+  the code no longer trips it — the name is the toolchain's, and a later major may
+  drop it.
 - **`govulncheck`** — call-graph-aware CVE scanning: it reports a vulnerability in a
   function you never call as exactly that, not as red. A red gate means: bump the
   dependency, don't silence the check.
@@ -67,7 +73,9 @@ Two things nobody does for you:
   satisfies `go.mod`'s `go 1.26` line — a newer major [VERSIONS.md](../VERSIONS.md)
   has not adopted, or a patch below the floor it names, both included. When the run's
   `go version` line is not the pin, put `GOTOOLCHAIN=go1.26.7` in front of every `go`
-  and `make` command — never a `toolchain` line in `go.mod`.
+  and `make` command — never a `toolchain` line in `go.mod`. The `go fix -diff` gate
+  can make a newer major red rather than silent: the fixers ship with the toolchain,
+  and a newer Go demands idioms the pin never asked for.
 - **The scan.** `govulncheck` runs only when somebody runs the gates. Re-scan untouched
   code on the 90-day cycle: run `make ci` on every live repository, whether or not it
   changed.
@@ -82,7 +90,10 @@ export GOTOOLCHAIN=go1.26.7                       # the pin, for this shell
 go get -u ./... && go mod tidy && make check      # one chore(deps) commit
 ```
 
-Anything that breaks on a routine update is a candidate for removal.
+Anything that breaks on a routine update is a candidate for removal. When the Go pin
+moved a major, `make check` may be red on the idioms the new toolchain rewrites:
+`make fmt` first, and commit that rewrite on its own, so the dependency commit stays
+one thing.
 
 A dependency that asks for a newer Go is a VERSIONS.md decision, not a `go get` side
 effect. Under the pin `go get` refuses (`requires go >= 1.27`) and leaves `go.mod`

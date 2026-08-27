@@ -1,6 +1,6 @@
 # Stack: Go
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-25 · Pinned:
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-27 · Pinned:
 Go 1.26.7 ([VERSIONS.md](../VERSIONS.md))
 
 The Go pin itself is tier 1: its note in [VERSIONS.md](../VERSIONS.md) names a security
@@ -10,16 +10,15 @@ fix.
 
 - Format with `gofmt` (via `goimports`). Non-negotiable; no custom style.
 - Vet on every run of the gates: `go vet ./...`.
-- Run the modernizers periodically: `go fix ./...` — since Go 1.26 this applies
-  ~two dozen analyzers that rewrite code to current idioms. Trust it.
+- Rewrite to current idiom with `go fix ./...` (`make fmt`); `make check` fails while
+  a rewrite is pending, and the diff is yours to read before you commit it.
 - Lint with `staticcheck` (the only third-party lint tool allowed).
 - Scan for known vulnerabilities: `govulncheck ./...` — on every `make check`, and
   once per 90-day cycle even when nothing changed
   (see [operations/ci.md](../operations/ci.md)).
 - Race detector on every test run: `go test -race -shuffle=on ./...`.
-- The gates above, `go fix` aside, are one command, `make check`, and `make ci`
-  runs it against the commit (see [stack/makefile.md](makefile.md) — the Makefile
-  every project copies).
+- The gates above are one command, `make check`, and `make ci` runs it against the
+  commit (see [stack/makefile.md](makefile.md) — the Makefile every project copies).
 
 ## Language conventions
 
@@ -40,8 +39,9 @@ fix.
   channels/`errgroup` for coordination, mutexes for state.
 - **Iterators:** use range-over-func (`iter.Seq[T]`, Go 1.23+) for new sequence APIs
   instead of returning slices when the sequence is large or lazy.
-- Use `any`, not `interface{}`. Use `min`/`max`/`clear` builtins. Since Go 1.26,
-  `new(expr)` with an initial value is allowed — use it where it removes a helper.
+- Use the `min`/`max`/`clear` builtins, and `new(expr)` where it removes a helper —
+  `go fix` inlines the callers and leaves the helper marked `//go:fix inline`; removing
+  it is yours.
 
 ## Modern stdlib choices (do not use the old way)
 
@@ -49,7 +49,7 @@ fix.
 |---|---|
 | `log/slog` (structured) | `log`, third-party loggers |
 | `net/http.ServeMux` with method+wildcard patterns (`"GET /items/{id}"`) | gorilla/mux, chi, etc. |
-| `errors.Is` / `errors.As` / `errors.Join` | string matching, `== err` |
+| `errors.Is` / `errors.As` / `errors.AsType` / `errors.Join` | string matching, `== err` |
 | `slices` and `maps` packages | hand-rolled loops for sort/contains/clone |
 | `embed.FS` | file paths resolved at runtime |
 | `testing/synctest` for concurrent code | `time.Sleep` in tests |

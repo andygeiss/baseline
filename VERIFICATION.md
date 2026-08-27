@@ -16,9 +16,10 @@ A run has two halves, and a release needs both.
    check factual claims against upstream sources (Go, htmx, scs, SQLite). They
    repeat until **two consecutive passes find zero defects**. Reading is not
    enough on its own: every canonical Go snippet gets compiled and run through
-   `gofmt`, `go vet`, `staticcheck`, and `govulncheck`, the canonical `Makefile`
-   runs end to end under GNU Make 3.81, the version macOS's Command Line Tools
-   ship, and every measured color claim gets recomputed from its oklch values.
+   `gofmt`, `go vet`, `go fix -diff`, `staticcheck`, and `govulncheck`, the
+   canonical `Makefile` runs end to end under GNU Make 3.81, the version macOS's
+   Command Line Tools ship, and every measured color claim gets recomputed from its
+   oklch values.
 2. **The empirical half.** [baseline-reference](https://github.com/andygeiss/baseline-reference)
    implements the corpus end to end. It is synced to the change, and its
    `./verify.sh` runs every mechanical gate, then boots the real binary and
@@ -65,8 +66,16 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Nothing.** v4.1.0 closed its gate on 2026-08-25 — the self-improvement rule,
-recorded below.
+**`go fix` joins the gates.** `go fix -diff ./...` is the third line of `check` and
+`go fix ./...` the last of `fmt` ([stack/makefile.md](stack/makefile.md),
+[operations/ci.md](operations/ci.md), [stack/go.md](stack/go.md)), and three fences are
+rewritten: the one the pinned toolchain rewrites (`go-background-work.md`) and the two
+the next major will — `errorsastype` is Go 1.27's (`go-file-uploads.md`,
+`go-forms-validation.md`). In [stack/go.md](stack/go.md) the `any` rule is gone — the
+pin's `any` fixer enforces it — and `errors.AsType` joins the errors row. A moved Go pin
+now means `make fmt` first, as its own commit ([README.md](README.md) *Maintenance
+protocol*, [operations/ci.md](operations/ci.md) *Dependency updates*; its *The Go
+version* says why a newer major goes red). The run is owed; the tag waits on it.
 
 ## Run log
 

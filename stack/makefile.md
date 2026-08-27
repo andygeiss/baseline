@@ -1,6 +1,6 @@
 # Stack: Make
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-25
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-27
 
 **Two of rule 6's four limits are tier 1 and never waived:** `.env` is gitignored in the
 same commit that adds the recipe, and production never uses it. A committed `.env` leaks
@@ -39,6 +39,7 @@ build:
 check:
 	test -z "$$(gofmt -l .)" || (gofmt -l . && exit 1)
 	go vet ./...
+	go fix -diff ./...
 	go run honnef.co/go/tools/cmd/staticcheck@latest ./...
 	go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 	go mod tidy -diff
@@ -56,8 +57,12 @@ ci:
 clean:
 	rm -rf bin/
 
+# goimports first: go fix type-checks, so a missing import would stop the
+# recipe before goimports could add it. go fix manages the imports its own
+# rewrites need.
 fmt:
 	go run golang.org/x/tools/cmd/goimports@latest -w .
+	go fix ./...
 
 # Loads .env when it is there, so a local start is one command. Only run:
 # check and test MUST NOT depend on a developer's machine (rule 6). One shell
@@ -143,9 +148,11 @@ test:
 - **`clean`** — removes local build outputs only (`bin/`, plus the root binary
   in a `MAIN = .` layout, rule 5). MUST NOT touch Go's build or module caches;
   they are correct and shared.
-- **`fmt`** — the one mutating fixer (`goimports` = gofmt + import management,
-  per [stack/go.md](go.md)). The read-only gofmt gate in `check` stays the
-  authority on "is it formatted".
+- **`fmt`** — the two mutating fixers: `goimports` (gofmt + import management,
+  per [stack/go.md](go.md)) settles the imports so `go fix`, which type-checks,
+  can rewrite to current idiom; on code that does not type-check, `fmt` fails.
+  Their read-only twins in `check`, `gofmt -l` and `go fix -diff`, stay the
+  authority on "is it done".
 - **`run`** — `go run`, not build-then-execute; the build cache makes it fast
   and there is no stale binary to accidentally re-run.
 - **`test`** — always `-race -shuffle=on`, exactly as `check` runs it. If that is

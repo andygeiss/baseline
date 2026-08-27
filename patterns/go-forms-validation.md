@@ -1,6 +1,6 @@
 # Pattern: Forms & Validation (Go)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-27
 
 The `html/template` escaping the 422 re-render depends on is tier 1, wherever a checklist
 files it.
@@ -60,8 +60,7 @@ type gameForm struct {
 func (a *App) handleGameCreate(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		status := http.StatusBadRequest // malformed body — not a validation failure
-		var tooLarge *http.MaxBytesError
-		if errors.As(err, &tooLarge) {
+		if _, ok := errors.AsType[*http.MaxBytesError](err); ok {
 			status = http.StatusRequestEntityTooLarge // the 1 MiB cap — go-http-server.md
 		}
 		a.clientError(w, r, status)

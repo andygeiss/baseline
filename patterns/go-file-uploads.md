@@ -1,6 +1,6 @@
 # Pattern: File Uploads (Go)
 
-**Tier 1** (safety — never waived) · Last verified: 2026-08-17
+**Tier 1** (safety — never waived) · Last verified: 2026-08-27
 
 Refusing the client's filename and the client's content type, deciding the type by
 sniffing the bytes, serving every file through a handler rather than a file server, and
@@ -28,8 +28,7 @@ middleware, before delegating to the mux:
 // may keep the form past this request.)
 if err := r.ParseMultipartForm(maxUpload); err != nil && !errors.Is(err, http.ErrNotMultipart) {
 	status := http.StatusBadRequest
-	var tooBig *http.MaxBytesError
-	if errors.As(err, &tooBig) {
+	if _, ok := errors.AsType[*http.MaxBytesError](err); ok {
 		status = http.StatusRequestEntityTooLarge // the route's own cap
 	}
 	a.clientError(w, r, status)
