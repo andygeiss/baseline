@@ -1,6 +1,6 @@
 # Verification Record
 
-**Last verified: 2026-08-25**
+**Last verified: 2026-08-27**
 
 How this repository proves it is right, and what every review run found. The
 README states the standard in a paragraph; this file holds the evidence and the
@@ -66,20 +66,107 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**`go fix` joins the gates.** `go fix -diff ./...` is the third line of `check` and
-`go fix ./...` the last of `fmt` ([stack/makefile.md](stack/makefile.md),
-[operations/ci.md](operations/ci.md), [stack/go.md](stack/go.md)), and three fences are
-rewritten: the one the pinned toolchain rewrites (`go-background-work.md`) and the two
-the next major will — `errorsastype` is Go 1.27's (`go-file-uploads.md`,
-`go-forms-validation.md`). In [stack/go.md](stack/go.md) the `any` rule is gone — the
-pin's `any` fixer enforces it — and `errors.AsType` joins the errors row. A moved Go pin
-now means `make fmt` first, as its own commit ([README.md](README.md) *Maintenance
-protocol*, [operations/ci.md](operations/ci.md) *Dependency updates*; its *The Go
-version* says why a newer major goes red). The run is owed; the tag waits on it.
+**Nothing.** v4.2.0 closed its gate on 2026-08-27 — `go fix` joins the gates, recorded
+below.
 
 ## Run log
 
 Newest first.
+
+### 2026-08-27 — go fix joins the gates (v4.2.0)
+
+**A rule the toolchain can enforce should not be prose.** [stack/go.md](stack/go.md) told
+the reader to run `go fix` "periodically" and to "trust it", and then spent a bullet and a
+table row on idioms the same tool rewrites — `any`, `min`/`max`, `new(expr)`, `slices` and
+`maps` over hand-rolled loops. Since Go 1.26 `go fix` is the home of the modernizers, and
+since 1.26.3 `go fix -diff` exits non-zero on a pending rewrite (go.dev/issue/77583,
+backport 77801), which is the shape of a gate. It is now the third line of `check` and
+`go fix ./...` the last of `fmt` — the same read-only-twin arrangement `gofmt -l` and
+`goimports` have had all along — and the `any` rule is gone. The gate costs one `go vet`:
+0.27 s warm on the reference, 2.2 s the first time after a vet, because the two share
+compiled dependencies and keep their own facts.
+
+**The corpus did not shrink, and the question was asked before the answer was assumed.**
+A sweep of every rule and every Go fence against the pin's 22 fixers found at most 71
+tokens of prose a fixer carries whole, and one fence in eighty the pin would rewrite. The
+patterns were already written to the idiom the tool enforces. What the gate buys is the
+other direction: the *Modern stdlib choices* table stops growing for anything a fixer
+covers — Go 1.27's `errorsastype` will demand `errors.AsType` and no row has to say so —
+and drift gets caught. It was caught at once: the reference was red under the pin on the
+tree it inherited, at the exact fence [go-background-work.md](patterns/go-background-work.md)
+ships (`Add(1)`/`go`/`Done()`, now `WaitGroup.Go`) and at a three-clause loop in a test.
+
+**The fixers are the toolchain's, and that is the whole trap.** Go 1.26.0 through 1.26.7
+register the same 22 fixers, byte for byte; 1.27.0 registers 26 — `errorsastype`,
+`atomictypes`, `embedlit`, `slicesbackward`, `unsafefuncs` added, `fmtappendf` removed for
+"stylistic concerns", `waitgroup` renamed `waitgroupgo`. So the gate is deterministic under
+an exact `GOTOOLCHAIN`, and under `auto` on this machine, which runs 1.27.0 over a `go 1.26`
+module, it is red on `errors.As` sites the pin passes. The change ran into its own trap on
+the first pass: two of the three fences credited to "the pinned toolchain" had been
+rewritten by the local 1.27.0 — the pin has no `errorsastype` at all. Both lenses caught
+it. The fences stay, because `errors.AsType` is a 1.26 API and the next major will demand
+them, and *Owed* said so before the run closed. The consequence for a person is the one
+[operations/ci.md](operations/ci.md) *The Go version* already prescribed — prefix the pin —
+and on this machine it now lives in the shell profile, where the next pin move has to
+find it.
+
+**The mutator's order was wrong, and only running it showed which way.** The first draft
+put `go fix` before `goimports` "so goimports drops any import a rewrite leaves unused".
+Under the pin no fixer leaves one: `slicessort` removes `sort`, `testingcontext` removes
+`context`, `mapsloop` adds `maps`. What `go fix` does do is type-check, so on a file that
+uses a package it has not imported — the everyday reason `goimports` exists — `make fmt`
+stopped before `goimports` ran. Reversed: `goimports` settles the imports, `go fix` rewrites,
+and `fmt` now fails on code that does not type-check, which the bullet says out loud.
+
+**A gate needs an exit, and the corpus already had the shape.** The `@latest` bullet in
+ci.md lets a staticcheck release that reddens an unrelated morning be pinned in the fixing
+commit. Nothing said what to do with a fix you judge wrong — Go's own words are that the
+fixes "should not change the behavior of your program", and the tracker has a year of
+cases where one did: `slicescontains` hoisting a side effect, `stringscut`, `minmax`,
+`waitgroup` under `recover`, `rangeint` with the index read after the loop (open, 1.28).
+The escape is `-<fixer>=false` on both `go fix` lines in the commit that says why, and
+the sentence names its own hazard: the flag is the toolchain's name, and 1.27 has already
+dropped one and renamed another, loudly — exit 2, `flag provided but not defined`. Two
+facts stayed out of the read path and belong here: two conflicting fixes make
+`go fix -diff` exit non-zero with an empty diff (go.dev/issue/77482, 80854, open;
+run one analyzer alone, then all), and `go fix -diff` skips generated files and, like
+`go vet`, never sees a file behind a build tag it was not given.
+
+**One sentence took four rounds, and the fourth version is the first.** Deleting "use
+`new(expr)` where it removes a helper" lost a rule: the `newexpr` fixer inlines every
+caller and marks the helper `//go:fix inline`, and only staticcheck's `U1000` notices an
+unexported one afterwards. Restoring it as "delete it (only an unexported one goes red)"
+contradicted [go-library.md](patterns/go-library.md), where removing an exported symbol is
+a major; scoping it read as a garden path; and the bare original implied the tool did the
+removing. What stands says what the tool does and whose the removal is, and lets the more
+specific document rule the library case — which is what the tier rule was written for.
+
+**Twenty-seven distinct defects over seven rounds, two reviewers on different lenses each
+round; rounds six and seven clean on both.** Nine, five, five, six, two, then nothing.
+Every mechanical claim was executed rather than read, in both toolchains: the canonical
+Makefile copied verbatim into a `go 1.26` module under GNU Make 3.81 and run red, green,
+and through `fmt` on a missing import, a type error, and a parse error; the library and
+multi-binary cuts of rule 5; `ci` against an archived stale commit; the three fences old
+and new in compiling scaffolds through every gate; the escape flag in both positions; the
+fixer lists of all eight 1.26 patches diffed. Nothing found in the last five rounds was a
+false claim about the tool — after round two every defect was a sentence saying more, or
+less, than the tool does.
+
+**The budgets held without a decision.** No checklist box was added: the box "`Makefile`
+at the repo root is `stack/makefile.md`'s" already covers a recipe line, and the
+web-application checklist had five tokens to give. The change path is unchanged at 7,939.
+The floor is 20,097, eight over v4.1.0's figure: [stack/go.md](stack/go.md) lost the `any`
+sentence and gained the `go fix` rule and the helper clause;
+[stack/makefile.md](stack/makefile.md) gained the two lines and their reasons.
+
+**The empirical half:**
+[baseline-reference](https://github.com/andygeiss/baseline-reference) `6ea52e6`, tagged
+v4.2.0, pinning baseline `6015026`. The Makefile carries both lines and `verify.sh` the
+gate as its third step; `GOTOOLCHAIN=go1.26.7 ./verify.sh` exits 0 over **77 gates**, one
+more than v4.1.0, and `GOTOOLCHAIN=go1.26.7 make ci` is green on `6ea52e6` with `go version
+go1.26.7 darwin/arm64` as its first line. Four files of code moved: the two the pin
+rewrote and the two `errors.As` sites, plus a README sentence and a test comment that
+still described the counter by its `Add`. Nothing needed a fix switched off.
 
 ### 2026-08-25 — gaps flow back from projects (v4.1.0)
 
@@ -233,62 +320,6 @@ own Go 1.27.0, which the policy does not adopt until 1.27.1. The reference's mod
 moved `/v3` → `/v4` in `go.mod` and every import, because a v4 tag on a `/v3` module
 never stamps.
 
-### 2026-08-25 — the pins, checked against their sources (v3.11.1)
-
-**One row moved, and the others were checked rather than assumed.** Every numbered row in
-[VERSIONS.md](VERSIONS.md) was read against the source its own list names, on the day; the
-rolling rows (CSS Baseline, HTML, Make) have no number to move and were confirmed only as
-still reachable. That is what the table's new date means — not only the row that changed.
-
-**Go moved twice on one day, and the policy answers both.** Go 1.26.7 and Go 1.27.0 both
-shipped on 2026-08-19. The pin is now **1.26.7**: *always run the latest patch release*.
-1.27.0 is not adopted: *adopt a new major after its first patch release*, so 1.27.1 is the
-trigger, and the table says so. The patch is a point release rather than a security one —
-it restores unencrypted HTTP/2 after 1.26.6's `net/http` fix left `ReadHeaderTimeout` armed
-across the h2c handoff (go.dev/issue/80876). Checked rather than assumed: nothing in this
-corpus, the reference, or `baseline-ops` enables h2c, and nothing configures Caddy to speak
-it toward an application — so the regression could not reach a conforming app, and 1.26.6's
-advisories remain the reason the line has a floor at all.
-
-**What did not move, and where it was checked.** htmx 2.0.10 is still the newest 2.x on
-npm and 4.0.0-beta6 the newest tag; scs v2.9.0 is the newest tag; `actions/checkout` is at
-v7.0.1 and `actions/setup-go` at v7.0.0, both `using: node24` in `action.yml` on the `v7`
-tag; `design.md` still says `alpha` in its README's *Status* section while the CLI's newest
-tag is 0.4.0 — the two numbers the table's source note warns not to confuse.
-
-**Nothing downstream needed an edit, and that was checked too.** The reference's `go.mod`
-says `go 1.26` with no toolchain line, its CI resolves the version from `go.mod`, and the
-`baseline-ops` Dockerfile builds `FROM golang:1.26-alpine` — a floating minor tag, which its
-README already records as deliberate. All three pick up 1.26.7 without a commit. The one
-place that does not is this machine: Homebrew's Go is now 1.27.0, so a bare `./verify.sh`
-here builds with the major the policy has not adopted, and the `govulncheck` binary here,
-built with 1.26, refuses 1.27's standard library outright. **The run below was pinned with
-`GOTOOLCHAIN=go1.26.7`**, and until 1.27.1 lands so should any local run.
-
-**The empirical half:** [baseline-reference](https://github.com/andygeiss/baseline-reference)
-`bb315d5`, tagged v3.11.1, pinning baseline `b342f17` — `SPEC.md` is the only file that moved
-there. `GOTOOLCHAIN=go1.26.7 ./verify.sh` exits 0 over 74 gates, run once against `b3cdc7a`
-before the pin moved and once after.
-`govulncheck` under the same toolchain: 0 vulnerabilities called, 0 in imported packages,
-one in a required module — GO-2026-5932, `golang.org/x/crypto/openpgp` "unsafe by design",
-never imported here and with no fixed version — informational.
-
-**What 1.27.1 will ask, written down now so the adoption pass does not start from the
-release notes.** `httptest.NewTestServer` gives a `synctest` bubble an in-memory network,
-which bears directly on the listener-outside-the-bubble constraint in
-[go-background-work.md](patterns/go-background-work.md); `synctest.Sleep` folds `time.Sleep`
-and `Wait` into one call; `Server.MaxHeaderValueCount` is a new limit
-[go-http-server.md](patterns/go-http-server.md) will have to rule on; `go test` runs the
-`stdversion` vet check by default; `go mod tidy` merges `require` blocks once `go.mod` says
-`go 1.27`; and `encoding/json/v2` arrives, rejecting duplicate names and invalid UTF-8 by
-default.
-
-**No document stamp moved except the pin line.** [stack/go.md](stack/go.md) names the pinned
-version on its stamp line and now says 1.26.7; its *Last verified* date did not move, the
-same shape as the 1.26.6 bump. **Tagged v3.11.1** on the commit that records this run, one
-past the pin `b342f17` — the shape every release since v3.6.0 has had, and condition 4
-holds by construction: the diff between them is this file.
-
 ### Earlier runs
 
 Compressed to what a future reader still needs: the counts, and the findings that would
@@ -297,6 +328,29 @@ otherwise be re-litigated. The full narratives are in this file's git history.
 **The three newest runs stay in full; everything older lives here.** A run log that only
 grows costs more to re-read than it saves, and the compression is what keeps a narrative
 from being re-litigated a year after it was settled.
+
+- **2026-08-25 — the pins, checked against their sources (v3.11.1).** Every numbered
+  row in [VERSIONS.md](VERSIONS.md) read against its own source on the day, not only the
+  one that moved. **Go moved twice in one day and the policy answered both:** 1.26.7 is
+  the pin (*always the latest patch*), a point release that restores unencrypted HTTP/2
+  after 1.26.6's `net/http` fix (go.dev/issue/80876) — nothing in the corpus, the
+  reference, or `baseline-ops` enables h2c; 1.27.0 is not adopted (*a major at its first
+  patch*), so 1.27.1 is the trigger. htmx 2.0.10, scs v2.9.0, the two `actions/*` at v7
+  on node24, and `design.md` still `alpha` while its CLI tags 0.4.0 — all confirmed at the
+  source. Nothing downstream needed a commit: the reference's `go.mod` says `go 1.26`
+  with no toolchain line and the ops Dockerfile floats on `golang:1.26-alpine`. The one
+  place that did was this machine, where Homebrew's Go is 1.27.0 and the `govulncheck`
+  binary built with 1.26 refuses 1.27's standard library — so **every local run is pinned
+  with `GOTOOLCHAIN=go1.26.7`** until 1.27.1. What 1.27.1 will ask, written down for the
+  adoption pass: `httptest.NewTestServer` gives a `synctest` bubble an in-memory network
+  (the listener-outside-the-bubble constraint in
+  [go-background-work.md](patterns/go-background-work.md)); `synctest.Sleep`;
+  `Server.MaxHeaderValueCount` for [go-http-server.md](patterns/go-http-server.md) to rule
+  on; `go test` running `stdversion` by default; `go mod tidy` merging `require` blocks
+  under `go 1.27`; and `encoding/json/v2`. Reference `bb315d5` tagged v3.11.1, pinning
+  `b342f17`, `./verify.sh` exit 0 over 74 gates; `govulncheck` found one informational
+  entry in a required module never imported (GO-2026-5932). No document stamp moved but
+  the pin line.
 
 - **2026-08-18 — the six changes that were owed (v3.11.0).** 47 defects over ten
   adversarial passes and one empirical pass, the last two clean. **The headline was a rule
