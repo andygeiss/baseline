@@ -1,6 +1,6 @@
 # Verification Record
 
-**Last verified: 2026-08-27**
+**Last verified: 2026-09-04**
 
 How this repository proves it is right, and what every review run found. The
 README states the standard in a paragraph; this file holds the evidence and the
@@ -66,23 +66,74 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**No code before the brief.** Every task carries four fields the user has seen before the
-first line of code — job, why, guardrails, done means — in [SKILL.md](SKILL.md) *Before
-the first line of code*, defined in full in [README.md](README.md) *The task brief*.
-Every project keeps `SPEC.md` at its root as the project-level brief: a row in each
-[project-types/](project-types/) table, a line in the two layout trees, and a box in each
-[checklists/](checklists/) *Every …* section beside the two boxes that make the brief the
-acceptance test. The budgets held without moving: the change grew in the head, which
-*Budget decisions* answers under *the checklist and change-path numbers, raised once*
-with *trim, do not raise*, and the trims were rationale sentences — fourteen left
-`SKILL.md`, four lines left
-[checklists/web-application.md](checklists/web-application.md). The checklist ends 9
-tokens smaller (4,995 → 4,986), `SKILL.md` 35 larger (1,763 → 1,798), and the web change
-path moved 7,939 → 7,965 of 8,000. It owes the run and the reference.
+**Nothing.** v4.3.0 closed its gate on 2026-09-04 — no code before the brief, recorded
+below.
 
 ## Run log
 
 Newest first.
+
+### 2026-09-04 — no code before the brief (v4.3.0)
+
+**The checklists guard the end of a task; nothing guarded the start.** A task that
+arrives as one sentence gets finished by guessing, and every guess is a decision the
+reader never made. Every task now carries four fields the user has seen before the
+first line of code — job, why, guardrails, done means — drafted by the agent from the
+request, the repository, and the project's `SPEC.md`, asked about one question at a
+time with a recommended answer, and re-read as the acceptance test before done.
+[SKILL.md](SKILL.md) *Before the first line of code* is the rule; [README.md](README.md)
+*The task brief* is the definition behind it, the same split the tiers have. `SPEC.md`
+at every project's root is the project-level brief, and a task brief is a delta against
+it: a row in each project-type table, a line in the two layout trees, a box in every
+checklist's *Every …* section beside the two that make the brief the acceptance test.
+
+**Where the rule had to live was the first defect, and the design review caught it.**
+The draft put the whole rule in README with a pointer in SKILL.md, the way the waiver
+form is reached. The waiver pointer fires at a rare moment; the brief fires on every
+task, so README would have become a per-task read that four sentences say never happens
+and `make tokens` never counts. The operative rule moved into SKILL.md with the four
+one-line fields, README kept the survival table, the `SPEC.md` shape, and the example,
+and the project-type row carries the shape itself so nothing on the floor path opens
+README. Two more from the same review: `DESIGN.md` and `PATTERNS.md` left the survival
+table — the first holds token values, not reasons; the second does not exist — and the
+full-interview trigger reuses SKILL.md's shape line instead of "touches more than one
+package", which in this layout fires on nearly every feature.
+
+**The budgets held by trimming, which was the branch the 2026-08-18 entry left open.**
+The web checklist had five tokens and the change path sixty-one; the section, the boxes,
+and the trigger cost about a hundred and thirty. Fourteen rationale sentences left
+`SKILL.md` — every one a second sentence for a rule whose instruction survives on the
+line before it, and one a verbatim restatement of core value 6 — and four lines left the
+web checklist, one of them the thumbnail cross-reference that `go-file-uploads.md` makes
+itself. `SKILL.md` still ends 35 tokens larger (1,763 → 1,798), the checklist 9 smaller
+(4,995 → 4,986), and the change path moved 7,939 → 7,965 of 8,000; the floor is 20,227.
+Thirty-five tokens of headroom is not room for the next trigger section, which is what
+*What would make these numbers wrong* under that entry says comes next: the shape
+budget, not a third raise.
+
+**Sixty-three defects over seven passes, two lenses each round; passes eight and nine
+clean on both.** Thirty-two, nine, five, eight, five, three, one, then nothing. The
+first pass found the structural ones: an agent inside an existing project never reaches
+the README section that says how to write a missing `SPEC.md`, "confirmed" contradicted
+the decline clause, the fourth field was "Done" in the rows and "Done means" everywhere
+else, and the reference gate would have rejected the format the README's own example
+uses. After that every defect was a sentence saying more or less than it meant — "the
+sections below are the long form" when one bullet's long form is above it; "links" where
+the corpus and the reference both name; a gate anchored at column one that failed a
+bulleted label with a message calling the label absent. One defect sat outside the diff
+and was fixed with it: the README tree still labelled README the "navigation protocol",
+the claim README.md:30 retired.
+
+**The empirical half:**
+[baseline-reference](https://github.com/andygeiss/baseline-reference) `883dcb8`, tagged
+v4.3.0, pinning baseline `7c5c2a4`. `SPEC.md` carries the four fields under *The brief*,
+each bullet naming its long form, and a fifth acceptance criterion, `make ci`;
+`verify.sh` gates the file and the four labels as its ninth step, accepting a bold
+name or a `Field:` line and rejecting a heading, and was run red on a missing file, a
+missing field, and a renamed one before it was trusted. `GOTOOLCHAIN=go1.26.7 ./verify.sh`
+exits 0 over **78 gates**, one more than v4.2.0, and `GOTOOLCHAIN=go1.26.7 make ci` is
+green on `883dcb8` with `go version go1.26.7 darwin/arm64` as its first line. No code
+moved; nothing needed a waiver.
 
 ### 2026-08-27 — go fix joins the gates (v4.2.0)
 
@@ -261,76 +312,6 @@ darwin/arm64` as its first line. The toolchain pin still stands in for this mach
 gate is exactly the kind that gets tagged on a reading, so it was run rather than reasoned
 about.
 
-### 2026-08-25 — the CI server dropped (v4.0.0)
-
-**A second machine was doing the first machine's work.** The runner bought a run on a
-clean checkout, a weekly `govulncheck` over untouched code, and a per-gate red/green
-view; it cost a hosting vendor, a YAML dialect, an action-major deprecation cycle
-carried in [VERSIONS.md](VERSIONS.md), and a bot opening pull requests only the pusher
-read. `make ci` buys the first back — `git archive HEAD` into an empty directory, then
-the same `check`, so nothing missing from `git add` and no `.env` can make it green.
-The other two moved to a person, and [operations/ci.md](operations/ci.md) now names
-who: the toolchain is whichever Go the machine resolves, and the scan of code nobody
-touched runs on the 90-day cycle with the pins.
-
-**The `ci` recipe was wrong twice before it was right, and only running it said so.**
-The first form piped `git archive` into `tar`, so the shell reported the pipe's last
-status and a failed archive still ran the gates against an empty directory — reproduced
-in a repository with no `HEAD`, where the piped form exits 0 and the file form exits
-128. The second put `go version` on its own recipe line, outside the copy, where
-`GOTOOLCHAIN` resolves against the *working tree's* `go.mod` rather than the archived
-one; `go -C "$d" version` inside the copy reports the toolchain `check` will actually
-use. Both forms read correctly. Neither survived being run.
-
-**Four claims about the go command were settled by executing them, not by reading the
-documentation.** Under `GOTOOLCHAIN=go1.26.7`, `go get` against a `go.mod` that says
-`go 1.27` refuses with `go.mod requires go >= 1.27 (running go 1.26.7;
-GOTOOLCHAIN=go1.26.7)` and leaves the file alone; under `auto` the same command prints
-one line, `go: upgraded go 1.26 => 1.27`, and raises it; `go mod tidy` raises it with
-**no output at all**, which is why the document tells you to look; and `go mod edit`
-works either way, because it never reads the module graph. A module cache's directories
-really are read-only, so the release check's `rm -rf` fails with *Permission denied* and
-`go clean -modcache` is the line that works.
-
-**The defect class this release names is the absent file.** No passing suite notices a
-workflow that should not be there, so the reference gates it instead: nothing under
-`.github/workflows/`, no `dependabot.yml`, and no `export-ignore` in `.gitattributes` —
-the last because `git archive` honours that attribute and the go command does not, so a
-marked file makes `make ci` green against a tree `go install` never builds. A second new
-gate reads the Makefile itself: targets alphabetical, `check` named as `.DEFAULT_GOAL`.
-Both are cheap, and both check something ten readings had not.
-
-**The budget went red, and was paid rather than moved.** The new boxes pushed
-[checklists/web-application.md](checklists/web-application.md) to 5,008 against its
-5,000 — 8 tokens over. `make tokens` said so on the first run after the change, before
-any of it was tagged. It was paid by taking the web checklist's Makefile box back to the
-CLI checklist's exact wording and by dropping one clause the section already said twice
-("nothing runs it for you", on the `make ci` box and again on the `GOOS` box). 4,995
-now, and no number moved.
-
-**Eleven defects in the closing rounds, the last two clean, and the record should say
-what the passes were.** They were sequential rather than independent: one reviewer,
-several passes, each checking a different surface — cross-document references and
-section names, then the go-command claims by execution, then every changed document's
-margin and the corpus's own `make structure` and `make tokens` gates, then the reference
-against each new box. Two of the eleven came from the earlier rules commit rather than
-this one, both prose pushed past the margin in
-[patterns/go-ports-adapters.md](patterns/go-ports-adapters.md). The repository's own
-`Makefile` was one too: `c3d2438` made its targets alphabetical and cited
-[stack/makefile.md](stack/makefile.md) rule 3 for it, while leaving the second half of
-that rule — name the default — unadopted. It has `.DEFAULT_GOAL = install` now. A
-repository that exempts its own tooling from the rule it just tightened is the cheapest
-kind of wrong to be.
-
-**The empirical half:** [baseline-reference](https://github.com/andygeiss/baseline-reference)
-`9edcd6a`, tagged v4.0.0, pinning baseline `7703305`. `GOTOOLCHAIN=go1.26.7 ./verify.sh`
-exits 0 over **76 gates**, two of them the new ones above;
-`GOTOOLCHAIN=go1.26.7 make ci` is green on that commit and its first line reads
-`go version go1.26.7 darwin/arm64` — the toolchain pin still stands in for the machine's
-own Go 1.27.0, which the policy does not adopt until 1.27.1. The reference's module path
-moved `/v3` → `/v4` in `go.mod` and every import, because a v4 tag on a `/v3` module
-never stamps.
-
 ### Earlier runs
 
 Compressed to what a future reader still needs: the counts, and the findings that would
@@ -339,6 +320,28 @@ otherwise be re-litigated. The full narratives are in this file's git history.
 **The three newest runs stay in full; everything older lives here.** A run log that only
 grows costs more to re-read than it saves, and the compression is what keeps a narrative
 from being re-litigated a year after it was settled.
+
+- **2026-08-25 — the CI server dropped (v4.0.0).** No CI server anywhere in the corpus:
+  `make check` gates the working tree and `make ci` the commit — `git archive HEAD` into
+  an empty directory, then the same `check`, so nothing missing from `git add` and no
+  `.env` can make it green; the scan of untouched code and the toolchain moved to a
+  person on the 90-day cycle ([operations/ci.md](operations/ci.md)). **The `ci` recipe was
+  wrong twice before it was right, and only running it said so:** a piped
+  `git archive | tar` reports the pipe's status, so a failed archive still ran the gates
+  against an empty directory (the file form exits 128 where the pipe exits 0), and
+  `go version` outside the copy resolves `GOTOOLCHAIN` against the working tree's
+  `go.mod`, so it runs inside the copy as `go -C "$d" version`. Settled by execution:
+  under `GOTOOLCHAIN=go1.26.7`, `go get` refuses a `go 1.27` module and leaves the file
+  alone; under `auto` it prints one line and raises it; `go mod tidy` raises it with no
+  output at all; `go mod edit` never reads the graph; a module cache is read-only, so
+  `go clean -modcache` is the line. **The defect class named is the absent file:** the
+  reference gates nothing under `.github/workflows/`, no `dependabot.yml`, and no
+  `export-ignore` in `.gitattributes` — `git archive` honours it and the go command does
+  not — plus targets alphabetical and `check` as `.DEFAULT_GOAL`. The web checklist went
+  8 over and was paid, not moved (4,995). Eleven defects in the closing rounds, the last
+  two clean, one of them this repository's own `Makefile` lacking `.DEFAULT_GOAL`.
+  Reference `9edcd6a` tagged v4.0.0, pinning `7703305`, `./verify.sh` exit 0 over 76
+  gates; module path `/v3` → `/v4`, because a v4 tag on a `/v3` module never stamps.
 
 - **2026-08-25 — the pins, checked against their sources (v3.11.1).** Every numbered
   row in [VERSIONS.md](VERSIONS.md) read against its own source on the day, not only the
