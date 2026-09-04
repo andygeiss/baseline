@@ -1,6 +1,6 @@
 # Project Type: Web Application
 
-**Last verified: 2026-08-17**
+**Last verified: 2026-09-04**
 
 Server-rendered web application. This is the default and preferred shape for anything
 with a UI — from a todo list to a SaaS dashboard.
@@ -25,6 +25,7 @@ with a UI — from a todo list to a SaaS dashboard.
 | Outbound HTTP | stdlib `http.Client`, injected | MUST when calling an external API. Never `http.DefaultClient` — see [patterns/go-http-client.md](../patterns/go-http-client.md). |
 | Deployment | Single static binary behind a TLS proxy | MUST. Templates, CSS, htmx all embedded. The binary satisfies [operations/web-application.md](../operations/web-application.md); *how* it is deployed belongs to the operations repository. |
 | Local commands | Make | MUST. One `Makefile` at the repo root, copied from [stack/makefile.md](../stack/makefile.md). |
+| Specification | `SPEC.md` at the repo root | MUST. Job and Why, one line each; Guardrails pointing at the waivers and the named decisions; Done means: the checklist plus `make ci`. Every task's brief is a delta against it — [README.md](../README.md) *The task brief*. |
 
 Versions: see [VERSIONS.md](../VERSIONS.md).
 
@@ -54,8 +55,8 @@ one section each: the moment it fires, the document, and the boxes it will be ch
 against. Read it now to learn which moments fire which document, then open each document
 when you reach the thing it covers. Nothing there is optional when its trigger fires.
 
-Working on a project that already follows this document? That file is the only one you
-need — everything above it is a decision already made.
+Working on a project that already follows this document? That file and the project's
+`SPEC.md` are the only ones you need — everything above is a decision already made.
 
 ## Architecture defaults
 
@@ -78,7 +79,8 @@ need — everything above it is a decision already made.
 
 ## Definition of done
 
-Walk the boxes of that same file before calling any milestone complete.
+Re-read the brief, then walk the boxes of that same file before calling any milestone
+complete.
 
 [baseline-reference](https://github.com/andygeiss/baseline-reference) implements this
 document end to end (deviations in its README). When a rule here is ambiguous, read how

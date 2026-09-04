@@ -1,6 +1,6 @@
 # Project Type: CLI Tool
 
-**Last verified: 2026-08-25**
+**Last verified: 2026-09-04**
 
 Command-line tool: starts, does one job, exits. If the process is meant to stay up
 and serve requests, it is not a CLI — build a [web application](web-application.md).
@@ -19,6 +19,7 @@ and serve requests, it is not a CLI — build a [web application](web-applicatio
 | Build | static (`CGO_ENABLED=0`), gated by `make check` | MUST. |
 | Distribution | `go install`; the release is a tag, no release binaries until a user without a Go toolchain asks | MUST. See [operations/cli-release.md](../operations/cli-release.md). |
 | Local commands | Make | MUST. `Makefile` from [stack/makefile.md](../stack/makefile.md), with the rule-5 adjustments for its layout. |
+| Specification | `SPEC.md` at the repo root | MUST. Job and Why, one line each; Guardrails pointing at the waivers and the named decisions; Done means: the checklist plus `make ci`. Every task's brief is a delta against it — [README.md](../README.md) *The task brief*. |
 
 Versions: see [VERSIONS.md](../VERSIONS.md).
 
@@ -41,8 +42,8 @@ each: the moment it fires, the document, and the boxes it will be checked agains
 it now to learn which moments fire which document, then open each document when you reach
 the thing it covers.
 
-Working on a tool that already follows this document? That file is the only one you need
-— everything above it is a decision already made.
+Working on a tool that already follows this document? That file and the tool's
+`SPEC.md` are the only ones you need — everything above is a decision already made.
 
 ## Architecture defaults
 
@@ -76,7 +77,8 @@ Working on a tool that already follows this document? That file is the only one 
 
 ## Definition of done
 
-Walk the boxes of that same file before calling any milestone complete.
+Re-read the brief, then walk the boxes of that same file before calling any milestone
+complete.
 
 ## Reference implementation
 

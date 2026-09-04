@@ -18,7 +18,7 @@ layered defaults rather than a checklist. Every rule exists to make the *default
 path the correct one — an agent that follows the documents verbatim ships a correct,
 hardened application without inventing anything.
 
-- **Last verified:** 2026-08-25
+- **Last verified:** 2026-09-04
 - **Format:** Markdown only, plus the MIT `LICENSE`. No code, no CI, no build
   steps. Documents are the product.
   The one piece of tooling is the root `Makefile`: it installs the baseline into
@@ -28,11 +28,13 @@ hardened application without inventing anything.
 ## How to use this repository
 
 **AI agents: read [SKILL.md](SKILL.md), not this file.** It carries the whole protocol —
-the core values, the reading order, the date check, the tier summary, and how work is
-handed back — in a quarter of the tokens, because everything below is written for whoever
-maintains the corpus rather than whoever is building with it. The one section here an
-agent ever needs is [Which rules can be waived](#which-rules-can-be-waived), and SKILL.md
-links straight to it at the moment a rule is about to be skipped.
+the core values, the task brief, the reading order, the date check, the tier summary, and
+how work is handed back — in a fifth of the tokens, because everything below is written
+for whoever maintains the corpus rather than whoever is building with it. The two sections
+here an agent ever needs are [The task brief](#the-task-brief) and
+[Which rules can be waived](#which-rules-can-be-waived), and SKILL.md links straight to
+each at the moment it applies — a missing `SPEC.md`, a rule about to be skipped. The
+project-type tables link the first as well.
 
 Keeping the protocol in one file and not two is deliberate. It used to live in both, and
 a protocol stated twice is a protocol that drifts in one of the copies — the same reason
@@ -40,14 +42,14 @@ a protocol stated twice is a protocol that drifts in one of the copies — the s
 document restate the CSP.
 
 For a human reading along: the corpus is a tree. [`project-types/`](project-types/) is
-the entry point per kind of project — a short *Required reading* list and the decisions
-made before the first line of code. [`checklists/`](checklists/) is everything after
-that, one section per topic: **the moment it fires, the [`stack/`](stack/) or
-[`patterns/`](patterns/) document that rules it, and the boxes it will be checked
-against.** Routing and the definition of done are one file because a change to an
-existing project reads the sections it fires and nothing else — the most common thing
-anyone does here — and because a trigger pointing at a document no box ever checks is how
-a rule goes missing. It still stands on its own.
+the entry point per kind of project (the brief's Job decides which) — a short *Required
+reading* list and the decisions made before the first line of code.
+[`checklists/`](checklists/) is everything after that, one section per topic: **the
+moment it fires, the [`stack/`](stack/) or [`patterns/`](patterns/) document that rules
+it, and the boxes it will be checked against.** Routing and the definition of done are
+one file because a change to an existing project reads the sections it fires and nothing
+else — the most common thing anyone does here — and because a trigger pointing at a
+document no box ever checks is how a rule goes missing. It still stands on its own.
 
 **Check the dates before you trust any of it.** Every document carries a
 `Last verified:` date. If today is more than **90 days** after that date, say so to the
@@ -124,7 +126,7 @@ baseline/
 │   ├── cli-tool.md
 │   ├── library.md
 │   └── web-application.md
-├── README.md                       ← you are here: navigation protocol
+├── README.md                       ← you are here: the maintainer's file
 ├── SKILL.md                        ← makes the repo a Claude Code skill
 ├── stack/                          ← per-technology conventions
 │   ├── css.md
@@ -243,6 +245,82 @@ by a different route is conformance, and a pattern the project never reaches is
 unexercised — say which, because a reader hunting for gaps counts every bullet in that
 section as one. "We didn't get to it" is not a waiver either; that is an open task, and
 it belongs in the tracker.
+
+## The task brief
+
+**No code before the user has seen four fields.** The checklists guard the end of a task;
+the brief guards the start. A task that arrives as one sentence gets finished by guessing.
+
+Every task MUST carry:
+
+- **Job** — what someone can do afterwards, in one sentence. Not the steps, not the files.
+- **Why** — the pain removed, and for whom. Concrete: it breaks, it is slow, it costs an
+  hour a week. No nameable pain, no task.
+- **Guardrails** — only what the baseline does not already forbid: files not to touch,
+  dependencies not to add, decisions to ask about first. The baseline is the standing
+  guardrail; do not restate it. Anything noticed out of scope goes to the parking lot,
+  not the diff.
+- **Done means** — the end state you can check: what exists, what no longer exists,
+  which gates are green, which checklist was walked. Deletion counts.
+
+**The agent drafts; the user confirms, or lets the draft stand.** Fill missing fields from
+the request, the repository, its `SPEC.md`, and this baseline. State the four, then ask
+only what you cannot infer: one question at a time, each with a recommended answer — *why*
+first because it reshapes the rest, then *done means*, then *guardrails*; the *job* is
+usually the request itself. A declined question leaves the draft as the brief.
+
+**Grill deeper only when the task changes the project's shape, outgrows the job in
+`SPEC.md`, waives a tier-2 rule, or adds a dependency.** Shape is what
+[SKILL.md](SKILL.md) sends to the full protocol: a second binary, a new external system,
+the first database. Such a task gets the full interview: settle every decision the fired
+checklist sections leave to the project, one at a time, until none is left open.
+Everything else gets the four fields and nothing more. Asking does not answer a question
+that needs something to look at — a layout, how an interaction feels. A throwaway is not
+the code: build it, look, answer in one line, then settle the field.
+
+**The brief is also the acceptance test.** Before declaring done, re-read it: every line
+of *done means* is true, and nothing outside *guardrails* changed. Then walk the
+checklist — its *Every …* section carries both as boxes.
+
+### Where the answers live
+
+The brief lives with the task — an issue, a PR description, or the first message of a
+session — and expires when the task ships. A task brief is never a file; the one brief
+that is a file is the project's, below. What outlives a task has a home:
+
+| Field | Survives as |
+|---|---|
+| Job | The commit subject. `SPEC.md` too, if what the product does changed. |
+| Why | The commit body. For a waived rule, the waiver entry's *why* field. |
+| Guardrails | Nothing, by default. One that proves permanent moves to the project README or, through the next-steps list, to this baseline. A parking-lot item goes on the next-steps list, and into the tracker if the project keeps one; a baseline gap is the last bullet of [SKILL.md](SKILL.md) *Handing the work back*. |
+| Done means | A test that fails when the end state stops holding. A deletion leaves nothing behind, on purpose. |
+
+### SPEC.md
+
+`SPEC.md` at the repo root is the project-level brief, and every project type requires
+it. *Job* and *Why* say what the README's first two sentences say, one line each; when
+they drift, `SPEC.md` wins. *Guardrails* are the constraints the baseline does not
+already impose — the field points at the README's waiver section and the project's named
+decisions, in the README or `DESIGN.md`, and never restates them. *Done means* is the
+project's checklist plus `make ci`. A task brief is a delta against it. A project that
+predates this rule writes `SPEC.md` from its README and the task at hand on its next
+change — a fix, not a restart of the full protocol.
+
+### Example
+
+```
+Job:        Readers of internal/httpclient see only options that are actually used.
+Why:        Every reader stops at the retry option to work out whether retries
+            happen. They never do — nothing sets it.
+Guardrails: Nothing outside internal/httpclient changes. No new dependency.
+            Parking lot: the default timeout looks wrong too — next steps, not
+            this diff.
+Done means: The option, its tests and its doc comment are gone; make ci green;
+            web checklist walked; SPEC.md untouched — users see no change.
+```
+
+**The four fields are the rule, not the format.** One line each is enough for a small
+task.
 
 ## Quality bar & verification
 

@@ -1,6 +1,6 @@
 # Library — Triggers and Definition of Done
 
-**Last verified: 2026-08-25**
+**Last verified: 2026-09-04**
 
 One topic per section: **the moment it fires, the document that rules it, and what done
 looks like.** Read a section before you write the thing it covers; walk its boxes before
@@ -61,6 +61,12 @@ are required reading.
   - [ ] 30-second example
   - [ ] Link to this baseline
   - [ ] Any waived rule recorded in the format `README.md` *Which rules can be waived* defines
+- [ ] `SPEC.md` at the repo root, shaped by `README.md` *The task brief*
+
+### The brief
+
+- [ ] Every *done means* line is true
+- [ ] Nothing outside *guardrails* changed
 
 ## Returning an error across the API boundary
 

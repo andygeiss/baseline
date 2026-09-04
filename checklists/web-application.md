@@ -1,6 +1,6 @@
 # Web Application — Triggers and Definition of Done
 
-**Last verified: 2026-08-25**
+**Last verified: 2026-09-04**
 
 One topic per section: **the moment it fires, the document that rules it, and what done
 looks like.** Read a section before you write the thing it covers; walk its boxes before
@@ -19,8 +19,6 @@ those; there is a fix.
 
 ## Every web application
 
-No trigger: these fire for every project of this type.
-
 - [ ] `go.mod` says `go 1.26`, matching `VERSIONS.md`, and has no `toolchain` line
 - [ ] The vendored htmx is 2.0.10, matching `VERSIONS.md`
 - [ ] No dependency outside `stack/go.md`'s approved list, or the README justifies it
@@ -29,7 +27,7 @@ No trigger: these fire for every project of this type.
 - [ ] No service worker registered
 - [ ] No CSS, font, icon, or script loaded from a third-party origin
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build ./cmd/server`
-- [ ] The binary never serves TLS, in development or anywhere else (`patterns/local-https.md`)
+- [ ] The binary never serves TLS (`patterns/local-https.md`)
 - [ ] Routes registered in one file
 - [ ] Every mutation is a POST route — never GET, and no PUT/DELETE
 - [ ] Server sets read, write, and idle timeouts
@@ -42,11 +40,15 @@ No trigger: these fire for every project of this type.
 - [ ] `lang` set
 - [ ] README links to this baseline
 - [ ] Any waived rule recorded in `README.md`'s six-field waiver format
+- [ ] `SPEC.md` at the repo root, shaped by `README.md` *The task brief*
+- **The brief:**
+  - [ ] Every *done means* line is true
+  - [ ] Nothing outside *guardrails* changed
 
 ### Security — tier 1, not waivable
 
-Required reading, not a trigger: the policy is tier 1. `patterns/security-headers.md` owns
-the CSP and every other header.
+`patterns/security-headers.md` owns the CSP and every other header — required reading,
+not a trigger.
 
 - [ ] `secureHeaders` sends the full policy — CSP, HSTS, nosniff, referrer
 - [ ] The test pinning all four is green
@@ -263,8 +265,6 @@ the CSP and every other header.
 ## Taking a file from a user — an upload, an attachment, an avatar — tier 1, not waivable
 
 `patterns/go-file-uploads.md` — the generated name, the sniffed type, and serving it back.
-Work the upload starts and does not wait for — a thumbnail — is
-`patterns/go-background-work.md`.
 
 - [ ] The route's cap is raised at the cap site, never on the blanket wrapper
 - [ ] The stored name is generated; the client's filename is data, never a path

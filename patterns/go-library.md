@@ -1,6 +1,6 @@
 # Pattern: Go Library
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-12
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-04
 
 The mechanics behind [project-types/library.md](../project-types/library.md):
 layout, doc comments, `Example` functions, fuzzing with a seed corpus, and the
@@ -21,6 +21,7 @@ mylib/
 ├── mylib.go
 ├── mylib_test.go     ← package mylib_test: the consumer's view (go-testing.md)
 ├── README.md
+├── SPEC.md           ← the library's brief: job, why, guardrails, done means
 └── testdata/
     └── fuzz/         ← committed seed corpus (see Fuzzing below)
 ```

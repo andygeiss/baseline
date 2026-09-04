@@ -1,6 +1,6 @@
 # Pattern: Go Project Layout
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-04
 
 Standard layout for a web application. Start smaller than this if the project is
 smaller — directories are added when a file would otherwise get roommates it doesn't
@@ -28,6 +28,7 @@ project/
 │   └── store/               ← persistence; implements interfaces the consumers define
 ├── Makefile                 ← command runner, copied from stack/makefile.md
 ├── README.md                ← links back to this baseline; records any deviations
+├── SPEC.md                  ← the project's brief: job, why, guardrails, done means
 └── web/
     ├── static/
     │   ├── css/app.css

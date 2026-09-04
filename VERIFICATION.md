@@ -37,8 +37,8 @@ that contradicts another one nothing points at.
 1. Two consecutive adversarial passes over the changed documents find zero defects.
 2. The reference implementation is synced to the change, and `./verify.sh` exits
    0 against the baseline commit its `SPEC.md` pins.
-3. The reference's `SPEC.md` pins that commit, and its own tag mirrors the
-   baseline version.
+3. The reference's `SPEC.md` pins that commit and carries the four-field brief, and
+   its own tag mirrors the baseline version.
 4. **Nothing a project reads changed between the pinned commit and the tag.**
    `git diff --name-only <pin> <tag>` names this file and nothing else.
 5. The run is recorded below, naming the reference commit and the `verify.sh`
@@ -66,8 +66,19 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Nothing.** v4.2.0 closed its gate on 2026-08-27 — `go fix` joins the gates, recorded
-below.
+**No code before the brief.** Every task carries four fields the user has seen before the
+first line of code — job, why, guardrails, done means — in [SKILL.md](SKILL.md) *Before
+the first line of code*, defined in full in [README.md](README.md) *The task brief*.
+Every project keeps `SPEC.md` at its root as the project-level brief: a row in each
+[project-types/](project-types/) table, a line in the two layout trees, and a box in each
+[checklists/](checklists/) *Every …* section beside the two boxes that make the brief the
+acceptance test. The budgets held without moving: the change grew in the head, which
+*Budget decisions* answers under *the checklist and change-path numbers, raised once*
+with *trim, do not raise*, and the trims were rationale sentences — fourteen left
+`SKILL.md`, four lines left
+[checklists/web-application.md](checklists/web-application.md). The checklist ends 9
+tokens smaller (4,995 → 4,986), `SKILL.md` 35 larger (1,763 → 1,798), and the web change
+path moved 7,939 → 7,965 of 8,000. It owes the run and the reference.
 
 ## Run log
 

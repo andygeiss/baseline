@@ -1,6 +1,6 @@
 # Project Type: Library
 
-**Last verified: 2026-08-15**
+**Last verified: 2026-09-04**
 
 A reusable Go module imported by other projects. Libraries are **extracted, not
 invented**: code starts in an application's `internal/` and becomes a library only
@@ -18,6 +18,7 @@ nobody imports twice is an application's internal package with extra ceremony.
 | Logging | MUST NOT log. Return errors; the consumer decides what is log-worthy. |
 | License | MUST carry a `LICENSE` file (MIT unless there is a reason otherwise) — an unlicensed public repo is legally unusable. |
 | Local commands | MUST use the `Makefile` from [stack/makefile.md](../stack/makefile.md), with its rule-5 library adjustments. |
+| Specification | MUST carry `SPEC.md` at the repo root. Job and Why, one line each — the package doc comment is the long form; Guardrails pointing at the waivers and the named decisions; Done means: the checklist plus `make ci`. Every task's brief is a delta against it — [README.md](../README.md) *The task brief*. |
 
 Versions: see [VERSIONS.md](../VERSIONS.md). `go.mod` follows the same module
 hygiene as applications ([stack/go.md](../stack/go.md)).
@@ -44,8 +45,8 @@ the moment it fires, the document, and the boxes it will be checked against. Rea
 to learn which moments fire which document, then open each document when you reach the
 thing it covers.
 
-Working on a library that already follows this document? That file is the only one you
-need — everything above it is a decision already made.
+Working on a library that already follows this document? That file and the library's
+`SPEC.md` are the only ones you need — everything above is a decision already made.
 
 ## API design rules
 
@@ -107,7 +108,8 @@ need — everything above it is a decision already made.
 
 ## Definition of done
 
-Walk the boxes of that same file before calling any milestone complete.
+Re-read the brief, then walk the boxes of that same file before calling any milestone
+complete.
 
 ## Reference implementation
 
