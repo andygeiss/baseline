@@ -1,6 +1,6 @@
 # Pattern: Go Background Work
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-27
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05
 
 Anything the process runs outside a request. Two shapes, and both owe the same answer to
 "how does this stop?" from [stack/go.md](../stack/go.md): **work on a schedule**, which
@@ -166,8 +166,10 @@ goroutine still finishes first on an idle machine. In a bubble
 ([go-testing.md](go-testing.md)), `synctest.Wait` returns only once every other goroutine
 is durably blocked — so a `Wait` that has already returned is visible to a plain `select`
 with a `default`, and no clock or deadlock is involved. Two things have to stay outside
-the bubble: a listener, because a goroutine blocked on a socket is never durably blocked,
-and anything holding a ticker that never exits, because the bubble waits for it.
+the bubble: a real listener ([go-testing.md](go-testing.md) says why), and anything
+holding a ticker that never exits, because the bubble waits for it. A handler still gets
+inside: on [go-testing.md](go-testing.md)'s in-memory server, the request, the counter,
+and the clock all sit in the bubble.
 
 **A test outside the process has no counter to reach.** A shell driving the real binary
 retries until the work shows up — bounded, so work that never comes fails the gate rather

@@ -1,6 +1,6 @@
 # Library — Triggers and Definition of Done
 
-**Last verified: 2026-09-04**
+**Last verified: 2026-09-05**
 
 One topic per section: **the moment it fires, the document that rules it, and what done
 looks like.** Read a section before you write the thing it covers; walk its boxes before
@@ -24,7 +24,7 @@ are required reading.
 
 ### Stack compliance
 
-- [ ] `go.mod` says `go 1.26`, matching `VERSIONS.md`, and has no `toolchain` line
+- [ ] `go.mod` says `go 1.27`, matching `VERSIONS.md`, and has no `toolchain` line
 - [ ] Zero third-party dependencies, or each one justified in the README
 - [ ] No `main` package
 - [ ] No embedded assets

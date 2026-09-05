@@ -160,8 +160,8 @@ const SystemPrompt = `...`
 
 9. **Everything else is transient.** Wrap it with what you were doing and let the caller
    decide ([go-errors-logging.md](go-errors-logging.md)). Transport, timeouts, body caps,
-   and the `drainAndClose`/`statusError` helpers are
-   [go-http-client.md](go-http-client.md)'s job and do not change here.
+   and the `statusError` helper are [go-http-client.md](go-http-client.md)'s job and do
+   not change here.
 
 ## The default adapter ships
 

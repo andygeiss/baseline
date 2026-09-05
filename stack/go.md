@@ -1,7 +1,7 @@
 # Stack: Go
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-27 · Pinned:
-Go 1.26.7 ([VERSIONS.md](../VERSIONS.md))
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05 · Pinned:
+Go 1.27.1 ([VERSIONS.md](../VERSIONS.md))
 
 The Go pin itself is tier 1: its note in [VERSIONS.md](../VERSIONS.md) names a security
 fix.
@@ -49,7 +49,7 @@ fix.
 |---|---|
 | `log/slog` (structured) | `log`, third-party loggers |
 | `net/http.ServeMux` with method+wildcard patterns (`"GET /items/{id}"`) | gorilla/mux, chi, etc. |
-| `errors.Is` / `errors.As` / `errors.AsType` / `errors.Join` | string matching, `== err` |
+| `errors.Is` / `errors.AsType` / `errors.Join` | string matching, `== err`, `errors.As` — unless the target is an interface without `Error()`, which `AsType` cannot take |
 | `slices` and `maps` packages | hand-rolled loops for sort/contains/clone |
 | `embed.FS` | file paths resolved at runtime |
 | `testing/synctest` for concurrent code | `time.Sleep` in tests |
@@ -57,7 +57,11 @@ fix.
 | an injected `*http.Client` with a `Timeout` ([patterns/go-http-client.md](../patterns/go-http-client.md)) | `http.DefaultClient`, `http.Get`, `http.Post` — none of them has a timeout |
 | `cmp.Or` for "value, or this default" | a hand-rolled `envOr`/`firstNonEmpty` helper |
 | `math/rand/v2` | `math/rand` |
+| `uuid` (Go 1.27+) | `github.com/google/uuid` |
 | `crypto/rand`, `crypto/hpke`, `crypto/mlkem` | rolling your own crypto — never |
+
+Do not import `encoding/json/v2` (Go 1.27+): `encoding/json` is already backed by the v2
+implementation, and moving call sites to v2 is a decision this baseline has not taken.
 
 ## Approved third-party dependencies
 
@@ -82,5 +86,5 @@ frameworks, viper/cobra everywhere — CLIs included (stdlib `flag` + env vars, 
 ## Module hygiene
 
 - Module path: `github.com/andygeiss/<project>`.
-- `go.mod` declares `go 1.26`. Commit `go.sum`. Run `go mod tidy` before every commit.
+- `go.mod` declares `go 1.27`. Commit `go.sum`. Run `go mod tidy` before every commit.
 - No `replace` directives on main branch.

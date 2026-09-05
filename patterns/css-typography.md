@@ -1,6 +1,6 @@
 # Pattern: CSS Typography (Type Scale, Self-Hosted Fonts)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05
 
 One thing here is tier 3, chosen per project: **whether there is a brand web font at
 all.** How it is then self-hosted is not a choice.
@@ -134,14 +134,14 @@ Three things about that line and the URL in it:
   `immutable` cache is forever; a renamed file is the only way past it.
 
 Serving the file takes one line at boot. Go's built-in mime table has no
-`.woff2` entry, and on Unix `mime.TypeByExtension` also merges the host's own
-mime files — so without this line the served type depends on the machine, the
+`.woff2` entry, and on Unix `mime.TypeByExtension` also reads the host's own
+mime tables — so without this line the served type depends on the machine, the
 same trap [pwa.md](pwa.md) documents for `.webmanifest`. Register it in
 `cmd/server/main.go`, beside that one:
 
 ```go
-// Go's built-in mime table has no .woff2 entry, and the system mime files it
-// merges on Unix vary by host. The error is impossible for these literals.
+// Go's built-in mime table has no .woff2 entry, and the host mime tables it
+// reads on Unix vary by machine. The error is impossible for these literals.
 _ = mime.AddExtensionType(".woff2", "font/woff2")
 ```
 
@@ -214,7 +214,7 @@ across several files, which is machinery this stack does not need.
   mid-read, because metric overrides are unavailable).
 - ❌ An icon font — icons are CSS masks ([css-icons.md](css-icons.md)).
 
-## Facts verified (2026-08-13)
+## Facts verified (2026-09-05)
 
 - `text-wrap: balance` Baseline **Newly available** since 2024-05-13, Safari
   17.5 last: https://webstatus.dev/features/text-wrap-balance
@@ -229,6 +229,6 @@ across several files, which is machinery this stack does not need.
   window is skipped for that page view:
   https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display
 - `.woff2` is absent from Go's built-in mime table (`src/mime/type.go`, Go
-  1.26.5). `mime.TypeByExtension(".woff2")` returns `font/woff2` on this Mac
+  1.27.1). `mime.TypeByExtension(".woff2")` returns `font/woff2` on this Mac
   only because `/etc/apache2/mime.types` carries the entry — the host
   dependency [pwa.md](pwa.md) documents.

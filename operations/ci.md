@@ -1,6 +1,6 @@
 # Operations: CI
 
-**Last verified: 2026-08-27**
+**Last verified: 2026-09-05**
 
 **There is no CI server.** One person writes the code, runs the gates, and pushes; a
 second machine repeating that work is not worth its upkeep. The mechanical items in the
@@ -70,9 +70,9 @@ of it: the Makefile says what runs, and this document says why.
 Two things nobody does for you:
 
 - **The Go version.** `GOTOOLCHAIN=auto`, the default, runs whatever Go on the machine
-  satisfies `go.mod`'s `go 1.26` line — a newer major [VERSIONS.md](../VERSIONS.md)
+  satisfies `go.mod`'s `go 1.27` line — a newer major [VERSIONS.md](../VERSIONS.md)
   has not adopted, or a patch below the floor it names, both included. When the run's
-  `go version` line is not the pin, put `GOTOOLCHAIN=go1.26.7` in front of every `go`
+  `go version` line is not the pin, put `GOTOOLCHAIN=go1.27.1` in front of every `go`
   and `make` command — never a `toolchain` line in `go.mod`. The `go fix -diff` gate
   can make a newer major red rather than silent: the fixers ship with the toolchain,
   and a newer Go demands idioms the pin never asked for.
@@ -86,7 +86,7 @@ By hand, under the pin, on the same 90-day cycle or when
 [VERSIONS.md](../VERSIONS.md) moves:
 
 ```sh
-export GOTOOLCHAIN=go1.26.7                       # the pin, for this shell
+export GOTOOLCHAIN=go1.27.1                       # the pin, for this shell
 go get -u ./... && go mod tidy && make check      # one chore(deps) commit
 ```
 
@@ -96,19 +96,19 @@ moved a major, `make check` may be red on the idioms the new toolchain rewrites:
 one thing.
 
 A dependency that asks for a newer Go is a VERSIONS.md decision, not a `go get` side
-effect. Under the pin `go get` refuses (`requires go >= 1.27`) and leaves `go.mod`
+effect. Under the pin `go get` refuses (`requires go >= 1.28`) and leaves `go.mod`
 alone: hold the dependency (`go get -u ./... <dep>@<current>`) or drop it. Under
-`auto`, `go get` raises the `go` line instead — one `go: upgraded go 1.26 => 1.27`
+`auto`, `go get` raises the `go` line instead — one `go: upgraded go 1.27 => 1.28`
 line in its output — and any later `go mod tidy` does the same without a word. If
 the `go` line rose, put it back by hand, with the pin exported:
 
 ```sh
-go mod edit -go=1.26 -toolchain=none -require=<dep>@<current> && go mod tidy && make check
+go mod edit -go=1.27 -toolchain=none -require=<dep>@<current> && go mod tidy && make check
 ```
 
 The hold is `go mod edit -require`, not `go get`: under the pin `go get` cannot open
-a `go.mod` that says `go 1.27`, and `go mod edit` never reads the module graph. `go
-mod tidy` then refuses while any other dependency still asks for 1.27; give each one
+a `go.mod` that says `go 1.28`, and `go mod edit` never reads the module graph. `go
+mod tidy` then refuses while any other dependency still asks for 1.28; give each one
 its own `-require`. `-toolchain=none` removes any `toolchain` line, which would pick
 the Go for every machine on `auto`.
 

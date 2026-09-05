@@ -1,6 +1,6 @@
 # Pattern: Authorization (Go)
 
-**Tier 1** (safety — never waived) · Last verified: 2026-08-17
+**Tier 1** (safety — never waived) · Last verified: 2026-09-05
 
 The actor in the store signature, the predicate in the SQL, the two answers being
 indistinguishable, and a route's protection not being optional where it is registered are
@@ -88,7 +88,7 @@ Forgetting a mount fails closed — the route 404s rather than serving unchecked
 
 ⚠️ **Mount both paths.** A pattern ending in `/` does not cover the collection path
 itself: with only `"/games/"` registered, `GET /games` becomes a redirect to `/games/`
-(307 on Go 1.26), which the inner mux — holding `GET /games` — then 404s. The list route
+(307 on Go 1.27), which the inner mux — holding `GET /games` — then 404s. The list route
 disappears, and it disappears at runtime.
 
 **More than one class, or paths that do not nest — put the class in a route table.**

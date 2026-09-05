@@ -1,6 +1,6 @@
 # Pattern: Go HTTP Server
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05
 
 **Three rules here are tier 1 and never waived:** the `http.CrossOriginProtection` wrap,
 the 1 MiB request-body cap, and the ops listener staying localhost-only and never
@@ -123,6 +123,8 @@ srv := &http.Server{
 ```
 
 - **Timeouts are mandatory** — the zero values mean "no timeout" and that's an outage.
+- **Header limits stay at their defaults:** `MaxHeaderBytes` (1 MiB) and
+  `MaxHeaderValueCount` (500, Go 1.27+) — no browser comes near either.
 - **Graceful shutdown is mandatory:** listen for `os.Interrupt`/`SIGTERM` via
   `signal.NotifyContext`, then call `srv.Shutdown` with a **fresh** ~10 s deadline:
   `context.WithTimeout(context.Background(), 10*time.Second)`. The signal context only

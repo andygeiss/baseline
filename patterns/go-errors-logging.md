@@ -1,6 +1,6 @@
 # Pattern: Errors & Logging (Go)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05
 
 ## Errors
 
@@ -17,7 +17,8 @@
    already import `domain`, so the sentinel crosses the boundary without bending the
    dependency direction (see [go-project-layout.md](go-project-layout.md)).
    Check with `errors.Is`, never `==` or string matching. Custom error *types* +
-   `errors.As` only when the caller needs structured data (e.g. validation field errors).
+   `errors.AsType` only when the caller needs structured data (e.g. validation field
+   errors).
 3. **Handle once.** An error is either handled (logged, converted to an HTTP response)
    or returned — never both. Logging *and* returning double-reports.
 4. In HTTP handlers, the split is exactly two functions:

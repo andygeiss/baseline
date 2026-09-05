@@ -1,6 +1,6 @@
 # Web Application — Triggers and Definition of Done
 
-**Last verified: 2026-09-04**
+**Last verified: 2026-09-05**
 
 One topic per section: **the moment it fires, the document that rules it, and what done
 looks like.** Read a section before you write the thing it covers; walk its boxes before
@@ -19,7 +19,7 @@ those; there is a fix.
 
 ## Every web application
 
-- [ ] `go.mod` says `go 1.26`, matching `VERSIONS.md`, and has no `toolchain` line
+- [ ] `go.mod` says `go 1.27`, matching `VERSIONS.md`, and has no `toolchain` line
 - [ ] The vendored htmx is 2.0.10, matching `VERSIONS.md`
 - [ ] No dependency outside `stack/go.md`'s approved list, or the README justifies it
 - [ ] Zero hand-written JavaScript

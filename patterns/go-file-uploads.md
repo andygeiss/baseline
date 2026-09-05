@@ -217,21 +217,21 @@ parser written in C, run on a stranger's file.
 - ❌ Resizing or transcoding with ImageMagick, or any CGO image library. `CGO_ENABLED=0`
   is the project's build; a media pipeline is a different shape of application.
 
-## Facts verified (2026-08-17)
+## Facts verified (2026-09-05)
 
 - `DetectContentType` "considers at most the first 512 bytes" and returns
   `application/octet-stream` when it cannot decide:
   https://pkg.go.dev/net/http#DetectContentType
 - Go's sniffing table has signatures for GIF, PNG, JPEG, WEBP, BMP and ICO, and none for
   SVG: https://mimesniff.spec.whatwg.org/#matching-an-image-type-pattern
-- `ServeContent` uses the name to deduce a type only "if the Content-Type header was not
-  set": https://pkg.go.dev/net/http#ServeContent
+- `ServeContent` uses the name to deduce a type only "if the response's Content-Type
+  header is not set": https://pkg.go.dev/net/http#ServeContent
 - The server removes multipart temp files after the handler returns —
   `finishRequest` calls `MultipartForm.RemoveAll`:
-  https://cs.opensource.google/go/go/+/refs/tags/go1.26.0:src/net/http/server.go
+  https://cs.opensource.google/go/go/+/refs/tags/go1.27.1:src/net/http/server.go
 - `mime.FormatMediaType` quotes parameter values and encodes non-ASCII ones per RFC 2231:
   https://pkg.go.dev/mime#FormatMediaType
 - `ParseForm` on a multipart body reads nothing and leaves `PostForm` non-nil and empty
-  — `parsePostForm` has no multipart branch, and `PostFormValue` then skips
+  — `parsePostForm`'s multipart case is empty, and `PostFormValue` then skips
   `ParseMultipartForm` because `PostForm != nil`:
-  https://cs.opensource.google/go/go/+/refs/tags/go1.26.0:src/net/http/request.go
+  https://cs.opensource.google/go/go/+/refs/tags/go1.27.1:src/net/http/request.go

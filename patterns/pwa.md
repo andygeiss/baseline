@@ -1,6 +1,6 @@
 # Pattern: PWA Install
 
-**Tier 3** (taste — choosing is the rule, so no waiver is needed) · Last verified: 2026-08-14
+**Tier 3** (taste — choosing is the rule, so no waiver is needed) · Last verified: 2026-09-05
 
 Whether the app is installable at all is a per-project choice; once it is, everything
 below is tier 2. **The no-service-worker rule is not a choice either way** — an app that
@@ -55,14 +55,14 @@ because the metas below correct the chrome and take precedence.
 ## Serving `.webmanifest`
 
 Go's built-in mime table has no `.webmanifest` entry, and on Unix `mime.TypeByExtension`
-merges whatever the host's own mime files say — so the served type depends on the machine.
+reads whatever the host's own mime tables say — so the served type depends on the machine.
 Here the lookup returns `""`, `http.FileServerFS` sniffs, and the JSON goes out as
 `text/plain`. One line in `cmd/server/main.go`, before the servers start, makes it the
 same everywhere:
 
 ```go
-// Go's built-in mime table lacks .webmanifest, and the system mime files it
-// merges on Unix vary by host — without this line, so does the served type.
+// Go's built-in mime table lacks .webmanifest, and the host mime tables it
+// reads on Unix vary by machine — without this line, so does the served type.
 // The error is impossible for these valid literals.
 _ = mime.AddExtensionType(".webmanifest", "application/manifest+json")
 ```
@@ -149,7 +149,7 @@ the stack holds htmx to.
 - ❌ `display: "fullscreen"` or `"minimal-ui"` — the first hides even the OS status bar,
   the second re-adds the chrome install was meant to shed.
 
-## Facts verified (2026-08-13)
+## Facts verified (2026-09-05)
 
 - Chrome 108/112 dropped the `fetch()` handler, and ignores empty ones:
   https://developer.chrome.com/blog/update-install-criteria
@@ -162,7 +162,8 @@ the stack holds htmx to.
 - Maskable safe zone, single-purpose icons: https://web.dev/articles/maskable-icon
 - `theme-color` `media`, not Baseline:
   https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta/name/theme-color
-- `.webmanifest` absent from Go's mime table; `mime.TypeByExtension` merges four
-  `/etc` mime files on Unix (`mime/type_unix.go`) — Go 1.26.5, returns `""` on this machine
+- `.webmanifest` absent from Go's mime table; `mime.TypeByExtension` reads the host's
+  tables on Unix (`mime/type_unix.go`: shared-mime-info `globs2` first, else four `/etc`
+  files) — Go 1.27.1, returns `""` on this machine
 - Hex values: oklch → linear sRGB → gamma-encoded, the math shared with the
   [css-tokens.md](css-tokens.md) contrast checks

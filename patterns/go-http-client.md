@@ -1,6 +1,6 @@
 # Pattern: HTTP Client (Go)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05
 
 Calling someone else's HTTP API. Stdlib only. The rule that matters most is the
 first one, because the default is wrong:
@@ -118,7 +118,7 @@ func (c *Client) Forecast(ctx context.Context, city string) (domain.Forecast, er
 	if err != nil {
 		return domain.Forecast{}, fmt.Errorf("weather: forecast %q: %w", city, err)
 	}
-	defer drainAndClose(resp.Body)
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return domain.Forecast{}, fmt.Errorf("weather: forecast %q: %w", city, statusError(resp))
@@ -141,8 +141,11 @@ Five things there are not optional:
    for a 500 — it completed the exchange, which is all it promises. Check
    `resp.StatusCode` yourself, every time. This is the most common outbound
    bug after the missing timeout.
-3. **`defer` a close on every response with `err == nil`,** including the
-   error paths below it. A leaked body is a leaked connection.
+3. **`defer resp.Body.Close()` on every response with `err == nil`,** including
+   the error paths below it. A leaked body is a leaked connection. Over HTTP/1,
+   `Close` (Go 1.27+) keeps the connection for reuse when the unread rest is at
+   most 256 KiB and arrives within 50 ms — with a `Content-Length`, only when the
+   whole body is at most 256 KiB too.
 4. **Cap the body you read.** `io.LimitReader` is the outbound twin of
    `http.MaxBytesHandler` ([go-http-server.md](go-http-server.md)): a broken or
    hostile server can stream until you run out of memory. 1 MiB unless the API
@@ -151,17 +154,9 @@ Five things there are not optional:
    [go-errors-logging.md](go-errors-logging.md)). "connection refused" alone
    names no dependency and no operation.
 
-The two helpers:
+The helper:
 
 ```go
-// drainAndClose returns the connection to the idle pool. Closing an unread
-// body throws the connection away instead of reusing it — but draining an
-// unbounded one is a DoS, so the drain is capped.
-func drainAndClose(body io.ReadCloser) {
-	_, _ = io.Copy(io.Discard, io.LimitReader(body, 4<<10))
-	_ = body.Close()
-}
-
 // statusError reports the status and a short prefix of the body — an API's
 // error message is the fastest route to the cause, and the cap keeps a
 // 10 MB HTML error page out of the logs.
@@ -209,7 +204,7 @@ func (c *Client) do(req *http.Request) (*http.Response, error) {
 				delay = after // the server named a wait; it outranks the formula
 			}
 			lastErr = statusError(resp)
-			drainAndClose(resp.Body)
+			resp.Body.Close()
 		}
 
 		if !idempotent(req.Method) || !replayable {
@@ -234,8 +229,7 @@ func (c *Client) do(req *http.Request) (*http.Response, error) {
 }
 ```
 
-The five helpers are ordinary once their contract is fixed, so this is the contract
-rather than another sixty lines:
+The five helpers are ordinary once their contract is fixed, so this is the contract:
 
 - `idempotent(method)` — GET, HEAD, PUT, DELETE, **enforced here rather than left to the
   caller's memory**. POST is absent: a retried POST can charge a card twice, and no
@@ -299,15 +293,18 @@ named by a flag that is not there. One line, name the fix, exit 2
 
 ## Testing
 
-`httptest.Server` gives you the real client against a real socket — no mocking framework,
-per [go-testing.md](go-testing.md). Point `NewClient` at `srv.URL`, and let the handler
-decide what to fail on.
+`httptest.NewServer` gives you the real client against a real socket. Point `NewClient`
+at `srv.URL`, and let the handler decide what to fail on.
 
 - **Count calls with `atomic.Int64`, never a plain `int`.** The handler runs on the
   server's goroutine and the assertions run on the test's, and `make check` runs `-race`.
 - Test the failure paths production will actually hit: a non-2xx status, a body that is
   not the JSON you expected, and a context canceled mid-flight.
 - Timeout behavior belongs in `testing/synctest` rather than a real one-second wait.
+  There the server is `httptest.NewTestServer`, which only its own `Client()`
+  reaches: set `Timeout` on that `*http.Client` and `ResponseHeaderTimeout` on its
+  transport, then build the `Client` struct around that client from inside
+  `package weather` — its `http` field is unexported ([go-testing.md](go-testing.md)).
 
 ## Libraries do not build clients
 
@@ -320,6 +317,5 @@ client that has one.
 
 ## Anti-patterns
 
-- ❌ resty, retryablehttp, gorequest, a circuit-breaker package. The whole
-  pattern above is stdlib and fits on two screens; none of these are on the
-  approved list in [stack/go.md](../stack/go.md).
+- ❌ resty, retryablehttp, gorequest, a circuit-breaker package: none of these
+  are on the approved list in [stack/go.md](../stack/go.md).

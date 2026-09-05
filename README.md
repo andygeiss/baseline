@@ -18,7 +18,7 @@ layered defaults rather than a checklist. Every rule exists to make the *default
 path the correct one — an agent that follows the documents verbatim ships a correct,
 hardened application without inventing anything.
 
-- **Last verified:** 2026-09-04
+- **Last verified:** 2026-09-05
 - **Format:** Markdown only, plus the MIT `LICENSE`. No code, no CI, no build
   steps. Documents are the product.
   The one piece of tooling is the root `Makefile`: it installs the baseline into
@@ -371,7 +371,7 @@ paragraph that goes stale in one of them.
   references behavior of that version, then bump the `Last verified:` dates. The Go
   pin also sits on [stack/go.md](stack/go.md)'s stamp line and in the
   `GOTOOLCHAIN=go<pin>` commands in [operations/ci.md](operations/ci.md);
-  `git grep -n '1\.26'` lists every place the major sits, the run log included. A
+  `git grep -n '1\.27'` lists every place the major sits, the run log included. A
   `Last verified:` date moves when a run reviewed the document's rules, not when an
   edit touched its wording.
 - **Ask what the release absorbed.** Every Go major (Feb/Aug) can take a rule's job into

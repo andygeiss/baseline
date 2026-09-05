@@ -1,6 +1,6 @@
 # CLI Tool — Triggers and Definition of Done
 
-**Last verified: 2026-09-04**
+**Last verified: 2026-09-05**
 
 One topic per section: **the moment it fires, the document that rules it, and what done
 looks like.** Read a section before you write the thing it covers; walk its boxes before
@@ -20,7 +20,7 @@ for any of them; there is a fix.
 No trigger: these fire for every tool. The `run()` pattern and the command-line contract
 are ruled by `patterns/go-cli.md`, which is required reading.
 
-- [ ] `go.mod` says `go 1.26`, matching `VERSIONS.md`, and has no `toolchain` line
+- [ ] `go.mod` says `go 1.27`, matching `VERSIONS.md`, and has no `toolchain` line
 - [ ] No dependencies outside the approved list in `stack/go.md`, or each extra one is justified in the README
 - [ ] Flags via stdlib `flag` only — no cobra, viper, or urfave
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build .` (or `./cmd/...` in a multi-binary module)

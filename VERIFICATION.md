@@ -1,6 +1,6 @@
 # Verification Record
 
-**Last verified: 2026-09-04**
+**Last verified: 2026-09-05**
 
 How this repository proves it is right, and what every review run found. The
 README states the standard in a paragraph; this file holds the evidence and the
@@ -66,8 +66,29 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Nothing.** v4.3.0 closed its gate on 2026-09-04 — no code before the brief, recorded
-below.
+**The pin moves a major.** Go 1.27.1 is the pin ([VERSIONS.md](VERSIONS.md)); `go.mod`
+says `go 1.27` in the three checklists, [stack/go.md](stack/go.md), and
+[operations/ci.md](operations/ci.md), whose `GOTOOLCHAIN` commands and worked example
+moved with it. The 1.27 rulings landed where their rules live: the in-memory
+`httptest.NewTestServer` for handler tests, allowed inside a bubble, and
+`synctest.Sleep` to advance the bubble's clock, in
+[go-testing.md](patterns/go-testing.md) —
+[go-background-work.md](patterns/go-background-work.md) points there; header limits stay
+at their defaults in [go-http-server.md](patterns/go-http-server.md); `Close` drains, so
+`drainAndClose` left [go-http-client.md](patterns/go-http-client.md),
+[go-llm-adapter.md](patterns/go-llm-adapter.md)'s helper list, and
+[go-ports-adapters.md](patterns/go-ports-adapters.md)'s comment; go-http-client.md's
+*Testing* puts the timeout test on `NewTestServer` inside the bubble; `uuid` is a stdlib
+row and `errors.As` the named exception in [stack/go.md](stack/go.md), where
+`encoding/json/v2` is not adopted, and `errors.AsType` the rule in
+[go-errors-logging.md](patterns/go-errors-logging.md); `stdversion` under `go test` and
+the merged `require` blocks needed no rule. htmx 4.0.0 shipped stable on 2026-08-28:
+[stack/htmx.md](stack/htmx.md) and the 4.x row say so and keep the ban. The run re-read
+three *Facts verified* sections at their sources, re-dated them, and corrected how
+`mime.TypeByExtension` reads host tables in
+[css-typography.md](patterns/css-typography.md) and [pwa.md](patterns/pwa.md). The web
+change path is 7,965 → 7,923 of 8,000 and go-http-client.md 3,782 → 3,796 of 3,800.
+The change owes the run, the reference, and `baseline-ops`'s build image.
 
 ## Run log
 

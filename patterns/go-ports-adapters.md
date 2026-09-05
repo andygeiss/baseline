@@ -75,7 +75,7 @@ type Notifier interface {
 // follow go-http-client.md; none of it appears in the port.
 
 func (c *Client) Notify(ctx context.Context, to, subject, body string) error {
-	// ... build the request with the caller's ctx, send it, drain and close ...
+	// ... build the request with the caller's ctx, send it, defer the body's close ...
 	switch resp.StatusCode {
 	case http.StatusOK, http.StatusAccepted:
 		return nil
