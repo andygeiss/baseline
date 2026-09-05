@@ -66,46 +66,126 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**`encoding/json/v2` is the JSON package** — the first of the two decisions v4.4.0 left
-open. [stack/go.md](stack/go.md) gains a row in *Modern stdlib choices* and the ruling
-under it, where "a decision this baseline has not taken" stood; the ruling says a
-contract a tag promises moves to v2 at its next major, because
-[operations/cli-release.md](operations/cli-release.md) already calls a breaking change
-to the observable contract a major, and [go-library.md](patterns/go-library.md) says the
-same of observable behavior consumers rely on. A CLI's `-json` is that contract at any
-tag, since cli-release.md has no v0 clause; a library's wire format is one from v1,
-since [project-types/library.md](project-types/library.md) lets v0 break freely. The
-response fence in [go-http-client.md](patterns/go-http-client.md) reads with
-`UnmarshalRead`, the line under the fence names the package, and rule 4 was shortened
-because the added line took the document one token over its budget. The `-json` bullet
-and the test paragraph in [go-cli.md](patterns/go-cli.md), the test box in
-[cli-tool.md](checklists/cli-tool.md), and the row in
-[project-types/cli-tool.md](project-types/cli-tool.md) name v2; the checklist's
-output-section parse box is gone, because parsing back is the test box's check. The
-dates on go-cli.md and project-types/cli-tool.md moved because every pass of this change
-read both whole. The precedent is `ce86f13`, which moved go-http-client.md's date in the
-pin commit, before the v4.4.0 record was written. Every default and bullet under the
-ruling was run as a scratch program under go1.27.1 and held; the reference's JSON call
-sites are on v2 in its working tree and owe their commit, sync, and gate; the record of
-what ran and what it showed is owed.
-
-**htmx 4.x has a trigger instead of an open ban** — the second decision. The policy
-bullet in [VERSIONS.md](VERSIONS.md) states it: 4.0.1 shipping triggers a baseline
-release that adopts 4.x. That is the Go policy's first-patch trigger without its
-per-project exception. The 4.x row and the warning in [stack/htmx.md](stack/htmx.md)
-point at the bullet. What 4.x breaks, per four.htmx.org/docs — recorded here for the
-release that adopts it: an attribute inherits only with the `:inherited` suffix
-(`hx-boost:inherited="true"`), and `implicitInheritance` defaults to false. Of the five
-config keys the canonical layout sets, two are renamed: `includeIndicatorStyles` is
-`includeIndicatorCSS`, `globalViewTransitions` is `transitions`. Three are gone.
-`history` replaces `historyCacheSize` and `refreshOnHistoryMiss`, and takes true,
-`"reload"`, or false. `noSwap` replaces `responseHandling` and lists the statuses that
-do not swap — `[204, 304]` by default, so a 4xx swaps unless `noSwap` names it. This
-decision owes the review run and the record.
+**Nothing.** v4.5.0 closed its gate on 2026-09-05 — the two decisions v4.4.0 left open,
+recorded below.
 
 ## Run log
 
 Newest first.
+
+### 2026-09-05 — the two decisions, decided (v4.5.0)
+
+**`encoding/json/v2` is the JSON package, and the ruling grew from one sentence to three
+cases because the corpus's own release rules made it.** The first draft said "an
+existing call site moves the first time a change touches it", which is right for a web
+application and wrong for anything tagged: the move changes what goes out — a nil slice
+is `[]`, a zero number survives `omitempty`, `<` is not escaped — and what is accepted —
+names match case-sensitively, a duplicate name and invalid UTF-8 are errors — and
+[operations/cli-release.md](operations/cli-release.md) calls a breaking change to the
+observable contract a major, [go-library.md](patterns/go-library.md) says the same of
+observable behavior consumers rely on. So a contract a tag promises moves at its next
+major. Then the v0 line: [project-types/library.md](project-types/library.md) lets v0
+break freely, cli-release.md has no v0 clause at all, so a library's wire format is a
+contract from v1 and a CLI's `-json` at any tag. A web application's `/api` has no
+semver contract and ships with the next deploy. Four passes, each adding a case the
+previous wording could not be followed under; none was a fact about Go, every one was an
+unchanged document read against the new sentence.
+
+**Every default and bullet was run, and the running is what the rules are made of.**
+Under go1.27.1, in a `go 1.27` module, with no experiment flag: v2 leaves a field empty
+on a name in the wrong case, rejects a duplicate name and invalid UTF-8, marshals nil
+slice and map as `[]` and `{}`, keeps a zero number and bool under `omitempty` and also
+a zero `time.Time` — `"0001-01-01T00:00:00Z"` — and a zero struct, all four of which
+`omitzero` drops; marshals map keys in map order, 17 distinct byte strings over 50 runs,
+one under `json.Deterministic(true)`; writes no newline from `MarshalWrite` where v1's
+`Encoder.Encode` wrote one; rejects a second object after the first in `UnmarshalRead`
+and accepts trailing whitespace; accepts every `Options` value `encoding/json` exports,
+so the "never pass one" bullet guards a path that compiles; and emits `<a>&` verbatim
+where v1 wrote `\u003ca\u003e\u0026`. Under go1.26.7 in a `go 1.26` module the package
+does not build at all — "build constraints exclude all Go files" — which is what "(Go
+1.27+)" on the row measures. The first draft got one of these wrong: it sent a nil
+pointer to `omitzero`, and v2's `omitempty` already omits it because a nil pointer
+encodes as `null`.
+
+**The `omitzero` fixer does not do what its name says, and the fix gate will show a
+project that.** Under the pin, `go fix -diff` on a struct with `time.Time` under
+`omitempty` strips the tag to a bare name — behavior-preserving, since v1 never omitted
+a struct — and prints that it is ignoring the alternative "Replace omitempty with
+omitzero (behavior change)". So `make check` goes red on such a field, `make fmt`
+deletes the tag rather than upgrading it, and the `omitzero` the reader wanted is
+written by hand, which is what the bullet in [stack/go.md](stack/go.md) says to do. The
+reference has one `omitempty`, on a map, which the fixer leaves alone; the two
+repositories the v4.4.0 entry found red under `go fix -diff` at 1.27.1 may be red for
+this reason among others.
+
+**htmx 4.x has a trigger instead of an open ban, and the record carries what the trigger
+will need.** The policy bullet in [VERSIONS.md](VERSIONS.md) is the one place that
+rules: 4.0.1 shipping starts a baseline release that adopts 4.x, and projects move with
+that release, not with the patch — the Go policy's first-patch trigger without the Go
+policy's *needs a new feature immediately* exception, because a project on 4.x before
+the layout, the 422 flow, and the history rule move with it would be a project the
+checklist cannot check. The 4.x row in VERSIONS.md and the warning in
+[stack/htmx.md](stack/htmx.md) say what 4.x is and point at the bullet for the rule,
+after a pass found the same rule ruled three times on the floor. What that release will
+find, read at four.htmx.org and checked key by key: inheritance is explicit —
+`hx-boost:inherited="true"` on the body, `implicitInheritance` false — and of the five
+keys the canonical `htmx-config` sets, `includeIndicatorStyles` is
+`includeIndicatorCSS`, `globalViewTransitions` is `transitions`, `historyCacheSize` and
+`refreshOnHistoryMiss` are `history` taking true, `"reload"`, or false, and
+`responseHandling` is `noSwap`, `[204, 304]` by default, so a 4xx swaps unless named.
+npm's `latest` still names 2.0.10 and no 4.0.1 exists.
+
+**One line beside a fence was rewritten five times, and the fifth is the shortest.**
+"Five things there are not optional" gained a sentence naming the package the fence
+imports, and every phrasing of that sentence bound "there" or "that fence" to the wrong
+noun for one reviewer or another — the package, the list, the fence. What stands is
+"`json` is `encoding/json/v2`. Five things are not optional:", two sentences with no
+pointer in either, and the lesson is STYLE.md's re-read test applied twice: a pointer
+that can bind to two nouns is removed, not moved.
+
+**95 defects over 17 passes, two lenses each; passes sixteen and seventeen clean on
+both.** 14, 19, 9, 6, 9, 6, 2, 4, 3, 4, 6, 5, 4, 2, 2, then nothing. The facts lens
+found 13 in all and was clean from pass three except where the record described a change
+it did not contain — a checklist box deleted and unrecorded, "two JSON surfaces" where
+the reference has one, a "pay for" the token count contradicted — or where a rule read
+against an unchanged document: the v0 line, the web application's tag. The writing lens
+found the rest, and from pass seven on nearly all of them were in *Owed*, the paragraph
+every pass rewrote: each new sentence there was fresh surface, which the v4.4.0 entry's
+own pass counts show. Two reviewers reversed each other twice — one bullet or two for
+map order and tests, "there" or not beside the fence — and the resolution both times was
+to state the scope the second reviewer missed rather than pick a side.
+
+**A trim that changes a rule's meaning is a rewrite, and one pass caught the record
+calling it a shortening.** go-http-client.md sat at 3,796 of 3,800 before the change and
+the added sentence took it to 3,801; rule 4 gave back the words — "1 MiB, or a larger
+cap the API documents" says what "unless the API documents a larger legitimate response"
+said — and a pass caught the first trim changing the rule's meaning while the record
+called it a shortening. The README's "stays under" and the Makefile's fail-above still
+disagree at the boundary, noted last run and not settled; this change did not land on
+it.
+
+**The budgets held.** The web change path is 7,923 → 7,945 of 8,000: the htmx row and
+the policy bullet grew, then the row and the warning were cut to pointers. The floor is
+20,304 → 20,750: 409 of it the row, the ruling paragraph, and its eight bullets in
+[stack/go.md](stack/go.md), the rest the htmx row in VERSIONS.md and the warning in
+stack/htmx.md. The cli-tool change path is 5,231 → 5,253. go-http-client.md is 3,796 →
+3,796.
+
+**The empirical half:**
+[baseline-reference](https://github.com/andygeiss/baseline-reference) `ede246d`, tagged
+v4.5.0, pinning baseline `9035558`. Seven files moved to `encoding/json/v2`. The `/api`
+decoder lost its second `Decode`: `UnmarshalRead` with `RejectUnknownMembers(true)`
+refuses an unknown field and a second object in one call, and a body over the cap still
+reaches the same `errors.As` on `*http.MaxBytesError` through it — a 413, now tested,
+beside a new case for a field in the wrong case, which v1 accepted and v2 answers with a
+400. `GOTOOLCHAIN=go1.27.1 ./verify.sh` exits 0 over **79 gates**, the same count as
+v4.4.0; `GOTOOLCHAIN=go1.27.1 make ci` is green on `ede246d` with `go version go1.27.1
+darwin/arm64` on the line after the echoed recipe — run after the commit, because `ci`
+archives HEAD and a run before the commit had proved the old tree. The seven other
+top-level Go modules on this machine sit on `go 1.26` or older with 177 files importing
+v1 between them, and a nested one under `kai` adds seven more; none can import v2 until
+its pin moves, so their move is the next re-scan's, and any of them that tags a `-json`
+or wire contract moves it at its next major, as the ruling says.
 
 ### 2026-09-05 — the pin moves a major (v4.4.0)
 
@@ -365,101 +445,6 @@ exits 0 over **78 gates**, one more than v4.2.0, and `GOTOOLCHAIN=go1.26.7 make 
 green on `883dcb8` with `go version go1.26.7 darwin/arm64` as its first line. No code
 moved; nothing needed a waiver.
 
-### 2026-08-27 — go fix joins the gates (v4.2.0)
-
-**A rule the toolchain can enforce should not be prose.** [stack/go.md](stack/go.md) told
-the reader to run `go fix` "periodically" and to "trust it", and then spent a bullet and a
-table row on idioms the same tool rewrites — `any`, `min`/`max`, `new(expr)`, `slices` and
-`maps` over hand-rolled loops. Since Go 1.26 `go fix` is the home of the modernizers, and
-since 1.26.3 `go fix -diff` exits non-zero on a pending rewrite (go.dev/issue/77583,
-backport 77801), which is the shape of a gate. It is now the third line of `check` and
-`go fix ./...` the last of `fmt` — the same read-only-twin arrangement `gofmt -l` and
-`goimports` have had all along — and the `any` rule is gone. The gate costs one `go vet`:
-0.27 s warm on the reference, 2.2 s the first time after a vet, because the two share
-compiled dependencies and keep their own facts.
-
-**The corpus did not shrink, and the question was asked before the answer was assumed.**
-A sweep of every rule and every Go fence against the pin's 22 fixers found at most 71
-tokens of prose a fixer carries whole, and one fence in eighty the pin would rewrite. The
-patterns were already written to the idiom the tool enforces. What the gate buys is the
-other direction: the *Modern stdlib choices* table stops growing for anything a fixer
-covers — Go 1.27's `errorsastype` will demand `errors.AsType` and no row has to say so —
-and drift gets caught. It was caught at once: the reference was red under the pin on the
-tree it inherited, at the exact fence [go-background-work.md](patterns/go-background-work.md)
-ships (`Add(1)`/`go`/`Done()`, now `WaitGroup.Go`) and at a three-clause loop in a test.
-
-**The fixers are the toolchain's, and that is the whole trap.** Go 1.26.0 through 1.26.7
-register the same 22 fixers, byte for byte; 1.27.0 registers 26 — `errorsastype`,
-`atomictypes`, `embedlit`, `slicesbackward`, `unsafefuncs` added, `fmtappendf` removed for
-"stylistic concerns", `waitgroup` renamed `waitgroupgo`. So the gate is deterministic under
-an exact `GOTOOLCHAIN`, and under `auto` on this machine, which runs 1.27.0 over a `go 1.26`
-module, it is red on `errors.As` sites the pin passes. The change ran into its own trap on
-the first pass: two of the three fences credited to "the pinned toolchain" had been
-rewritten by the local 1.27.0 — the pin has no `errorsastype` at all. Both lenses caught
-it. The fences stay, because `errors.AsType` is a 1.26 API and the next major will demand
-them, and *Owed* said so before the run closed. The consequence for a person is the one
-[operations/ci.md](operations/ci.md) *The Go version* already prescribed — prefix the pin —
-and on this machine it now lives in the shell profile, where the next pin move has to
-find it.
-
-**The mutator's order was wrong, and only running it showed which way.** The first draft
-put `go fix` before `goimports` "so goimports drops any import a rewrite leaves unused".
-Under the pin no fixer leaves one: `slicessort` removes `sort`, `testingcontext` removes
-`context`, `mapsloop` adds `maps`. What `go fix` does do is type-check, so on a file that
-uses a package it has not imported — the everyday reason `goimports` exists — `make fmt`
-stopped before `goimports` ran. Reversed: `goimports` settles the imports, `go fix` rewrites,
-and `fmt` now fails on code that does not type-check, which the bullet says out loud.
-
-**A gate needs an exit, and the corpus already had the shape.** The `@latest` bullet in
-ci.md lets a staticcheck release that reddens an unrelated morning be pinned in the fixing
-commit. Nothing said what to do with a fix you judge wrong — Go's own words are that the
-fixes "should not change the behavior of your program", and the tracker has a year of
-cases where one did: `slicescontains` hoisting a side effect, `stringscut`, `minmax`,
-`waitgroup` under `recover`, `rangeint` with the index read after the loop (open, 1.28).
-The escape is `-<fixer>=false` on both `go fix` lines in the commit that says why, and
-the sentence names its own hazard: the flag is the toolchain's name, and 1.27 has already
-dropped one and renamed another, loudly — exit 2, `flag provided but not defined`. Two
-facts stayed out of the read path and belong here: two conflicting fixes make
-`go fix -diff` exit non-zero with an empty diff (go.dev/issue/77482, 80854, open;
-run one analyzer alone, then all), and `go fix -diff` skips generated files and, like
-`go vet`, never sees a file behind a build tag it was not given.
-
-**One sentence took four rounds, and the fourth version is the first.** Deleting "use
-`new(expr)` where it removes a helper" lost a rule: the `newexpr` fixer inlines every
-caller and marks the helper `//go:fix inline`, and only staticcheck's `U1000` notices an
-unexported one afterwards. Restoring it as "delete it (only an unexported one goes red)"
-contradicted [go-library.md](patterns/go-library.md), where removing an exported symbol is
-a major; scoping it read as a garden path; and the bare original implied the tool did the
-removing. What stands says what the tool does and whose the removal is, and lets the more
-specific document rule the library case — which is what the tier rule was written for.
-
-**Twenty-seven distinct defects over seven rounds, two reviewers on different lenses each
-round; rounds six and seven clean on both.** Nine, five, five, six, two, then nothing.
-Every mechanical claim was executed rather than read, in both toolchains: the canonical
-Makefile copied verbatim into a `go 1.26` module under GNU Make 3.81 and run red, green,
-and through `fmt` on a missing import, a type error, and a parse error; the library and
-multi-binary cuts of rule 5; `ci` against an archived stale commit; the three fences old
-and new in compiling scaffolds through every gate; the escape flag in both positions; the
-fixer lists of all eight 1.26 patches diffed. Nothing found in the last five rounds was a
-false claim about the tool — after round two every defect was a sentence saying more, or
-less, than the tool does.
-
-**The budgets held without a decision.** No checklist box was added: the box "`Makefile`
-at the repo root is `stack/makefile.md`'s" already covers a recipe line, and the
-web-application checklist had five tokens to give. The change path is unchanged at 7,939.
-The floor is 20,097, eight over v4.1.0's figure: [stack/go.md](stack/go.md) lost the `any`
-sentence and gained the `go fix` rule and the helper clause;
-[stack/makefile.md](stack/makefile.md) gained the two lines and their reasons.
-
-**The empirical half:**
-[baseline-reference](https://github.com/andygeiss/baseline-reference) `6ea52e6`, tagged
-v4.2.0, pinning baseline `6015026`. The Makefile carries both lines and `verify.sh` the
-gate as its third step; `GOTOOLCHAIN=go1.26.7 ./verify.sh` exits 0 over **77 gates**, one
-more than v4.1.0, and `GOTOOLCHAIN=go1.26.7 make ci` is green on `6ea52e6` with `go version
-go1.26.7 darwin/arm64` as its first line. Four files of code moved: the two the pin
-rewrote and the two `errors.As` sites, plus a README sentence and a test comment that
-still described the counter by its `Add`. Nothing needed a fix switched off.
-
 ### Earlier runs
 
 Compressed to what a future reader still needs: the counts, and the findings that would
@@ -468,6 +453,21 @@ otherwise be re-litigated. The full narratives are in this file's git history.
 **The three newest runs stay in full; everything older lives here.** A run log that only
 grows costs more to re-read than it saves, and the compression is what keeps a narrative
 from being re-litigated a year after it was settled.
+
+- **2026-08-27 — go fix joins the gates (v4.2.0).** 27 defects over seven rounds, the
+  last two clean. `go fix -diff` is the third line of `check` and `go fix ./...` the
+  last of `fmt`, after `goimports`, because `go fix` type-checks and stops on a missing
+  import. **The fixer set is the toolchain's:** 1.26.0–1.26.7 register the same 22,
+  1.27.0 registers 26, so the gate is deterministic only under an exact `GOTOOLCHAIN`,
+  and the escape is `-<fixer>=false` on both lines in the commit that says why — a flag
+  name the next major may drop. Two conflicting fixes exit non-zero with an empty diff
+  (go.dev/issue/77482, 80854); generated files are skipped, and a file behind a build
+  tag the command was not given is never seen. The `any` rule left stack/go.md;
+  `new(expr)` stays, worded so the removal of an inlined helper is the reader's and the
+  library case is go-library.md's (an exported one is a major there). Change path
+  unchanged at 7,939; floor 20,097. Reference `6ea52e6`, v4.2.0, pinning `6015026`: 77
+  gates; four files of code moved — two the pin rewrote, two `errors.As` sites moved to
+  `AsType` by hand.
 
 - **2026-08-25 — gaps flow back from projects (v4.1.0).** The corpus could learn from
   projects and had no way to hear about it: `SKILL.md` *Handing the work back* now takes a
