@@ -407,7 +407,7 @@ total as a report it never gates on.
 
 Two budgets cap a single document:
 
-- **A [`patterns/`](patterns/) or [`stack/`](stack/) document stays under 3,800 tokens,
+- **A [`patterns/`](patterns/) or [`stack/`](stack/) document stays within 3,800 tokens,
   prose and fenced code together.** One number, because a reader pays for both and a
   split budget only measures which side of the fence the author put the answer on — the
   first sweep to move code into prose passed a code cap and blew a prose cap without
@@ -416,13 +416,13 @@ Two budgets cap a single document:
   arguing when it should be ruling; past budget on code means *Write to the reader's
   competence* below. **Aim at 1,800 for a new document;** 3,800 is the ceiling, not the
   target.
-- **A checklist stays under 5,000 tokens.** It is paid whole by every project of that
+- **A checklist stays within 5,000 tokens.** It is paid whole by every project of that
   type, on every change and at every milestone — the most-paid document in the corpus,
   and the reason it was worth folding the router into rather than beside it.
 
 Three budgets cap a path somebody walks:
 
-- **The floor stays under 25,000 tokens** — `SKILL.md`, `VERSIONS.md`, the project-type
+- **The floor stays within 25,000 tokens** — `SKILL.md`, `VERSIONS.md`, the project-type
   document, its checklist, and every *Required reading* entry. That is what an agent pays
   before writing a line, and the headroom is not an invitation. A document belongs on that
   list only if it changes a decision made *before* the first line of code; everything you
@@ -430,7 +430,7 @@ Three budgets cap a path somebody walks:
   test is what keeps the number down, not the number** — it held the floor for three
   releases while the ceiling was thirteen tokens away, and it is the whole defence now
   that the ceiling is further off.
-- **A change stays under 8,000 tokens** — `SKILL.md`, `VERSIONS.md`, and the checklist.
+- **A change stays within 8,000 tokens** — `SKILL.md`, `VERSIONS.md`, and the checklist.
   This is the most common thing anyone does here and therefore the number paid most
   often.
 - **Reach is reported, not budgeted.** Every document a project type can get to is a
