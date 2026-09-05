@@ -125,14 +125,14 @@ func (c *Client) Forecast(ctx context.Context, city string) (domain.Forecast, er
 	}
 
 	var out domain.Forecast
-	if err := json.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&out); err != nil {
+	if err := json.UnmarshalRead(io.LimitReader(resp.Body, 1<<20), &out); err != nil {
 		return domain.Forecast{}, fmt.Errorf("weather: decode forecast: %w", err)
 	}
 	return out, nil
 }
 ```
 
-Five things there are not optional:
+`json` is `encoding/json/v2`. Five things are not optional:
 
 1. **`http.NewRequestWithContext`,** always. The caller's context is how a
    client disconnect or a shutdown cancels this call. A request built without
@@ -148,8 +148,8 @@ Five things there are not optional:
    whole body is at most 256 KiB too.
 4. **Cap the body you read.** `io.LimitReader` is the outbound twin of
    `http.MaxBytesHandler` ([go-http-server.md](go-http-server.md)): a broken or
-   hostile server can stream until you run out of memory. 1 MiB unless the API
-   documents a larger legitimate response.
+   hostile server can stream until you run out of memory. 1 MiB, or a larger cap
+   the API documents.
 5. **Wrap errors with what you were doing** (`%w`, per
    [go-errors-logging.md](go-errors-logging.md)). "connection refused" alone
    names no dependency and no operation.

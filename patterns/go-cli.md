@@ -1,6 +1,6 @@
 # Pattern: Go CLI
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05
 
 **One rule here is tier 1 and never waived:** a secret never arrives as a flag *value*,
 because `ps` and shell history both keep it. Whether the tool grows a `-json` flag is
@@ -155,10 +155,11 @@ place.
   there — no banners, no progress, no log lines.
 - **stderr is everything else:** diagnostics, progress, usage text, errors.
   `mytool | wc -l` and `mytool > out.txt` must never capture noise.
-- **Machine consumers get `-json`:** `encoding/json`, one object per line
-  (ND-JSON), field names stable. Human-readable *formatting* MAY change between
-  releases; the *meaning* of stdout output and every `-json` field name are
-  major-version contract ([operations/cli-release.md](../operations/cli-release.md)).
+- **Machine consumers get `-json`:** `encoding/json/v2` ([stack/go.md](../stack/go.md)),
+  one object per line (ND-JSON), field names stable. Human-readable *formatting*
+  MAY change between releases; the *meaning* of stdout output and every `-json`
+  field name are major-version contract
+  ([operations/cli-release.md](../operations/cli-release.md)).
 - **No colors, spinners, or ANSI control sequences.** Plain lines survive pipes,
   CI logs, and `2>err.txt`. Progress on long operations is a plain line to stderr.
 - **No prompts.** Input comes from flags, args, env, or stdin. Destructive
@@ -239,6 +240,6 @@ func TestRun_Fetch(t *testing.T) {
 
 Table-test the argument surface: happy path per subcommand (or the single
 command), unknown command and top-level `-h` where dispatch exists, bad flag
-(expect `errUsage`), and — where `-json` exists — that output parses back with
-`encoding/json`. Strategy and coverage bar per
+(expect `errUsage`), and — where `-json` exists — that each line of the output
+parses back with `encoding/json/v2`. Strategy and coverage bar per
 [go-testing.md](go-testing.md).

@@ -1,6 +1,6 @@
 # Project Type: CLI Tool
 
-**Last verified: 2026-09-04**
+**Last verified: 2026-09-05**
 
 Command-line tool: starts, does one job, exits. If the process is meant to stay up
 and serve requests, it is not a CLI — build a [web application](web-application.md).
@@ -13,7 +13,7 @@ and serve requests, it is not a CLI — build a [web application](web-applicatio
 | Flags | stdlib `flag`, one `FlagSet` per subcommand | MUST. No cobra, viper, urfave/cli, kong. |
 | Config | flags > env vars > built-in defaults | MUST. No config files until genuinely needed — see [patterns/go-config.md](../patterns/go-config.md). |
 | Output | stdout = data, stderr = everything else | MUST. See [patterns/go-cli.md](../patterns/go-cli.md). |
-| Machine output | `encoding/json` behind a `-json` flag | SHOULD, when other programs consume the output. |
+| Machine output | `encoding/json/v2` behind a `-json` flag | SHOULD, when other programs consume the output. |
 | Outbound HTTP | stdlib `http.Client`, built in `run()` | MUST when the tool calls an API. Never `http.DefaultClient` — see [patterns/go-http-client.md](../patterns/go-http-client.md). |
 | Persistence | none; SQLite (`modernc.org/sqlite`) if the tool keeps state | SHOULD prefer stateless. |
 | Build | static (`CGO_ENABLED=0`), gated by `make check` | MUST. |

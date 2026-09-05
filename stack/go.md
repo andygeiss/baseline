@@ -58,10 +58,34 @@ fix.
 | `cmp.Or` for "value, or this default" | a hand-rolled `envOr`/`firstNonEmpty` helper |
 | `math/rand/v2` | `math/rand` |
 | `uuid` (Go 1.27+) | `github.com/google/uuid` |
+| `encoding/json/v2` (Go 1.27+) | `encoding/json` — v2's engine under v1's loose defaults |
 | `crypto/rand`, `crypto/hpke`, `crypto/mlkem` | rolling your own crypto — never |
 
-Do not import `encoding/json/v2` (Go 1.27+): `encoding/json` is already backed by the v2
-implementation, and moving call sites to v2 is a decision this baseline has not taken.
+New code imports `encoding/json/v2`. An existing `encoding/json` call site moves the
+first time a change touches it — unless its JSON is a contract a tag promises: a CLI's
+`-json` output at any tag, a library's wire format from v1. There the move waits for the
+next major and is one: a name now matches case-sensitively, a duplicate name or invalid
+UTF-8 is an error, and a nil slice or map marshals as `[]` or `{}`, so both what goes
+out and what is accepted change. A web application's `/api` has no semver contract; its
+move ships with the next deploy, and those stricter defaults are the reason to make it.
+Every call site on v2, new or moved:
+
+- `omitempty` omits only an empty JSON value (`null`, `""`, `[]`, `{}`); a zero value that
+  encodes as anything else — a number, a bool, a `time.Time` — takes `omitzero`.
+- Map keys marshal in Go's map order, which is random; pass `json.Deterministic(true)`
+  where the bytes must be stable.
+- A test of JSON output compares decoded values; it compares bytes only where
+  `Deterministic(true)` made them the contract.
+- `json.MarshalWrite` writes no trailing newline, unlike v1's `Encoder.Encode`; the
+  loop that emits one object per line writes the `\n` itself.
+- `json.UnmarshalRead` rejects anything after the value but whitespace: write no
+  trailing-data check.
+- Pass `json.RejectUnknownMembers(true)` where both sides of the JSON ship in one
+  repository.
+- Never pass v2 an option `encoding/json` exports, and never v2's own
+  `MatchCaseInsensitiveNames`: a call site that needs one is a call site to fix.
+- v2 output never lands inside HTML — v2 does not escape `<`, `>`, or `&`. It goes
+  out as a JSON body with its own content type, or to stdout.
 
 ## Approved third-party dependencies
 

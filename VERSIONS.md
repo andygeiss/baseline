@@ -24,7 +24,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 |---|---|---|---|
 | Go | **1.27.1** | 2026-09-01 | The 1.27 line's first patch, so the policy adopts the major here. Not a security release. 1.27.0 is the floor: it carries every 1.26 security fix, including GO-2026-6091, the `html/template` escaping bug (an unescaped `/`, XSS). Re-verify at 1.28.1, about March 2027. |
 | htmx | **2.0.10** | 2026-04-21 | The 2.x line is stable and feature-complete. |
-| htmx 4.x | ❌ do not use | 2026-08-28 | 4.0.0 is stable, on npm's `next` tag; `latest` still names 2.0.10. 4.x is a breaking change from 2.x (fetch-based, a new swap model) and MUST NOT be used until this baseline adopts it deliberately. |
+| htmx 4.x | ❌ not yet | 2026-08-28 | 4.0.0 is stable, on npm's `next` tag; `latest` still names 2.0.10. A breaking rewrite of 2.x, fetch-based. Adoption waits for 4.0.1 — *Version policy* below. |
 | scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
 | Make | system default | — | Command runner only, and the only gate: `make check` against the tree, `make ci` against the commit. Makefile MUST stay runnable by GNU Make 3.81, the version macOS's Command Line Tools ship — portable subset, see [stack/makefile.md](stack/makefile.md). |
 | CSS | Baseline "Widely available" | rolling | No preprocessor, no framework. Allowed feature set defined in [stack/css.md](stack/css.md). |
@@ -38,7 +38,9 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
   project needs a new feature immediately. Always run the latest patch release —
   that is where security fixes ship. Set `go 1.27` in `go.mod`; do not pin toolchain patch
   versions in the repo.
-- **htmx:** Track the latest 2.x patch. Vendor the file (self-host, no CDN in production).
+- **htmx:** Track the latest 2.x patch. 4.0.1 shipping is the trigger for a baseline
+  release that adopts 4.x; projects move with that release, not with 4.0.1 itself. Vendor
+  the file (self-host, no CDN in production).
 - **Dependencies:** Update by hand on this file's 90-day cycle. The procedure is in
   [operations/ci.md](operations/ci.md), with the `make ci` re-scan of every live
   repository that goes with it. No bot, no CI server.

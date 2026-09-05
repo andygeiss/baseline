@@ -66,8 +66,42 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Nothing.** v4.4.0 closed its gate on 2026-09-05 — the pin moved to Go 1.27.1, recorded
-below.
+**`encoding/json/v2` is the JSON package** — the first of the two decisions v4.4.0 left
+open. [stack/go.md](stack/go.md) gains a row in *Modern stdlib choices* and the ruling
+under it, where "a decision this baseline has not taken" stood; the ruling says a
+contract a tag promises moves to v2 at its next major, because
+[operations/cli-release.md](operations/cli-release.md) already calls a breaking change
+to the observable contract a major, and [go-library.md](patterns/go-library.md) says the
+same of observable behavior consumers rely on. A CLI's `-json` is that contract at any
+tag, since cli-release.md has no v0 clause; a library's wire format is one from v1,
+since [project-types/library.md](project-types/library.md) lets v0 break freely. The
+response fence in [go-http-client.md](patterns/go-http-client.md) reads with
+`UnmarshalRead`, the line under the fence names the package, and rule 4 was shortened
+because the added line took the document one token over its budget. The `-json` bullet
+and the test paragraph in [go-cli.md](patterns/go-cli.md), the test box in
+[cli-tool.md](checklists/cli-tool.md), and the row in
+[project-types/cli-tool.md](project-types/cli-tool.md) name v2; the checklist's
+output-section parse box is gone, because parsing back is the test box's check. The
+dates on go-cli.md and project-types/cli-tool.md moved because every pass of this change
+read both whole. The precedent is `ce86f13`, which moved go-http-client.md's date in the
+pin commit, before the v4.4.0 record was written. Every default and bullet under the
+ruling was run as a scratch program under go1.27.1 and held; the reference's JSON call
+sites are on v2 in its working tree and owe their commit, sync, and gate; the record of
+what ran and what it showed is owed.
+
+**htmx 4.x has a trigger instead of an open ban** — the second decision. The policy
+bullet in [VERSIONS.md](VERSIONS.md) states it: 4.0.1 shipping triggers a baseline
+release that adopts 4.x. That is the Go policy's first-patch trigger without its
+per-project exception. The 4.x row and the warning in [stack/htmx.md](stack/htmx.md)
+point at the bullet. What 4.x breaks, per four.htmx.org/docs — recorded here for the
+release that adopts it: an attribute inherits only with the `:inherited` suffix
+(`hx-boost:inherited="true"`), and `implicitInheritance` defaults to false. Of the five
+config keys the canonical layout sets, two are renamed: `includeIndicatorStyles` is
+`includeIndicatorCSS`, `globalViewTransitions` is `transitions`. Three are gone.
+`history` replaces `historyCacheSize` and `refreshOnHistoryMiss`, and takes true,
+`"reload"`, or false. `noSwap` replaces `responseHandling` and lists the statuses that
+do not swap — `[204, 304]` by default, so a 4xx swaps unless `noSwap` names it. This
+decision owes the review run and the record.
 
 ## Run log
 

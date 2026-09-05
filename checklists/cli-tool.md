@@ -54,7 +54,6 @@ are ruled by `patterns/go-cli.md`, which is required reading.
 - [ ] Destructive actions require an explicit `-force`-style flag
 - **If `-json` exists:**
   - [ ] One object per line
-  - [ ] It parses back with `encoding/json`
   - [ ] Field names treated as API
 
 ## Naming a concept this tool owns — a domain type, a subcommand, a flag
@@ -111,7 +110,7 @@ reads.
   - [ ] Happy path per subcommand (or the single command)
   - [ ] Unknown command and top-level `-h` where dispatch exists
   - [ ] Bad flag (→ `errUsage`)
-  - [ ] `-json` round-trips where the flag exists
+  - [ ] `-json` output parses back line by line with `encoding/json/v2`, where the flag exists
 
 ## Depending on someone else's system
 

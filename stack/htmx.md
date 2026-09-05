@@ -6,8 +6,9 @@ htmx 2.0.10 ([VERSIONS.md](../VERSIONS.md))
 htmx is the *only* script on the page. It turns HTML into the application protocol:
 any element can issue HTTP requests, the server answers with HTML, htmx swaps it in.
 
-⚠️ **htmx 4.x is stable but MUST NOT be used: a fetch-based rewrite with breaking
-changes.** Stay on 2.x until this baseline adopts 4.x deliberately.
+⚠️ **htmx 4.x is stable but MUST NOT be used yet: a fetch-based rewrite with breaking
+changes.** This baseline adopts it in a release of its own once 4.0.1 ships
+([VERSIONS.md](../VERSIONS.md) *Version policy*).
 
 ## Setup
 
