@@ -66,33 +66,208 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**The pin moves a major.** Go 1.27.1 is the pin ([VERSIONS.md](VERSIONS.md)); `go.mod`
-says `go 1.27` in the three checklists, [stack/go.md](stack/go.md), and
-[operations/ci.md](operations/ci.md), whose `GOTOOLCHAIN` commands and worked example
-moved with it. The 1.27 rulings landed where their rules live: the in-memory
-`httptest.NewTestServer` for handler tests, allowed inside a bubble, and
-`synctest.Sleep` to advance the bubble's clock, in
-[go-testing.md](patterns/go-testing.md) —
-[go-background-work.md](patterns/go-background-work.md) points there; header limits stay
-at their defaults in [go-http-server.md](patterns/go-http-server.md); `Close` drains, so
-`drainAndClose` left [go-http-client.md](patterns/go-http-client.md),
-[go-llm-adapter.md](patterns/go-llm-adapter.md)'s helper list, and
-[go-ports-adapters.md](patterns/go-ports-adapters.md)'s comment; go-http-client.md's
-*Testing* puts the timeout test on `NewTestServer` inside the bubble; `uuid` is a stdlib
-row and `errors.As` the named exception in [stack/go.md](stack/go.md), where
-`encoding/json/v2` is not adopted, and `errors.AsType` the rule in
-[go-errors-logging.md](patterns/go-errors-logging.md); `stdversion` under `go test` and
-the merged `require` blocks needed no rule. htmx 4.0.0 shipped stable on 2026-08-28:
-[stack/htmx.md](stack/htmx.md) and the 4.x row say so and keep the ban. The run re-read
-three *Facts verified* sections at their sources, re-dated them, and corrected how
-`mime.TypeByExtension` reads host tables in
-[css-typography.md](patterns/css-typography.md) and [pwa.md](patterns/pwa.md). The web
-change path is 7,965 → 7,923 of 8,000 and go-http-client.md 3,782 → 3,796 of 3,800.
-The change owes the run, the reference, and `baseline-ops`'s build image.
+**Nothing.** v4.4.0 closed its gate on 2026-09-05 — the pin moved to Go 1.27.1, recorded
+below.
 
 ## Run log
 
 Newest first.
+
+### 2026-09-05 — the pin moves a major (v4.4.0)
+
+**Go 1.27.1 shipped on 2026-09-01, and the policy adopts a major at its first patch.**
+[VERSIONS.md](VERSIONS.md) pins 1.27.1; the `go.mod` line is `go 1.27` in the three
+checklists, [stack/go.md](stack/go.md), and [operations/ci.md](operations/ci.md); every
+`GOTOOLCHAIN=go1.26.7` in the corpus is `go1.27.1`; and `git grep '1\.26'` outside this
+file hits one historical clause in the Go row. Not a security release; the row says so and
+stops there, because what a patch fixed is this file's to record, not the pin table's:
+1.27.1 fixes 1.27.0's `go fix` — its new `embedlit` fixer emitted code that did not
+compile (go.dev/issue/81006, 81059, 81101), so the "read that diff before you commit it"
+bullet in ci.md now has a case number behind it — `encoding/json` rejecting a quoted
+`null` on a `string` field under `,string` (81083), and `Request.Body.Close` returning
+`io.EOF` on a body read only partway (81027). 1.27.0 is the floor the row names: every
+advisory of 2026-08-13 is fixed from 1.27.0-rc.3, GO-2026-6091 — the `html/template`
+unescaped `/`, XSS — included, which is what keeps the pin tier 1 under README's own
+definition. 1.27.0 and 1.27.1 register the same 26 fixers, diffed; `make fmt` under the
+new pin rewrote nothing in the reference — its `errors.As(err, new(*T))` inside a
+`switch` case is a shape `errorsastype` leaves alone — so this release has no rewrite
+commit. Two of the four other baseline repositories on this machine would not be so lucky:
+`go fix -diff` under 1.27.1 wants seven files in one and two in another, which is the
+re-scan the maintenance protocol schedules and this run did not do for them.
+
+**The six questions the 2026-08-25 entry left for this pass, each answered by running
+it.** `httptest.NewTestServer` inside a bubble works: a handler that slept an hour on the
+bubble clock answered at once, `synctest.Wait` settled, and a goroutine the handler
+started ran when `synctest.Sleep(10 * time.Minute)` moved the clock; a real
+`httptest.NewServer` in the same bubble serves a plain request and hangs the moment the
+bubble's clock or `Wait` is involved, with a goroutine in `net.(*conn).Read`. Go's own doc
+now says most users should use `NewTestServer`, so
+[go-testing.md](patterns/go-testing.md)'s handler-test snippet is the in-memory server and
+its `Client()` — the only client that reaches it; `srv.URL` is empty until that first
+call — and [go-background-work.md](patterns/go-background-work.md) keeps its two-item
+list and points there. Client tests keep the real socket, except a timeout test, which
+builds the `Client` struct around `srv.Client()` inside the bubble: `Client.Timeout` and
+`ResponseHeaderTimeout` both fire on the bubble clock, verified. `synctest.Sleep` is one
+clause in go-testing.md. `Server.MaxHeaderValueCount` defaults to 500
+(`DefaultMaxHeaderValueCount`) and stays unset beside `MaxHeaderBytes`: one bullet in
+[go-http-server.md](patterns/go-http-server.md) says so, so nobody tunes it. `go test`
+running `stdversion` needs no rule — it fires on a symbol newer than the `go` line,
+which a `go 1.27` module on the 1.27 pin cannot write, and the Test gate carries it. `go
+mod tidy` merging `require` blocks moved nothing; the reference has two. **`encoding/json`
+stays v1.** v1 is backed by v2 since 1.27.0, so the parser and the speed are shared; the
+v2 API was three weeks stable with two fixes in 1.27.1 (81012, and 81083 on the v1
+surface); and v2's stricter defaults — duplicate names and invalid UTF-8 rejected —
+are the one thing v1 lacks, which matters at `/api` input and is exactly why adopting it
+is a rewrite of every JSON fence and both of the reference's machine surfaces, a change of
+its own. It is a decision Andy makes, and it is on the list he was handed.
+
+**What the release absorbed, which is the question README's maintenance protocol asks.**
+Two things. `uuid` is standard library: a row in *Modern stdlib choices*, and no row left
+*Approved third-party dependencies*, because `google/uuid` was never on it (it sits in the
+reference as an indirect of `modernc.org/sqlite`). And `Response.Body.Close` now drains up
+to 256 KiB (`maxPostCloseReadBytes` in `net/http/transport.go`) before closing, so the
+connection goes back to the pool — which is what the `drainAndClose` helper in
+[go-http-client.md](patterns/go-http-client.md) did by hand with a 4 KiB cap. The helper
+is gone, rule 3 is `defer resp.Body.Close()` and says exactly what the transport does, the
+two documents that named the helper stopped, and the reference lost its copy. The exact
+part cost a round: the first sentence said `Close` drains "first" and the connection "goes
+back to the pool"; measured with `httptrace`, `Close` returns in microseconds and the read
+loop drains afterwards, only when the declared length is at most 256 KiB or unknown,
+giving up after 50 ms — a longer or stalled body costs the connection, which is what the
+old 4 KiB helper cost too.
+
+**htmx 4.x was a beta in two documents and is not.** [stack/htmx.md](stack/htmx.md) still
+said "in beta"; every web application reads it, so the floor contradicted VERSIONS.md
+until the first pass caught it. The tier-1 rationale was another: a rewrite of
+[stack/go.md](stack/go.md)'s "its note names a security fix" broke README's own tier-1
+definition, so the sentence is back and the Go row names the floor and what GO-2026-6091
+is — the definition, not the release, is what makes the pin tier 1.
+
+**Facts re-measured under 1.27.1, all holding.** The 307 on a slash-only route in
+[go-authorization.md](patterns/go-authorization.md); the two source claims in
+[go-file-uploads.md](patterns/go-file-uploads.md), whose links moved to the go1.27.1 tag
+and whose wording tightened — `parsePostForm`'s multipart case is *empty*, not absent;
+`.webmanifest` → `""` and `.woff2` → `font/woff2` on this Mac, in
+[pwa.md](patterns/pwa.md) and [css-typography.md](patterns/css-typography.md). Two
+adjudications, made out loud because reviewers split on them across passes. The three
+*Facts verified* headings moved to this date because every bullet under them — the
+webstatus.dev statuses, the MDN and WHATWG pages, the browser-compat data, not only the Go
+lines — was read at its source again; two tightened on the way: `ServeContent`'s quote
+now matches the 1.27.1 doc, and `mime/type_unix.go` reads shared-mime-info's `globs2`
+before the four `/etc` files. The stamps of two of those documents stayed, because a
+re-measured fact is not a reviewed rule; [pwa.md](patterns/pwa.md)'s moved, because its
+rule's mechanism sentence was corrected from the source. And
+[go-authorization.md](patterns/go-authorization.md)'s stamp moved on a one-token edit: the
+file carries a "(307 on Go 1.27)" claim and has no *Facts verified* heading, so the stamp
+is the only date that can carry a release the old stamp predates. A stamp that says
+2026-08-17 over a Go 1.27 fact is the contradiction a reader sees; the rule about wording
+edits is for edits that change no claim.
+
+**htmx 4.0.0 shipped stable on 2026-08-28**, on npm's `next` tag while `latest` still
+names 2.0.10. The row stopped calling it a beta and says what adoption would be — a
+change of its own. Every other row was read at its source on the day: htmx 2.0.10, scs
+v2.9.0, `design.md` still `alpha` with its CLI at 0.4.0.
+
+**What "re-verify after a Go major" meant here, said so it is not re-litigated.** The
+release notes were read against every rule — that is the walk README's protocol asks
+for, and it is how six features found their documents and `uuid` found the table. A stamp
+moved only where a rule, or the mechanism sentence under it, was re-derived against
+1.27.1; thirty documents whose rules 1.27 does not touch keep their August stamps, because
+a stamp is a claim that the rules were reviewed, and moving them would claim a review that
+did not happen. Their 90-day clocks run from those dates; the next full cycle is due in
+November. htmx 4.0.0 fired the same clause: the pin did not move, so the htmx documents
+were read for what 4.x changes about their rules — nothing, while 2.x is the pin — and
+only [stack/htmx.md](stack/htmx.md), whose warning was false, moved.
+
+**The budgets held, and the change path came back 44 tokens lighter.** The Go row lost the
+three issue numbers a pass judged to be this file's, and VERSIONS.md ended 176 bytes
+shorter: the change path is 7,965 → 7,923 of 8,000, the floor 20,228 → 20,304, the web
+checklist unchanged at 4,986. One document is at its cap:
+[go-http-client.md](patterns/go-http-client.md) stands at 3,796 of 3,800 after the drain
+rule and the in-memory testing bullet, so the next sentence added there pays for itself or
+the document is split. (README says a document "stays under 3,800" and the Makefile fails
+only above it — at exactly 3,800 the two disagree; noted, not settled here.) The branch
+stands: the next trigger section needs the shape-budget decision, not a version row's
+leftovers.
+
+**Sixty-nine findings over sixteen passes, two lenses each — facts by execution, writing
+against STYLE.md — the last two clean on both.** Nineteen, nine, ten, seven, three, two,
+five, two, three, three, two, one, one, two, two, one, one, two, then nothing twice. The
+first pass found the contradictions: [stack/htmx.md](stack/htmx.md) still calling 4.x a
+beta on the floor path; a tier-1 rationale rewritten out from under README's definition; a
+`Close` sentence that said "first" and "goes back to the pool" where the transport drains
+afterwards, only up to 256 KiB, and only within 50 ms; "a real listener never can" where a
+plain request through one works and only the bubble's clock and `Wait` hang; and
+`errors.As` still in the table the `go fix` gate now rewrites. The second pass was
+sentences saying more or less than the tool does — the drain rule over HTTP/2 costs a
+stream, not the connection; 81083 was a rejection, not a misread; "hang on it" reads as
+"depend on"; the socket rule stated in two documents, each citing the other as owner; and
+"a change of its own", which compares against a change the reader of stack/go.md never
+sees. The third was referents: "it" binding to the `Client` struct, which has no timeout
+field; a `Wait` that could be the app's own; a drain rule that measured the declared
+length for one body shape and the unread remainder for the other — the exact form gates
+on the whole body only when a `Content-Length` is declared; and status detail (a version,
+a date, a fixer's name) sitting in rules documents where README sends it here. The fourth
+was the rewrite's own wake: an em-dash substitution that put the 50 ms clock on the whole
+body, where the transport times only the unread rest; "the default client" blaming a
+client the reader no longer holds; a Go 1.27 fact under a stamp older than Go 1.27; a rule
+still saying "merges" beside a fact rewritten to a priority lookup; and the one Go 1.27
+feature without its `(Go 1.27+)` mark. The fifth found the facts lens clean and three on
+the writing side, one of them the trim this entry's budget paragraph reports: three
+upstream issue numbers in the pin row were what the run found, which is this file's to
+hold, and the row lost them. The sixth: `errors.As` had left the table's "Use" column
+without arriving in "Instead of" — the absence defect, a decision visible only in the
+diff — and one comment said "host" in two roles. The seventh: the same "merges" still
+stood in css-typography.md's sibling rule; `errors.As` in the do-not-use column overstated
+Go's own "for most uses, prefer AsType" — a target interface without `Error()` cannot go
+through `AsType[E error]`, and 1.27.1's `errorsastype` fixer still rewrites that shape
+into code that does not compile (go.dev/issue/80031, fixed upstream after 1.27.0), so the
+cell names the exception and ci.md's per-fixer switch is the escape; a socket rule written
+as a description where its owner should state it as a rule; an appositive that made the
+adoption the breaking change; and one "and" where the relation is contrast. Two more were
+raised and not taken, recorded above: the facts headings and the authorization stamp. The
+eighth: "set the timeouts on that `*http.Client`" in the one document whose subject is
+which timeout lives where — `ResponseHeaderTimeout` is the transport's — and an
+imperative with no subject in the htmx row; both paid for by two flourishes, since the
+client document stood one token under its cap. The ninth: "in its own package" heard as *a
+package of its own*, the opposite of the white-box test it meant; and two points of
+protocol — the rules commit had no *Owed* entry where every one before it carried one,
+and the clause "always after a major release of Go or htmx" had fired with thirty stamps
+unmoved, which is the scoping adjudicated below. The tenth found the rules documents clean
+and three in the new *Owed* paragraph itself: a count the list could not reproduce, the
+two promised rulings that needed no rule left unsaid, and "two documents that named it"
+where only one had. The eleventh, two more in that paragraph: a ruling it had not placed,
+and two folded into one. The twelfth and thirteenth, one each in that paragraph: a line
+three columns past the wrap, and a list that ran one item too long. The fourteenth, two:
+an "It" twelve lines from its subject, and two changes the paragraph had not placed. Every
+mechanical claim was executed rather than read: the drain matrix over fixed, chunked,
+stalled, and HTTP/2 bodies with `httptrace`; the in-memory server and both client timeouts
+on the bubble clock; the real socket in a bubble, hanging and not; the fixer on
+`errors.As`; the `go 1.28` refusal under the pin; every advisory of 2026-08-13 against its
+fixed range; and the four client fences through every gate in a scaffold.
+
+**This machine.** The shell profile's `GOTOOLCHAIN` moved with the pin, as the 2026-08-27
+entry said it would have to, and the three tool binaries in `~/bin` were rebuilt with
+1.27.1 — the ones built with 1.26 refuse 1.27's standard library. Homebrew's Go is
+1.27.1, so pin and machine agree for the first time since 2026-08-19. `baseline-ops` moved
+its build image to `golang:1.27-alpine` in the same sitting: the official image sets
+`GOTOOLCHAIN=local`, so a `go 1.27` module on the 1.26 image would not have built.
+
+**The empirical half:**
+[baseline-reference](https://github.com/andygeiss/baseline-reference) `4d1ea3f`, tagged
+v4.4.0, pinning baseline `ce86f13`. `GOTOOLCHAIN=go1.27.1 ./verify.sh` exits 0 over **79
+gates**, one more than v4.3.0: the `go` line of `go.mod` is the pin's major and no
+`toolchain` line follows it, run red on both before it was trusted. `GOTOOLCHAIN=go1.27.1
+make ci` is green on `4d1ea3f` with `go version go1.27.1 darwin/arm64` as its first line.
+What moved: `go.mod` to `go 1.27`; `internal/anthropic` lost its drain helper; the
+handler-test harness onto `httptest.NewTestServer` — its `Client()` carries the jar and
+the redirect stop, the API tests' bare client shares its transport, and every handler test
+(cookies, redirects, htmx headers, uploads) passed on the in-memory network at the first
+run; the README's stack line; and four dependencies under the pin as their own
+`chore(deps)` commit — `golang.org/x/crypto` v0.56.0, `modernc.org/sqlite` v1.58.0 with
+`libc` v1.75.7 and `memory` v1.12.1. `govulncheck` reports no reachable vulnerability and
+one informational entry in a required module the code never calls (GO-2026-5932,
+`golang.org/x/crypto`).
 
 ### 2026-09-04 — no code before the brief (v4.3.0)
 
@@ -251,88 +426,6 @@ go1.26.7 darwin/arm64` as its first line. Four files of code moved: the two the 
 rewrote and the two `errors.As` sites, plus a README sentence and a test comment that
 still described the counter by its `Add`. Nothing needed a fix switched off.
 
-### 2026-08-25 — gaps flow back from projects (v4.1.0)
-
-**The corpus could learn from projects and had no way to hear about it.** Every rule here
-was written by looking at the corpus. The two things only a project can show — a decision
-the checklist has no section for, and a rule naming a dependency the standard library has
-since absorbed — were visible exactly once, to whoever hit them, and died with the task.
-`SKILL.md` *Handing the work back* now takes the first as a next step and `README.md`
-*Maintenance protocol* takes the second at every Go major, where the release notes get
-read for what moved into stdlib and not only for what changed.
-
-**The rule's failure mode is noise, not silence, so the bar is the whole design.** A
-reflect-on-your-work rule with a soft trigger fires on every task and is skimmed past by
-the third one. Two kinds qualify and the bullet says so: the checklist had no section and
-you settled it by inventing rather than by matching the surrounding code, or a baseline
-rule names a dependency stdlib now covers. Both are facts the agent already holds when it
-finishes; neither needs a survey. "This looked reusable" is named and excluded. It was
-tested by looking for a gap rather than by reading the rule: inbound webhooks — the HMAC,
-the replay window, the raw body read before parsing — are genuinely uncovered by this
-corpus, and CSV downloads look uncovered and are not — they are boxes under *Taking a
-file from a user*. The false guess is the point of the bar.
-
-**Absorption is a rewrite, not a retirement, and that had to be said where retirement is
-decided.** A pattern whose dependency moves into the standard library still has something
-to say — the mechanism changes and the document stays. Only a pattern that existed solely
-to cover the gap meets signal 1. Without that paragraph, *Retiring a pattern* reads as a
-licence to delete a document the day Go absorbs its dependency, which is the moment its
-rules are most likely to be got wrong.
-
-**Nine defects over ten passes, the last two clean, and two more in this entry as it was
-written; the interesting ones were arithmetic.** They were sequential rather than
-independent again: one reviewer, each pass on a different surface — cross-document section
-names, then the budget numbers re-derived from `git show` rather than read, then the rules
-tested against a real gap and a real false gap, then margins and the corpus's own `make
-structure` and `make tokens`, then the whole diff. The first draft of this release's
-budget paragraph said the six patterns the 2026-08-18 raise bought had never landed. One
-had: `9c0be4a`, *Deleting a person*, on the same day the number moved. The same paragraph
-called the 125-tokens-per-pattern figure a rate; the sections measured since cost 61, 179,
-and 201, so it is an average nobody pays. A third claim was off by one token, because
-`make tokens` divides the whole path's bytes once and the per-file deltas each round down.
-The two caught in this entry are the same kind: a 380 said to have accrued since a
-paragraph that reports 265 of it itself, and that 265, which today's per-file measure
-makes 266. Every one of them came from re-deriving a number that had been carried over
-from a draft — the failure *Waived budgets* already names.
-
-**A judgement the entry above demanded, made out loud.** *A third path this entry missed*
-recorded on 2026-08-18 that `SKILL.md` and `VERSIONS.md` sit inside both the floor and the
-change path with no per-document budget over either, and asked that growth there be argued
-rather than absorbed. This release grew `SKILL.md` by 116, the second such edit and 380 in
-total since the raise — nearly half the 763 it bought — and the argument is in *Budget
-decisions* below with the full accounting. The change path is at **7,939 of 8,000**, 61
-left, which buys no trigger section; the floor at 20,089 of 25,000. What the next pattern
-costs is now a decision Andy makes before it lands, and *What would make these numbers
-wrong* already names the branch: trim, do not raise.
-
-**One defect was found and not fixed.** The new bullet ends "nothing else qualifies", and
-`SKILL.md` *Waivers and conflicts* separately tells an agent that an unresolvable rule
-collision is a defect in the baseline, to be told to the user at the moment it happens. A
-reader could take the first sentence to scope out the second. It was left alone: the two
-have different mechanisms and different timing — the collision is reported when it blocks
-you, the gap when you hand the work back — and the clause that would join them costs about
-15 of the 61 tokens left on the corpus's most-paid path. Spending the last of a budget to
-pre-empt a misreading, in the same release that says the budget is spent, is the wrong
-trade. It is written down here instead, which is what this file is for.
-
-**Two runs compressed on the way out.** v3.11.0 and v3.10.0 moved into *Earlier runs*,
-which is [README.md](README.md)'s three-newest rule doing its job rather than a decision
-this release made: with this entry the log had five in full. What a future reader would
-otherwise re-derive stayed — the counts, the reference commits, and the findings that cost
-a pass to reach.
-
-**The empirical half:**
-[baseline-reference](https://github.com/andygeiss/baseline-reference) `6239e4e`, tagged
-v4.1.0, pinning baseline `99a94e0`. `SPEC.md` is the only file that moved there, and that
-is the finding: both rules govern what an agent reports and what a maintainer does on the
-90-day cycle, so neither is a property a repository can gate. `GOTOOLCHAIN=go1.26.7
-./verify.sh` exits 0 over **76 gates**, the same count as v4.0.0 since no gate moved, and
-`GOTOOLCHAIN=go1.26.7 make ci` is green on `6239e4e` with `go version go1.26.7
-darwin/arm64` as its first line. The toolchain pin still stands in for this machine's Go
-1.27.0, which the policy does not adopt until 1.27.1. A rules change the reference cannot
-gate is exactly the kind that gets tagged on a reading, so it was run rather than reasoned
-about.
-
 ### Earlier runs
 
 Compressed to what a future reader still needs: the counts, and the findings that would
@@ -341,6 +434,24 @@ otherwise be re-litigated. The full narratives are in this file's git history.
 **The three newest runs stay in full; everything older lives here.** A run log that only
 grows costs more to re-read than it saves, and the compression is what keeps a narrative
 from being re-litigated a year after it was settled.
+
+- **2026-08-25 — gaps flow back from projects (v4.1.0).** The corpus could learn from
+  projects and had no way to hear about it: `SKILL.md` *Handing the work back* now takes a
+  decision the checklist had no section for as a next step, and `README.md` *Maintenance
+  protocol* asks at every Go major what the release absorbed. **The rule's failure mode is
+  noise, so the bar is the whole design:** two kinds qualify, "this looked reusable" is
+  named and excluded, and it was tested against a real gap (inbound webhooks) and a real
+  false one (CSV downloads, boxes under *Taking a file from a user*). Absorption is a
+  rewrite, not a retirement, said where retirement is decided. Nine defects over ten
+  passes, the last two clean, plus two caught in the entry as it was written — the
+  interesting ones arithmetic, every one a number carried over from a draft instead of
+  re-derived. `SKILL.md` grew 116, 380 since the raise; the change path reached 7,939 of
+  8,000 and the floor 20,089: trim, do not raise. One defect found and left: "nothing else
+  qualifies" could be read to scope out the collision rule — different mechanism,
+  different timing, and the joining clause would have cost 15 of the last 61 tokens.
+  Reference `6239e4e` tagged v4.1.0, pinning `99a94e0`; `SPEC.md` the only file that
+  moved, because both rules govern what an agent reports, which no repository can gate;
+  `./verify.sh` exit 0 over 76 gates.
 
 - **2026-08-25 — the CI server dropped (v4.0.0).** No CI server anywhere in the corpus:
   `make check` gates the working tree and `make ci` the commit — `git archive HEAD` into
