@@ -66,8 +66,10 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Nothing.** v4.5.0 closed its gate on 2026-09-05 — the two decisions v4.4.0 left open,
-recorded below.
+**The budget boundary, settled.** The four budget sentences in README.md *Size budgets*
+said "stays under" where `make tokens` fails only above the number; they now say "stays
+within", so a document at exactly 3,800 is what both mean. The numbers did not move.
+Owed: a pass over the four sentences and the record.
 
 ## Run log
 
