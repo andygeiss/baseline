@@ -76,6 +76,12 @@ Every call site on v2, new or moved:
   where the bytes must be stable.
 - A test of JSON output compares decoded values; it compares bytes only where
   `Deterministic(true)` made them the contract.
+- There is no `MarshalIndent`. Indentation is `jsontext.WithIndent("  ")`, which does
+  not sort, so a pretty-printed file takes `Deterministic(true)` beside it or it churns
+  into a new key order on every write.
+- There is no `UseNumber` either, and its absence is silent: a number decoded into an
+  `any` lands in a `float64`, which corrupts a 64-bit id on the way back out. Keeping
+  the text takes a `WithUnmarshalers` func that stores the raw `jsontext.Value`.
 - `json.MarshalWrite` writes no trailing newline, unlike v1's `Encoder.Encode`; the
   loop that emits one object per line writes the `\n` itself.
 - `json.UnmarshalRead` rejects anything after the value but whitespace: write no

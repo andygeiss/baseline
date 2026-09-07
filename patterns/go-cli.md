@@ -37,6 +37,9 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 
 - **`os.Exit` appears in `main` only.** Anywhere else it skips deferred cleanup and
   makes the code untestable. All other code returns errors.
+- **A tool that reads stdin takes it as a parameter too:** `run(ctx, args, stdin,
+  stdout, stderr)`. Reaching for `os.Stdin` inside `run` undoes what the skeleton is
+  for — the test would need a process to feed it.
 - **`signal.NotifyContext`** cancels `ctx` on the first Ctrl-C/SIGTERM so the
   current unit of work can finish or roll back. The registration stays active
   until `stop()` runs, so further Ctrl-Cs are swallowed — in a tool whose

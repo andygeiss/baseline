@@ -27,7 +27,7 @@ are ruled by `patterns/go-cli.md`, which is required reading.
 - [ ] `main` package at module root — `cmd/<name>/` only when the module ships several binaries
 - [ ] Logic in `internal/`
 - [ ] The binary's name is free: `command -v <name>` finds nothing on a stock macOS and Linux box — a collision means the tool that runs is not the tool that was installed (`project-types/cli-tool.md`)
-- [ ] `run(ctx, args, stdout, stderr)` pattern
+- [ ] `run(ctx, args, stdout, stderr)` pattern, plus a `stdin io.Reader` where the tool reads stdin
 - [ ] `os.Exit` in `main` only
 - [ ] Every failure surfaces as `tool: <cause>` on stderr, exit 1
 - [ ] Ctrl-C/SIGTERM cancels the context
