@@ -1,6 +1,6 @@
 # Stack: Make
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-27
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08
 
 **Two of rule 6's four limits are tier 1 and never waived:** `.env` is gitignored in the
 same commit that adds the recipe, and production never uses it. A committed `.env` leaks
@@ -58,11 +58,15 @@ clean:
 	rm -rf bin/
 
 # goimports first: go fix type-checks, so a missing import would stop the
-# recipe before goimports could add it. go fix manages the imports its own
-# rewrites need.
+# recipe before goimports could add it. go fix applies each fixer once and one
+# rewrite exposes the next, so it repeats until its own diff is empty — bounded,
+# so a fixer that cannot converge fails the recipe instead of hanging it.
+# goimports again last: the import go fix adds to a single-import file is a
+# second declaration, which gofmt keeps and only goimports merges.
 fmt:
 	go run golang.org/x/tools/cmd/goimports@latest -w .
-	go fix ./...
+	n=3; until go fix -diff ./... > /dev/null 2>&1 || [ $$n -eq 0 ]; do go fix ./... || exit 1; n=$$((n - 1)); done
+	go run golang.org/x/tools/cmd/goimports@latest -w .
 
 # Loads .env when it is there, so a local start is one command. Only run:
 # check and test MUST NOT depend on a developer's machine (rule 6). One shell
@@ -106,9 +110,10 @@ test:
    application's deployment belongs to the operations repository**, which knows
    the server.
 5. **Per-layout adjustments** — exactly these, nothing else:
-   - *Single-binary CLI* (`MAIN = .`): `go build .` drops `./<tool>` into the
-     repository root. Extend `clean` to `rm -rf bin/ <tool>` and add `<tool>`
-     to `.gitignore`.
+   - *Single-binary CLI* (`MAIN = .`): `check`'s `go build ./...` drops
+     `./<tool>` into the repository root — one main package is not "multiple
+     packages", so the object is not discarded. Extend `clean` to
+     `rm -rf bin/ <tool>` and add `<tool>` to `.gitignore`.
    - *Multi-binary CLI module* (the sanctioned `cmd/<name>/` layout): set
      `MAIN = ./cmd/<name>` for the binary `run` serves, and in `build` replace
      `$(MAIN)` with `./cmd/...` so every binary lands in `bin/`.
@@ -151,12 +156,16 @@ test:
 - **`fmt`** — the two mutating fixers: `goimports` (gofmt + import management,
   per [stack/go.md](go.md)) settles the imports so `go fix`, which type-checks,
   can rewrite to current idiom; on code that does not type-check, `fmt` fails.
-  Their read-only twins in `check`, `gofmt -l` and `go fix -diff`, stay the
-  authority on "is it done".
+  `go fix` applies each fixer once, so it repeats until its own `-diff` is
+  empty, and `goimports` runs again after it, because the import `go fix` adds
+  is a declaration of its own. Their read-only twins in `check`, `gofmt -l` and
+  `go fix -diff`, stay the authority on "is it done".
 - **`run`** — `go run`, not build-then-execute; the build cache makes it fast
   and there is no stale binary to accidentally re-run.
-- **`test`** — always `-race -shuffle=on`, exactly as `check` runs it. If that is
-  too slow for the inner loop, fix the suite, don't fork the flags.
+- **`test`** — always `-race -shuffle=on`, exactly as `check` runs it. `-shuffle`
+  is not a cacheable flag, so every run re-executes every package: the cost is the
+  module, not the diff, and no change to the suite buys a cache hit. If that is too
+  slow, the flag is the decision, not the suite.
 
 ## What NOT to add
 
