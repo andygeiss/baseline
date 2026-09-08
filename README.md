@@ -18,7 +18,7 @@ layered defaults rather than a checklist. Every rule exists to make the *default
 path the correct one — an agent that follows the documents verbatim ships a correct,
 hardened application without inventing anything.
 
-- **Last verified:** 2026-09-05
+- **Last verified:** 2026-09-08
 - **Format:** Markdown only, plus the MIT `LICENSE`. No code, no CI, no build
   steps. Documents are the product.
   The one piece of tooling is the root `Makefile`: it installs the baseline into
@@ -172,7 +172,8 @@ below is what it currently catches, not the definition.
 - Everything about who is signed in: session cookie flags, renewal on login and password
   change, password hashing, auth rate limiting, constant-time login, and every
   machine-token rule ([patterns/go-auth-sessions.md](patterns/go-auth-sessions.md)).
-- Parameterized SQL, the SQLite pragmas, and the single-writer pool
+- Parameterized SQL, the SQLite pragmas, the single-writer pool, and closing every
+  `Rows`, `Stmt` and `Tx` that pool hands out — a single leak wedges every later write
   ([patterns/go-sqlite.md](patterns/go-sqlite.md)).
 - Whether the signed-in actor may touch the row it asked for: the actor in the store
   signature, the predicate in the SQL, the two answers being indistinguishable, and a
@@ -187,7 +188,11 @@ below is what it currently catches, not the definition.
   ([patterns/go-data-deletion.md](patterns/go-data-deletion.md)).
 - A link in an outgoing email built from `Config` and never from the request, and a
   header value refused when it holds CR or LF
-  ([patterns/go-email.md](patterns/go-email.md)).
+  ([patterns/go-email.md](patterns/go-email.md)) — both resting on the two boot checks
+  in [patterns/go-config.md](patterns/go-config.md), `BASE_URL` and the sender address.
+- A test never sending a request off this machine
+  ([patterns/go-testing.md](patterns/go-testing.md)): `srv.URL` is `http://example.com`,
+  so any client but `srv.Client()` asserts against a stranger's server.
 - Any version pin whose note names a security fix.
 - Every rule about how a secret is handled: a secret arrives as a file and `LogValue`
   keeps it out of the logs ([patterns/go-config.md](patterns/go-config.md) *Secrets*), a

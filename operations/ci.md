@@ -1,6 +1,6 @@
 # Operations: CI
 
-**Last verified: 2026-09-05**
+**Last verified: 2026-09-08**
 
 **There is no CI server.** One person writes the code, runs the gates, and pushes; a
 second machine repeating that work is not worth its upkeep. The mechanical items in the
@@ -28,6 +28,8 @@ of it: the Makefile says what runs, and this document says why.
   function you never call as exactly that, not as red. A red gate means: bump the
   dependency, don't silence the check.
 - **`go mod tidy -diff`** — fails instead of mutating; keeps `go.mod`/`go.sum` honest.
+  `go mod tidy` under the pin is the fix, by hand: it is the one gate `make fmt` does not
+  apply, because off the pin it would raise the `go` line without a word.
 - **`-shuffle=on`** — flushes out inter-test ordering dependencies early.
 - **`-race`** — mandatory, never dropped for speed. If the suite gets slow, fix the
   suite.

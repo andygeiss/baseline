@@ -22,9 +22,10 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 
 | Component | Pinned version | Released | Notes |
 |---|---|---|---|
-| Go | **1.27.1** | 2026-09-01 | The 1.27 line's first patch, so the policy adopts the major here. Not a security release. 1.27.0 is the floor: it carries every 1.26 security fix, including GO-2026-6091, the `html/template` escaping bug (an unescaped `/`, XSS). Re-verify at 1.28.1, about March 2027. |
+| Go | **1.27.1** | 2026-09-01 | The 1.27 line's first patch, so the policy adopts the major here. Not a security release. 1.27.0 is the floor: it carries every 1.26 security fix, including the five `html/template` escaper XSS fixes of that line, GO-2026-6091 last. Re-verify at 1.28.1, about March 2027. |
 | htmx | **2.0.10** | 2026-04-21 | The 2.x line is stable and feature-complete. |
 | htmx 4.x | ❌ not yet | 2026-08-28 | 4.0.0 is stable, on npm's `next` tag; `latest` still names 2.0.10. A breaking rewrite of 2.x, fetch-based. Adoption waits for 4.0.1 — *Version policy* below. |
+| SQLite driver | **v1.58.0** | 2026-09 | `modernc.org/sqlite`. The tier-1 pragmas are only as good as the driver: v1.42.1 cancelled unrelated queries. |
 | scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
 | Make | system default | — | Command runner only, and the only gate: `make check` against the tree, `make ci` against the commit. Makefile MUST stay runnable by GNU Make 3.81, the version macOS's Command Line Tools ship — portable subset, see [stack/makefile.md](stack/makefile.md). |
 | CSS | Baseline "Widely available" | rolling | No preprocessor, no framework. Allowed feature set defined in [stack/css.md](stack/css.md). |
@@ -56,6 +57,7 @@ moved. What each run found is in [VERIFICATION.md](VERIFICATION.md).
 - htmx versions: `npm view htmx.org dist-tags` or https://github.com/bigskysoftware/htmx/tags
   — **not** the GitHub releases page: upstream tags 2.x patches without creating a
   Release object there (2.0.10 never appeared on it)
+- SQLite: https://proxy.golang.org/modernc.org/sqlite/@latest
 - scs: https://github.com/alexedwards/scs/tags
 - CSS Baseline: https://web.dev/baseline
 - `design.md` spec: https://github.com/google-labs-code/design.md — its README is where

@@ -21,6 +21,7 @@ No trigger: these fire for every tool. The `run()` pattern and the command-line 
 are ruled by `patterns/go-cli.md`, which is required reading.
 
 - [ ] `go.mod` says `go 1.27`, matching `VERSIONS.md`, and has no `toolchain` line
+- [ ] No `replace` directives on main — every gate passes with one, and `go install` refuses the module
 - [ ] No dependencies outside the approved list in `stack/go.md`, or each extra one is justified in the README
 - [ ] Flags via stdlib `flag` only — no cobra, viper, or urfave
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build .` (or `./cmd/...` in a multi-binary module)
