@@ -1,6 +1,8 @@
 # Pattern: Testing (Go)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08
+
+**One rule here is tier 1: a test never sends a request off this machine.**
 
 Stdlib `testing` only. No assertion libraries (no testify) — a failed comparison is
 `t.Errorf("got %v, want %v", got, want)` and that's enough. No mocking frameworks —
@@ -53,13 +55,22 @@ caught it.
   c := srv.Client()                                        // the one client that reaches it
   ```
 
+  `srv.Client()` is the network here, not a convenience: it reaches the handler at any
+  host and either scheme, and `srv.URL` becomes `http://example.com` the moment anything
+  uses the server. **Any other client sends the request to the real example.com** —
+  `http.Get(srv.URL)` returns IANA's 200 and the test passes having asserted nothing. A
+  case that needs its own jar or redirect rule builds
+  `&http.Client{Transport: srv.Client().Transport}`; nothing else reaches the server.
+
   Assert on status code, critical headers, and *presence* of key HTML fragments
   (`strings.Contains`) — not exact HTML, which makes tests brittle.
   ⚠️ For mutation handlers, the client MUST NOT follow redirects, which `c` does by
   default: it transparently follows the mandated 303 and reports the redirected GET's
   200, indistinguishable from the direct-200 bug the PRG rule exists to prevent.
   Set `c.CheckRedirect = func(*http.Request, []*http.Request) error { return
-  http.ErrUseLastResponse }` and assert the 303 + `Location` directly.
+  http.ErrUseLastResponse }` and assert the 303 + `Location` directly. `srv.Client()`
+  hands back the same client every call, so that assignment is the server's: one server
+  per test, never one shared by subtests that want different redirect rules.
 - **htmx paths:** test each dual-mode handler twice — once plain, once with
   `HX-Request: true` — asserting full page vs fragment.
 - **Concurrency:** `testing/synctest` (`synctest.Test`) for anything with timers or
@@ -67,8 +78,10 @@ caught it.
   `synctest.Sleep` (Go 1.27+): it moves the clock and then waits until every other
   goroutine is durably blocked. The in-memory server above can sit inside the bubble; a
   real socket must stay outside: a goroutine blocked on it is never durably blocked, so the
-  bubble's clock never advances and `synctest.Wait` never returns. `make check` always
-  runs `go test -race -shuffle=on ./...`.
+  bubble's clock never advances and `synctest.Wait` never returns. A bubble is not a test:
+  `t.Run`, `t.Parallel` and `t.Deadline` panic inside one, and the panic takes the rest of
+  the package's tests with it. The bubble goes *inside* the subtest, and `t.Parallel()` is
+  called before entering it. `make check` always runs `go test -race -shuffle=on ./...`.
 - **Fuzzing** (`go test -fuzz`) for parsers and any function taking untrusted input.
 
 ## Test placement
