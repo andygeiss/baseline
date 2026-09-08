@@ -1,6 +1,6 @@
 # Verification Record
 
-**Last verified: 2026-09-05**
+**Last verified: 2026-09-08**
 
 How this repository proves it is right, and what every review run found. The
 README states the standard in a paragraph; this file holds the evidence and the
@@ -66,14 +66,194 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**The budget boundary, settled.** The four budget sentences in README.md *Size budgets*
-said "stays under" where `make tokens` fails only above the number; they now say "stays
-within", so a document at exactly 3,800 is what both mean. The numbers did not move.
-Owed: a pass over the four sentences and the record.
+**The 1.27 defect backlog (v4.6.0).** Twenty-nine corrections across fourteen documents,
+each verified by execution against the local 1.27.1 toolchain — a different and lesser
+standard than the adversarial half. Owed: two consecutive passes at zero over the changed
+documents, then the reference sync and the tag gate below.
+
+The 2026-09-05 budget-wording item is cleared; the run entry records it.
 
 ## Run log
 
 Newest first.
+
+### 2026-09-08 — the 1.27 defect backlog (v4.6.0)
+
+**Go 1.27's standard-library delta is almost entirely noise for this stack; the value was
+the defects it exposed in rules already shipped.** Ten parallel audits against the local
+1.27.1 toolchain — HTTP, json/v2, testing, language, toolchain, runtime, crypto, database,
+dependency absorption, pattern sweep — produced no new pattern document and no version
+bump. Twenty-nine corrections across fourteen documents, every one verified by execution
+before it was written, most of them facts a careful reader would have been led *into* by
+the corpus as it stood.
+
+**Six were tier 1, and two of those routed a reader straight into harm.**
+`patterns/go-email.md`'s tier-1 rule builds every emailed link from `cfg.BaseURL`, and no
+document defined, parsed, validated or set it — three consumers, zero definitions,
+including a checklist box. With no field to build from, the shortest path back to a
+working reset link is the `r.Host` line that document prints as the thing never to write.
+`go-config.md` now owns `BASE_URL` and the sender address, the two boot checks
+`go-email.md` already credited to it. The check is on the scheme and the host, never on
+`err`: `url.Parse` returns no error for `evil.example`, `/reset`, `app.db` or
+`javascript:alert(1)`.
+
+Under json/v2, `Marshal` returns the bytes it got through **and** a non-nil error where v1
+returned `nil` — measured, a `MarshalWrite` at a `ResponseWriter` wrote 13 bytes and then
+failed, and a handler recovering with `http.Error` answered
+`status=200 body="{\"name\":\"run\",\"items\":[\"a\"internal error\n"`. The v1 shape is
+gated on `jsonflags.ReportErrorsWithLegacySemantics`, which `go doc` does not mention. And
+an error *wrapping* `errors.ErrUnsupported` is read by v2 as "use the default
+representation": a `MarshalJSONTo` written to redact a secret returned
+`{"user":"ada","token":"hunter2"}` with a nil error, while the `[]byte` form errored
+loudly. The docs recommend the streaming form, so the recommended form is the unsafe one,
+and `go-errors-logging.md` rule 1 *mandates* the `%w` wrap that carries the sentinel in.
+This replaced the removed `SkipFunc`, which is why nothing in training data warns about it.
+
+**One tier-1 trap this repository created itself.** v4.4.0 moved handler tests to
+`httptest.NewTestServer`; `srv.URL` is `http://example.com` as soon as anything uses the
+server, so `http.Get(srv.URL)` returned **200 with `Server: cloudflare`** and IANA's
+Example Domain page. Under `httptest.NewServer` the same line was correct. Nothing in
+`make check` catches it — `go vet` has no such check and the gates have no network
+isolation — so `go-testing.md` carries a tier-1 carve-out. The `Server` doc's "set by the
+first call to `Client`, `Start`, or `StartTLS`" is why a test that *only* misuses `srv.URL`
+fails loudly on an empty string while one that uses the server first passes silently.
+
+**Rule 8 of `go-sqlite.md` is tier 1, and the call is worth stating.** Read strictly
+against the three-harm test, a leaked `Rows` is tier 2. But the corpus mandates
+`SetMaxOpenConns(1)` and never said `defer rows.Close()`, `rows.Err()` or
+`defer tx.Rollback()` anywhere, and on a one-connection pool the leak is not slow: pool
+stats went `{MaxOpenConnections:1 OpenConnections:1 InUse:1}` and the next write blocked
+to its context deadline. `busy_timeout` never fires, because the wait is in Go's pool
+rather than in SQLite — invisible to every SQLite-shaped diagnosis. It is the failure mode
+the tier-1 pool itself creates, so it inherits that tier. Draining to the end releases the
+connection, which is exactly why it hides: only `break`, an early `return` and the error
+path wedge. **No tool catches any of it** — seven such defects on one file drew nothing
+from `go vet` or `staticcheck -checks=all`, with an SA4017 canary proving both ran — so
+the only mechanical answer is a `t.Cleanup` in `newTestDB` asserting `Stats().InUse == 0`,
+registered *after* the `Close` cleanup so LIFO runs it first.
+
+**Two timeout rules were false in the same way.** net/http arms the write deadline in a
+`defer` inside `readRequest`, which fires when the headers are parsed and the body is not
+yet read, so `WriteTimeout` sits above `ReadTimeout` *plus* the budget: the canonical
+10 s and 30 s ceiling a handler at 20 s, not 30. Measured with the pair scaled down, the
+client got **no status line at all** while the handler's `w.Write` returned `nil`, because
+net/http flushes after the handler returns. The same fact is the missing half of the
+upload cap: 32 MiB inside a 10 s `ReadTimeout` needs ~27 Mbit/s of sustained uplink, and
+scaled 10× down the handler got a plain `i/o timeout` instead of `*http.MaxBytesError`,
+so the client saw 400 where the tier-1 pattern promises 413. `go-file-uploads.md` had no
+occurrence of the word "timeout".
+
+**`make fmt` never converged.** `go fix` applies each fixer once and one rewrite exposes
+the next: a 3-clause scanning loop fired `rangeint` on pass one and `slicescontains` only
+became visible on pass two, so `make check` was red immediately after `make fmt`. Worse,
+the import `go fix` adds to a single-import file is a **second `import` declaration** that
+`gofmt -l` cannot see and `goimports` has already run past — nothing in `make` would ever
+have fixed it. The recipe now loops to a clean `go fix -diff` and runs `goimports` again
+after. `go fix -diff` exits 1 on a pending diff and 0 when clean, so it is a sound gate
+*and* a sound loop condition. The bound is not for issue 77482 as first suspected: with
+`go fix ./... || exit 1` in the body, that bug fails the recipe rather than hanging it —
+the bound is insurance against any fixer that cannot converge. (77482 is still open,
+milestone Go 1.28.)
+
+**Changes to the language had never been reviewed.** `grep -in "language\|generic\|type
+parameter\|method declar\|inference"` over this file returned zero hits before this run;
+the v4.4.0 adoption pass covered the stdlib and the fixer set thoroughly and never opened
+*Changes to the language*. Three items landed. A generic method cannot implement a port
+interface (`interface method must have no type parameters`), which collides with
+*Interfaces are defined by the consumer* directly above it. A struct literal key may name
+a promoted field and `go fix`'s `embedlit` rewrites the nested form to it — then adding a
+field of that name to the outer struct moves every flattened literal silently, leaves the
+embedded field zero, and compiles clean past `go vet` and `staticcheck`. That is the one
+1.27 change a mandated gate writes into the code by itself. And an iterator that ignores
+`yield`'s return panics the caller's `break`, true since 1.23 and caught by nothing.
+
+**Decided with Andy.** One release, not two. `-shuffle` stays unforked in `make test`,
+with the fact stated instead: measured, `-race` caches and `-shuffle=on` never does — the
+cacheable set in `go help test` does not contain it — so "fix the suite, don't fork the
+flags" named a remedy that cannot exist. The SQLite driver takes the shortened
+`VERSIONS.md` row rather than a budget raise. `Config.LogValue` stays *and* the field
+becomes a `Secret`: verified, `LogValue` alone leaves the key readable when the config is
+nested in a struct, in a slice, in a map, or printed under any `fmt` verb, and all four are
+clean once the type carries `LogValue`, `String` and `MarshalText`. `%#v` and an explicit
+`string(s)` survive both, and nothing in the type system fixes them. Tokens move to
+`rand.Text()` — 26 base32 characters, exactly 130 bits, verified over 20,000 draws — a
+reduction from 256 bits, taken because the stdlib commits to ≥128 and to lengthening
+`Text` if that stops holding, which a hand-chosen `32` does not. The dead
+`if _, err := rand.Read(b)` branch went with it: `crypto/rand` crashes the program rather
+than return an error, and a branch that teaches otherwise invites a fallback.
+`/debug/pprof/goroutineleak` is a rule in `go-background-work.md` and **not** a checklist
+box, because the box would have spent 52 of the 55 tokens then left on the change path.
+`go tool` directives for the dev tools are deferred: a `tool` directive is a `require`, and
+whether it lands in a consumer's module graph — which is why `stack/go.md` says "not a
+module dependency" — was not verified.
+
+**Two numbers moved inside documents to pay for tier-1 text, and neither was a budget
+raise.** `go-http-client.md` sat at 3,796 of 3,800, so rule 3's drain-mechanism clause
+(the 256 KiB / 50 ms numbers) paid for the `WriteTimeout` correction: measured-correct, but
+the rule is `defer resp.Body.Close()` whatever the numbers are, and the helper it was
+written in v4.4.0 to justify deleting is already gone. `go-config.md` needed 208 tokens it
+did not have, so three arguments moved here — the exit-2/exit-1 reconciliation with
+`go-cli.md`, the `$CREDENTIALS_DIRECTORY` naming rationale, and rule 7's `beside`
+derivation, which the prose above it already states as `voices/jarvis.opus` →
+`voices/jarvis.txt`. Every ruling those paragraphs carried survives in one sentence at the
+rule.
+
+**One claim in the handoff did not survive re-execution and was dropped.** `b.Loop` was
+adopted on the strength of the compiler-deletion measurement — an inlinable pure function
+benchmarked 0.2230 ns/op under `b.N` against an empty loop's 0.2229, and 1.56 under
+`b.Loop` — but the handoff's second argument, that the `b.N` shape re-runs setup and costs
+2.54 s against 0.85 s, measured 0.66 s against 0.73 s here and is not in the rule.
+
+**Facts re-confirmed, so the next sweep does not re-derive them.** All five
+`html/template` escaper advisories carried by the 1.27.0 floor, checked against
+`vuln.go.dev`:
+
+| ID | CVE | Fixed in |
+|---|---|---|
+| GO-2026-4603 | CVE-2026-27142 | 1.25.8 / 1.26.1 |
+| GO-2026-4865 | CVE-2026-32289 | 1.25.9 / 1.26.2 |
+| GO-2026-4980 | CVE-2026-39826 | 1.25.10 / 1.26.3 |
+| GO-2026-4982 | CVE-2026-39823 | 1.25.10 / 1.26.3 |
+| GO-2026-6091 | CVE-2026-56858 | 1.25.13 / 1.26.6 / 1.27.0-rc.3 |
+
+Every range is `introduced: 0`, so "1.27.0 carries every 1.26 security fix" holds. **The
+escaping rule is tier 1 and the package under it needed five fixes in one release line,
+which is why "always run the latest patch release" is not a preference.** Also confirmed:
+`os.Root` refuses `../`, an absolute path, a symlink and a path through one, where
+`filepath.Join` leaked the target twice; `sync.WaitGroup.Go` takes no error and cancels no
+sibling, so x/sync's errgroup row stands; stdlib has `pbkdf2`, `hkdf` and `sha3` and no
+password hash, so x/crypto's row stands and is the row a careless 1.27 sweep would delete;
+`gofmt` neither adds nor removes an import, so x/tools' purpose is import management;
+`json.RawMessage` is a **type alias** for `jsontext.Value` and `(*json.Number)` has
+`UnmarshalJSONFrom`, so the cheap `UseNumber` remedy is a typed field, not a
+`WithUnmarshalers` func; and `go mod init` under 1.27.1 writes `go 1.27.1`, which the
+version policy forbids and `go mod tidy -diff` accepts.
+
+**Findings parked, real and verified, not shipped.** `time.Duration` has no json/v2
+representation at all and the only stdlib fix is an option `stack/go.md` forbids — a gap
+by absence, since no corpus document currently puts one in a JSON struct. `sql.Null[T]`
+serialises as `{"V":…,"Valid":…}`, and NULL handling is entirely unruled. A `[N]byte` is
+base64 under v2 where v1 wrote an array of numbers, but `uuid.UUID` has `MarshalText` so
+the mandated UUID is unaffected. `GOMEMLIMIT` near the live heap is a permanent brownout
+rather than a backstop — 2.6 M ops/s unset, 150 K at 210 MiB against ~200 MiB live — and
+the runtime's own limiter never trips, but it is unreachable at today's shape.
+`http.NewResponseController(w).SetWriteDeadline` extends one request's deadline instead of
+widening `WriteTimeout` for every route, and **silently no-ops unless the request-log
+`ResponseWriter` wrapper implements `Unwrap() http.ResponseWriter`**, which no baseline
+document shows; the `Unwrap` half earns its place regardless and the per-route hatch
+weakens the recorded-waiver discipline. `runtime/trace.FlightRecorder` is the right tool
+for "the box hiccupped at 3 am", which is a solo-dev problem, but needs a trigger, a write
+path and a ring size — pattern-sized prose. And fuzzing fires for every project type while
+only `checklists/library.md` has a box; the honest fix may be to narrow
+`go-testing.md` instead, since web apps do not hand-roll parsers.
+
+**The owed budget-wording pass is cleared.** All four sentences in README *Size budgets*
+read "stays within", and `make tokens` fails only above the number, so a document at
+exactly 3,800 is what both mean. Two paths now sit at their number rather than under it:
+the change path is **8,000 of 8,000** after the SQLite row, and `go-config.md` is 3,798 of
+3,800. That is green and it is also the end of the road — **the next addition to either
+needs a budget decision before it is written**, which is the shape budget the 2026-08-18
+entry said would come due.
 
 ### 2026-09-05 — the two decisions, decided (v4.5.0)
 
@@ -385,68 +565,6 @@ run; the README's stack line; and four dependencies under the pin as their own
 one informational entry in a required module the code never calls (GO-2026-5932,
 `golang.org/x/crypto`).
 
-### 2026-09-04 — no code before the brief (v4.3.0)
-
-**The checklists guard the end of a task; nothing guarded the start.** A task that
-arrives as one sentence gets finished by guessing, and every guess is a decision the
-reader never made. Every task now carries four fields the user has seen before the
-first line of code — job, why, guardrails, done means — drafted by the agent from the
-request, the repository, and the project's `SPEC.md`, asked about one question at a
-time with a recommended answer, and re-read as the acceptance test before done.
-[SKILL.md](SKILL.md) *Before the first line of code* is the rule; [README.md](README.md)
-*The task brief* is the definition behind it, the same split the tiers have. `SPEC.md`
-at every project's root is the project-level brief, and a task brief is a delta against
-it: a row in each project-type table, a line in the two layout trees, a box in every
-checklist's *Every …* section beside the two that make the brief the acceptance test.
-
-**Where the rule had to live was the first defect, and the design review caught it.**
-The draft put the whole rule in README with a pointer in SKILL.md, the way the waiver
-form is reached. The waiver pointer fires at a rare moment; the brief fires on every
-task, so README would have become a per-task read that four sentences say never happens
-and `make tokens` never counts. The operative rule moved into SKILL.md with the four
-one-line fields, README kept the survival table, the `SPEC.md` shape, and the example,
-and the project-type row carries the shape itself so nothing on the floor path opens
-README. Two more from the same review: `DESIGN.md` and `PATTERNS.md` left the survival
-table — the first holds token values, not reasons; the second does not exist — and the
-full-interview trigger reuses SKILL.md's shape line instead of "touches more than one
-package", which in this layout fires on nearly every feature.
-
-**The budgets held by trimming, which was the branch the 2026-08-18 entry left open.**
-The web checklist had five tokens and the change path sixty-one; the section, the boxes,
-and the trigger cost about a hundred and thirty. Fourteen rationale sentences left
-`SKILL.md` — every one a second sentence for a rule whose instruction survives on the
-line before it, and one a verbatim restatement of core value 6 — and four lines left the
-web checklist, one of them the thumbnail cross-reference that `go-file-uploads.md` makes
-itself. `SKILL.md` still ends 35 tokens larger (1,763 → 1,798), the checklist 9 smaller
-(4,995 → 4,986), and the change path moved 7,939 → 7,965 of 8,000; the floor is 20,227.
-Thirty-five tokens of headroom is not room for the next trigger section, which is what
-*What would make these numbers wrong* under that entry says comes next: the shape
-budget, not a third raise.
-
-**Sixty-three defects over seven passes, two lenses each round; passes eight and nine
-clean on both.** Thirty-two, nine, five, eight, five, three, one, then nothing. The
-first pass found the structural ones: an agent inside an existing project never reaches
-the README section that says how to write a missing `SPEC.md`, "confirmed" contradicted
-the decline clause, the fourth field was "Done" in the rows and "Done means" everywhere
-else, and the reference gate would have rejected the format the README's own example
-uses. After that every defect was a sentence saying more or less than it meant — "the
-sections below are the long form" when one bullet's long form is above it; "links" where
-the corpus and the reference both name; a gate anchored at column one that failed a
-bulleted label with a message calling the label absent. One defect sat outside the diff
-and was fixed with it: the README tree still labelled README the "navigation protocol",
-the claim README.md:30 retired.
-
-**The empirical half:**
-[baseline-reference](https://github.com/andygeiss/baseline-reference) `883dcb8`, tagged
-v4.3.0, pinning baseline `7c5c2a4`. `SPEC.md` carries the four fields under *The brief*,
-each bullet naming its long form, and a fifth acceptance criterion, `make ci`;
-`verify.sh` gates the file and the four labels as its ninth step, accepting a bold
-name or a `Field:` line and rejecting a heading, and was run red on a missing file, a
-missing field, and a renamed one before it was trusted. `GOTOOLCHAIN=go1.26.7 ./verify.sh`
-exits 0 over **78 gates**, one more than v4.2.0, and `GOTOOLCHAIN=go1.26.7 make ci` is
-green on `883dcb8` with `go version go1.26.7 darwin/arm64` as its first line. No code
-moved; nothing needed a waiver.
-
 ### Earlier runs
 
 Compressed to what a future reader still needs: the counts, and the findings that would
@@ -455,6 +573,19 @@ otherwise be re-litigated. The full narratives are in this file's git history.
 **The three newest runs stay in full; everything older lives here.** A run log that only
 grows costs more to re-read than it saves, and the compression is what keeps a narrative
 from being re-litigated a year after it was settled.
+
+- **2026-09-04 — no code before the brief (v4.3.0).** 63 defects over seven passes, two
+  lenses each; passes eight and nine clean. Every task now carries four fields the user
+  has seen before the first line of code — job, why, guardrails, done means — with
+  `SPEC.md` at each project root as the project-level brief and a task brief a delta
+  against it. **The operative rule lives in SKILL.md, not README**, because the waiver
+  pointer fires rarely and the brief fires on every task, so a README pointer would have
+  made README a per-task read that four sentences say never happens and `make tokens`
+  never counts. The budgets held by trimming, the branch the 2026-08-18 entry left open:
+  fourteen rationale sentences left `SKILL.md` and four lines the web checklist, landing
+  the change path at 7,965 of 8,000 and the floor at 20,227. Reference `883dcb8`, v4.3.0,
+  pinning `7c5c2a4`: 78 gates green under `GOTOOLCHAIN=go1.26.7`, no code moved, no
+  waiver.
 
 - **2026-08-27 — go fix joins the gates (v4.2.0).** 27 defects over seven rounds, the
   last two clean. `go fix -diff` is the third line of `check` and `go fix ./...` the
