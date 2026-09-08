@@ -1,6 +1,6 @@
 # CLI Tool — Triggers and Definition of Done
 
-**Last verified: 2026-09-05**
+**Last verified: 2026-09-08**
 
 One topic per section: **the moment it fires, the document that rules it, and what done
 looks like.** Read a section before you write the thing it covers; walk its boxes before

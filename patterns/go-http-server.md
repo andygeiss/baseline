@@ -1,6 +1,6 @@
 # Pattern: Go HTTP Server
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08
 
 **Three rules here are tier 1 and never waived:** the `http.CrossOriginProtection` wrap,
 the 1 MiB request-body cap, and the ops listener staying localhost-only and never
@@ -131,7 +131,7 @@ srv := &http.Server{
   *triggers* shutdown — it is already canceled at that moment, so passing it (or anything
   derived from it) makes `Shutdown` return immediately and kill in-flight requests.
 - Request-scoped work uses `r.Context()` all the way down, so client disconnects cancel
-  DB queries. Work that outlives the request is the exception, and
+  a running query. Work that outlives the request is the exception, and
   [go-background-work.md](go-background-work.md) rules it.
 
 **The four timeouts above are only half of the ladder.** A handler that calls someone

@@ -69,7 +69,7 @@ var StaticFS embed.FS
    The deliverable is a single static binary; `CGO_ENABLED=0 go build ./cmd/server`
    must suffice.
 6. **Config via flags + environment,** stdlib `flag` only, with env vars as defaults:
-   `HOST`, `PORT`, `DATABASE_URL`, `LOG_LEVEL` (full contract in
+   `HOST`, `PORT`, `BASE_URL`, `DATABASE_URL`, `LOG_LEVEL` (full contract in
    [operations/web-application.md](../operations/web-application.md); the struct,
    parser, and validation in [go-config.md](go-config.md)). The `Config` type and
    its parser sit in the `main` package — `internal/` never reads the environment.

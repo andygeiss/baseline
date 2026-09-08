@@ -194,7 +194,7 @@ below is what it currently catches, not the definition.
   ([patterns/go-testing.md](patterns/go-testing.md)): `srv.URL` is `http://example.com`,
   so any client but `srv.Client()` asserts against a stranger's server.
 - Any version pin whose note names a security fix.
-- Every rule about how a secret is handled: a secret arrives as a file and `LogValue`
+- Every rule about how a secret is handled: a secret arrives as a file and its own type
   keeps it out of the logs ([patterns/go-config.md](patterns/go-config.md) *Secrets*), a
   secret never arrives as a flag *value* ([patterns/go-cli.md](patterns/go-cli.md)), and
   `.env` is gitignored and never used in production

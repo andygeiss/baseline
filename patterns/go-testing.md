@@ -59,7 +59,7 @@ caught it.
   host and either scheme, and `srv.URL` becomes `http://example.com` the moment anything
   uses the server. **Any other client sends the request to the real example.com** —
   `http.Get(srv.URL)` returns IANA's 200 and the test passes having asserted nothing. A
-  case that needs its own jar or redirect rule builds
+  case that needs its own cookie jar or timeout builds
   `&http.Client{Transport: srv.Client().Transport}`; nothing else reaches the server.
 
   Assert on status code, critical headers, and *presence* of key HTML fragments

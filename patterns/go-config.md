@@ -51,7 +51,6 @@ func parseConfig(args []string, stderr io.Writer) (Config, error) {
 	fs.StringVar(&c.DatabaseURL, "database-url", cmp.Or(os.Getenv("DATABASE_URL"), "app.db"), "SQLite file path (env DATABASE_URL)")
 	fs.StringVar(&c.MailFrom, "mail-from", cmp.Or(os.Getenv("MAIL_FROM"), "no-reply@localhost"), "sender address (env MAIL_FROM)")
 	level := fs.String("log-level", cmp.Or(os.Getenv("LOG_LEVEL"), "info"), "debug|info|warn|error (env LOG_LEVEL)")
-	// No cmp.Or default: -host and -port are not parsed yet.
 	base := fs.String("base-url", os.Getenv("BASE_URL"), "public origin for emailed links (env BASE_URL)")
 
 	// Rule 5: the variables that are not flags have nowhere else to be
@@ -85,9 +84,10 @@ func parseConfig(args []string, stderr io.Writer) (Config, error) {
 	}
 	// url.Parse errors on almost nothing: "evil.example", "/reset" and
 	// "javascript:alert(1)" all parse. The scheme and the host are the check.
-	u, err := url.Parse(cmp.Or(*base, "http://"+net.JoinHostPort(c.Host, c.Port)))
+	raw := cmp.Or(*base, "http://"+net.JoinHostPort(c.Host, c.Port)) // -host/-port are parsed by now
+	u, err := url.Parse(raw)
 	if err != nil || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https") {
-		return Config{}, fmt.Errorf("base-url %q: want an absolute http or https URL", *base)
+		return Config{}, fmt.Errorf("base-url %q: want an absolute http or https URL", raw)
 	}
 	c.BaseURL = u
 	if strings.ContainsAny(c.MailFrom, "\r\n") {
@@ -228,7 +228,7 @@ func (Secret) String() string               { return "REDACTED" }
 func (Secret) MarshalText() ([]byte, error) { return []byte("REDACTED"), nil }
 ```
 
-Neither method survives `%#v` or an explicit `string(s)`, and nothing in the type system can.
+None of the three survives `%#v` or an explicit `string(s)`, and nothing in the type system can.
 
 ### A CLI holds its secret differently
 

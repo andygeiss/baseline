@@ -1,6 +1,6 @@
 # Pinned Versions
 
-**Last verified: 2026-09-05.** These are the versions all new projects MUST use.
+**Last verified: 2026-09-08.** These are the versions all new projects MUST use.
 If your training data disagrees, this file wins. Verify against the source links
 when updating this file.
 
@@ -46,7 +46,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
   [operations/ci.md](operations/ci.md), with the `make ci` re-scan of every live
   repository that goes with it. No bot, no CI server.
 
-## Sources checked (2026-09-05)
+## Sources checked (2026-09-08)
 
 Every row above was checked against its source on this date, not only the ones that
 moved. What each run found is in [VERIFICATION.md](VERIFICATION.md).

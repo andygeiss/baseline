@@ -66,7 +66,7 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**The 1.27 defect backlog (v4.6.0).** Twenty-nine corrections across fourteen documents,
+**The 1.27 defect backlog (v4.6.0).** Thirty-two corrections across sixteen documents,
 each verified by execution against the local 1.27.1 toolchain — a different and lesser
 standard than the adversarial half. Owed: two consecutive passes at zero over the changed
 documents, then the reference sync and the tag gate below.
@@ -83,7 +83,7 @@ Newest first.
 the defects it exposed in rules already shipped.** Ten parallel audits against the local
 1.27.1 toolchain — HTTP, json/v2, testing, language, toolchain, runtime, crypto, database,
 dependency absorption, pattern sweep — produced no new pattern document and no version
-bump. Twenty-nine corrections across fourteen documents, every one verified by execution
+bump. Thirty-two corrections across sixteen documents, every one verified by execution
 before it was written, most of them facts a careful reader would have been led *into* by
 the corpus as it stood.
 
@@ -128,7 +128,8 @@ rather than in SQLite — invisible to every SQLite-shaped diagnosis. It is the 
 the tier-1 pool itself creates, so it inherits that tier. Draining to the end releases the
 connection, which is exactly why it hides: only `break`, an early `return` and the error
 path wedge. **No tool catches any of it** — seven such defects on one file drew nothing
-from `go vet` or `staticcheck -checks=all`, with an SA4017 canary proving both ran — so
+from `go vet` or `staticcheck -checks=all`, with a planted SA4017 proving staticcheck
+was analysing the file — so
 the only mechanical answer is a `t.Cleanup` in `newTestDB` asserting `Stats().InUse == 0`,
 registered *after* the `Close` cleanup so LIFO runs it first.
 
@@ -204,6 +205,49 @@ benchmarked 0.2230 ns/op under `b.N` against an empty loop's 0.2229, and 1.56 un
 `b.Loop` — but the handoff's second argument, that the `b.N` shape re-runs setup and costs
 2.54 s against 0.85 s, measured 0.66 s against 0.73 s here and is not in the rule.
 
+**The adversarial half: fourteen defects over four passes, every one in this run's own
+work.** Pass one found five. `go-http-server.md` still said `r.Context()` means "client
+disconnects cancel DB queries", which the amended `go-sqlite.md` rule 7 now contradicts;
+the specificity rule resolves that collision, but the sentence overclaims on its own, so it
+narrowed to "cancel a running query" — the verified truth, and the same length, which is
+what let a floor document take it. `go-config.md` said "neither method" of three; its
+`base-url` error named the empty flag rather than the value actually parsed, so a bad
+`-host` would have reported `base-url ""`; and a new comment restated what the added `raw`
+line already shows. `go-testing.md` had bought a collision with itself: the `srv.Client()`
+escape hatch offered "its own jar or redirect rule" three lines above the ⚠️ block that
+mandates setting `CheckRedirect` on the shared client, so the hatch now reads "cookie jar
+or timeout" and redirect rules belong to the one-server-per-test rule.
+
+Pass two found three, all in this entry: its correction and document counts, an SA4017
+canary credited with proving `go vet` ran when it only proves staticcheck was analysing the
+file, and a `go-config.md` figure left stale by pass one's own fix. **That paragraph is
+where the last two runs found their final defects, and it is where this one found two of
+its rounds.** Pass three found two by grepping the corpus for every term the change
+touches: `go-project-layout.md` rule 6 still listed the environment contract without
+`BASE_URL`, and README's tier-1 secrets line still credited `LogValue` alone where
+`go-config.md` now says the type. Pass four found four `Last verified:` stamps: three
+documents this run genuinely reviewed still carried old dates, and `VERSIONS.md` *Sources
+checked* would have dated a source read today as read on 2026-09-05 — so every row was
+re-checked against its source instead, and all four still hold (`latest: 2.0.10` /
+`next: 4.0.0`, scs v2.9.0, go1.27.1, sqlite v1.58.0). Passes five and six clean.
+
+**`patterns/go-project-layout.md` keeps its 2026-09-04 date on purpose.** Adding `BASE_URL`
+to rule 6's list syncs a contract `go-config.md` owns; no pass reviewed that document's own
+rules, and the README's test is that the date moves for a review, not for an edit.
+
+**The snippets, run rather than read.** The canonical `Makefile` was executed end to end
+under GNU Make 3.81 on a module planted to need every stage: `goimports` added the missing
+import, `go fix` applied `rangeint` on pass one and `slicescontains` on pass two, and the
+final `goimports` merged the split declaration — one `make fmt`, then `make check` green
+through all eight gates, `make ci` green on the commit, `build`/`clean` correct, and
+`make fmt` still failing loudly (`Error 1`) on code that does not type-check, which is what
+the `|| exit 1` in the loop protects. `go-config.md`'s parser compiles and passes `gofmt`,
+`go vet`, `go fix -diff` and `staticcheck`, and its two boot checks were run: `evil.example`
+refused, `https://app.example` accepted, and a newline in `-mail-from` refused with the
+newline escaped by `%q` so the error itself cannot inject. `go-sqlite.md`'s `t.Cleanup`
+fails the leaking test and stays quiet on the closing one. `NewToken` compiles and returns
+26 characters.
+
 **Facts re-confirmed, so the next sweep does not re-derive them.** All five
 `html/template` escaper advisories carried by the 1.27.0 floor, checked against
 `vuln.go.dev`:
@@ -250,7 +294,7 @@ only `checklists/library.md` has a box; the honest fix may be to narrow
 **The owed budget-wording pass is cleared.** All four sentences in README *Size budgets*
 read "stays within", and `make tokens` fails only above the number, so a document at
 exactly 3,800 is what both mean. Two paths now sit at their number rather than under it:
-the change path is **8,000 of 8,000** after the SQLite row, and `go-config.md` is 3,798 of
+the change path is **8,000 of 8,000** after the SQLite row, and `go-config.md` is 3,795 of
 3,800. That is green and it is also the end of the road — **the next addition to either
 needs a budget decision before it is written**, which is the shape budget the 2026-08-18
 entry said would come due.
