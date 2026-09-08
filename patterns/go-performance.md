@@ -1,6 +1,6 @@
 # Pattern: Performance (Go)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08
 
 The ops listener this document profiles through is tier 1 —
 [go-http-server.md](go-http-server.md) owns it.
@@ -16,7 +16,11 @@ HTML over the wire with no client framework tax. Performance work is therefore
   `go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30`.
 - **Benchmarks:** stdlib `go test -bench . -benchmem` for hot paths (domain logic,
   rendering); compare changes with `benchstat` (dev-only tool, not a dependency).
-  A benchmark accompanies any change justified by "performance".
+  A benchmark accompanies any change justified by "performance", and its body sits under
+  `for b.Loop()`. A `b.N` loop is the old shape and no gate catches it: the compiler may
+  delete a body whose result goes nowhere, and the number that comes back is then the loop
+  counter. Measured on an allocation-free function — the domain logic this rule points at —
+  the `b.N` shape reported the empty loop's own 0.22 ns/op and `b.Loop` reported 1.56.
 - **Load sanity check** before first deploy: any HTTP load tool against the real
   binary; know your p99 at expected traffic so regressions are visible later.
 

@@ -1,6 +1,6 @@
 # Pattern: Authentication & Sessions (Go)
 
-**Tier 1** (safety — never waived) · Last verified: 2026-08-15 · Sessions: `alexedwards/scs/v2` (v2.9.0) · Hashing: argon2id
+**Tier 1** (safety — never waived) · Last verified: 2026-09-08 · Sessions: `alexedwards/scs/v2` (v2.9.0) · Hashing: argon2id
 
 The cookie flags, `RenewToken` and `Destroy`, the argon2id parameters, the
 no-enumeration rule, the rate limits, `FindCtx` treating expired rows as not found, and
@@ -150,7 +150,7 @@ and a limiter keyed on `""` throttles every visitor as if they were one.
 
 ## Password reset (when needed)
 
-Single-use token: 32 random bytes, **store only its SHA-256 hash**, 1-hour expiry,
+Single-use token from `rand.Text()`, **store only its SHA-256 hash**, 1-hour expiry,
 deleted on use; the plaintext token goes in the emailed link once. A used or expired
 token and an unknown email produce the same response (no enumeration). Consider
 sessions of that user revoked on successful reset.
@@ -173,14 +173,12 @@ instead.
 
 ```go
 // NewToken returns the secret to show the caller once, and the hash to store.
-func NewToken() (secret, hash string, err error) {
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil { // crypto/rand
-		return "", "", fmt.Errorf("token: %w", err)
-	}
-	secret = base64.RawURLEncoding.EncodeToString(b)
+// rand.Text cannot fail — crypto/rand crashes the program rather than return an
+// error — so there is no error branch here to tempt anyone into a fallback.
+func NewToken() (secret, hash string) {
+	secret = rand.Text() // 26 base32 chars, 130 bits, nothing to escape
 	sum := sha256.Sum256([]byte(secret))
-	return secret, hex.EncodeToString(sum[:]), nil
+	return secret, hex.EncodeToString(sum[:])
 }
 ```
 
@@ -190,7 +188,7 @@ MUST rules:
    above, for the same reason: a leaked database then leaks nothing usable.
 2. **SHA-256 is the right hash here, and argon2id is not.** A password is short
    and guessable, so the slow hash buys the time to notice a breach. This token
-   is 32 random bytes; nothing brute-forces that, and argon2id would spend 19 MiB
+   is 130 bits of randomness; nothing brute-forces that, and argon2id would spend 19 MiB
    of memory on every single API request to protect a secret that needs no
    protecting.
 3. **Show the secret once,** at creation, and never again. There is nothing to

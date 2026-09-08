@@ -1,6 +1,6 @@
 # Pattern: Go Background Work
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08
 
 Anything the process runs outside a request. Two shapes, and both owe the same answer to
 "how does this stop?" from [stack/go.md](../stack/go.md): **work on a schedule**, which
@@ -68,6 +68,15 @@ before the loop is the whole fix.
 **`context.Canceled` at shutdown is not an error.** Shutdown cancels the context
 mid-purge, and without that case every orderly stop logs an error nobody should go
 looking at.
+
+**`/debug/pprof/goroutineleak` answers "how does this stop?" mechanically** (Go 1.27), and
+the ops listener already serves it. It runs a marking GC and names every goroutine blocked
+on a channel, mutex or `WaitGroup` that nothing reachable can ever signal — file, line, and
+any `pprof` label. A janitor parked on `ctx.Done()` and a job waiting on a channel somebody
+still holds are not leaks and are not reported. Read it once before calling background work
+done; the endpoint costs about 4 ms. It answers "nothing can unblock this", not "this has
+been stuck a long time" — a sieve, not a proof. In a test, write the profile:
+`Lookup("goroutineleak").Count()` reports the last write and answers 0 before the first one.
 
 ## Work a request starts and does not wait for
 
