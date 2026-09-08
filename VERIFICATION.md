@@ -193,11 +193,12 @@ raise.** `go-http-client.md` sat at 3,796 of 3,800, so rule 3's drain-mechanism 
 (the 256 KiB / 50 ms numbers) paid for the `WriteTimeout` correction: measured-correct, but
 the rule is `defer resp.Body.Close()` whatever the numbers are, and the helper it was
 written in v4.4.0 to justify deleting is already gone. `go-config.md` needed 208 tokens it
-did not have, so three arguments moved here — the exit-2/exit-1 reconciliation with
-`go-cli.md`, the `$CREDENTIALS_DIRECTORY` naming rationale, and rule 7's `beside`
-derivation, which the prose above it already states as `voices/jarvis.opus` →
-`voices/jarvis.txt`. Every ruling those paragraphs carried survives in one sentence at the
-rule.
+did not have. About two-thirds came from three arguments moved here — the exit-2/exit-1
+reconciliation with `go-cli.md`, the `$CREDENTIALS_DIRECTORY` naming rationale, and rule
+7's `beside` derivation, which the prose above it already states as `voices/jarvis.opus` →
+`voices/jarvis.txt` — and the rest from tightening this run's own new prose, which is the
+order it should happen in: a sweep pays for its additions before it spends old content.
+Every ruling those paragraphs carried survives in one sentence at the rule.
 
 **One claim in the handoff did not survive re-execution and was dropped.** `b.Loop` was
 adopted on the strength of the compiler-deletion measurement — an inlinable pure function
@@ -205,7 +206,7 @@ benchmarked 0.2230 ns/op under `b.N` against an empty loop's 0.2229, and 1.56 un
 `b.Loop` — but the handoff's second argument, that the `b.N` shape re-runs setup and costs
 2.54 s against 0.85 s, measured 0.66 s against 0.73 s here and is not in the rule.
 
-**The adversarial half: fifteen defects over six passes, every one in this run's own
+**The adversarial half: sixteen defects over eight passes, every one in this run's own
 work.** Pass one found five. `go-http-server.md` still said `r.Context()` means "client
 disconnects cancel DB queries", which the amended `go-sqlite.md` rule 7 now contradicts;
 the specificity rule resolves that collision, but the sentence overclaims on its own, so it
@@ -231,9 +232,11 @@ checked* would have dated a source read today as read on 2026-09-05 — so every
 re-checked against its source instead, and all four still hold (`latest: 2.0.10` /
 `next: 4.0.0`, scs v2.9.0, go1.27.1, sqlite v1.58.0). Pass five re-derived every measured
 number and version gate in the shipped rules and found nothing; pass six caught this
-paragraph's own document count, which pass four's own fixes had made stale. Passes seven
-and eight clean. **A run that reports its own numbers has to re-count them after every
-round it reports** — three of the fifteen were exactly that, and no earlier entry says so.
+paragraph's own document count, which pass four's own fixes had made stale. Pass seven re-derived
+every reported number against the tree and found nothing; pass eight found this entry
+crediting three moved arguments with a trim that tightening had half paid for. Passes nine
+and ten clean. **A run that reports its own numbers has to re-check them after every round
+it reports** — four of the sixteen were exactly that, and no earlier entry says so.
 
 **`patterns/go-project-layout.md` keeps its 2026-09-04 date on purpose.** Adding `BASE_URL`
 to rule 6's list syncs a contract `go-config.md` owns; no pass reviewed that document's own
