@@ -1,6 +1,6 @@
 # Pattern: File Uploads (Go)
 
-**Tier 1** (safety — never waived) · Last verified: 2026-08-27
+**Tier 1** (safety — never waived) · Last verified: 2026-09-08
 
 Refusing the client's filename and the client's content type, deciding the type by
 sniffing the bytes, serving every file through a handler rather than a file server, and
@@ -19,6 +19,13 @@ The route raises its own cap at the cap site — never by widening the blanket 1
 cannot be raised downstream ([go-http-server.md](go-http-server.md) rule 6). In the
 middleware, before delegating to the mux:
 `limit := int64(1<<20); if r.URL.Path == "/upload" { limit = 32<<20 }; r.Body = http.MaxBytesReader(w, r.Body, limit)`.
+
+**`ReadTimeout` is the other half of the cap.** The whole body must arrive inside the
+server's 10 s ([go-http-server.md](go-http-server.md)), and 32 MiB in 10 s is ~27 Mbit/s
+of sustained *uplink* — more than a phone has. The read then fails mid-body, the handler
+gets a plain `i/o timeout` instead of `*http.MaxBytesError`, and the 413 below never runs.
+Raise `ReadTimeout` with the cap, and `WriteTimeout` by the same amount
+([go-http-client.md](go-http-client.md): the body is spending that one too).
 
 ```go
 // ParseMultipartForm, not ParseForm — see rule 1 below. Its argument is how
@@ -111,8 +118,14 @@ difference that bites:
 | **Atomicity** | The row and the bytes commit together. | Two writes that can disagree — hence the delete order below. |
 | **Good for** | Avatars, attachments, anything small. | Files big enough that holding one in memory is a problem. |
 
-Bytes on disk are written to a temp file in the **same directory** and renamed into place
-— `os.Rename` is atomic within a filesystem and fails across one.
+Bytes on disk go through one `*os.Root` the store holds — `Create`, `Rename`, `Open`,
+`Remove`, never a joined path. `os.Root` opens each path element against a held directory
+descriptor, so a name that climbs out with `..` or through a symlink is refused by the
+`openat` itself instead of by a check somebody has to remember. That matters least at
+upload, where the stored name is generated (rule 2), and most afterwards: the janitor
+below and the deletion path both join a database string to a directory. Writes still go to
+a temp file in the **same directory** and are renamed into place — `os.Rename` is atomic
+within a filesystem and fails across one.
 
 **A blob has no delete order and needs no sweeper** — the row *is* the bytes, so they
 cannot disagree. That is most of why the blob answer wins for small files.

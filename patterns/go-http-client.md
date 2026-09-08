@@ -1,6 +1,6 @@
 # Pattern: HTTP Client (Go)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08
 
 Calling someone else's HTTP API. Stdlib only. The rule that matters most is the
 first one, because the default is wrong:
@@ -79,7 +79,7 @@ are set by reading it.
 
 | Layer | Setting | Where it sits |
 |---|---|---|
-| Server | `WriteTimeout` | **above** the budget — the handler ends the work, not the socket |
+| Server | `WriteTimeout` | **above `ReadTimeout` + the budget** — its clock starts at the last header, so the body spends it |
 | Handler | `context.WithTimeout` | **the budget**: one owner per request path |
 | Outbound client | `http.Client.Timeout` | **at or above** the budget — the budget is what gives up |
 | Outbound transport | `ResponseHeaderTimeout` | **below** the client timeout — tells a silent server from a slow download |
@@ -88,7 +88,9 @@ Get the order wrong and the failure is silent in both directions. **`WriteTimeou
 the budget** kills the connection while the handler works on: the client sees a truncated
 response, the handler logs a success, and nothing names a timeout. **A client timeout
 below the budget** makes "this dependency is slow" and "we gave up on it" the same event,
-so the retries spend the budget re-asking a dependency that was about to answer.
+so the retries spend the budget re-asking a dependency that was about to answer. The
+canonical 10 s and 30 s therefore ceiling the budget at 20 s, and past it the client gets
+no status line while `w.Write` returns nil: net/http flushes after the handler returns.
 
 **Raising the client timeout to meet the budget retires the retries on that path** — the
 trade, not an oversight. `Timeout` bounds one attempt, so once it reaches the budget the
@@ -142,10 +144,7 @@ func (c *Client) Forecast(ctx context.Context, city string) (domain.Forecast, er
    `resp.StatusCode` yourself, every time. This is the most common outbound
    bug after the missing timeout.
 3. **`defer resp.Body.Close()` on every response with `err == nil`,** including
-   the error paths below it. A leaked body is a leaked connection. Over HTTP/1,
-   `Close` (Go 1.27+) keeps the connection for reuse when the unread rest is at
-   most 256 KiB and arrives within 50 ms — with a `Content-Length`, only when the
-   whole body is at most 256 KiB too.
+   the error paths below it. A leaked body is a leaked connection.
 4. **Cap the body you read.** `io.LimitReader` is the outbound twin of
    `http.MaxBytesHandler` ([go-http-server.md](go-http-server.md)): a broken or
    hostile server can stream until you run out of memory. 1 MiB, or a larger cap
