@@ -1,6 +1,6 @@
 # Operations: The Deployment Contract
 
-**Last verified: 2026-08-17**
+**Last verified: 2026-09-08**
 
 What the binary MUST do, and what any deployment MUST give it. This document is
 an interface, deliberately short. **How** it is satisfied — the proxy, the
@@ -106,19 +106,21 @@ per major, with `go version -m ./bin/app` against a clean tagged checkout — th
 
 ## Environment contract
 
-The binary is configured by exactly these. `HOST`, `PORT`, `DATABASE_URL`, and
-`LOG_LEVEL` are flags with env-var defaults (a flag overrides its env var);
-`ENV`, `GOMEMLIMIT`, and `CREDENTIALS_DIRECTORY` are read from the environment
-only. Secrets are not in this table on purpose — they arrive as files. The
-parser that produces all of it is
+The binary is configured by exactly these. `HOST`, `PORT`, `BASE_URL`,
+`DATABASE_URL`, `LOG_LEVEL`, and `MAIL_FROM` are flags with env-var defaults (a
+flag overrides its env var); `ENV`, `GOMEMLIMIT`, and `CREDENTIALS_DIRECTORY`
+are read from the environment only. Secrets are not in this table on purpose —
+they arrive as files. The parser that produces all of it is
 [patterns/go-config.md](../patterns/go-config.md):
 
 | Var | Meaning | Built-in default |
 |---|---|---|
 | `HOST` | bind address | `127.0.0.1` (a laptop wants loopback) |
 | `PORT` | app listener port | `8080` |
+| `BASE_URL` | public origin every emailed link is built from | `http://$HOST:$PORT` |
 | `DATABASE_URL` | SQLite file path | `app.db` |
 | `LOG_LEVEL` | slog level | `info` |
+| `MAIL_FROM` | sender address on outgoing mail | `no-reply@localhost` |
 | `ENV` | `dev` / `prod` (text vs JSON logs) | `dev` |
 | `GOMEMLIMIT` | runtime memory limit | unset |
 | `CREDENTIALS_DIRECTORY` | directory holding secret files | unset (no secrets in dev) |
@@ -126,6 +128,8 @@ parser that produces all of it is
 Every default MUST produce a working app on `127.0.0.1:8080` with an empty
 environment ([patterns/go-config.md](../patterns/go-config.md) rule 3). A
 deployment overrides what it must; it never needs to patch the binary.
+**`BASE_URL` is the one a proxied deployment MUST set:** its default is the
+app's own listener, so leaving it unset mails links to `http://127.0.0.1:8080`.
 
 ## Backups
 

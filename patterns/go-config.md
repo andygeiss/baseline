@@ -1,10 +1,12 @@
 # Pattern: Configuration (Go)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08
 
 **The rules in *Secrets* are tier 1 and never waived:** a secret arrives as a file, never
-as a flag value or an environment variable, and `LogValue` keeps it out of the logs.
+as a flag value or an environment variable, and its own type keeps it out of the logs.
 Either one leaks an account if dropped, which is the README's own test for tier 1.
+**So are the two boot checks [go-email.md](go-email.md) rests its tier-1 rules on:**
+`BaseURL`, and a sender address refused when it holds CR or LF.
 
 Every knob the binary has, in one struct, parsed once at startup, validated before
 anything opens a socket or a file. This document owns the precedence rule that
@@ -25,11 +27,13 @@ module) — configuration is wiring, and `internal/` code must not read the envi
 // else reads os.Getenv — the struct is the whole contract.
 type Config struct {
 	Host        string
-	Port        string // string: net.JoinHostPort takes one
+	Port        string   // string: net.JoinHostPort takes one
+	BaseURL     *url.URL // public origin; every emailed link is built from it
 	DatabaseURL string
 	LogLevel    slog.Level
 	Env         string // dev | prod — picks text vs JSON log output
-	SMTPKey     string // secret: arrives as a file, never a flag or an env var
+	MailFrom    string // sender address; refused at boot if it holds CR or LF
+	SMTPKey     Secret // secret: arrives as a file, never a flag or an env var
 }
 
 // errUsage is go-cli.md's sentinel: the message was already printed where the
@@ -45,7 +49,10 @@ func parseConfig(args []string, stderr io.Writer) (Config, error) {
 	fs.StringVar(&c.Host, "host", cmp.Or(os.Getenv("HOST"), "127.0.0.1"), "bind address (env HOST)")
 	fs.StringVar(&c.Port, "port", cmp.Or(os.Getenv("PORT"), "8080"), "listener port (env PORT)")
 	fs.StringVar(&c.DatabaseURL, "database-url", cmp.Or(os.Getenv("DATABASE_URL"), "app.db"), "SQLite file path (env DATABASE_URL)")
+	fs.StringVar(&c.MailFrom, "mail-from", cmp.Or(os.Getenv("MAIL_FROM"), "no-reply@localhost"), "sender address (env MAIL_FROM)")
 	level := fs.String("log-level", cmp.Or(os.Getenv("LOG_LEVEL"), "info"), "debug|info|warn|error (env LOG_LEVEL)")
+	// No cmp.Or default: -host and -port are not parsed yet.
+	base := fs.String("base-url", os.Getenv("BASE_URL"), "public origin for emailed links (env BASE_URL)")
 
 	// Rule 5: the variables that are not flags have nowhere else to be
 	// documented, so -h names them too. Without this, -h is a partial contract.
@@ -76,31 +83,38 @@ func parseConfig(args []string, stderr io.Writer) (Config, error) {
 	if c.Env != "dev" && c.Env != "prod" {
 		return Config{}, fmt.Errorf("ENV %q: want dev or prod", c.Env)
 	}
+	// url.Parse errors on almost nothing: "evil.example", "/reset" and
+	// "javascript:alert(1)" all parse. The scheme and the host are the check.
+	u, err := url.Parse(cmp.Or(*base, "http://"+net.JoinHostPort(c.Host, c.Port)))
+	if err != nil || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https") {
+		return Config{}, fmt.Errorf("base-url %q: want an absolute http or https URL", *base)
+	}
+	c.BaseURL = u
+	if strings.ContainsAny(c.MailFrom, "\r\n") {
+		return Config{}, fmt.Errorf("mail-from %q: holds a carriage return or newline", c.MailFrom)
+	}
 
 	key, err := readCredential("smtp-key")
 	if err != nil {
 		return Config{}, err
 	}
-	c.SMTPKey = key
+	c.SMTPKey = Secret(key)
 	return c, nil
 }
 ```
 
-`cmp.Or` returns its first non-zero argument, which is the precedence rule itself in one
-stdlib call — no helper to write, and empty counts as unset (`PORT= ./server` is a
-mistake, not a request for `""`).
+`cmp.Or` returns its first non-zero argument, which is the precedence rule in one stdlib
+call — and empty counts as unset (`PORT= ./server` is a mistake, not a request for `""`).
 
 `main` switches on the error from `parseConfig` and maps three outcomes to
 [go-cli.md](go-cli.md)'s exit codes: `flag.ErrHelp` returns with exit 0 (usage already
 printed), `errUsage` exits 2 printing nothing (the `FlagSet` already said what was wrong),
 and anything else prints `server: <err>` once and exits 2.
 
-**That last branch exits 2 here, where [go-cli.md](go-cli.md)'s exits 1.** That is
-not drift: this switch only ever sees errors from `parseConfig`, and every one of them
-means the operator configured the binary wrong, which is the definition of exit 2.
-`go-cli.md`'s `default` covers the work itself failing after the arguments parsed fine.
-Printing happens in exactly one place per failure kind — a parser that returns the `flag`
-package's own error *and* a `main` that prints it produces the message twice.
+**That last branch exits 2 where [go-cli.md](go-cli.md)'s exits 1**, and that is not
+drift: every error `parseConfig` returns means the operator configured the binary wrong,
+which is what exit 2 is for, while `go-cli.md`'s `default` covers the work itself failing
+after the arguments parsed. Printing happens in exactly one place per failure kind.
 
 ## Rules
 
@@ -135,13 +149,11 @@ package's own error *and* a `main` that prints it produces the message twice.
    their own check, naming which half is missing and what to do:
 
    ```go
-   // beside is the transcript file the recording would carry if it had one:
-   // voices/jarvis.opus → voices/jarvis.txt. Naming it in the error is what
-   // turns "something is missing" into an instruction.
-   beside := strings.TrimSuffix(c.RefAudio, filepath.Ext(c.RefAudio)) + ".txt"
-
    switch {
    case c.RefAudio != "" && c.RefText == "":
+   	// Naming the file the transcript belongs in turns "something is
+   	// missing" into an instruction.
+   	beside := strings.TrimSuffix(c.RefAudio, filepath.Ext(c.RefAudio)) + ".txt"
    	return Config{}, fmt.Errorf("tts-ref-audio %q: no transcript — set -tts-ref-text, or write what the recording says into %q", c.RefAudio, beside)
    case c.RefAudio == "" && c.RefText != "":
    	return Config{}, errors.New("tts-ref-text: no -tts-ref-audio — the words describe a recording that was not given")
@@ -156,6 +168,12 @@ package's own error *and* a `main` that prints it produces the message twice.
    one file is then the whole setting, and the flag still overrides it. A paragraph in an
    environment variable is a paragraph nobody can read back: every tool that prints a
    process's environment prints it as one unbroken line.
+
+8. **A value the app cannot work out at request time is a flag with an environment
+   default, validated at boot.** `BASE_URL` is the one this baseline names: no request
+   carries a trustworthy answer for where the app lives, so
+   [go-email.md](go-email.md)'s tier-1 rule has nothing to build a link from without it.
+   The fallback is the listener's own address, so a deployment behind anything MUST set it.
 
 ## Secrets
 
@@ -172,11 +190,9 @@ fatal**, because that depends on the feature rather than on config. Otherwise it
 named file in that directory and `strings.TrimSpace`s the result, since the file usually
 ends in a newline.
 
-`$CREDENTIALS_DIRECTORY` is set by the deployment, points somewhere only the service user
-can read, and is unset in a plain `go run`. It is the one environment variable the config
-layer reads for a secret, and it holds a directory path rather than the secret itself.
-The name is deliberately not tied to any one runtime, so moving the app elsewhere changes
-the deployment and no Go.
+`$CREDENTIALS_DIRECTORY` holds a directory path rather than a secret, points somewhere only
+the service user can read, and is unset in a plain `go run`. Its name is tied to no runtime,
+so moving the app elsewhere changes the deployment and no Go.
 
 **Keep secrets out of the logs.** Logging the whole config at boot is useful right up
 until it prints a key:
@@ -198,6 +214,22 @@ func (c Config) LogValue() slog.Value {
 `slog.Any("config", cfg)` now prints the safe fields only. The allowlist is the point: a
 redaction blocklist forgets the field somebody adds next year.
 
+**`LogValue` alone protects one shape, so a secret is also its own type.** It fires only
+when the `Config` *is* the value logged: nested in a struct, in a slice, in a map, or under
+any `fmt` verb, slog and fmt print the fields themselves. The type holds in all four:
+
+```go
+// Secret is a value that must never reach a log line. The three methods are the
+// three ways a value gets printed: slog, fmt, and anything writing text.
+type Secret string
+
+func (Secret) LogValue() slog.Value         { return slog.StringValue("REDACTED") }
+func (Secret) String() string               { return "REDACTED" }
+func (Secret) MarshalText() ([]byte, error) { return []byte("REDACTED"), nil }
+```
+
+Neither method survives `%#v` or an explicit `string(s)`, and nothing in the type system can.
+
 ### A CLI holds its secret differently
 
 Everything above assumes a deployment — something that can put a file where only that
@@ -208,9 +240,8 @@ Read the two rules together and they collide.
 **The file wins, and the environment variable stays available.** A CLI takes its secret
 from a file named by `-token-file`, defaulting to `$MYTOOL_TOKEN_FILE`, and falls back to
 `$MYTOOL_TOKEN` when neither is set. Document the fallback as what it is: convenient, and
-readable by every child process the shell starts. The ban above is not softened for
-services — it is scoped to them, because `$CREDENTIALS_DIRECTORY` only exists where a
-deployment does.
+readable by every child process the shell starts. The ban above is scoped to services, not
+softened — `$CREDENTIALS_DIRECTORY` only exists where a deployment does.
 
 ## Testing
 
@@ -224,7 +255,8 @@ and the **empty environment** case from rule 3. Precedence regresses most silent
 because a wrong answer still starts. One more test earns its place the moment the struct
 holds a secret: set one, render the config through a `slog` handler, and assert the value
 does not appear — that is what catches the field somebody adds to `Config` and forgets to
-leave out of `LogValue`.
+leave out of `LogValue`. Log a struct that *contains* the config too, because the first
+case passes on `LogValue` alone and only the second one proves the field's type.
 
 ## Anti-patterns
 
