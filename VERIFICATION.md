@@ -66,7 +66,7 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**The 1.27 defect backlog (v4.6.0).** Thirty-two corrections across sixteen documents,
+**The 1.27 defect backlog (v4.6.0).** Thirty-one corrections across seventeen documents,
 each verified by execution against the local 1.27.1 toolchain — a different and lesser
 standard than the adversarial half. Owed: two consecutive passes at zero over the changed
 documents, then the reference sync and the tag gate below.
@@ -83,7 +83,7 @@ Newest first.
 the defects it exposed in rules already shipped.** Ten parallel audits against the local
 1.27.1 toolchain — HTTP, json/v2, testing, language, toolchain, runtime, crypto, database,
 dependency absorption, pattern sweep — produced no new pattern document and no version
-bump. Thirty-two corrections across sixteen documents, every one verified by execution
+bump. Thirty-one corrections across seventeen documents, every one verified by execution
 before it was written, most of them facts a careful reader would have been led *into* by
 the corpus as it stood.
 
@@ -205,7 +205,7 @@ benchmarked 0.2230 ns/op under `b.N` against an empty loop's 0.2229, and 1.56 un
 `b.Loop` — but the handoff's second argument, that the `b.N` shape re-runs setup and costs
 2.54 s against 0.85 s, measured 0.66 s against 0.73 s here and is not in the rule.
 
-**The adversarial half: fourteen defects over four passes, every one in this run's own
+**The adversarial half: fifteen defects over six passes, every one in this run's own
 work.** Pass one found five. `go-http-server.md` still said `r.Context()` means "client
 disconnects cancel DB queries", which the amended `go-sqlite.md` rule 7 now contradicts;
 the specificity rule resolves that collision, but the sentence overclaims on its own, so it
@@ -229,7 +229,11 @@ touches: `go-project-layout.md` rule 6 still listed the environment contract wit
 documents this run genuinely reviewed still carried old dates, and `VERSIONS.md` *Sources
 checked* would have dated a source read today as read on 2026-09-05 — so every row was
 re-checked against its source instead, and all four still hold (`latest: 2.0.10` /
-`next: 4.0.0`, scs v2.9.0, go1.27.1, sqlite v1.58.0). Passes five and six clean.
+`next: 4.0.0`, scs v2.9.0, go1.27.1, sqlite v1.58.0). Pass five re-derived every measured
+number and version gate in the shipped rules and found nothing; pass six caught this
+paragraph's own document count, which pass four's own fixes had made stale. Passes seven
+and eight clean. **A run that reports its own numbers has to re-count them after every
+round it reports** — three of the fifteen were exactly that, and no earlier entry says so.
 
 **`patterns/go-project-layout.md` keeps its 2026-09-04 date on purpose.** Adding `BASE_URL`
 to rule 6's list syncs a contract `go-config.md` owns; no pass reviewed that document's own
