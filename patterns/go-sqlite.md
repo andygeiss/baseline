@@ -1,10 +1,11 @@
 # Pattern: SQLite in Production (Go)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15 · Driver: `modernc.org/sqlite` (pure Go)
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08 · Driver: `modernc.org/sqlite` (pure Go)
 
-**The pragmas, the single-writer pool, and parameterized queries are tier 1 and never
-waived.** Dropping either of the first two loses data; dropping the third hands over the
-database.
+**The pragmas, the single-writer pool, closing what it hands out, and parameterized
+queries are tier 1 and never waived.** Dropping any of the first three loses data —
+rule 8 is the failure mode the single-writer pool itself creates — and dropping the
+last hands over the database.
 
 SQLite is the default database. Configured correctly it serves thousands of requests
 per second on one small box with zero operational overhead. Configured by default it
@@ -56,7 +57,18 @@ The rules behind it — all MUST:
 6. **`_txlock=immediate` on the write pool.** Write transactions take the lock at
    `BEGIN`, not at first write — prevents deadlock-style upgrade failures.
 7. **Every query takes a context** (`QueryRowContext`, `ExecContext`) so a disconnected
-   client cancels its work.
+   client cancels its work. A *running* query stops within milliseconds, and so does a
+   wait for a pooled connection. A wait for SQLite's write lock does not: the busy handler
+   runs the full `busy_timeout` whatever the deadline says, so rule 2's number is the floor
+   on how long a contended write holds its connection. Keep every handler deadline above it.
+8. **Every `Rows`, `Stmt` and `Tx` is closed on every path** — `defer rows.Close()`, and
+   `defer tx.Rollback()` after a successful `Begin`. On a one-connection write pool a
+   single leak is not a slow leak: it wedges every later write forever, and `busy_timeout`
+   never fires, because the wait is in Go's pool rather than in SQLite. Draining a `Rows`
+   to the end releases it, so the happy path hides this and only `break`, an early
+   `return`, and the error path wedge.
+9. **`rows.Err()` after the loop.** `rows.Next()` returns false for "done" and for
+   "failed"; without the check a truncated result set reads as an empty one.
 
 ## Schema migrations
 
@@ -113,6 +125,18 @@ db := newTestDB(t) // opens file in t.TempDir() with the production pragmas+migr
 
 Use a temp file, not `:memory:` — in-memory databases vanish per-connection under a
 pool and silently diverge from WAL behavior. `t.TempDir()` cleans up automatically.
+
+**`newTestDB` also asserts both pools are idle at the end**, which is the only thing that
+mechanically catches rule 8 — `go vet` and `staticcheck` report none of it:
+
+```go
+// Registered after the Close cleanup, so LIFO runs this one first.
+t.Cleanup(func() {
+	if n := writeDB.Stats().InUse; n != 0 {
+		t.Errorf("write pool: %d connection(s) still in use — a Rows, Stmt or Tx was not closed", n)
+	}
+})
+```
 
 ## Query conventions
 
