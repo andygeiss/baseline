@@ -66,12 +66,8 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**The 1.27 defect backlog (v4.6.0).** Thirty-one corrections across seventeen documents,
-each verified by execution against the local 1.27.1 toolchain — a different and lesser
-standard than the adversarial half. Owed: two consecutive passes at zero over the changed
-documents, then the reference sync and the tag gate below.
-
-The 2026-09-05 budget-wording item is cleared; the run entry records it.
+**Nothing.** v4.6.0 went through the gate: ten adversarial passes, the last two clean, the
+reference synced and tagged, `./verify.sh` green over 79 gates.
 
 ## Run log
 
@@ -279,6 +275,29 @@ password hash, so x/crypto's row stands and is the row a careless 1.27 sweep wou
 `UnmarshalJSONFrom`, so the cheap `UseNumber` remedy is a typed field, not a
 `WithUnmarshalers` func; and `go mod init` under 1.27.1 writes `go 1.27.1`, which the
 version policy forbids and `go mod tidy -diff` accepts.
+
+**The empirical half:**
+[baseline-reference](https://github.com/andygeiss/baseline-reference) `3d72314`, tagged
+v4.6.0, pinning baseline `b6a731e`. `./verify.sh` exits 0 over **79 gates**, and `make ci`
+is green on that commit. The sync is what turned one of this release's arguments into a
+result. `TestConfig_SecretsNeverLogged` is seven cases against a `Config` holding three
+real secrets, and **six of them fail when the fields are plain strings**: a struct that
+contains the config, a slice of configs, a map of configs, `%+v` over the config, and the
+field on its own by either route all print `SUPER-SECRET-KEY`. Only "the config itself"
+passes — which is exactly the one case the reference's previous test covered, and it did
+not even set a secret. That is the tier-1 claim checked rather than argued, and it is why
+`Config.LogValue` keeping its allowlist and the field carrying its own type are not
+alternatives.
+
+Two other things the reference settled. Its store was **already** doing `defer
+rows.Close()`, `rows.Err()` and `defer tx.Rollback()` everywhere, and the new `newTestDB`
+assertion passes across the whole suite — so rule 8 writes down a practice that was right
+and unwritten, which is the shape the self-improvement rule predicts. And the three
+`string(...)` conversions the `Secret` type forces at the adapter boundary are the cost of
+the rule, made visible in a diff rather than described: `anthropic.New`, `smtpmail.New`,
+and the `InviteCode` field. Nothing needed a waiver. The reference also proved the new
+`make fmt` on a real repository — it added the `fmt` import the new test needed, in the
+same run that converged `go fix`.
 
 **Findings parked, real and verified, not shipped.** `time.Duration` has no json/v2
 representation at all and the only stdlib fix is an option `stack/go.md` forbids — a gap
