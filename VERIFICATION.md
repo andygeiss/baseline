@@ -264,7 +264,7 @@ measurement, and the next pattern waits on it: 61 tokens buys no trigger section
 all a 179-token one.
 
 **Settled since.** v4.3.0 took the trim branch; v4.6.0 left the path at 8,000 of 8,000;
-the changes under *Owed* free 15. The next pattern still needs a budget decision first.
+v4.7.0 left it at 7,985. The next pattern still needs a budget decision first.
 
 ## Where the numbers come from
 
