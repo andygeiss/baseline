@@ -68,18 +68,8 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-- **2026-09-22 — the run log left this file.** Run narratives now live on release pages
-  only; README, the tag gate's condition 5, and the tombstone rule point there. The one
-  project-facing edit: `VERSIONS.md` drops its pointer to this file, a sentence and no
-  rule.
-- **2026-09-22 — import a package for what it does.** `stack/go.md` gains one rule: no
-  `reflect`, tests included; no `regexp` where `strings` or `strconv` will do; outside
-  the approved table, one small function from a permissively licensed module is copied
-  with its full license notice; crypto, escaping, and parsers never are. The *Context*
-  and *Zero values* bullets, which a competent Go engineer already follows, are cut
-  against it.
-- **Both entries together, measured against v4.6.0:** the change path 8,000 → 7,985,
-  every floor +10 or +11.
+**Nothing.** v4.7.0 went through the gate: five rounds of two adversarial passes, the last
+two clean, the reference synced and tagged, `./verify.sh` green over 79 gates.
 
 ## Why the CSP is what it is
 
