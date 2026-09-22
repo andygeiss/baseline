@@ -371,8 +371,9 @@ paragraph that goes stale in one of them.
   dependencies and no server scans untouched code ([operations/ci.md](operations/ci.md)).
   This cycle does both jobs.
 - **Before tagging, walk the gate in [VERIFICATION.md](VERIFICATION.md).** Two clean
-  adversarial passes, the reference synced, `./verify.sh` green against the commit being
-  tagged; after it, the run written onto the release page. A release that skips the
+  adversarial passes, the reference synced, `./verify.sh` green against the commit it
+  pins, nothing a project reads changed since; after the tag, the run written onto the
+  release page. A release that skips the
   reference is not a release.
 - When updating a version: update `VERSIONS.md` first, then any stack document that
   references behavior of that version, then bump the `Last verified:` dates. The Go
@@ -544,9 +545,10 @@ only to the pattern that existed solely to cover the gap.
 **A half-removed pattern is worse than a kept one**, because a dangling link is a
 dead end for an agent mid-task. Removing one is therefore a sweep, in this order:
 
-1. **Write down why first**, on the release page of the version that removes it.
-   That entry is the tombstone — dated, and saying what replaced the document. There
-   are no stub files; the release page is where a retired name stays findable.
+1. **Write down why first**, in [VERIFICATION.md](VERIFICATION.md) *Owed*; it moves
+   onto the release page of the version that removes it. That entry is the tombstone —
+   dated, and saying what replaced the document. There are no stub files; the release
+   page is where a retired name stays findable.
 2. **Move anything still true** to the document that now owns it. Retirement is
    not a way to lose a rule by accident.
 3. **Delete the file, then sweep every consumer** — `git grep` its filename and

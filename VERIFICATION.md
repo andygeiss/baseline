@@ -71,12 +71,13 @@ be synced, the tag waits.
 - **2026-09-22 — the run log left this file.** Run narratives now live on release pages
   only; README, the tag gate's condition 5, and the tombstone rule point there. The one
   project-facing edit: `VERSIONS.md` drops its pointer to this file, a sentence and no
-  rule. `make tokens` and `make structure` green.
+  rule, which moves the change path from 8,000 to 7,985.
 - **2026-09-22 — import a package for what it does.** `stack/go.md` gains one rule: no
-  `reflect`, tests included; no `regexp` where `strings` or `strconv` will do; a
-  third-party module supplying one small function is copied with its copyright line;
-  crypto, escaping, and parsers never are. Paid for by cutting the *Context* and *Zero values* bullets, which a
-  competent Go engineer already follows. Change path unchanged.
+  `reflect`, tests included; no `regexp` where `strings` or `strconv` will do; one small
+  function from a permissively licensed third-party module is copied with its full
+  license notice; crypto, escaping, and parsers never are. The *Context* and *Zero
+  values* bullets, which a competent Go engineer already follows, are cut against it;
+  net, every floor rises 35 tokens and the change path does not move.
 
 ## Why the CSP is what it is
 
