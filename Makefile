@@ -91,7 +91,7 @@ structure:
 	exit $$fail
 
 # What the corpus costs an agent to READ — never what it costs to store. The
-# repository total is vanity: VERIFICATION.md is a twelfth of it and sits on no
+# repository total is vanity: VERIFICATION.md is a sliver of it and sits on no
 # read path, while the floor every project pays is the number that hurts. Each
 # budget below is a path somebody actually walks. Exits non-zero when one is
 # blown, so a review run can call it as a gate rather than read it as a report.

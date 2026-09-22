@@ -135,7 +135,7 @@ baseline/
 │   ├── htmx.md
 │   └── makefile.md
 ├── STYLE.md                        ← how everything for humans is written
-├── VERIFICATION.md                 ← the tag gate, and what every review run found
+├── VERIFICATION.md                 ← the tag gate, and the standing arguments
 └── VERSIONS.md                     ← pinned versions, dated, with sources
 ```
 
@@ -342,8 +342,10 @@ Two mechanisms, and a release needs both.
   `git diff` away from being checked rather than assumed. When a rule is ambiguous,
   the reference resolves it.
 
-The standard, the tag gate, and what every run found live in
-[VERIFICATION.md](VERIFICATION.md) — which also carries the running list of changes
+The standard and the tag gate live in [VERIFICATION.md](VERIFICATION.md); what every
+run found is on its tag's
+[release page](https://github.com/andygeiss/baseline/releases). VERIFICATION.md also
+carries the running list of changes
 that have not been through a run yet. **Read its *Owed* section before tagging:** it is
 the one place that says whether the gate is currently open. Keeping the current state
 there and not here is deliberate — a status paragraph in two files is a status
@@ -370,13 +372,13 @@ paragraph that goes stale in one of them.
   This cycle does both jobs.
 - **Before tagging, walk the gate in [VERIFICATION.md](VERIFICATION.md).** Two clean
   adversarial passes, the reference synced, `./verify.sh` green against the commit being
-  tagged, and the run written into the log. A release that skips the reference is not a
+  tagged, and the run written onto the release page. A release that skips the reference is not a
   release.
 - When updating a version: update `VERSIONS.md` first, then any stack document that
   references behavior of that version, then bump the `Last verified:` dates. The Go
   pin also sits on [stack/go.md](stack/go.md)'s stamp line and in the
   `GOTOOLCHAIN=go<pin>` commands in [operations/ci.md](operations/ci.md);
-  `git grep -n '1\.27'` lists every place the major sits, the run log included. A
+  `git grep -n '1\.27'` lists every place the major sits. A
   `Last verified:` date moves when a run reviewed the document's rules, not when an
   edit touched its wording.
 - **Ask what the release absorbed.** Every Go major (Feb/Aug) can take a rule's job into
@@ -396,16 +398,15 @@ paragraph that goes stale in one of them.
   next-steps list of the work that found them ([SKILL.md](SKILL.md) *Handing the work
   back*). One project inventing something is not yet a pattern — a second project
   solving it the same way is the signal, and deciding is yours.
-- **[VERIFICATION.md](VERIFICATION.md) keeps its three newest runs in full**; older ones
-  compress into *Earlier runs*, keeping the counts and the findings a future run would
-  otherwise re-derive. It is the one file that grows by construction — one narrative per
-  release, forever — and it is off every read path, so the cost it accumulates is the
-  re-reading, not the tokens. The full narratives stay in git history.
+- **A run's narrative goes on its tag's release page, never into a file.** A run log in
+  the repository grows by construction — one narrative per release, forever — and costs
+  every maintainer the re-reading. The release page is dated, linked to the tag, and
+  findable; git history keeps the log that lived in VERIFICATION.md until v4.6.0.
 
 ### Size budgets
 
 **Budget the read path, never the repository.** The repository total is vanity: this file
-and [VERIFICATION.md](VERIFICATION.md) are an eighth of it and sit on no read path at
+and [VERIFICATION.md](VERIFICATION.md) are a tenth of it and sit on no read path at
 all, while the floor every web application pays before its first line of code is the
 number that actually hurts. `make tokens` prints every budget below, plus the repository
 total as a report it never gates on.
@@ -543,9 +544,9 @@ only to the pattern that existed solely to cover the gap.
 **A half-removed pattern is worse than a kept one**, because a dangling link is a
 dead end for an agent mid-task. Removing one is therefore a sweep, in this order:
 
-1. **Write down why first**, in [VERIFICATION.md](VERIFICATION.md). That entry is
-   the tombstone — dated, and saying what replaced the document. There are no
-   stub files; the run log is where a retired name stays findable.
+1. **Write down why first**, on the release page of the version that removes it.
+   That entry is the tombstone — dated, and saying what replaced the document. There
+   are no stub files; the release page is where a retired name stays findable.
 2. **Move anything still true** to the document that now owns it. Retirement is
    not a way to lose a rule by accident.
 3. **Delete the file, then sweep every consumer** — `git grep` its filename and

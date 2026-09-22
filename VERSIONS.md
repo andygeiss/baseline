@@ -49,7 +49,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 ## Sources checked (2026-09-08)
 
 Every row above was checked against its source on this date, not only the ones that
-moved. What each run found is in [VERIFICATION.md](VERIFICATION.md).
+moved.
 
 - Go releases: https://go.dev/doc/devel/release
 - Go 1.27 notes: https://go.dev/doc/go1.27 — and https://go.dev/doc/go1.28 for the
