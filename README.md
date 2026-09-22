@@ -372,8 +372,8 @@ paragraph that goes stale in one of them.
   This cycle does both jobs.
 - **Before tagging, walk the gate in [VERIFICATION.md](VERIFICATION.md).** Two clean
   adversarial passes, the reference synced, `./verify.sh` green against the commit being
-  tagged, and the run written onto the release page. A release that skips the reference is not a
-  release.
+  tagged; after it, the run written onto the release page. A release that skips the
+  reference is not a release.
 - When updating a version: update `VERSIONS.md` first, then any stack document that
   references behavior of that version, then bump the `Last verified:` dates. The Go
   pin also sits on [stack/go.md](stack/go.md)'s stamp line and in the

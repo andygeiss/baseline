@@ -24,10 +24,10 @@ fix.
 
 - **Standard library first.** Reach for a dependency only when stdlib genuinely can't
   (see approved list below).
-- **Import a package for what it does, not for one helper.** Project code never imports
-  `reflect`: a type switch or a generic does it type-checked. No `regexp` where
-  `strings` or `strconv` will do. Where a package would supply one small function, copy
-  the lines. Never copy crypto, escaping, or a parser.
+- **Import a package for what it does, not for one helper.** No `reflect`, tests
+  included: a type switch or a generic does it type-checked. No `regexp` where `strings`
+  or `strconv` will do. A third-party module that would supply one small function is
+  copied instead, with its copyright line; crypto, escaping, and parsers never are.
 - **Errors:** wrap with `fmt.Errorf("doing x: %w", err)`; never discard with `_` unless
   commented why. Details in [patterns/go-errors-logging.md](../patterns/go-errors-logging.md).
 - **Generics:** use for data structures and genuinely type-parametric helpers.

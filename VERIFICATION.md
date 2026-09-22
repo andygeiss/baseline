@@ -34,7 +34,8 @@ that contradicts another one nothing points at.
 
 ## The tag gate
 
-**No tag ships until all five are true.** This is a gate, not a goal.
+**No tag ships until the first four are true, and no release is finished until the
+fifth is.** This is a gate, not a goal.
 
 1. Two consecutive adversarial passes over the changed documents find zero defects.
 2. The reference implementation is synced to the change, and `./verify.sh` exits
@@ -43,17 +44,15 @@ that contradicts another one nothing points at.
    its own tag mirrors the baseline version.
 4. **Nothing a project reads changed between the pinned commit and the tag.**
    `git diff --name-only <pin> <tag>` names this file and nothing else.
-5. The run is recorded on the tag's release page, naming the reference release and
+5. After the tag, its release page records the run, naming the reference release and
    the `verify.sh` result.
 
 **Conditions 2 and 4 were one sentence until 2026-08-18, and it was one no release
 could meet.** It read "`./verify.sh` exits 0 against the exact baseline commit
-being tagged" — but condition 5 names the reference commit, so the record cannot
-be written until the reference is synced and tagged, and the reference cannot pin
-a commit that does not exist yet. The order is forced: the rules commit, the
-reference synced and tagged against it, the *Owed* section cleared, the tag, then
-the release page.
-A reference pinning the tagged commit would be pinning a commit that names it.
+being tagged" — but the run record then lived in this file and named the reference
+commit, so the tagged commit could never be the one the reference pinned. The order
+now: the rules commit, the reference synced and tagged against it, the *Owed* section
+cleared, the tag, then the release page.
 
 **Every release met that gate in substance and none met it literally.** v3.6.0
 through v3.9.0 each pinned a commit that is not the tagged one, and the whole
@@ -74,10 +73,10 @@ be synced, the tag waits.
   project-facing edit: `VERSIONS.md` drops its pointer to this file, a sentence and no
   rule. `make tokens` and `make structure` green.
 - **2026-09-22 — import a package for what it does.** `stack/go.md` gains one rule: no
-  `reflect` in project code, no `regexp` where `strings` or `strconv` will do, copy one
-  small function instead of importing its package, never copy crypto, escaping, or a
-  parser. Paid for by cutting the *Context* and *Zero values* bullets, which a
-  competent Go engineer already follows. Floor +21, change path unchanged.
+  `reflect`, tests included; no `regexp` where `strings` or `strconv` will do; a
+  third-party module supplying one small function is copied with its copyright line;
+  crypto, escaping, and parsers never are. Paid for by cutting the *Context* and *Zero values* bullets, which a
+  competent Go engineer already follows. Change path unchanged.
 
 ## Why the CSP is what it is
 
