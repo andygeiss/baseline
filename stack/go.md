@@ -24,9 +24,12 @@ fix.
 
 - **Standard library first.** Reach for a dependency only when stdlib genuinely can't
   (see approved list below).
+- **Import a package for what it does, not for one helper.** Project code never imports
+  `reflect`: a type switch or a generic does it type-checked. No `regexp` where
+  `strings` or `strconv` will do. Where a package would supply one small function, copy
+  the lines. Never copy crypto, escaping, or a parser.
 - **Errors:** wrap with `fmt.Errorf("doing x: %w", err)`; never discard with `_` unless
   commented why. Details in [patterns/go-errors-logging.md](../patterns/go-errors-logging.md).
-- **Context:** first parameter of any function that does I/O: `func (s *Store) Get(ctx context.Context, id string)`.
 - **Generics:** use for data structures and genuinely type-parametric helpers.
   MUST NOT be used to build Java-style abstraction layers. When in doubt, write the
   concrete version. **A generic method is not a port method:** a method may declare its
@@ -34,8 +37,6 @@ fix.
   any method a port names is a dead end. Put it on a function that takes the port.
 - **Interfaces are defined by the consumer,** not the producer. Keep them small
   (1–3 methods). Accept interfaces, return structs.
-- **Zero values matter.** Design types so their zero value is usable (`sync.Mutex`,
-  `bytes.Buffer` style).
 - **A struct literal key may name a promoted field** (Go 1.27), and `go fix` rewrites the
   nested form to it. Never then give the outer struct a field of that name: every
   flattened literal moves to it silently, leaves the embedded field zero, and compiles.

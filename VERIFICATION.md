@@ -73,6 +73,11 @@ be synced, the tag waits.
   only; README, the tag gate's condition 5, and the tombstone rule point there. The one
   project-facing edit: `VERSIONS.md` drops its pointer to this file, a sentence and no
   rule. `make tokens` and `make structure` green.
+- **2026-09-22 — import a package for what it does.** `stack/go.md` gains one rule: no
+  `reflect` in project code, no `regexp` where `strings` or `strconv` will do, copy one
+  small function instead of importing its package, never copy crypto, escaping, or a
+  parser. Paid for by cutting the *Context* and *Zero values* bullets, which a
+  competent Go engineer already follows. Floor +21, change path unchanged.
 
 ## Why the CSP is what it is
 
