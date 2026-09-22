@@ -29,7 +29,7 @@ A run has two halves, and a release needs both.
    that are each correct and do not compose.
 
 The two halves catch different bugs. Document review found a stale
-`X-Forwarded-For` fact (v2.0.1); only a running application would have found a rule
+`X-Forwarded-For` fact (v3.0.0); only a running application would have found a rule
 that contradicts another one nothing points at.
 
 ## The tag gate
@@ -71,13 +71,15 @@ be synced, the tag waits.
 - **2026-09-22 — the run log left this file.** Run narratives now live on release pages
   only; README, the tag gate's condition 5, and the tombstone rule point there. The one
   project-facing edit: `VERSIONS.md` drops its pointer to this file, a sentence and no
-  rule, which moves the change path from 8,000 to 7,985.
+  rule.
 - **2026-09-22 — import a package for what it does.** `stack/go.md` gains one rule: no
-  `reflect`, tests included; no `regexp` where `strings` or `strconv` will do; one small
-  function from a permissively licensed third-party module is copied with its full
-  license notice; crypto, escaping, and parsers never are. The *Context* and *Zero
-  values* bullets, which a competent Go engineer already follows, are cut against it;
-  net, every floor rises 35 tokens and the change path does not move.
+  `reflect`, tests included; no `regexp` where `strings` or `strconv` will do; outside
+  the approved table, one small function from a permissively licensed module is copied
+  with its full license notice; crypto, escaping, and parsers never are. The *Context*
+  and *Zero values* bullets, which a competent Go engineer already follows, are cut
+  against it.
+- **Both entries together, measured against v4.6.0:** the change path 8,000 → 7,985,
+  every floor +10 or +11.
 
 ## Why the CSP is what it is
 
@@ -260,6 +262,9 @@ exactly, and its threshold has not been crossed — 7,939 is under 8,000 — so 
 *trim, do not raise*. Which trim, or the shape budget instead, is a decision rather than a
 measurement, and the next pattern waits on it: 61 tokens buys no trigger section, least of
 all a 179-token one.
+
+**Settled since.** v4.3.0 took the trim branch; v4.6.0 left the path at 8,000 of 8,000;
+the changes under *Owed* free 15. The next pattern still needs a budget decision first.
 
 ## Where the numbers come from
 

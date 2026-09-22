@@ -25,11 +25,9 @@ fix.
 - **Standard library first.** Reach for a dependency only when stdlib genuinely can't
   (see approved list below).
 - **Import a package for what it does, not for one helper.** No `reflect`, tests
-  included: a type switch replaces a kind check, and `==`, `slices.Equal`, `maps.Equal`
-  or a field-by-field check replaces `DeepEqual`. No `regexp` where `strings` or
-  `strconv` will do. One small function from a permissively licensed third-party module
-  is copied instead, with its full license notice; crypto, escaping, and parsers never
-  are.
+  included. No `regexp` where `strings` or `strconv` will do. Outside the approved table
+  below, one small function from a permissively licensed module is copied with its full
+  license notice, not imported; crypto, escaping, and parsers never are.
 - **Errors:** wrap with `fmt.Errorf("doing x: %w", err)`; never discard with `_` unless
   commented why. Details in [patterns/go-errors-logging.md](../patterns/go-errors-logging.md).
 - **Generics:** use for data structures and genuinely type-parametric helpers.
