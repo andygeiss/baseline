@@ -68,8 +68,19 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-**Nothing.** v4.7.0 went through the gate: five rounds of two adversarial passes, the last
-two clean, the reference synced and tagged, `./verify.sh` green over 79 gates.
+- **2026-10-04 — a child process the tool keeps running.** New
+  `patterns/go-child-process.md`, tier 2 with its secret rule tier 1, and its trigger
+  section in `checklists/cli-tool.md`. One project invented the shape — splash, a proxy
+  that starts the inference engine it fronts — and Andy chose to extract it: the child in
+  a process group of its own, one stop signal sent before the tool's own shutdown, the
+  wait before the tool returns, SIGHUP unless `nohup` ignored it, and the test binary as
+  the fake child. Its snippets compile and pass `gofmt`, `go vet`, `go fix -diff`,
+  `staticcheck`, and `govulncheck`; the stop path ran against the real engine for Ctrl-C,
+  SIGHUP, and an engine that died. The web-application checklist gets no section: the
+  case arose in a CLI, and that checklist sits 14 tokens under its budget.
+- **Measured against v4.7.0:** the cli-tool change path 5,332 → 5,562 and its floor
+  11,597 → 11,827, both the checklist section; the document itself is a trigger, 1,403
+  tokens.
 
 ## Why the CSP is what it is
 

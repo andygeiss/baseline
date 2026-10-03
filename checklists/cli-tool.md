@@ -133,6 +133,22 @@ the API is integrated.
 - [ ] Checks `resp.StatusCode`
 - [ ] Caps the body it reads
 
+## Starting a program the tool keeps running — a server it fronts, an engine, a database
+
+`patterns/go-child-process.md` — its own process group, one stop sent first, the wait.
+
+- [ ] The child runs in a process group of its own (`Setpgid`)
+- [ ] It is not started with `exec.CommandContext`, whose cancel kills it
+- [ ] Its output goes to the tool's stderr, as an `*os.File`
+- [ ] Everything that can fail fast is checked before it starts
+- [ ] The readiness wait ends when the child exits, too
+- [ ] The tool sends one stop signal, before its own shutdown
+- [ ] The tool waits for the child to exit before it returns, on every path
+- [ ] A child that exits on its own stops the tool, with an error naming the exit
+- [ ] SIGHUP stops the tool, unless it was started ignored
+- [ ] Its secret reaches it through a file or its own environment, never its command line
+- [ ] Tests run the test binary as the fake child
+
 ## Adding an AI capability — a model that answers, summarises, extracts, or classifies
 
 `patterns/go-llm-adapter.md` — the port, the prompt in `domain`, refusals as sentinels. A
