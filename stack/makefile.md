@@ -66,7 +66,7 @@ clean:
 # second declaration, which gofmt keeps and only goimports merges.
 fmt:
 	go run golang.org/x/tools/cmd/goimports@latest -w .
-	n=3; until go fix -diff ./... > /dev/null 2>&1 || [ $$n -eq 0 ]; do go fix ./... || exit 1; n=$$((n - 1)); done
+	n=3; until go fix -diff ./... > /dev/null 2>&1; do [ $$n -gt 0 ] || exit 1; go fix ./... || exit 1; n=$$((n - 1)); done
 	go run golang.org/x/tools/cmd/goimports@latest -w .
 
 # Loads .env when it is there, so a local start is one command. Only run:
@@ -111,10 +111,11 @@ test:
    application's deployment belongs to the operations repository**, which knows
    the server.
 5. **Adjustments** — exactly these, nothing else:
-   - *Single-binary CLI* (`MAIN = .`): `check`'s `go build ./...` drops
-     `./<tool>` into the repository root — one main package is not "multiple
-     packages", so the object is not discarded. Extend `clean` to
-     `rm -rf bin/ <tool>` and add `<tool>` to `.gitignore`.
+   - *Single-binary CLI* (`MAIN = .`): when `./...` matches only the main
+     package, `check`'s `go build ./...` drops `./<tool>` into the repository
+     root — one main package is not "multiple packages", so the object is not
+     discarded. Extend `clean` to `rm -rf bin/ <tool>` and add `<tool>` to
+     `.gitignore`.
    - *Multi-binary module* (the sanctioned `cmd/<name>/` layout): set
      `MAIN = ./cmd/<name>` for the binary `run` serves, and in `build` replace
      `$(MAIN)` with `./cmd/...` so every binary lands in `bin/`; reword the
@@ -131,8 +132,8 @@ test:
      canonical line still carries — with the sentence about it in the comment
      above `check` reworded to match.
    - *A `go fix` fixer judged wrong:* switched off by name, `-<fixer>=false`, on
-     both `go fix` lines, until the code no longer trips it
-     ([operations/ci.md](../operations/ci.md)).
+     every `go fix` command — `check`'s, and both in `fmt`'s loop — until the
+     code no longer trips it ([operations/ci.md](../operations/ci.md)).
 6. **`run` loads `.env` when it is there. Nothing else does.** A binary that
    needs a token or a database URL otherwise needs two commands to start, and
    the second one is the one people forget. The recipe above is the whole

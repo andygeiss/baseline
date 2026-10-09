@@ -3,8 +3,9 @@
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08 · Pinned:
 Go 1.27.2 ([VERSIONS.md](../VERSIONS.md))
 
-The Go pin itself is tier 1 for whatever builds, tests, or ships, but the one staticcheck
-line [VERSIONS.md](../VERSIONS.md) exempts: its note there names a security fix.
+The Go pin itself is tier 1: its note in [VERSIONS.md](../VERSIONS.md) names a security
+fix. It binds whatever builds, tests, or ships, except the one staticcheck line that
+file exempts.
 
 ## Toolchain
 

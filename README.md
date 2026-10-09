@@ -60,9 +60,11 @@ asking. This is the one place where "the baseline wins over training data" softe
 
 ## Install into Claude Code
 
+`make install` symlinks this repo to `~/.claude/skills/engineering-baseline`;
+`make uninstall` removes the symlink.
+
 ```sh
-make install    # symlinks this repo to ~/.claude/skills/engineering-baseline
-make uninstall  # removes the symlink
+make install
 ```
 
 Claude Code then loads the baseline as a skill ([SKILL.md](SKILL.md)) whenever a

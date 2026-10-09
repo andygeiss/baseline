@@ -93,8 +93,10 @@ be synced, the tag waits.
   `export data version 5 is greater than maximum supported version 4`
   (dominikh/go-tools#1832, open); 1.27.0 broke it the same way (dominikh/go-tools#1734).
   Rebuilt against `golang.org/x/tools` v0.51.0, v0.8.1 runs clean on the reference, so the
-  fix upstream is one requirement bump. `operations/ci.md` now rules the case beside the
-  one for a staticcheck release that breaks the gate. The canonical Makefile in
+  binary needs only that bump; upstream's fix (dominikh/go-tools#1834, open) also changes
+  a file its tests link, after the bump alone (#1833) failed them. `operations/ci.md` now
+  rules the case beside the one for a staticcheck release that breaks the gate. The
+  canonical Makefile in
   `stack/makefile.md` carries the prefix, `GOTOOLCHAIN=go1.27.1`, until a release reads
   V5; rule 5 lets a project add or drop it as the cause comes and goes; and `VERSIONS.md`
   scopes its tier-1 floor to what builds, tests, and ships, naming that line as the one
@@ -102,8 +104,8 @@ be synced, the tag waits.
   wait. Without it an agent has two moves, and both are wrong: skip the gate, or hold the
   pin below the security floor. Review found the prefix's one hole: under 1.27.1, a type
   that declares a generic method before a non-generic one brings go.dev/issue/81188 back
-  — the older export data writes plain methods first — and staticcheck panics on it or
-  misfiles its facts, into the packages that call it as well. Andy chose a waiver for a
+  — the older export data writes plain methods first — and staticcheck, analysing a
+  package that imports it, panics or misfiles its facts. Andy chose a waiver for a
   project whose own packages or non-standard dependencies declare such a type — the line
   out, on the record in its README, until the release — over a staticcheck built against
   newer `x/tools` or a held tag. The standard library's one such type in 1.27.2,
@@ -111,10 +113,15 @@ be synced, the tag waits.
   application's build; staticcheck 2026.2.1 can file only a nilness fact on its `Perm`,
   which only SA4023 reads, and probes calling fifteen of its methods misreported nothing,
   so it does not count. The waiver reaches test files and test-only dependencies, since
-  staticcheck checks tests; `ci.md` gives a finder that lists them too, and `stack/go.md`
-  points at the waiver where it allows generic methods.
-  Homebrew's Go here moved to 1.27.2 on 2026-10-09, so a bare run on this machine needs
-  the prefix.
+  staticcheck checks tests; `ci.md` gives a finder that lists them too, to run when the
+  prefix arrives and after every dependency update, and `stack/go.md` points at the
+  waiver where it allows generic methods. The prefixed line also refuses a `go.mod` that
+  names a later patch — what `go get` and `go mod tidy` write, under the pin, for a
+  dependency that asks for `go 1.27.2` — so `ci.md` now says the pin takes such a
+  dependency rather than refusing it, and that the `go` line goes back, never the prefix
+  up. README *Maintenance protocol* says the prefix is not the pin, and what leaves with
+  it. Homebrew's Go here moved to 1.27.2 on 2026-10-09, so a bare run on this machine
+  needs the prefix.
 - **2026-10-09 — what a project's Makefile may hold.** `stack/makefile.md` rule 5 is now
   *Adjustments*, not *Per-layout adjustments*. Besides the three layouts, it names the
   staticcheck hold-backs `operations/ci.md` allows, with the comment that describes the
@@ -123,7 +130,15 @@ be synced, the tag waits.
   way, may reword the two comments it makes stale. The three checklists' Makefile box now
   reads "differing only as its rule 5 allows". That closes two v4.7.0 collisions: `ci.md`
   already told a project to pin staticcheck's version and to switch a fixer off, and rule
-  5's "exactly these" forbade both.
+  5's "exactly these" forbade both. The switch-off now names all three `go fix` commands
+  it must reach, and the single-binary adjustment says when the root binary appears.
+- **2026-10-09 — what the run found that is older than this release.** The canonical
+  `fmt` loop exited 0 when `go fix` did not converge, though its comment has said since
+  v4.6.0 that it fails; it now fails after three passes. Two code blocks — the
+  dependency update in `ci.md` and the README's install — carried `#` comments, which
+  macOS's interactive zsh hands to the command as words; the comments moved into the
+  prose. `VERSIONS.md` said htmx 2.0.10 never appeared on GitHub's releases page; it did,
+  on 2026-09-06, months after its tag.
 - **The empirical half, so far.** Reference `6046248` (v4.7.0):
   `GOTOOLCHAIN=go1.27.2 ./verify.sh` stops at its fourth step, staticcheck. With the sync
   in its working tree — that line carrying `GOTOOLCHAIN=go1.27.1`, as the canonical
@@ -132,8 +147,8 @@ be synced, the tag waits.
 - **Measured against v4.7.0:** each change path grows by `VERSIONS.md`'s 14 and its
   reworded Makefile box — cli-tool 5,332 → 5,342, library 4,351 → 4,372, and
   web-application 7,985 → 7,995, five under the budget. Each floor also carries
-  `stack/go.md`'s 76, its tier-1 scope and waiver pointer: cli-tool 11,597 → 11,683,
-  library 12,504 → 12,602, web-application 21,363 → 21,449.
+  `stack/go.md`'s 80, its tier-1 scope and waiver pointer: cli-tool 11,597 → 11,687,
+  library 12,504 → 12,606, web-application 21,363 → 21,453.
 
 ## Why the CSP is what it is
 

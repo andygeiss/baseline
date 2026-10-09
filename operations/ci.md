@@ -20,16 +20,16 @@ of it: the Makefile says what runs, and this document says why.
 
 - **`go fix -diff`** — fails while a rewrite to current idiom is pending; `make fmt`
   applies it. Read that diff before you commit it: Go says the fixes *should* not
-  change behavior, not that they cannot. Switch a fix you judge wrong off by name on
-  both `go fix` lines, `-<fixer>=false`, in the commit that says why, and back on once
-  the code no longer trips it — the name is the toolchain's, and a later major may
-  drop it.
+  change behavior, not that they cannot. Switch a fix you judge wrong off by name,
+  `-<fixer>=false`, on every `go fix` command — `check`'s, and both in `fmt`'s loop — in
+  the commit that says why, and back on once the code no longer trips it — the name is
+  the toolchain's, and a later major may drop it.
 - **`govulncheck`** — call-graph-aware CVE scanning: it reports a vulnerability in a
   function you never call as exactly that, not as red. A red gate means: bump the
   dependency, don't silence the check.
 - **`go mod tidy -diff`** — fails instead of mutating; keeps `go.mod`/`go.sum` honest.
   `go mod tidy` under the pin is the fix, by hand: it is the one gate `make fmt` does not
-  apply, because off the pin it would raise the `go` line without a word.
+  apply, because it can raise the `go` line without a word (*Dependency updates*).
 - **`-shuffle=on`** — flushes out inter-test ordering dependencies early.
 - **`-race`** — mandatory, never dropped for speed. If the suite gets slow, fix the
   suite.
@@ -45,20 +45,25 @@ of it: the Makefile says what runs, and this document says why.
   Put `GOTOOLCHAIN=go<the newest patch staticcheck reads>` in front of that one line,
   and take it off with the staticcheck release that reads the new format; the canonical
   Makefile carries it while the pin needs it. The analysis reads the same source,
-  nothing it builds ships, and the prefix is that line's record of its toolchain. One
-  case it cannot cover: a type that declares a generic method before a non-generic one
-  loses that order in the older export data (go.dev/issue/81188), and staticcheck panics
-  on it or files its facts under the wrong method — in the packages that call it too. A
-  project whose own packages or dependencies outside the standard library declare such
-  a type — in a test file, or a dependency only its tests import, as well — takes the
-  line out, under a waiver in its README, until the staticcheck release lands:
-  staticcheck checks tests too. The standard library's one, `math/rand/v2`'s `Rand`, does
-  not count: a fact misfiled among its methods changes no finding. To find candidates,
-  list the files that declare a generic method at all:
+  nothing it builds ships, and the prefix is that line's record of its toolchain. The
+  line refuses to start once `go.mod` names a later patch than the prefix:
+  `go.mod requires go >= 1.27.2 (running go 1.27.1; GOTOOLCHAIN=go1.27.1)`.
+  Put the `go` line back to `go 1.27`, as *Dependency updates* says; never move the
+  prefix up. One case the prefix cannot cover: a type that declares a generic method
+  before a non-generic one loses that order in the older export data
+  (go.dev/issue/81188), and staticcheck panics, or files its facts under the wrong
+  method, in every package that imports it — external tests included, though not in its
+  own. A project whose own packages or dependencies outside the standard library declare
+  such a type takes the line out, under a waiver in its README, until the staticcheck
+  release lands. Staticcheck checks tests too, so a test file counts, and so does a
+  dependency only the tests import. The standard library's one, `math/rand/v2`'s `Rand`,
+  does not count: a fact misfiled among its methods changes no finding. Run this finder
+  when the prefix arrives and after every dependency update while it stands; it lists
+  the files that declare a generic method at all:
 
   ```sh
   go list -deps -test -f '{{if not .Standard}}{{.Dir}}{{end}}' ./... | sort -u \
-    | while read -r d; do grep -lE '^func \([^)]*\) [A-Za-z0-9_]+\[' "$d"/*.go; done
+    | while read -r d; do grep -lE '^(func \([^)]*\)|\)) [^[:space:](]+\[' "$d"/*.go; done
   ```
 - **Static build gate** — proves the CGO-free single-binary invariant on every run,
   not at release time.
@@ -106,11 +111,12 @@ Two things nobody does for you:
 ## Dependency updates
 
 By hand, under the pin, on the same 90-day cycle or when
-[VERSIONS.md](../VERSIONS.md) moves:
+[VERSIONS.md](../VERSIONS.md) moves. The first line sets the pin for this shell, and
+the second makes one `chore(deps)` commit:
 
 ```sh
-export GOTOOLCHAIN=go1.27.2                       # the pin, for this shell
-go get -u ./... && go mod tidy && make check      # one chore(deps) commit
+export GOTOOLCHAIN=go1.27.2
+go get -u ./... && go mod tidy && make check
 ```
 
 Anything that breaks on a routine update is a candidate for removal. When the Go pin
@@ -119,11 +125,13 @@ moved a major, `make check` may be red on the idioms the new toolchain rewrites:
 one thing.
 
 A dependency that asks for a newer Go is a VERSIONS.md decision, not a `go get` side
-effect. Under the pin `go get` refuses (`requires go >= 1.28`) and leaves `go.mod`
-alone: hold the dependency (`go get -u ./... <dep>@<current>`) or drop it. Under
-`auto`, `go get` raises the `go` line instead — one `go: upgraded go 1.27 => 1.28`
-line in its output — and any later `go mod tidy` does the same without a word. If
-the `go` line rose, put it back by hand, with the pin exported:
+effect. Under the pin `go get` refuses one that asks for a newer major
+(`requires go >= 1.28`) and leaves `go.mod` alone: hold the dependency
+(`go get -u ./... <dep>@<current>`) or drop it. One that asks for a patch the pin
+satisfies, `go 1.27.2`, it takes, and raises the `go` line to match —
+`go: upgraded go 1.27 => 1.27.2` — and under `auto` it does the same for a newer major.
+Any later `go mod tidy` does the same without a word. If the `go` line rose, put it
+back by hand, with the pin exported:
 
 ```sh
 go mod edit -go=1.27 -toolchain=none -require=<dep>@<current> && go mod tidy && make check

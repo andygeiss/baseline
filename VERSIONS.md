@@ -57,7 +57,7 @@ moved; Go again on 2026-10-09.
   adoption pass at 1.28.1
 - htmx versions: `npm view htmx.org dist-tags` or https://github.com/bigskysoftware/htmx/tags
   — **not** the GitHub releases page: upstream tags 2.x patches without creating a
-  Release object there (2.0.10 never appeared on it)
+  Release object there at the time (2.0.11 has none)
 - SQLite: https://proxy.golang.org/modernc.org/sqlite/@latest
 - scs: https://github.com/alexedwards/scs/tags
 - CSS Baseline: https://web.dev/baseline
