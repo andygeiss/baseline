@@ -110,18 +110,20 @@ be synced, the tag waits.
   `math/rand/v2`'s `Rand` (its generic `N` before `Float64`), sits in every web
   application's build; staticcheck 2026.2.1 can file only a nilness fact on its `Perm`,
   which only SA4023 reads, and probes calling fifteen of its methods misreported nothing,
-  so it does not count. `ci.md` gives a finder for the files that declare a generic
-  method, and `stack/go.md` points at the waiver where it allows generic methods.
+  so it does not count. The waiver reaches test files and test-only dependencies, since
+  staticcheck checks tests; `ci.md` gives a finder that lists them too, and `stack/go.md`
+  points at the waiver where it allows generic methods.
   Homebrew's Go here moved to 1.27.2 on 2026-10-09, so a bare run on this machine needs
   the prefix.
 - **2026-10-09 — what a project's Makefile may hold.** `stack/makefile.md` rule 5 is now
   *Adjustments*, not *Per-layout adjustments*. Besides the three layouts, it names the
   staticcheck hold-backs `operations/ci.md` allows, with the comment that describes the
-  line; and the multi-binary layout, now *Multi-binary module* because a web application
-  ships a client the same way, may reword the two comments it makes stale. The three
-  checklists' Makefile box now reads "differing only as its rule 5 allows". That closes a
-  v4.7.0 collision: `ci.md` already told a project to pin staticcheck's version, and rule
-  5's "exactly these" forbade it.
+  line, and the `go fix` fixer it lets a project switch off by name; and the multi-binary
+  layout, now *Multi-binary module* because a web application ships a client the same
+  way, may reword the two comments it makes stale. The three checklists' Makefile box now
+  reads "differing only as its rule 5 allows". That closes two v4.7.0 collisions: `ci.md`
+  already told a project to pin staticcheck's version and to switch a fixer off, and rule
+  5's "exactly these" forbade both.
 - **The empirical half, so far.** Reference `6046248` (v4.7.0):
   `GOTOOLCHAIN=go1.27.2 ./verify.sh` stops at its fourth step, staticcheck. With the sync
   in its working tree — that line carrying `GOTOOLCHAIN=go1.27.1`, as the canonical
@@ -130,8 +132,8 @@ be synced, the tag waits.
 - **Measured against v4.7.0:** each change path grows by `VERSIONS.md`'s 14 and its
   reworded Makefile box — cli-tool 5,332 → 5,342, library 4,351 → 4,372, and
   web-application 7,985 → 7,995, five under the budget. Each floor also carries
-  `stack/go.md`'s 77, its tier-1 scope and waiver pointer: cli-tool 11,597 → 11,684,
-  library 12,504 → 12,603, web-application 21,363 → 21,450.
+  `stack/go.md`'s 76, its tier-1 scope and waiver pointer: cli-tool 11,597 → 11,683,
+  library 12,504 → 12,602, web-application 21,363 → 21,449.
 
 ## Why the CSP is what it is
 

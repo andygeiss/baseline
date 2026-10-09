@@ -130,6 +130,9 @@ test:
      cover the code; and plain again once the cause clears, whatever the
      canonical line still carries — with the sentence about it in the comment
      above `check` reworded to match.
+   - *A `go fix` fixer judged wrong:* switched off by name, `-<fixer>=false`, on
+     both `go fix` lines, until the code no longer trips it
+     ([operations/ci.md](../operations/ci.md)).
 6. **`run` loads `.env` when it is there. Nothing else does.** A binary that
    needs a token or a database URL otherwise needs two commands to start, and
    the second one is the one people forget. The recipe above is the whole

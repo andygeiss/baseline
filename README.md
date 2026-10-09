@@ -382,9 +382,9 @@ paragraph that goes stale in one of them.
   `git grep -n '1\.27'` lists every place the major sits. The `GOTOOLCHAIN=` prefix on
   the canonical staticcheck line in [stack/makefile.md](stack/makefile.md) is not the
   pin and does not follow it: it names the newest patch staticcheck reads. It goes, with
-  the comment above it and [stack/go.md](stack/go.md)'s waiver sentence, once a
-  staticcheck release reads the pin. A `Last verified:` date moves when a run
-  reviewed the document's rules, not when an edit touched its wording.
+  its sentence in the comment above `check` and [stack/go.md](stack/go.md)'s waiver
+  sentence, once a staticcheck release reads the pin. A `Last verified:` date moves when
+  a run reviewed the document's rules, not when an edit touched its wording.
 - **Ask what the release absorbed.** Every Go major (Feb/Aug) can take a rule's job into
   the standard library. Read the release notes with that question too, not only for
   behavior changes: a capability that lands in stdlib usually means a row leaves

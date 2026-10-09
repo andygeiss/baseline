@@ -49,15 +49,16 @@ of it: the Makefile says what runs, and this document says why.
   case it cannot cover: a type that declares a generic method before a non-generic one
   loses that order in the older export data (go.dev/issue/81188), and staticcheck panics
   on it or files its facts under the wrong method — in the packages that call it too. A
-  project whose own packages, or whose dependencies outside the standard library,
-  declare such a type takes the line out, under a waiver in its README, until the
-  staticcheck release lands. The standard library's one, `math/rand/v2`'s `Rand`, does
-  not count: a fact misfiled among its methods changes no finding. To find
-  candidates, list the files that declare a generic method at all:
+  project whose own packages or dependencies outside the standard library declare such
+  a type — in a test file, or a dependency only its tests import, as well — takes the
+  line out, under a waiver in its README, until the staticcheck release lands:
+  staticcheck checks tests too. The standard library's one, `math/rand/v2`'s `Rand`, does
+  not count: a fact misfiled among its methods changes no finding. To find candidates,
+  list the files that declare a generic method at all:
 
   ```sh
-  go list -deps -f '{{if not .Standard}}{{range .GoFiles}}{{$.Dir}}/{{.}}{{"\n"}}{{end}}{{end}}' ./... \
-    | xargs grep -lE '^func \([^)]*\) [A-Za-z0-9_]+\['
+  go list -deps -test -f '{{if not .Standard}}{{.Dir}}{{end}}' ./... | sort -u \
+    | while read -r d; do grep -lE '^func \([^)]*\) [A-Za-z0-9_]+\[' "$d"/*.go; done
   ```
 - **Static build gate** — proves the CGO-free single-binary invariant on every run,
   not at release time.

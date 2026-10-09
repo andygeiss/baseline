@@ -35,8 +35,8 @@ line [VERSIONS.md](../VERSIONS.md) exempts: its note there names a security fix.
   concrete version. **A generic method is not a port method:** a method may declare its
   own type parameters (Go 1.27) but an interface method may not, so a type parameter on
   any method a port names is a dead end. Put it on a function that takes the port. While
-  the canonical staticcheck line carries a `GOTOOLCHAIN` prefix, a generic method
-  declared before a non-generic one on the same type puts the project under
+  the project's staticcheck line runs under an older Go patch, a generic method declared
+  before a non-generic one on the same type puts the project under
   [operations/ci.md](../operations/ci.md)'s staticcheck waiver.
 - **Interfaces are defined by the consumer,** not the producer. Keep them small
   (1–3 methods). Accept interfaces, return structs.
