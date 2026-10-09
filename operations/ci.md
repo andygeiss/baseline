@@ -39,11 +39,12 @@ of it: the Makefile says what runs, and this document says why.
   the point. If a staticcheck release breaks the gate on an unrelated morning, pin that
   line to the previous version in the fixing commit and remove the pin once you have
   fixed the findings. A Go patch can break it from the other side, when the toolchain
-  writes export data no staticcheck release reads yet. Every package then fails with
-  `export data version … is greater than maximum supported version …`: put
-  `GOTOOLCHAIN=go<the last patch it ran under>` in front of that one line, and take it
-  off with the staticcheck release that reads the new format. The analysis reads the
-  same source, and nothing it builds ships.
+  writes export data no staticcheck release reads yet: staticcheck stops before it
+  checks anything, on standard-library packages —
+  `cannot decode "math/bits", export data version 5 is greater than maximum supported version 4`.
+  The canonical line then carries `GOTOOLCHAIN=go<the newest patch staticcheck reads>`
+  until the staticcheck release that reads the new format. The analysis reads the same
+  source, nothing it builds ships, and the prefix is that line's record of its toolchain.
 - **Static build gate** — proves the CGO-free single-binary invariant on every run,
   not at release time.
 
@@ -54,8 +55,8 @@ of it: the Makefile says what runs, and this document says why.
 - **`make ci`, before every push.** The same gates against `git archive HEAD`: the
   committed tree, copied to an empty directory, with nothing you forgot to `git add`,
   no `.env`, and no local edit. That is the difference between "green on my machine"
-  and "green on the commit". Read its `go version` line: it is the one record of which
-  toolchain ran.
+  and "green on the commit". Read its `go version` line: it records which toolchain
+  ran, beside any `GOTOOLCHAIN=` prefix a gate line carries.
 
 ## What `make ci` does not check
 

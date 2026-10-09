@@ -101,7 +101,7 @@ reads.
 `stack/makefile.md`, then `operations/ci.md` — there is no CI server; the Makefile is the
 gate.
 
-- [ ] `Makefile` at the repo root is `stack/makefile.md`'s, differing only by rule 5's library cut (no `MAIN`, `run`, `build`, `clean`; `.PHONY: check ci fmt test`) and any rule-3 target
+- [ ] `Makefile` at the repo root is `stack/makefile.md`'s, differing only as its rule 5 allows — for a library, the cut: no `MAIN`, `run`, `build`, `clean`; `.PHONY: check ci fmt test` — and by any rule-3 target
 - [ ] Targets alphabetical
 - [ ] `check` named as `.DEFAULT_GOAL`
 - [ ] `make check` is green

@@ -35,12 +35,13 @@ build:
 	CGO_ENABLED=0 go build -trimpath -o bin/ $(MAIN)
 
 # Default. Every gate, in this order (operations/ci.md), against the working
-# tree. Run before every commit.
+# tree. Run before every commit. staticcheck runs under Go 1.27.1 until a
+# release of it reads the export data 1.27.2 writes (operations/ci.md).
 check:
 	test -z "$$(gofmt -l .)" || (gofmt -l . && exit 1)
 	go vet ./...
 	go fix -diff ./...
-	go run honnef.co/go/tools/cmd/staticcheck@latest ./...
+	GOTOOLCHAIN=go1.27.1 go run honnef.co/go/tools/cmd/staticcheck@latest ./...
 	go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 	go mod tidy -diff
 	go test -race -shuffle=on ./...
@@ -109,7 +110,7 @@ test:
    ([operations/cli-release.md](../operations/cli-release.md)). **A web
    application's deployment belongs to the operations repository**, which knows
    the server.
-5. **Per-layout adjustments** — exactly these, nothing else:
+5. **Adjustments** — exactly these, nothing else:
    - *Single-binary CLI* (`MAIN = .`): `check`'s `go build ./...` drops
      `./<tool>` into the repository root — one main package is not "multiple
      packages", so the object is not discarded. Extend `clean` to
@@ -120,6 +121,9 @@ test:
    - *Library:* delete `MAIN`, `run`, `build`, and `clean` (nothing creates
      `bin/`) and trim `.PHONY` to `check ci fmt test` — `check`'s
      `go build ./...` already proves everything compiles.
+   - *A staticcheck release that breaks the gate:* its line pinned to the
+     previous version, until the findings are fixed
+     ([operations/ci.md](../operations/ci.md)).
 6. **`run` loads `.env` when it is there. Nothing else does.** A binary that
    needs a token or a database URL otherwise needs two commands to start, and
    the second one is the one people forget. The recipe above is the whole

@@ -96,17 +96,26 @@ be synced, the tag waits.
   v2.9.0 and the `design.md` format's `alpha` did not move, and htmx 4.0.1 has not shipped.
 - **2026-10-09 — a Go patch that outruns staticcheck.** The go.dev/issue/81188 fix,
   backported to 1.27.2, makes the compiler write export data V5. Staticcheck 2026.2.1
-  (v0.8.1), still the newest release, reads only V4, so every package fails with
+  (v0.8.1), still the newest release, reads only V4, so it stops before it checks
+  anything, on standard-library packages:
   `export data version 5 is greater than maximum supported version 4`
   (dominikh/go-tools#1832, open); 1.27.0 broke it the same way (dominikh/go-tools#1734).
   Rebuilt against `golang.org/x/tools` v0.51.0, v0.8.1 runs clean on the reference, so the
   fix upstream is one requirement bump. `operations/ci.md` now rules the case beside the
-  one for a staticcheck release that breaks the gate: run that one line under the last
-  patch staticcheck ran under, and take the prefix off with the release that reads the
-  new format. Andy chose the rule over letting the tag wait. Without it an agent has two
+  one for a staticcheck release that breaks the gate, and the canonical Makefile in
+  `stack/makefile.md` carries it: the staticcheck line runs under `GOTOOLCHAIN=go1.27.1`
+  until a release reads V5, and `VERSIONS.md` names that line as the one toolchain patch
+  pin a repository may hold. Andy chose the rule over letting the tag wait. Without it an agent has two
   moves, and both are wrong: skip the gate, or hold the pin below the security floor.
   Homebrew's Go here moved to 1.27.2 on 2026-10-09, so a bare run on this machine needs
   the prefix.
+- **2026-10-09 — a CLI may serve the person who started it.** The child-process pattern's
+  proxy contradicted `project-types/cli-tool.md`, which said a process that stays up to
+  serve requests is not a CLI. Andy chose to widen the definition rather than narrow the
+  pattern: a foreground tool that serves the person who started it until Ctrl-C, like a
+  local proxy, is a CLI; one that runs unattended, or serves other people, is a web
+  application. Left open: a CLI that listens on a port gets none of the web
+  application's cross-origin rules.
 - **The empirical half, so far.** Reference `6046248` (v4.7.0), unchanged:
   `GOTOOLCHAIN=go1.27.2 ./verify.sh` stops at its fourth step, staticcheck. A copy that
   runs that one line under `GOTOOLCHAIN=go1.27.1`, as the rule asks, exits 0 over all 79
@@ -300,7 +309,8 @@ measurement, and the next pattern waits on it: 61 tokens buys no trigger section
 all a 179-token one.
 
 **Settled since.** v4.3.0 took the trim branch; v4.6.0 left the path at 8,000 of 8,000;
-v4.7.0 left it at 7,985. The next pattern still needs a budget decision first.
+v4.7.0 left it at 7,985. The next pattern on the web-application path still needs a
+budget decision first.
 
 ## Where the numbers come from
 

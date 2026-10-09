@@ -24,7 +24,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 |---|---|---|---|
 | Go | **1.27.2** | 2026-10-08 | A security release, so 1.27.2 is the floor: below it, `govulncheck` fails every web application. It fixes fifteen advisories, two in the `html/template` escaper: GO-2026-6599 and GO-2026-6600. Re-verify at 1.28.1, about March 2027. |
 | htmx | **2.0.10** | 2026-04-21 | The 2.x line is stable and feature-complete. |
-| htmx 4.x | ❌ not yet | 2026-08-28 | 4.0.0 is stable, on npm's `next` tag; `latest` still names 2.0.10. A breaking rewrite of 2.x, fetch-based. Adoption waits for 4.0.1 — *Version policy* below. |
+| htmx 4.x | ❌ not yet | 2026-08-28 | 4.0.0 is stable, on npm's `next` tag; `latest` still names 2.x. A breaking rewrite of 2.x, fetch-based. Adoption waits for 4.0.1 — *Version policy* below. |
 | SQLite driver | **v1.58.0** | 2026-09 | `modernc.org/sqlite`. The tier-1 pragmas are only as good as the driver: v1.42.1 cancelled unrelated queries. |
 | scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
 | Make | system default | — | Command runner only, and the only gate: `make check` against the tree, `make ci` against the commit. Makefile MUST stay runnable by GNU Make 3.81, the version macOS's Command Line Tools ship — portable subset, see [stack/makefile.md](stack/makefile.md). |
@@ -38,7 +38,8 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 - **Go:** Adopt a new major (x.y) release after its first patch release (x.y.1) unless a
   project needs a new feature immediately. Always run the latest patch release —
   that is where security fixes ship. Set `go 1.27` in `go.mod`; do not pin toolchain patch
-  versions in the repo.
+  versions in the repo, but for the staticcheck line [operations/ci.md](operations/ci.md)
+  holds back.
 - **htmx:** Track the latest 2.x patch. 4.0.1 shipping is the trigger for a baseline
   release that adopts 4.x; projects move with that release, not with 4.0.1 itself. Vendor
   the file (self-host, no CDN in production).
@@ -49,7 +50,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 ## Sources checked (2026-09-08)
 
 Every row above was checked against its source on this date, not only the ones that
-moved.
+moved; Go again on 2026-10-09.
 
 - Go releases: https://go.dev/doc/devel/release
 - Go 1.27 notes: https://go.dev/doc/go1.27 — and https://go.dev/doc/go1.28 for the

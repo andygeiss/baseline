@@ -138,16 +138,24 @@ the API is integrated.
 `patterns/go-child-process.md` — its own process group, one stop sent first, the wait.
 
 - [ ] The child runs in a process group of its own (`Setpgid`)
+- [ ] That code sits behind `//go:build unix`
+- [ ] SIGTTOU is ignored before the child starts
 - [ ] It is not started with `exec.CommandContext`, whose cancel kills it
-- [ ] Its output goes to the tool's stderr, as an `*os.File`
+- [ ] Its output goes to the tool's stderr
+- [ ] Its `Stdout` and `Stderr` are `*os.File`s, never another writer
 - [ ] Everything that can fail fast is checked before it starts
 - [ ] The readiness wait ends when the child exits, too
-- [ ] The tool sends one stop signal, before its own shutdown
+- [ ] The stop signal goes to the child's whole process group
+- [ ] The tool sends it once, never a second time
+- [ ] It goes out before the tool's own shutdown
 - [ ] The tool waits for the child to exit before it returns, on every path
-- [ ] A child that exits on its own stops the tool, with an error naming the exit
+- [ ] A child that exits on its own stops the tool
+- [ ] That stop's error names the child's exit
 - [ ] SIGHUP stops the tool, unless it was started ignored
-- [ ] Its secret reaches it through a file or its own environment, never its command line
+- [ ] The force-kill hatch ignores SIGHUP before it unregisters the rest
+- [ ] Its secret reaches it through a file, or its own environment when it reads nothing else — never its command line
 - [ ] Tests run the test binary as the fake child
+- [ ] Tests read the signals the fake child got: one SIGTERM
 
 ## Adding an AI capability — a model that answers, summarises, extracts, or classifies
 
@@ -182,7 +190,7 @@ the reasoning that leaks into the visible answer.
 `stack/makefile.md`, then `operations/ci.md` — there is no CI server; the Makefile is the
 gate.
 
-- [ ] `Makefile` at the repo root is `stack/makefile.md`'s, differing only by rule 5's adjustments for its layout and any rule-3 target
+- [ ] `Makefile` at the repo root is `stack/makefile.md`'s, differing only as its rule 5 allows and by any rule-3 target
 - [ ] Targets alphabetical
 - [ ] `check` named as `.DEFAULT_GOAL`
 - [ ] `make check` is green

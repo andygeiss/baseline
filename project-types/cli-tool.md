@@ -2,8 +2,10 @@
 
 **Last verified: 2026-09-05**
 
-Command-line tool: starts, does one job, exits. If the process is meant to stay up
-and serve requests, it is not a CLI — build a [web application](web-application.md).
+Command-line tool: starts, does one job, exits — or, in the foreground, serves the person
+who started it until Ctrl-C, like a local proxy. If the process is meant to stay up
+unattended, or to serve other people, it is not a CLI — build a
+[web application](web-application.md).
 
 ## Mandated stack
 
