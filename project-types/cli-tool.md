@@ -61,7 +61,7 @@ Working on a tool that already follows this document? That file and the tool's
   code in [patterns/go-cli.md](../patterns/go-cli.md).
 - **A CLI terminates.** Ctrl-C/SIGTERM cancels the context and the tool exits
   cleanly, finishing or rolling back the current unit of work. No daemon mode, no
-  `--watch` loops by default — a process that should run forever is a different
+  `--watch` loops by default — a process meant to stay up unattended is a different
   project type.
 - **No interactivity.** Everything arrives via flags, arguments, environment, or
   stdin. No prompts, no TUI. A tool that needs a conversation with the user

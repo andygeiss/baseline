@@ -197,9 +197,10 @@ below is what it currently catches, not the definition.
 - Any version pin whose note names a security fix.
 - Every rule about how a secret is handled: a secret arrives as a file and its own type
   keeps it out of the logs ([patterns/go-config.md](patterns/go-config.md) *Secrets*), a
-  secret never arrives as a flag *value* ([patterns/go-cli.md](patterns/go-cli.md)), and
-  `.env` is gitignored and never used in production
-  ([stack/makefile.md](stack/makefile.md) rule 6).
+  secret never arrives as a flag *value* ([patterns/go-cli.md](patterns/go-cli.md)), a
+  child's secret never travels on its command line
+  ([patterns/go-child-process.md](patterns/go-child-process.md)), and `.env` is
+  gitignored and never used in production ([stack/makefile.md](stack/makefile.md) rule 6).
 
 **The checklists mark this, they do not imply it.** A trigger section that is wholly
 tier 1 says so under its heading; where only some of a section's boxes are, the
@@ -380,9 +381,11 @@ paragraph that goes stale in one of them.
   references behavior of that version, then bump the `Last verified:` dates. The Go
   pin also sits on [stack/go.md](stack/go.md)'s stamp line and in the
   `GOTOOLCHAIN=go<pin>` commands in [operations/ci.md](operations/ci.md);
-  `git grep -n '1\.27'` lists every place the major sits. A
-  `Last verified:` date moves when a run reviewed the document's rules, not when an
-  edit touched its wording.
+  `git grep -n '1\.27'` lists every place the major sits. The `GOTOOLCHAIN=` prefix on
+  the canonical staticcheck line in [stack/makefile.md](stack/makefile.md) is not the
+  pin and does not follow it: it names the newest patch staticcheck reads, and goes with
+  the staticcheck release that reads the pin. A `Last verified:` date moves when a run
+  reviewed the document's rules, not when an edit touched its wording.
 - **Ask what the release absorbed.** Every Go major (Feb/Aug) can take a rule's job into
   the standard library. Read the release notes with that question too, not only for
   behavior changes: a capability that lands in stdlib usually means a row leaves

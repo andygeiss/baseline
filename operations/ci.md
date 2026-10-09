@@ -42,9 +42,10 @@ of it: the Makefile says what runs, and this document says why.
   writes export data no staticcheck release reads yet: staticcheck stops before it
   checks anything, on standard-library packages —
   `cannot decode "math/bits", export data version 5 is greater than maximum supported version 4`.
-  The canonical line then carries `GOTOOLCHAIN=go<the newest patch staticcheck reads>`
-  until the staticcheck release that reads the new format. The analysis reads the same
-  source, nothing it builds ships, and the prefix is that line's record of its toolchain.
+  Put `GOTOOLCHAIN=go<the newest patch staticcheck reads>` in front of that one line,
+  and take it off with the staticcheck release that reads the new format; the canonical
+  Makefile carries it while the pin needs it. The analysis reads the same source,
+  nothing it builds ships, and the prefix is that line's record of its toolchain.
 - **Static build gate** — proves the CGO-free single-binary invariant on every run,
   not at release time.
 
@@ -69,7 +70,8 @@ of it: the Makefile says what runs, and this document says why.
   pattern exactly as `git ls-files` prints the file, or the build fails at deploy or
   in a Linux user's `go install`.
 - **Other operating systems.** For every other OS that a `//go:build <os>` line or a
-  `_<os>.go` name targets, run `GOOS=<os> go vet ./...` before the push.
+  `_<os>.go` name targets, run `GOOS=<os> go vet ./...` before the push. `unix` is not a
+  GOOS: for a `//go:build unix` file, `GOOS=linux` stands in for the other Unix systems.
 - **Your shell.** `GOFLAGS` and whatever else the profile exports or `go env -w`
   wrote reach the gates. Read `go env -changed` before you trust a green run: every
   line it prints is a difference between this machine and the one that builds the

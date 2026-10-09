@@ -140,22 +140,24 @@ the API is integrated.
 - [ ] The child runs in a process group of its own (`Setpgid`)
 - [ ] That code sits behind `//go:build unix`
 - [ ] SIGTTOU is ignored before the child starts
+- [ ] SIGTSTP is ignored before the child starts
 - [ ] It is not started with `exec.CommandContext`, whose cancel kills it
 - [ ] Its output goes to the tool's stderr
 - [ ] Its `Stdout` and `Stderr` are `*os.File`s, never another writer
 - [ ] Everything that can fail fast is checked before it starts
 - [ ] The readiness wait ends when the child exits, too
 - [ ] The stop signal goes to the child's whole process group
-- [ ] The tool sends it once, never a second time
+- [ ] The tool sends it once, never a second SIGTERM
 - [ ] It goes out before the tool's own shutdown
 - [ ] The tool waits for the child to exit before it returns, on every path
+- [ ] A group still running `grace` after its stop signal gets SIGKILL
 - [ ] A child that exits on its own stops the tool
 - [ ] That stop's error names the child's exit
 - [ ] SIGHUP stops the tool, unless it was started ignored
 - [ ] The force-kill hatch ignores SIGHUP before it unregisters the rest
 - [ ] Its secret reaches it through a file, or its own environment when it reads nothing else — never its command line
 - [ ] Tests run the test binary as the fake child
-- [ ] Tests read the signals the fake child got: one SIGTERM
+- [ ] Tests assert the fake child caught SIGTERM before `run` returned
 
 ## Adding an AI capability — a model that answers, summarises, extracts, or classifies
 

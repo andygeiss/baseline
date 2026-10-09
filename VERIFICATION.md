@@ -74,10 +74,14 @@ be synced, the tag waits.
   that starts the inference engine it fronts — and Andy chose to extract it: the child in
   a process group of its own, one stop signal sent before the tool's own shutdown, the
   wait before the tool returns, SIGHUP unless `nohup` ignored it, and the test binary as
-  the fake child. Its snippets compile and pass `gofmt`, `go vet`, `go fix -diff`,
-  `staticcheck`, and `govulncheck`; the stop path ran against the real engine for Ctrl-C,
-  SIGHUP, and an engine that died. The web-application checklist gets no section: the
-  case arose in a CLI, and that checklist sits 14 tokens under its budget.
+  the fake child. The first draft's stop path ran against the real engine for Ctrl-C,
+  SIGHUP, and an engine that died. Review then rewrote it: the stop goes to the group, not
+  the PID; SIGTTOU and Ctrl-Z are ignored once the child runs; a child that outlasts its
+  SIGTERM gets SIGKILL after a grace; an interrupted run exits non-zero; and the hatch
+  ignores the second SIGHUP a closing zsh terminal sends. The rewrite runs under a real
+  pty, in zsh and bash, against a fake engine with a helper of its own. The
+  web-application checklist gets no section: the case arose in a CLI, and that checklist
+  sits 18 tokens under its budget.
 - **2026-10-09 — the Go pin moves to 1.27.2.** Go 1.27.2 shipped on 2026-10-08 as a
   security release: fifteen advisories, thirteen in the standard library and two in the
   `go` command. `VERSIONS.md` pins it as the floor; the pin line in `stack/go.md` and both
@@ -91,9 +95,11 @@ be synced, the tag waits.
   toolchain each fact was measured under, and stay, as they did at the 1.26.7 move.
 - **`VERSIONS.md` keeps its 2026-09-08 date.** Every row with a source was checked on
   2026-10-09, and two others had moved: htmx 2.0.11 (2026-09-22, npm's `latest`) and
-  `modernc.org/sqlite` v1.60.1 (2026-09-29). Neither is in this change, so the table is
-  not current as a whole, and its date waits for the change that rules on both. scs
-  v2.9.0 and the `design.md` format's `alpha` did not move, and htmx 4.0.1 has not shipped.
+  `modernc.org/sqlite` v1.60.1 (2026-09-29). Neither is in this change — 2.0.11 backports
+  `<hx-partial>` from 4.0, which wants a ruling rather than a bump — so the table is not
+  current as a whole, and its date waits for the change that rules on both. The htmx row
+  no longer calls 2.x feature-complete. scs v2.9.0 and the `design.md` format's `alpha`
+  did not move, and htmx 4.0.1 has not shipped.
 - **2026-10-09 — a Go patch that outruns staticcheck.** The go.dev/issue/81188 fix,
   backported to 1.27.2, makes the compiler write export data V5. Staticcheck 2026.2.1
   (v0.8.1), still the newest release, reads only V4, so it stops before it checks
@@ -102,29 +108,37 @@ be synced, the tag waits.
   (dominikh/go-tools#1832, open); 1.27.0 broke it the same way (dominikh/go-tools#1734).
   Rebuilt against `golang.org/x/tools` v0.51.0, v0.8.1 runs clean on the reference, so the
   fix upstream is one requirement bump. `operations/ci.md` now rules the case beside the
-  one for a staticcheck release that breaks the gate, and the canonical Makefile in
-  `stack/makefile.md` carries it: the staticcheck line runs under `GOTOOLCHAIN=go1.27.1`
-  until a release reads V5, and `VERSIONS.md` names that line as the one toolchain patch
-  pin a repository may hold. Andy chose the rule over letting the tag wait. Without it an agent has two
+  one for a staticcheck release that breaks the gate. The canonical Makefile in
+  `stack/makefile.md` carries the prefix, `GOTOOLCHAIN=go1.27.1`, until a release reads
+  V5; rule 5 lets a project add or drop it as the cause comes and goes; and `VERSIONS.md`
+  scopes its tier-1 floor to what builds, tests, and ships, naming that line as the one
+  exception. Andy chose the rule over letting the tag wait. Without it an agent has two
   moves, and both are wrong: skip the gate, or hold the pin below the security floor.
   Homebrew's Go here moved to 1.27.2 on 2026-10-09, so a bare run on this machine needs
   the prefix.
+- **2026-10-09 — what a project's Makefile may hold.** `stack/makefile.md` rule 5 is now
+  *Adjustments*, not *Per-layout adjustments*. Besides the three layouts, it names the
+  staticcheck hold-backs `operations/ci.md` allows, and lets the multi-binary layout
+  reword the two comments it makes stale. The three checklists' Makefile box now reads
+  "differing only as its rule 5 allows". That closes a v4.7.0 collision: `ci.md` already
+  told a project to pin staticcheck's version, and rule 5's "exactly these" forbade it.
 - **2026-10-09 — a CLI may serve the person who started it.** The child-process pattern's
   proxy contradicted `project-types/cli-tool.md`, which said a process that stays up to
   serve requests is not a CLI. Andy chose to widen the definition rather than narrow the
   pattern: a foreground tool that serves the person who started it until Ctrl-C, like a
-  local proxy, is a CLI; one that runs unattended, or serves other people, is a web
-  application. Left open: a CLI that listens on a port gets none of the web
-  application's cross-origin rules.
-- **The empirical half, so far.** Reference `6046248` (v4.7.0), unchanged:
-  `GOTOOLCHAIN=go1.27.2 ./verify.sh` stops at its fourth step, staticcheck. A copy that
-  runs that one line under `GOTOOLCHAIN=go1.27.1`, as the rule asks, exits 0 over all 79
-  steps.
-- **Measured against v4.7.0:** the cli-tool change path 5,332 → 5,552 and its floor
-  11,597 → 11,817 — the child-process section's 230 on each, less the 10 the shorter Go
-  row gave back. That row alone takes 10 off every other path, the web-application change
-  path 7,985 → 7,975 among them. The child-process document itself is a trigger, 1,403
-  tokens.
+  local proxy, is a CLI; one meant to stay up unattended, or to serve other people, is a
+  web application. *A CLI terminates* now draws the same line. Left open: a CLI that
+  listens on a port gets none of the web application's cross-origin rules.
+- **The empirical half, so far.** Reference `6046248` (v4.7.0):
+  `GOTOOLCHAIN=go1.27.2 ./verify.sh` stops at its fourth step, staticcheck. With the sync in its working tree —
+  that line carrying `GOTOOLCHAIN=go1.27.1`, as the canonical Makefile now does — a bare
+  `./verify.sh` under Homebrew's 1.27.2 exits 0 over all 79 steps.
+- **Measured against v4.7.0:** the cli-tool change path 5,332 → 5,712 — the checklist's
+  366, nearly all of it the 370-token child-process section, and `VERSIONS.md`'s 14 — and
+  its floor 11,597 → 12,015, adding the widened definition's 29 and `stack/go.md`'s 9.
+  The web-application change path 7,985 → 7,995, `VERSIONS.md`'s 14 less the 4 its
+  Makefile box gave back: five under the budget. The library's 4,351 → 4,372. The
+  child-process document is a trigger, 2,423 tokens.
 
 ## Why the CSP is what it is
 

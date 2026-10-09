@@ -117,12 +117,15 @@ test:
      `rm -rf bin/ <tool>` and add `<tool>` to `.gitignore`.
    - *Multi-binary CLI module* (the sanctioned `cmd/<name>/` layout): set
      `MAIN = ./cmd/<name>` for the binary `run` serves, and in `build` replace
-     `$(MAIN)` with `./cmd/...` so every binary lands in `bin/`.
+     `$(MAIN)` with `./cmd/...` so every binary lands in `bin/`; reword the
+     comments above those two lines to match.
    - *Library:* delete `MAIN`, `run`, `build`, and `clean` (nothing creates
      `bin/`) and trim `.PHONY` to `check ci fmt test` — `check`'s
      `go build ./...` already proves everything compiles.
-   - *A staticcheck release that breaks the gate:* its line pinned to the
-     previous version, until the findings are fixed
+   - *The staticcheck line, held back:* pinned to the previous staticcheck
+     version while a release of it breaks the gate, or prefixed with
+     `GOTOOLCHAIN=go<the newest patch staticcheck reads>` while a Go patch
+     outruns it — and back to the canonical line once the cause clears
      ([operations/ci.md](../operations/ci.md)).
 6. **`run` loads `.env` when it is there. Nothing else does.** A binary that
    needs a token or a database URL otherwise needs two commands to start, and
