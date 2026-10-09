@@ -45,13 +45,12 @@ Hand the file over the way that user takes files, with its `sha256`.
 
 ## Cutting a release
 
-`make ci` runs the gates against the commit you are about to tag. The third line
-installs the tag from an empty module cache; a tool with subcommands answers
-`<tool> version` in place of `<tool> -version`:
+`make ci` runs the gates against the commit you are about to tag, and a red run stops
+the tag and the push. The second line installs the tag from an empty module cache; a
+tool with subcommands answers `<tool> version` in place of `<tool> -version`:
 
 ```sh
-make ci
-git tag -a vX.Y.Z -m "what changed, in one line" && git push --atomic origin main vX.Y.Z
+make ci && git tag -a vX.Y.Z -m "what changed, in one line" && git push --atomic origin main vX.Y.Z
 d=$(mktemp -d); GOMODCACHE=$d go install github.com/andygeiss/<tool>@vX.Y.Z && <tool> -version
 GOMODCACHE=$d go clean -modcache
 ```

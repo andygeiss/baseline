@@ -117,7 +117,8 @@ be synced, the tag waits.
   release reads the pinned Go — and the `go fix` fixer a project may switch off by name,
   on all three `go fix` commands. The multi-binary layout, now *Multi-binary module*
   because a web application ships a client the same way, may reword the two comments it
-  makes stale, and the single-binary one says which builds drop the root binary. The
+  makes stale, and the single-binary one says which builds drop the root binary and
+  anchors its `.gitignore` pattern. The
   three checklists' Makefile box now reads "differing only as its rule 5 allows". That
   closes two v4.7.0 collisions: `ci.md` already told a project to pin staticcheck's
   version and to switch a fixer off, and rule 5's "exactly these" forbade both.
@@ -126,7 +127,8 @@ be synced, the tag waits.
   v4.6.0 that it fails; it now fails after three passes, and the description under the
   Makefile says so. Four code blocks — the dependency update in `ci.md`, the README's
   install, and both in `operations/cli-release.md` — carried `#` comments, which macOS's
-  interactive zsh hands to the command as words; the comments moved into the prose.
+  interactive zsh hands to the command as words; the comments moved into the prose, and
+  the release block now tags only after a green `make ci`.
   `ci.md` said the pin refuses any dependency that asks for a newer Go; it takes one that
   asks for its own patch and raises the `go` line, which `ci.md` now says, naming the
   command that shows which module asked. `VERSIONS.md` said htmx 2.0.10 never appeared
@@ -135,13 +137,18 @@ be synced, the tag waits.
   `GOTOOLCHAIN=go1.27.2 ./verify.sh` stops at its fourth step, staticcheck. With the sync
   in its working tree — the staticcheck line out under a dated README waiver — a bare
   `./verify.sh` under Homebrew's 1.27.2 exits 0 over all 79 steps, the fourth printing
-  the waiver.
-- **Measured against v4.7.0:** every path got shorter. `VERSIONS.md` gave back 13, its
-  Go row shorter than the one it replaced, and the reworded Makefile box gave back 4 on
-  the cli-tool and web-application paths, where the library's longer box took 8. Change
-  paths: cli-tool 5,332 → 5,315, library 4,351 → 4,345, web-application 7,985 → 7,968,
-  32 under the budget. Floors: cli-tool 11,597 → 11,580, library 12,504 → 12,499,
-  web-application 21,363 → 21,346.
+  the waiver. No staticcheck release runs under the pin, so this run's staticcheck
+  findings come from v0.8.1 rebuilt against `golang.org/x/tools` v0.51.0, the one build
+  that reads 1.27.2's export data.
+- **Measured against v4.7.0:** every budgeted path got shorter. `VERSIONS.md` is 18
+  tokens shorter, its Go row shorter than the one it replaced, and the reworded Makefile
+  box is shorter on the cli-tool and web-application paths and longer on the library's.
+  Change paths: cli-tool 5,332 → 5,311, library 4,351 → 4,340, web-application
+  7,985 → 7,963, 37 under the budget. Floors: cli-tool 11,597 → 11,575, library
+  12,504 → 12,494, web-application 21,363 → 21,342. Reach, which no budget caps, grew —
+  cli-tool 41,262 → 41,864, library 28,558 → 29,172, web-application
+  102,895 → 103,449 — with `operations/ci.md` (+365), `stack/makefile.md` (+210) and
+  `operations/cli-release.md` (+49).
 
 ## Why the CSP is what it is
 

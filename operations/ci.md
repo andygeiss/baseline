@@ -40,12 +40,13 @@ of it: the Makefile says what runs, and this document says why.
   line to the previous version in the fixing commit and remove the pin once you have
   fixed the findings.
 - **A Go patch staticcheck cannot read yet** breaks that gate from the other side. The
-  toolchain writes export data no staticcheck release reads, and staticcheck stops
-  before it checks anything, on standard-library packages:
+  toolchain writes export data no staticcheck release reads, so staticcheck checks no
+  package that imports the standard library, and fails on lines like
   `cannot decode "math/bits", export data version 5 is greater than maximum supported version 4`.
   Take that one line out, under a dated waiver in the README that names the upstream
-  issue, and keep the pin: the security floor outranks a lint. Try the plain line again
-  on every dependency update, and put it back, ending the waiver, once it runs.
+  issue, and keep the pin: the security floor outranks a lint. On every dependency
+  update, run `go run honnef.co/go/tools/cmd/staticcheck@latest ./...` by hand; once it
+  runs, put the line back and delete the waiver.
 - **Static build gate** — proves the CGO-free single-binary invariant on every run,
   not at release time.
 
@@ -93,27 +94,29 @@ Two things nobody does for you:
 
 By hand, under the pin, on the same 90-day cycle or when
 [VERSIONS.md](../VERSIONS.md) moves. The first line sets the pin for this shell; the
-second updates every dependency and runs the gates. Commit what it leaves as one
-`chore(deps)` commit:
+second updates the dependencies the module's packages import — not those only its
+tests import — and runs the gates. Commit what it leaves as one `chore(deps)` commit:
 
 ```sh
 export GOTOOLCHAIN=go1.27.2
 go get -u ./... && go mod tidy && make check
 ```
 
-Anything that breaks on a routine update is a candidate for removal. When the Go pin
+While a waiver holds the staticcheck line out, try it by hand after the update as well
+(*Why each gate exists*). Anything that breaks on a routine update is a candidate for removal. When the Go pin
 moved a major, `make check` may be red on the idioms the new toolchain rewrites:
 `make fmt` first, and commit that rewrite on its own, so the dependency commit stays
 one thing.
 
 A dependency that asks for a newer Go is a VERSIONS.md decision, not a `go get` side
-effect. Under the pin `go get` refuses one that asks for a newer major
+effect. Under the pin, `go get` refuses one that asks for more than the pin
 (`requires go >= 1.28`) and leaves `go.mod` alone: hold the dependency
-(`go get -u ./... <dep>@<current>`) or drop it. One that asks for a patch the pin
-satisfies, `go 1.27.2`, it takes, and raises the `go` line to match —
-`go: upgraded go 1.27 => 1.27.2` — and under `auto` it does the same for a newer major.
-Any later `go mod tidy` does the same without a word. If the `go` line rose, put it
-back by hand, with the pin exported:
+(`go get -u ./... <dep>@<current>`) or drop it. It takes one that asks for a Go the pin
+satisfies but `go 1.27` does not, such as `go 1.27.2` or `go 1.27.0`. It raises the
+`go` line to match and prints `go: upgraded go 1.27 => 1.27.2`; under `auto`, it does
+the same for a newer major. Any later `go mod tidy` raises the line again without a
+word. If the `go` line rose, put it back by hand, with the pin exported, holding each
+dependency that asked:
 
 ```sh
 go mod edit -go=1.27 -toolchain=none -require=<dep>@<current> && go mod tidy && make check
@@ -121,12 +124,12 @@ go mod edit -go=1.27 -toolchain=none -require=<dep>@<current> && go mod tidy && 
 
 The hold is `go mod edit -require`, not `go get`: under the pin `go get` cannot open
 a `go.mod` that says `go 1.28`, and `go mod edit` never reads the module graph. `go
-mod tidy` then refuses while any other dependency still asks for 1.28; give each one
-its own `-require`. For a patch it does not refuse: it raises the line again without a
-word. Nothing in either output names the module that asked;
-`go list -m -f '{{.Path}} {{.GoVersion}}' all` does, so hold every module it shows above
-`1.27`. `-toolchain=none` removes any `toolchain` line, which would pick the Go for every
-machine on `auto`.
+mod tidy` then refuses, naming the module, while any other dependency still asks for
+more than the pin. One that asks for a patch the pin satisfies it takes again, in
+silence. `go list -m -e -f '{{.Path}} {{.GoVersion}}' all` shows every module's `go`
+line, your own first: give each dependency it shows above `1.27` its own `-require`,
+`1.27.0` included, since the go command ranks that above `1.27`. `-toolchain=none`
+removes any `toolchain` line, which would pick the Go for every machine on `auto`.
 
 ## Nothing here deploys
 

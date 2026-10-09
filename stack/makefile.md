@@ -114,7 +114,8 @@ test:
      repository root — the checklist's `go build .`, and `check`'s
      `go build ./...` too when it matches only the main package, since one main
      package is not "multiple packages". Extend `clean` to `rm -rf bin/ <tool>`
-     and add `<tool>` to `.gitignore`.
+     and add `/<tool>` to `.gitignore`; the leading slash keeps an
+     `internal/<tool>/` package tracked.
    - *Multi-binary module* (the sanctioned `cmd/<name>/` layout): set
      `MAIN = ./cmd/<name>` for the binary `run` serves, and in `build` replace
      `$(MAIN)` with `./cmd/...` so every binary lands in `bin/`; reword the
