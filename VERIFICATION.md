@@ -93,62 +93,55 @@ be synced, the tag waits.
   `export data version 5 is greater than maximum supported version 4`
   (dominikh/go-tools#1832, open); 1.27.0 broke it the same way (dominikh/go-tools#1734).
   Rebuilt against `golang.org/x/tools` v0.51.0, v0.8.1 runs clean on the reference, so the
-  binary needs only that bump; upstream's fix (dominikh/go-tools#1834, open) also changes
-  a file its tests link, after the bump alone (#1833) failed them. `operations/ci.md` now
-  rules the case beside the one for a staticcheck release that breaks the gate. The
-  canonical Makefile in
-  `stack/makefile.md` carries the prefix, `GOTOOLCHAIN=go1.27.1`, until a release reads
-  V5; rule 5 lets a project add or drop it as the cause comes and goes; and `VERSIONS.md`
-  scopes its tier-1 floor to what builds, tests, and ships, naming that line as the one
-  exception, as `stack/go.md` now does too. Andy chose the rule over letting the tag
-  wait. Without it an agent has two moves, and both are wrong: skip the gate, or hold the
-  pin below the security floor. Review found the prefix's one hole: under 1.27.1, a type
-  that declares a generic method before a non-generic one brings go.dev/issue/81188 back
-  — the older export data writes plain methods first — and staticcheck, analysing a
-  package that imports it, panics or misfiles its facts. Andy chose a waiver for a
-  project whose own packages or non-standard dependencies declare such a type — the line
-  out, on the record in its README, until the release — over a staticcheck built against
-  newer `x/tools` or a held tag. The standard library's one such type in 1.27.2,
-  `math/rand/v2`'s `Rand` (its generic `N` before `Float64`), sits in every web
-  application's build; staticcheck 2026.2.1 can file only a nilness fact on its `Perm`,
-  which only SA4023 reads, and probes calling fifteen of its methods misreported nothing,
-  so it does not count. The waiver reaches test files and test-only dependencies, since
-  staticcheck checks tests; `ci.md` gives a finder that lists them too, to run when the
-  prefix arrives and after every dependency update, and `stack/go.md` points at the
-  waiver where it allows generic methods. The prefixed line also refuses a `go.mod` that
-  names a later patch — what `go get` and `go mod tidy` write, under the pin, for a
-  dependency that asks for `go 1.27.2` — so `ci.md` now says the pin takes such a
-  dependency rather than refusing it, and that the `go` line goes back, never the prefix
-  up. README *Maintenance protocol* says the prefix is not the pin, and what leaves with
-  it. Homebrew's Go here moved to 1.27.2 on 2026-10-09, so a bare run on this machine
-  needs the prefix.
+  binary needs only that bump; a fix proposed upstream (#1834, open) also rewrites the
+  linkname file that broke the test build when #1833 bumped `x/tools` alone.
+  `operations/ci.md` now rules the case beside the one for a staticcheck release that
+  breaks the gate: the line comes out under a dated README waiver that names the
+  upstream issue, the pin stays, and the plain line is tried again on every dependency
+  update. Rule 5 allows the line out. Homebrew's Go here moved to 1.27.2 on 2026-10-09,
+  so a bare run on this machine meets the export-data error.
+- **How that rule got here.** Andy first chose a prefix — the line run under
+  `GOTOOLCHAIN=go1.27.1` — over letting the tag wait, and seven review rounds took it
+  apart. Under 1.27.1, a type that declares a generic method before a non-generic one
+  brings go.dev/issue/81188 back, and staticcheck, analysing a package that imports it,
+  panics or misfiles its facts; the waiver and the finder that case needed drew new
+  defects every round. And the prefixed line refuses any `go.mod` that names a later
+  patch — what `go get` and `go mod tidy` write under the pin for a dependency that asks
+  for `go 1.27.2`, and what `go mod init` writes under 1.27.2. Andy then chose the dated
+  waiver over iterating on the prefix or holding the tag. It costs every project its
+  staticcheck run until upstream ships, and nothing else.
 - **2026-10-09 — what a project's Makefile may hold.** `stack/makefile.md` rule 5 is now
   *Adjustments*, not *Per-layout adjustments*. Besides the three layouts, it names the
-  staticcheck hold-backs `operations/ci.md` allows, with the comment that describes the
-  line, and the `go fix` fixer it lets a project switch off by name; and the multi-binary
-  layout, now *Multi-binary module* because a web application ships a client the same
-  way, may reword the two comments it makes stale. The three checklists' Makefile box now
-  reads "differing only as its rule 5 allows". That closes two v4.7.0 collisions: `ci.md`
-  already told a project to pin staticcheck's version and to switch a fixer off, and rule
-  5's "exactly these" forbade both. The switch-off now names all three `go fix` commands
-  it must reach, and the single-binary adjustment says when the root binary appears.
+  staticcheck hold-backs `operations/ci.md` allows — the previous staticcheck version
+  while a release of it breaks the gate, the line out under a dated waiver while no
+  release reads the pinned Go — and the `go fix` fixer a project may switch off by name,
+  on all three `go fix` commands. The multi-binary layout, now *Multi-binary module*
+  because a web application ships a client the same way, may reword the two comments it
+  makes stale, and the single-binary one says which builds drop the root binary. The
+  three checklists' Makefile box now reads "differing only as its rule 5 allows". That
+  closes two v4.7.0 collisions: `ci.md` already told a project to pin staticcheck's
+  version and to switch a fixer off, and rule 5's "exactly these" forbade both.
 - **2026-10-09 — what the run found that is older than this release.** The canonical
   `fmt` loop exited 0 when `go fix` did not converge, though its comment has said since
-  v4.6.0 that it fails; it now fails after three passes. Two code blocks — the
-  dependency update in `ci.md` and the README's install — carried `#` comments, which
-  macOS's interactive zsh hands to the command as words; the comments moved into the
-  prose. `VERSIONS.md` said htmx 2.0.10 never appeared on GitHub's releases page; it did,
-  on 2026-09-06, months after its tag.
+  v4.6.0 that it fails; it now fails after three passes, and the description under the
+  Makefile says so. Four code blocks — the dependency update in `ci.md`, the README's
+  install, and both in `operations/cli-release.md` — carried `#` comments, which macOS's
+  interactive zsh hands to the command as words; the comments moved into the prose.
+  `ci.md` said the pin refuses any dependency that asks for a newer Go; it takes one that
+  asks for its own patch and raises the `go` line, which `ci.md` now says, naming the
+  command that shows which module asked. `VERSIONS.md` said htmx 2.0.10 never appeared
+  on GitHub's releases page; it did, on 2026-09-06, months after its tag.
 - **The empirical half, so far.** Reference `6046248` (v4.7.0):
   `GOTOOLCHAIN=go1.27.2 ./verify.sh` stops at its fourth step, staticcheck. With the sync
-  in its working tree — that line carrying `GOTOOLCHAIN=go1.27.1`, as the canonical
-  Makefile now does — a bare `./verify.sh` under Homebrew's 1.27.2 exits 0 over all 79
-  steps.
-- **Measured against v4.7.0:** each change path grows by `VERSIONS.md`'s 14 and its
-  reworded Makefile box — cli-tool 5,332 → 5,342, library 4,351 → 4,372, and
-  web-application 7,985 → 7,995, five under the budget. Each floor also carries
-  `stack/go.md`'s 80, its tier-1 scope and waiver pointer: cli-tool 11,597 → 11,687,
-  library 12,504 → 12,606, web-application 21,363 → 21,453.
+  in its working tree — the staticcheck line out under a dated README waiver — a bare
+  `./verify.sh` under Homebrew's 1.27.2 exits 0 over all 79 steps, the fourth printing
+  the waiver.
+- **Measured against v4.7.0:** every path got shorter. `VERSIONS.md` gave back 13, its
+  Go row shorter than the one it replaced, and the reworded Makefile box gave back 4 on
+  the cli-tool and web-application paths, where the library's longer box took 8. Change
+  paths: cli-tool 5,332 → 5,315, library 4,351 → 4,345, web-application 7,985 → 7,968,
+  32 under the budget. Floors: cli-tool 11,597 → 11,580, library 12,504 → 12,499,
+  web-application 21,363 → 21,346.
 
 ## Why the CSP is what it is
 

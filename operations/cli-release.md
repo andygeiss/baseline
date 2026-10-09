@@ -19,10 +19,11 @@ sanctioned multi-binary layout (`cmd/<name>/`), the install path gains the suffi
 Nothing more until real demand exists: no release binaries, no Homebrew tap, no apt/rpm
 repos, no Docker images, no install-script-piped-to-shell. A user without a Go toolchain
 is real demand. Build for that machine by hand, at the tagged commit with a clean tree —
-anywhere else the stamp is not the tag:
+anywhere else the stamp is not the tag. A multi-binary module builds `./cmd/<name>`
+in place of `.`; `bin/` is gitignored:
 
 ```sh
-CGO_ENABLED=0 GOOS=… GOARCH=… go build -trimpath -o bin/ .   # or ./cmd/<name>; bin/ is gitignored
+CGO_ENABLED=0 GOOS=… GOARCH=… go build -trimpath -o bin/ .
 ```
 
 Hand the file over the way that user takes files, with its `sha256`.
@@ -44,10 +45,14 @@ Hand the file over the way that user takes files, with its `sha256`.
 
 ## Cutting a release
 
+`make ci` runs the gates against the commit you are about to tag. The third line
+installs the tag from an empty module cache; a tool with subcommands answers
+`<tool> version` in place of `<tool> -version`:
+
 ```sh
-make ci                        # the gates, against the commit you are about to tag
+make ci
 git tag -a vX.Y.Z -m "what changed, in one line" && git push --atomic origin main vX.Y.Z
-d=$(mktemp -d); GOMODCACHE=$d go install github.com/andygeiss/<tool>@vX.Y.Z && <tool> -version   # or: <tool> version
+d=$(mktemp -d); GOMODCACHE=$d go install github.com/andygeiss/<tool>@vX.Y.Z && <tool> -version
 GOMODCACHE=$d go clean -modcache
 ```
 

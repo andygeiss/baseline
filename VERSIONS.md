@@ -36,10 +36,9 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 ## Version policy
 
 - **Go:** Adopt a new major (x.y) release after its first patch release (x.y.1) unless a
-  project needs a new feature immediately. Build, test and ship on the latest patch —
-  that is where security fixes ship. Set `go 1.27` in `go.mod`. Pin no toolchain patch in
-  the repo; the one exception is a staticcheck line, which ships nothing
-  ([operations/ci.md](operations/ci.md)).
+  project needs a new feature immediately. Always run the latest patch release —
+  that is where security fixes ship. Set `go 1.27` in `go.mod`; do not pin toolchain patch
+  versions in the repo.
 - **htmx:** Track the latest 2.x patch. 4.0.1 shipping is the trigger for a baseline
   release that adopts 4.x; projects move with that release, not with 4.0.1 itself. Vendor
   the file (self-host, no CDN in production).
@@ -56,8 +55,8 @@ moved; Go again on 2026-10-09.
 - Go 1.27 notes: https://go.dev/doc/go1.27 — and https://go.dev/doc/go1.28 for the
   adoption pass at 1.28.1
 - htmx versions: `npm view htmx.org dist-tags` or https://github.com/bigskysoftware/htmx/tags
-  — **not** the GitHub releases page: upstream tags 2.x patches without creating a
-  Release object there at the time (2.0.11 has none)
+  — **not** the GitHub releases page: upstream does not always create a Release object
+  for a 2.x patch (2.0.11 has none)
 - SQLite: https://proxy.golang.org/modernc.org/sqlite/@latest
 - scs: https://github.com/alexedwards/scs/tags
 - CSS Baseline: https://web.dev/baseline

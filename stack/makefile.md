@@ -35,13 +35,12 @@ build:
 	CGO_ENABLED=0 go build -trimpath -o bin/ $(MAIN)
 
 # Default. Every gate, in this order (operations/ci.md), against the working
-# tree. Run before every commit. staticcheck runs under Go 1.27.1 until a
-# release of it reads the export data 1.27.2 writes (operations/ci.md).
+# tree. Run before every commit.
 check:
 	test -z "$$(gofmt -l .)" || (gofmt -l . && exit 1)
 	go vet ./...
 	go fix -diff ./...
-	GOTOOLCHAIN=go1.27.1 go run honnef.co/go/tools/cmd/staticcheck@latest ./...
+	go run honnef.co/go/tools/cmd/staticcheck@latest ./...
 	go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 	go mod tidy -diff
 	go test -race -shuffle=on ./...
@@ -111,11 +110,11 @@ test:
    application's deployment belongs to the operations repository**, which knows
    the server.
 5. **Adjustments** — exactly these, nothing else:
-   - *Single-binary CLI* (`MAIN = .`): when `./...` matches only the main
-     package, `check`'s `go build ./...` drops `./<tool>` into the repository
-     root — one main package is not "multiple packages", so the object is not
-     discarded. Extend `clean` to `rm -rf bin/ <tool>` and add `<tool>` to
-     `.gitignore`.
+   - *Single-binary CLI* (`MAIN = .`): a build of `.` drops `./<tool>` into the
+     repository root — the checklist's `go build .`, and `check`'s
+     `go build ./...` too when it matches only the main package, since one main
+     package is not "multiple packages". Extend `clean` to `rm -rf bin/ <tool>`
+     and add `<tool>` to `.gitignore`.
    - *Multi-binary module* (the sanctioned `cmd/<name>/` layout): set
      `MAIN = ./cmd/<name>` for the binary `run` serves, and in `build` replace
      `$(MAIN)` with `./cmd/...` so every binary lands in `bin/`; reword the
@@ -125,12 +124,9 @@ test:
      `go build ./...` already proves everything compiles.
    - *The staticcheck line, held back as
      [operations/ci.md](../operations/ci.md) says:* pinned to the previous
-     staticcheck version while a release of it breaks the gate; prefixed with
-     `GOTOOLCHAIN=go<the newest patch staticcheck reads>` while a Go patch
-     outruns it, or taken out under a README waiver where that prefix cannot
-     cover the code; and plain again once the cause clears, whatever the
-     canonical line still carries — with the sentence about it in the comment
-     above `check` reworded to match.
+     staticcheck version while a release of it breaks the gate, or taken out
+     under a dated README waiver while no staticcheck release reads the pinned
+     Go's export data — and back to the canonical line once the cause clears.
    - *A `go fix` fixer judged wrong:* switched off by name, `-<fixer>=false`, on
      every `go fix` command — `check`'s, and both in `fmt`'s loop — until the
      code no longer trips it ([operations/ci.md](../operations/ci.md)).
@@ -171,9 +167,10 @@ test:
   per [stack/go.md](go.md)) settles the imports so `go fix`, which type-checks,
   can rewrite to current idiom; on code that does not type-check, `fmt` fails.
   `go fix` applies each fixer once, so it repeats until its own `-diff` is
-  empty, and `goimports` runs again after it, because the import `go fix` adds
-  is a declaration of its own. Their read-only twins in `check`, `gofmt -l` and
-  `go fix -diff`, stay the authority on "is it done".
+  empty, and fails after three passes that leave one. `goimports` runs again
+  after it, because the import `go fix` adds to a single-import file is a second
+  declaration. Their read-only twins in `check`, `gofmt -l` and `go fix -diff`,
+  stay the authority on "is it done".
 - **`run`** — `go run`, not build-then-execute; the build cache makes it fast
   and there is no stale binary to accidentally re-run.
 - **`test`** — always `-race -shuffle=on`, exactly as `check` runs it. `-shuffle`

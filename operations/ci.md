@@ -21,9 +21,9 @@ of it: the Makefile says what runs, and this document says why.
 - **`go fix -diff`** — fails while a rewrite to current idiom is pending; `make fmt`
   applies it. Read that diff before you commit it: Go says the fixes *should* not
   change behavior, not that they cannot. Switch a fix you judge wrong off by name,
-  `-<fixer>=false`, on every `go fix` command — `check`'s, and both in `fmt`'s loop — in
-  the commit that says why, and back on once the code no longer trips it — the name is
-  the toolchain's, and a later major may drop it.
+  `-<fixer>=false`, in the commit that says why. It goes on every `go fix` command:
+  `check`'s, and both in `fmt`'s loop. Switch it back on once the code no longer trips
+  it; the name is the toolchain's, and a later major may drop it.
 - **`govulncheck`** — call-graph-aware CVE scanning: it reports a vulnerability in a
   function you never call as exactly that, not as red. A red gate means: bump the
   dependency, don't silence the check.
@@ -38,33 +38,14 @@ of it: the Makefile says what runs, and this document says why.
   but can never change the shipped binary, and for these tools the newest checks *are*
   the point. If a staticcheck release breaks the gate on an unrelated morning, pin that
   line to the previous version in the fixing commit and remove the pin once you have
-  fixed the findings. A Go patch can break it from the other side, when the toolchain
-  writes export data no staticcheck release reads yet: staticcheck stops before it
-  checks anything, on standard-library packages —
+  fixed the findings.
+- **A Go patch staticcheck cannot read yet** breaks that gate from the other side. The
+  toolchain writes export data no staticcheck release reads, and staticcheck stops
+  before it checks anything, on standard-library packages:
   `cannot decode "math/bits", export data version 5 is greater than maximum supported version 4`.
-  Put `GOTOOLCHAIN=go<the newest patch staticcheck reads>` in front of that one line,
-  and take it off with the staticcheck release that reads the new format; the canonical
-  Makefile carries it while the pin needs it. The analysis reads the same source,
-  nothing it builds ships, and the prefix is that line's record of its toolchain. The
-  line refuses to start once `go.mod` names a later patch than the prefix:
-  `go.mod requires go >= 1.27.2 (running go 1.27.1; GOTOOLCHAIN=go1.27.1)`.
-  Put the `go` line back to `go 1.27`, as *Dependency updates* says; never move the
-  prefix up. One case the prefix cannot cover: a type that declares a generic method
-  before a non-generic one loses that order in the older export data
-  (go.dev/issue/81188), and staticcheck panics, or files its facts under the wrong
-  method, in every package that imports it — external tests included, though not in its
-  own. A project whose own packages or dependencies outside the standard library declare
-  such a type takes the line out, under a waiver in its README, until the staticcheck
-  release lands. Staticcheck checks tests too, so a test file counts, and so does a
-  dependency only the tests import. The standard library's one, `math/rand/v2`'s `Rand`,
-  does not count: a fact misfiled among its methods changes no finding. Run this finder
-  when the prefix arrives and after every dependency update while it stands; it lists
-  the files that declare a generic method at all:
-
-  ```sh
-  go list -deps -test -f '{{if not .Standard}}{{.Dir}}{{end}}' ./... | sort -u \
-    | while read -r d; do grep -lE '^(func \([^)]*\)|\)) [^[:space:](]+\[' "$d"/*.go; done
-  ```
+  Take that one line out, under a dated waiver in the README that names the upstream
+  issue, and keep the pin: the security floor outranks a lint. Try the plain line again
+  on every dependency update, and put it back, ending the waiver, once it runs.
 - **Static build gate** — proves the CGO-free single-binary invariant on every run,
   not at release time.
 
@@ -75,8 +56,8 @@ of it: the Makefile says what runs, and this document says why.
 - **`make ci`, before every push.** The same gates against `git archive HEAD`: the
   committed tree, copied to an empty directory, with nothing you forgot to `git add`,
   no `.env`, and no local edit. That is the difference between "green on my machine"
-  and "green on the commit". Read its `go version` line: it records which toolchain
-  ran, beside any `GOTOOLCHAIN=` prefix a gate line carries.
+  and "green on the commit". Read its `go version` line: it is the one record of which
+  toolchain ran.
 
 ## What `make ci` does not check
 
@@ -111,8 +92,9 @@ Two things nobody does for you:
 ## Dependency updates
 
 By hand, under the pin, on the same 90-day cycle or when
-[VERSIONS.md](../VERSIONS.md) moves. The first line sets the pin for this shell, and
-the second makes one `chore(deps)` commit:
+[VERSIONS.md](../VERSIONS.md) moves. The first line sets the pin for this shell; the
+second updates every dependency and runs the gates. Commit what it leaves as one
+`chore(deps)` commit:
 
 ```sh
 export GOTOOLCHAIN=go1.27.2
@@ -140,8 +122,11 @@ go mod edit -go=1.27 -toolchain=none -require=<dep>@<current> && go mod tidy && 
 The hold is `go mod edit -require`, not `go get`: under the pin `go get` cannot open
 a `go.mod` that says `go 1.28`, and `go mod edit` never reads the module graph. `go
 mod tidy` then refuses while any other dependency still asks for 1.28; give each one
-its own `-require`. `-toolchain=none` removes any `toolchain` line, which would pick
-the Go for every machine on `auto`.
+its own `-require`. For a patch it does not refuse: it raises the line again without a
+word. Nothing in either output names the module that asked;
+`go list -m -f '{{.Path}} {{.GoVersion}}' all` does, so hold every module it shows above
+`1.27`. `-toolchain=none` removes any `toolchain` line, which would pick the Go for every
+machine on `auto`.
 
 ## Nothing here deploys
 
