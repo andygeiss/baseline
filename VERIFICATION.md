@@ -78,8 +78,40 @@ be synced, the tag waits.
   `staticcheck`, and `govulncheck`; the stop path ran against the real engine for Ctrl-C,
   SIGHUP, and an engine that died. The web-application checklist gets no section: the
   case arose in a CLI, and that checklist sits 14 tokens under its budget.
-- **Measured against v4.7.0:** the cli-tool change path 5,332 → 5,562 and its floor
-  11,597 → 11,827, both the checklist section; the document itself is a trigger, 1,403
+- **2026-10-09 — the Go pin moves to 1.27.2.** Go 1.27.2 shipped on 2026-10-08 as a
+  security release: fifteen advisories, thirteen in the standard library and two in the
+  `go` command. `VERSIONS.md` pins it as the floor; the pin line in `stack/go.md` and both
+  `GOTOOLCHAIN` commands in `operations/ci.md` follow it, and no `Last verified:` date
+  moved. Under 1.27.1, `govulncheck` in the reference reports twelve of the fifteen as
+  called — both `html/template` escaper fixes through `render`, `Range` parsing through
+  `ServeContent` and the static file server, multipart header parsing through the upload
+  handler — so the old pin fails that gate in every web application. Under 1.27.2 it
+  reports none; GO-2026-5932, in an `x/crypto` package nothing here imports, stays
+  informational. The four Facts verified lines that still name 1.27.1 record the
+  toolchain each fact was measured under, and stay, as they did at the 1.26.7 move.
+- **`VERSIONS.md` keeps its 2026-09-08 date.** Every row with a source was checked on
+  2026-10-09, and two others had moved: htmx 2.0.11 (2026-09-22, npm's `latest`) and
+  `modernc.org/sqlite` v1.60.1 (2026-09-29). Neither is in this change, so the table is
+  not current as a whole, and its date waits for the change that rules on both. scs
+  v2.9.0 and the `design.md` format's `alpha` did not move, and htmx 4.0.1 has not shipped.
+- **The staticcheck gate cannot run under 1.27.2.** The go.dev/issue/81188 fix, backported
+  to 1.27.2, makes the compiler write export data V5. Staticcheck 2026.2.1 (v0.8.1), still
+  the newest release, reads only V4, so every package fails with
+  `export data version 5 is greater than maximum supported version 4`
+  (dominikh/go-tools#1832, open). Rebuilt against `golang.org/x/tools` v0.51.0, v0.8.1
+  runs clean on the reference, so the fix upstream is one requirement bump. Until it ships,
+  `make check` is red at staticcheck in every project under the pin, and at `govulncheck`
+  in every web application under 1.27.1. Homebrew's Go here moved to 1.27.2 on
+  2026-10-09, so a bare run on this machine meets the first.
+- **The empirical half, so far.** Reference `6046248` (v4.7.0), unchanged:
+  `GOTOOLCHAIN=go1.27.2 ./verify.sh` stops at its fourth step, staticcheck. A copy that
+  runs that one line under `GOTOOLCHAIN=go1.27.1` exits 0 over all 79 steps. The tag waits
+  for a staticcheck release that reads V5; then the reference re-pins `SPEC.md`, and the
+  "pins Go 1.27.1" message in its `verify.sh` moves with it.
+- **Measured against v4.7.0:** the cli-tool change path 5,332 → 5,552 and its floor
+  11,597 → 11,817 — the child-process section's 230 on each, less the 10 the shorter Go
+  row gave back. That row alone takes 10 off every other path, the web-application change
+  path 7,985 → 7,975 among them. The child-process document itself is a trigger, 1,403
   tokens.
 
 ## Why the CSP is what it is
