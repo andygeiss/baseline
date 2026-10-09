@@ -46,10 +46,19 @@ of it: the Makefile says what runs, and this document says why.
   and take it off with the staticcheck release that reads the new format; the canonical
   Makefile carries it while the pin needs it. The analysis reads the same source,
   nothing it builds ships, and the prefix is that line's record of its toolchain. One
-  case it cannot cover: a type that mixes generic and non-generic methods loses their
-  order in the older export data (go.dev/issue/81188), and staticcheck panics on it or
-  files its facts under the wrong method. A project with such a type takes the line out,
-  under a waiver in its README, until the staticcheck release lands.
+  case it cannot cover: a type that declares a generic method before a non-generic one
+  loses that order in the older export data (go.dev/issue/81188), and staticcheck panics
+  on it or files its facts under the wrong method — in the packages that call it too. A
+  project whose own packages, or whose dependencies outside the standard library,
+  declare such a type takes the line out, under a waiver in its README, until the
+  staticcheck release lands. The standard library's one, `math/rand/v2`'s `Rand`, does
+  not count: a fact misfiled among its methods changes no finding. To find
+  candidates, list the files that declare a generic method at all:
+
+  ```sh
+  go list -deps -f '{{if not .Standard}}{{range .GoFiles}}{{$.Dir}}/{{.}}{{"\n"}}{{end}}{{end}}' ./... \
+    | xargs grep -lE '^func \([^)]*\) [A-Za-z0-9_]+\['
+  ```
 - **Static build gate** — proves the CGO-free single-binary invariant on every run,
   not at release time.
 
@@ -76,7 +85,8 @@ of it: the Makefile says what runs, and this document says why.
 - **Other operating systems.** For every other OS that a `//go:build <os>` line or a
   `_<os>.go` name targets, run `GOOS=<os> go vet ./...` before the push. `unix` is not a
   GOOS: for a `//go:build unix` file, vet each Unix the tool claims, `GOOS=linux` at
-  least — `syscall` differs between them.
+  least — `syscall` differs between them. Pair each with a `GOARCH` that
+  `go tool dist list` prints for it: `GOOS=solaris go vet` alone fails on an arm64 Mac.
 - **Your shell.** `GOFLAGS` and whatever else the profile exports or `go env -w`
   wrote reach the gates. Read `go env -changed` before you trust a green run: every
   line it prints is a difference between this machine and the one that builds the

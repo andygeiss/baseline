@@ -35,16 +35,19 @@ stopChild := func() {
 		deadline = time.After(grace)
 	})
 }
-defer func() { // every return waits for the child, early ones too
+defer func() { // every return waits for the whole group, early ones too
 	stopChild()
-	select {
-	case <-done:
-		if syscall.Kill(-cmd.Process.Pid, 0) == nil { // a helper outlived the child
-			<-deadline
+	tick := time.NewTicker(poll)
+	defer tick.Stop()
+	for syscall.Kill(-cmd.Process.Pid, 0) == nil { // ESRCH once the whole group is gone
+		select {
+		case <-tick.C:
+		case <-deadline: // grace is up: nothing survives this one
+			_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+			<-done
+			return
 		}
-	case <-deadline:
 	}
-	_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL) // whatever is left; ESRCH if nothing
 	<-done
 }()
 ```
@@ -95,7 +98,7 @@ case <-done:
 }
 stopChild() // before the tool's own shutdown, not after it
 // … the tool's own shutdown …
-return failed // the deferred wait holds this until the child is gone
+return failed // the deferred wait holds this until the group is gone
 ```
 
 - **Stop it before the tool's own shutdown.** That shutdown can take seconds, and a
@@ -107,11 +110,12 @@ return failed // the deferred wait holds this until the child is gone
   reached them, so a helper the child started stops with it. `sync.Once` keeps it at one
   when several paths stop the child.
 - **A bounded wait.** `grace` counts from the stop signal; set it to the longest the
-  child's own graceful stop takes, with a margin. Whatever of the group still runs when
-  it is up — the child, or a helper the child left behind — gets SIGKILL once the tool's
-  own shutdown is done. Without it, a child that ignores SIGTERM keeps the tool waiting
-  for ever, and after a terminal closes, with SIGHUP ignored, nothing is left that can end
-  either of them.
+  child's own graceful stop takes, with a margin. The deferred wait polls the group every
+  `poll` and ends as soon as all of it has gone. Whatever still runs when `grace` is up —
+  the child, or a helper it left behind — gets SIGKILL, once the tool's own shutdown is
+  done. Without the bound, a child that ignores SIGTERM keeps the tool waiting for ever,
+  and after a terminal closes, with SIGHUP ignored, nothing is left that can end either
+  of them.
 - **A child that stops on its own stops the tool**, with an error naming the exit: a
   proxy in front of nothing is worse than no proxy.
 - **SIGHUP stops the tool too.** In its own group the child no longer hears the terminal
@@ -129,26 +133,34 @@ The test binary plays the child: a real process, real signals, a real loopback s
 ```go
 func TestMain(m *testing.M) {
 	if mode := os.Getenv("FAKE_ENGINE"); mode != "" {
-		os.Exit(fakeEngine(mode)) // listens, starts a helper, logs each signal it catches
+		os.Exit(fakeEngine(mode)) // "helper" logs and stops; every other mode starts one
 	}
 	os.Exit(m.Run())
 }
 ```
 
-Start it as `os.Executable()` with `FAKE_ENGINE` in its `Env`, one mode per behavior:
-ready after a few asks, never ready, failing at once, outlasting SIGTERM. Add
-`GORACE=atexit_sleep_ms=0`: under `-race` the fake is race-built, and otherwise sleeps a
-second as it exits. The fake starts a helper of its own — the test binary once more —
-and waits for it before it logs `complete`, so only a stop that reached the whole group
-completes. It appends its PID and each signal it catches to a file its `Env` names, and
-the test reads that file once `run` has returned: SIGTERM, then `complete`, because
-`run` waited. For the fake that outlasts SIGTERM, the test asserts its PID is gone, and
-bounds its own wait at a hundred times `grace`, so a missing SIGKILL fails at once rather
-than at the test timeout. The file cannot count sends — two signals close together can
-arrive as one — so `sync.Once` keeps that count, not the test. `grace` and the poll interval are
-parameters, so the tests take milliseconds. None sleeps, and none runs inside
-`synctest`: a goroutine waiting on a process, like one on a socket, is never durably
-blocked ([go-testing.md](go-testing.md)).
+Start it as `os.Executable()` with `FAKE_ENGINE` and `GORACE=atexit_sleep_ms=0` in its
+`Env` — under `-race` the fake is race-built, and otherwise sleeps a second as it exits.
+One mode per behavior: ready after a few asks, never ready, failing at once, outlasting
+SIGTERM, leaving its helper behind. Every mode but `helper` starts a helper — the test
+binary once more, as `FAKE_ENGINE=helper` — and, unless it leaves it behind, waits for it
+before it logs `complete`. Each process appends its PID and every signal it catches to a
+file its `Env` names. Once `run` has returned, the test reads that file:
+
+- SIGTERM, then `complete`: the stop reached the whole group, and `run` waited.
+- For the fake that outlasts SIGTERM, with the tool's own shutdown set to several times
+  `grace`: its PID is gone, and `run` returned less than `grace` after that shutdown
+  ended, because the deadline counts from the stop.
+- For the fake that leaves its helper behind: a helper that stops a little late still
+  logs `complete`, and one that outlasts SIGTERM is gone, polled for by its PID.
+
+Every wait in a test is bounded at a hundred times `grace`, so a missing SIGKILL fails at
+once rather than at the test timeout, and `t.Cleanup` sends SIGKILL to the fake's group,
+so a failing test leaves nothing running. The file cannot count sends — two signals close
+together can arrive as one — so `sync.Once` keeps that count, not the test. `grace`,
+`poll` and the tool's own shutdown are parameters, so the tests take milliseconds. None
+sleeps, and none runs inside `synctest`: a goroutine waiting on a process, like one on a
+socket, is never durably blocked ([go-testing.md](go-testing.md)).
 
 ## Facts verified (2026-10-09)
 

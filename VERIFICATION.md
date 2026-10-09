@@ -77,13 +77,17 @@ be synced, the tag waits.
   the fake child. The first draft's stop path ran against the real engine for Ctrl-C,
   SIGHUP, and an engine that died. Review then rewrote it: the stop goes to the group, not
   the PID; SIGTTOU and SIGTSTP are ignored before the child starts, so it inherits both;
-  whatever of the group outlasts a grace counted from that SIGTERM gets SIGKILL, a helper
-  the child left behind included; an interrupted run exits non-zero; and the hatch
-  ignores the second SIGHUP a closing zsh terminal sends. Its test fake starts a helper
-  and completes only after it, and the fake that outlasts SIGTERM is proved gone by its
-  PID. The rewrite runs under a real pty, in zsh and bash, against a fake engine with a
-  helper of its own. The web-application checklist gets no section: the case arose in a
-  CLI, and that checklist sits 18 tokens under its budget.
+  the deferred wait polls the group, ending as soon as all of it has gone, and whatever
+  outlasts a grace counted from that SIGTERM gets SIGKILL, a helper the child left behind
+  included; an interrupted run exits non-zero; and the hatch ignores the second SIGHUP a
+  closing zsh terminal sends. The tests gained a helper mode of their own, a fake that
+  leaves its helper behind, a check that the deadline counts from the stop, bounded waits,
+  and a `t.Cleanup` that kills the fake's group. The rewrite runs under a real pty, in zsh
+  and bash, against a fake engine with a helper of its own. The tier-1 secret rule binds a
+  program run to completion too; the CLI checklist checks it in its secret section. The
+  web-application checklist gets no section, and no box for that secret rule either: the
+  case arose in a CLI, and that checklist sits 18 tokens under its budget, its change
+  path five — a gap for the budget decision the web path is already waiting on.
 - **2026-10-09 — the Go pin moves to 1.27.2.** Go 1.27.2 shipped on 2026-10-08 as a
   security release: fifteen advisories, thirteen in the standard library and two in the
   `go` command. `VERSIONS.md` pins it as the floor; the pin line in `stack/go.md` and both
@@ -117,15 +121,25 @@ be synced, the tag waits.
   exception, as `stack/go.md` now does too. Andy chose the rule over letting the tag
   wait. Without it an agent has two moves, and both are wrong: skip the gate, or hold the
   pin below the security floor. Review found the prefix's one hole: under 1.27.1, a type
-  that mixes generic and non-generic methods brings go.dev/issue/81188 back, and
-  staticcheck panics on it or misfiles its facts. Andy chose a waiver for such a project —
-  the line out, on the record in its README, until the release — over a staticcheck built
-  against newer `x/tools` or a held tag. Homebrew's Go here moved to 1.27.2 on 2026-10-09,
-  so a bare run on this machine needs the prefix.
+  that declares a generic method before a non-generic one brings go.dev/issue/81188 back
+  — the older export data writes plain methods first — and staticcheck panics on it or
+  misfiles its facts, into the packages that call it as well. Andy chose a waiver for a
+  project whose own packages or non-standard dependencies declare such a type — the line
+  out, on the record in its README, until the release — over a staticcheck built against
+  newer `x/tools` or a held tag. The standard library's one such type in 1.27.2,
+  `math/rand/v2`'s `Rand` (its generic `N` before `Float64`), sits in every web
+  application's build; staticcheck 2026.2.1 can file only a nilness fact on its `Perm`,
+  which only SA4023 reads, and probes calling fifteen of its methods misreported nothing,
+  so it does not count. `ci.md` gives a finder for the files that declare a generic
+  method, and `stack/go.md` points at the waiver where it allows generic methods.
+  Homebrew's Go here moved to 1.27.2 on 2026-10-09, so a bare run on this machine needs
+  the prefix.
 - **2026-10-09 — what a project's Makefile may hold.** `stack/makefile.md` rule 5 is now
   *Adjustments*, not *Per-layout adjustments*. Besides the three layouts, it names the
-  staticcheck hold-backs `operations/ci.md` allows, and lets the multi-binary layout
-  reword the two comments it makes stale. The three checklists' Makefile box now reads
+  staticcheck hold-backs `operations/ci.md` allows, with the comment that describes the
+  line; and the multi-binary layout, now *Multi-binary module* because a web application
+  ships a client the same way, may reword the two comments it makes stale. The three
+  checklists' Makefile box now reads
   "differing only as its rule 5 allows". That closes a v4.7.0 collision: `ci.md` already
   told a project to pin staticcheck's version, and rule 5's "exactly these" forbade it.
 - **2026-10-09 — a CLI may serve the person who started it.** The child-process pattern's
@@ -141,12 +155,12 @@ be synced, the tag waits.
   in its working tree — that line carrying `GOTOOLCHAIN=go1.27.1`, as the canonical
   Makefile now does — a bare `./verify.sh` under Homebrew's 1.27.2 exits 0 over all 79
   steps.
-- **Measured against v4.7.0:** the cli-tool change path 5,332 → 5,766 — the checklist's
-  420, all but 10 of it the child-process section, and `VERSIONS.md`'s 14 — and its floor
-  11,597 → 12,086, adding the widened definition and `stack/go.md`'s tier-1 scope. The
-  web-application change path 7,985 → 7,995, `VERSIONS.md`'s 14 less the 4 its Makefile
-  box gave back: five under the budget. The library's 4,351 → 4,372. The child-process
-  document is a trigger, 2,623 tokens.
+- **Measured against v4.7.0:** the cli-tool change path 5,332 → 5,887 — the checklist's
+  540, all but 41 of it the child-process section, and `VERSIONS.md`'s 14 — and its floor
+  11,597 → 12,264, adding the widened definition and `stack/go.md`'s tier-1 scope and
+  waiver pointer. The web-application change path 7,985 → 7,995, `VERSIONS.md`'s 14 less
+  the 4 its Makefile box gave back: five under the budget. The library's 4,351 → 4,372.
+  The child-process document is a trigger, 2,791 tokens.
 
 ## Why the CSP is what it is
 

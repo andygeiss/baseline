@@ -115,7 +115,7 @@ test:
      `./<tool>` into the repository root — one main package is not "multiple
      packages", so the object is not discarded. Extend `clean` to
      `rm -rf bin/ <tool>` and add `<tool>` to `.gitignore`.
-   - *Multi-binary CLI module* (the sanctioned `cmd/<name>/` layout): set
+   - *Multi-binary module* (the sanctioned `cmd/<name>/` layout): set
      `MAIN = ./cmd/<name>` for the binary `run` serves, and in `build` replace
      `$(MAIN)` with `./cmd/...` so every binary lands in `bin/`; reword the
      comments above those two lines to match.
@@ -128,7 +128,8 @@ test:
      `GOTOOLCHAIN=go<the newest patch staticcheck reads>` while a Go patch
      outruns it, or taken out under a README waiver where that prefix cannot
      cover the code; and plain again once the cause clears, whatever the
-     canonical line still carries.
+     canonical line still carries — with the sentence about it in the comment
+     above `check` reworded to match.
 6. **`run` loads `.env` when it is there. Nothing else does.** A binary that
    needs a token or a database URL otherwise needs two commands to start, and
    the second one is the one people forget. The recipe above is the whole
