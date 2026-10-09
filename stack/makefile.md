@@ -122,11 +122,13 @@ test:
    - *Library:* delete `MAIN`, `run`, `build`, and `clean` (nothing creates
      `bin/`) and trim `.PHONY` to `check ci fmt test` — `check`'s
      `go build ./...` already proves everything compiles.
-   - *The staticcheck line, held back:* pinned to the previous staticcheck
-     version while a release of it breaks the gate, or prefixed with
+   - *The staticcheck line, held back as
+     [operations/ci.md](../operations/ci.md) says:* pinned to the previous
+     staticcheck version while a release of it breaks the gate; prefixed with
      `GOTOOLCHAIN=go<the newest patch staticcheck reads>` while a Go patch
-     outruns it — and back to the canonical line once the cause clears
-     ([operations/ci.md](../operations/ci.md)).
+     outruns it, or taken out under a README waiver where that prefix cannot
+     cover the code; and plain again once the cause clears, whatever the
+     canonical line still carries.
 6. **`run` loads `.env` when it is there. Nothing else does.** A binary that
    needs a token or a database URL otherwise needs two commands to start, and
    the second one is the one people forget. The recipe above is the whole

@@ -45,7 +45,11 @@ of it: the Makefile says what runs, and this document says why.
   Put `GOTOOLCHAIN=go<the newest patch staticcheck reads>` in front of that one line,
   and take it off with the staticcheck release that reads the new format; the canonical
   Makefile carries it while the pin needs it. The analysis reads the same source,
-  nothing it builds ships, and the prefix is that line's record of its toolchain.
+  nothing it builds ships, and the prefix is that line's record of its toolchain. One
+  case it cannot cover: a type that mixes generic and non-generic methods loses their
+  order in the older export data (go.dev/issue/81188), and staticcheck panics on it or
+  files its facts under the wrong method. A project with such a type takes the line out,
+  under a waiver in its README, until the staticcheck release lands.
 - **Static build gate** — proves the CGO-free single-binary invariant on every run,
   not at release time.
 
@@ -71,7 +75,8 @@ of it: the Makefile says what runs, and this document says why.
   in a Linux user's `go install`.
 - **Other operating systems.** For every other OS that a `//go:build <os>` line or a
   `_<os>.go` name targets, run `GOOS=<os> go vet ./...` before the push. `unix` is not a
-  GOOS: for a `//go:build unix` file, `GOOS=linux` stands in for the other Unix systems.
+  GOOS: for a `//go:build unix` file, vet each Unix the tool claims, `GOOS=linux` at
+  least — `syscall` differs between them.
 - **Your shell.** `GOFLAGS` and whatever else the profile exports or `go env -w`
   wrote reach the gates. Read `go env -changed` before you trust a green run: every
   line it prints is a difference between this machine and the one that builds the

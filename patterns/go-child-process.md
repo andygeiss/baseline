@@ -8,8 +8,8 @@ file, or, when it reads nothing but its environment, from its own environment al
 
 A program the tool starts and keeps running beside itself — a server it fronts, an
 inference engine, a database for a test run — and stops again. A program it runs to
-completion (`git`, `make`) needs none of this: `exec.CommandContext` and the exit status
-are the whole contract. **The tool owns the child: it decides when the child stops, asks
+completion (`git`, `make`) needs none of the rest — `exec.CommandContext` and the exit
+status are its whole contract — but the secret rule above binds it too. **The tool owns the child: it decides when the child stops, asks
 it once, and does not exit before the child has.**
 
 ## Start it in a process group of its own
@@ -27,20 +27,25 @@ if err := cmd.Start(); err != nil {
 done := make(chan struct{})                 // closed once the child has exited
 go func() { _ = cmd.Wait(); close(done) }() // its exit is cmd.ProcessState, read after done
 var once sync.Once
+var deadline <-chan time.Time // grace, counted from the stop signal
 stopChild := func() {
 	once.Do(func() {
 		// The whole group, so its helpers stop too; ESRCH means all of them are gone.
 		_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGTERM)
+		deadline = time.After(grace)
 	})
 }
 defer func() { // every return waits for the child, early ones too
 	stopChild()
 	select {
 	case <-done:
-	case <-time.After(grace): // it outlasted the stop signal: nothing survives this one
-		_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
-		<-done
+		if syscall.Kill(-cmd.Process.Pid, 0) == nil { // a helper outlived the child
+			<-deadline
+		}
+	case <-deadline:
 	}
+	_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL) // whatever is left; ESRCH if nothing
+	<-done
 }()
 ```
 
@@ -52,8 +57,9 @@ defer func() { // every return waits for the child, early ones too
   background job: under `stty tostop` its first write to the terminal would stop it, and
   the tool's SIGTERM would then sit pending while the tool waits. Ctrl-Z would stop the
   tool alone, leaving the child running with nobody to stop it — and on macOS a stopped
-  Go program misses the `kill %1` or hangup meant to end it. The child inherits both: an
-  ignored signal stays ignored across `exec`.
+  Go program that leaves SIGCONT at its default misses the `kill %1` meant to end it, and
+  under zsh the hangup too. The child inherits both: an ignored signal stays ignored
+  across `exec`.
 - **Unix only.** `Setpgid` and `syscall.Kill` do not exist on Windows: keep this code
   behind `//go:build unix`. A tool that must also run there gives Windows a file of its
   own, which `GOOS=windows go vet` then checks ([operations/ci.md](../operations/ci.md)).
@@ -100,10 +106,12 @@ return failed // the deferred wait holds this until the child is gone
   its graceful stop. Every process in the group gets it once, as a Ctrl-C would have
   reached them, so a helper the child started stops with it. `sync.Once` keeps it at one
   when several paths stop the child.
-- **A bounded wait.** A group still running `grace` after its stop signal gets SIGKILL;
-  set `grace` to the longest the child's own graceful stop takes, with a margin. Without
-  it, a child that ignores SIGTERM keeps the tool waiting for ever — and after a terminal
-  closes, with SIGHUP ignored, nothing is left that can end either of them.
+- **A bounded wait.** `grace` counts from the stop signal; set it to the longest the
+  child's own graceful stop takes, with a margin. Whatever of the group still runs when
+  it is up — the child, or a helper the child left behind — gets SIGKILL once the tool's
+  own shutdown is done. Without it, a child that ignores SIGTERM keeps the tool waiting
+  for ever, and after a terminal closes, with SIGHUP ignored, nothing is left that can end
+  either of them.
 - **A child that stops on its own stops the tool**, with an error naming the exit: a
   proxy in front of nothing is worse than no proxy.
 - **SIGHUP stops the tool too.** In its own group the child no longer hears the terminal
@@ -121,7 +129,7 @@ The test binary plays the child: a real process, real signals, a real loopback s
 ```go
 func TestMain(m *testing.M) {
 	if mode := os.Getenv("FAKE_ENGINE"); mode != "" {
-		os.Exit(fakeEngine(mode)) // listens, answers readiness, logs each signal it gets
+		os.Exit(fakeEngine(mode)) // listens, starts a helper, logs each signal it catches
 	}
 	os.Exit(m.Run())
 }
@@ -130,11 +138,14 @@ func TestMain(m *testing.M) {
 Start it as `os.Executable()` with `FAKE_ENGINE` in its `Env`, one mode per behavior:
 ready after a few asks, never ready, failing at once, outlasting SIGTERM. Add
 `GORACE=atexit_sleep_ms=0`: under `-race` the fake is race-built, and otherwise sleeps a
-second as it exits. The fake appends each signal it catches to a file its `Env` names,
-and the test reads that file once `run` has returned: SIGTERM, and complete, because
-`run` waited. For the fake that outlasts SIGTERM, `run` returning at all shows the
-SIGKILL. The file cannot count sends — two signals close together can arrive as one — so
-`sync.Once` keeps that count, not the test. `grace` and the poll interval are
+second as it exits. The fake starts a helper of its own — the test binary once more —
+and waits for it before it logs `complete`, so only a stop that reached the whole group
+completes. It appends its PID and each signal it catches to a file its `Env` names, and
+the test reads that file once `run` has returned: SIGTERM, then `complete`, because
+`run` waited. For the fake that outlasts SIGTERM, the test asserts its PID is gone, and
+bounds its own wait at a hundred times `grace`, so a missing SIGKILL fails at once rather
+than at the test timeout. The file cannot count sends — two signals close together can
+arrive as one — so `sync.Once` keeps that count, not the test. `grace` and the poll interval are
 parameters, so the tests take milliseconds. None sleeps, and none runs inside
 `synctest`: a goroutine waiting on a process, like one on a socket, is never durably
 blocked ([go-testing.md](go-testing.md)).
@@ -164,8 +175,9 @@ blocked ([go-testing.md](go-testing.md)).
   https://pubs.opengroup.org/onlinepubs/9799919799/functions/exec.html
 - Closing a terminal under zsh 5.9 delivers SIGHUP twice, about a millisecond apart; bash
   3.2 delivers it once — measured on this Mac.
-- After Ctrl-Z and `kill %1`, a Go 1.27 tool on this Mac never sees the SIGTERM; with
-  SIGTSTP ignored, Ctrl-Z leaves it in the foreground — measured.
+- After Ctrl-Z, a Go 1.27 tool on this Mac that leaves SIGCONT at its default never sees
+  the SIGTERM of `kill %1`, nor, under zsh, a closing terminal's hangup; one that notifies
+  SIGCONT sees both; with SIGTSTP ignored, Ctrl-Z leaves it in the foreground — measured.
 - "If a subsequent occurrence of a pending signal is generated, it is implementation-defined
   as to whether the signal is delivered or accepted more than once":
   https://pubs.opengroup.org/onlinepubs/9799919799/functions/V2_chap02.html

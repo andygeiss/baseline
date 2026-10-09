@@ -150,7 +150,7 @@ the API is integrated.
 - [ ] The tool sends it once, never a second SIGTERM
 - [ ] It goes out before the tool's own shutdown
 - [ ] The tool waits for the child to exit before it returns, on every path
-- [ ] A group still running `grace` after its stop signal gets SIGKILL
+- [ ] What is left of the group `grace` after the stop signal gets SIGKILL
 - [ ] A child that exits on its own stops the tool
 - [ ] That stop's error names the child's exit
 - [ ] SIGHUP stops the tool, unless it was started ignored
@@ -158,6 +158,8 @@ the API is integrated.
 - [ ] Its secret reaches it through a file, or its own environment when it reads nothing else — never its command line
 - [ ] Tests run the test binary as the fake child
 - [ ] Tests assert the fake child caught SIGTERM before `run` returned
+- [ ] The fake child starts a helper and logs `complete` only after it has gone
+- [ ] A test asserts the fake that outlasts SIGTERM is gone when `run` returns
 
 ## Adding an AI capability — a model that answers, summarises, extracts, or classifies
 
@@ -201,7 +203,7 @@ gate.
 - [ ] No `.github/dependabot.yml`
 - [ ] No `export-ignore` in `.gitattributes`
 - **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
-  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push
+  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push — for `//go:build unix`, each Unix the tool claims
 
 ## Tagging and publishing a release
 
