@@ -94,20 +94,23 @@ be synced, the tag waits.
   `modernc.org/sqlite` v1.60.1 (2026-09-29). Neither is in this change, so the table is
   not current as a whole, and its date waits for the change that rules on both. scs
   v2.9.0 and the `design.md` format's `alpha` did not move, and htmx 4.0.1 has not shipped.
-- **The staticcheck gate cannot run under 1.27.2.** The go.dev/issue/81188 fix, backported
-  to 1.27.2, makes the compiler write export data V5. Staticcheck 2026.2.1 (v0.8.1), still
-  the newest release, reads only V4, so every package fails with
+- **2026-10-09 — a Go patch that outruns staticcheck.** The go.dev/issue/81188 fix,
+  backported to 1.27.2, makes the compiler write export data V5. Staticcheck 2026.2.1
+  (v0.8.1), still the newest release, reads only V4, so every package fails with
   `export data version 5 is greater than maximum supported version 4`
-  (dominikh/go-tools#1832, open). Rebuilt against `golang.org/x/tools` v0.51.0, v0.8.1
-  runs clean on the reference, so the fix upstream is one requirement bump. Until it ships,
-  `make check` is red at staticcheck in every project under the pin, and at `govulncheck`
-  in every web application under 1.27.1. Homebrew's Go here moved to 1.27.2 on
-  2026-10-09, so a bare run on this machine meets the first.
+  (dominikh/go-tools#1832, open); 1.27.0 broke it the same way (dominikh/go-tools#1734).
+  Rebuilt against `golang.org/x/tools` v0.51.0, v0.8.1 runs clean on the reference, so the
+  fix upstream is one requirement bump. `operations/ci.md` now rules the case beside the
+  one for a staticcheck release that breaks the gate: run that one line under the last
+  patch staticcheck ran under, and take the prefix off with the release that reads the
+  new format. Andy chose the rule over letting the tag wait. Without it an agent has two
+  moves, and both are wrong: skip the gate, or hold the pin below the security floor.
+  Homebrew's Go here moved to 1.27.2 on 2026-10-09, so a bare run on this machine needs
+  the prefix.
 - **The empirical half, so far.** Reference `6046248` (v4.7.0), unchanged:
   `GOTOOLCHAIN=go1.27.2 ./verify.sh` stops at its fourth step, staticcheck. A copy that
-  runs that one line under `GOTOOLCHAIN=go1.27.1` exits 0 over all 79 steps. The tag waits
-  for a staticcheck release that reads V5; then the reference re-pins `SPEC.md`, and the
-  "pins Go 1.27.1" message in its `verify.sh` moves with it.
+  runs that one line under `GOTOOLCHAIN=go1.27.1`, as the rule asks, exits 0 over all 79
+  steps.
 - **Measured against v4.7.0:** the cli-tool change path 5,332 → 5,552 and its floor
   11,597 → 11,817 — the child-process section's 230 on each, less the 10 the shorter Go
   row gave back. That row alone takes 10 off every other path, the web-application change

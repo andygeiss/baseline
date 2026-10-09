@@ -38,7 +38,12 @@ of it: the Makefile says what runs, and this document says why.
   but can never change the shipped binary, and for these tools the newest checks *are*
   the point. If a staticcheck release breaks the gate on an unrelated morning, pin that
   line to the previous version in the fixing commit and remove the pin once you have
-  fixed the findings.
+  fixed the findings. A Go patch can break it from the other side, when the toolchain
+  writes export data no staticcheck release reads yet. Every package then fails with
+  `export data version … is greater than maximum supported version …`: put
+  `GOTOOLCHAIN=go<the last patch it ran under>` in front of that one line, and take it
+  off with the staticcheck release that reads the new format. The analysis reads the
+  same source, and nothing it builds ships.
 - **Static build gate** — proves the CGO-free single-binary invariant on every run,
   not at release time.
 
