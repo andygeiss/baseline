@@ -68,26 +68,6 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-- **2026-10-04 — a child process the tool keeps running.** New
-  `patterns/go-child-process.md`, tier 2 with its secret rule tier 1, and its trigger
-  section in `checklists/cli-tool.md`. One project invented the shape — splash, a proxy
-  that starts the inference engine it fronts — and Andy chose to extract it: the child in
-  a process group of its own, one stop signal sent before the tool's own shutdown, the
-  wait before the tool returns, SIGHUP unless `nohup` ignored it, and the test binary as
-  the fake child. The first draft's stop path ran against the real engine for Ctrl-C,
-  SIGHUP, and an engine that died. Review then rewrote it: the stop goes to the group, not
-  the PID; SIGTTOU and SIGTSTP are ignored before the child starts, so it inherits both;
-  the deferred wait polls the group, ending as soon as all of it has gone, and whatever
-  outlasts a grace counted from that SIGTERM gets SIGKILL, a helper the child left behind
-  included; an interrupted run exits non-zero; and the hatch ignores the second SIGHUP a
-  closing zsh terminal sends. The tests gained a helper mode of their own, a fake that
-  leaves its helper behind, a check that the deadline counts from the stop, bounded waits,
-  and a `t.Cleanup` that kills the fake's group. The rewrite runs under a real pty, in zsh
-  and bash, against a fake engine with a helper of its own. The tier-1 secret rule binds a
-  program run to completion too; the CLI checklist checks it in its secret section. The
-  web-application checklist gets no section, and no box for that secret rule either: the
-  case arose in a CLI, and that checklist sits 18 tokens under its budget, its change
-  path five — a gap for the budget decision the web path is already waiting on.
 - **2026-10-09 — the Go pin moves to 1.27.2.** Go 1.27.2 shipped on 2026-10-08 as a
   security release: fifteen advisories, thirteen in the standard library and two in the
   `go` command. `VERSIONS.md` pins it as the floor; the pin line in `stack/go.md` and both
@@ -139,28 +119,19 @@ be synced, the tag waits.
   staticcheck hold-backs `operations/ci.md` allows, with the comment that describes the
   line; and the multi-binary layout, now *Multi-binary module* because a web application
   ships a client the same way, may reword the two comments it makes stale. The three
-  checklists' Makefile box now reads
-  "differing only as its rule 5 allows". That closes a v4.7.0 collision: `ci.md` already
-  told a project to pin staticcheck's version, and rule 5's "exactly these" forbade it.
-- **2026-10-09 — a CLI may serve the person who started it.** The child-process pattern's
-  proxy contradicted `project-types/cli-tool.md`, which said a process that stays up to
-  serve requests is not a CLI. Andy chose to widen the definition rather than narrow the
-  pattern: a foreground tool that serves the person who started it until Ctrl-C, like a
-  local proxy, is a CLI; one meant to stay up unattended, or to serve other people, is a
-  web application. *A CLI terminates* now draws the same line. Left open: a CLI that
-  listens on a port gets none of the web application's cross-origin rules, server
-  timeouts, or request-body cap.
+  checklists' Makefile box now reads "differing only as its rule 5 allows". That closes a
+  v4.7.0 collision: `ci.md` already told a project to pin staticcheck's version, and rule
+  5's "exactly these" forbade it.
 - **The empirical half, so far.** Reference `6046248` (v4.7.0):
   `GOTOOLCHAIN=go1.27.2 ./verify.sh` stops at its fourth step, staticcheck. With the sync
   in its working tree — that line carrying `GOTOOLCHAIN=go1.27.1`, as the canonical
   Makefile now does — a bare `./verify.sh` under Homebrew's 1.27.2 exits 0 over all 79
   steps.
-- **Measured against v4.7.0:** the cli-tool change path 5,332 → 5,887 — the checklist's
-  540, all but 41 of it the child-process section, and `VERSIONS.md`'s 14 — and its floor
-  11,597 → 12,264, adding the widened definition and `stack/go.md`'s tier-1 scope and
-  waiver pointer. The web-application change path 7,985 → 7,995, `VERSIONS.md`'s 14 less
-  the 4 its Makefile box gave back: five under the budget. The library's 4,351 → 4,372.
-  The child-process document is a trigger, 2,791 tokens.
+- **Measured against v4.7.0:** each change path grows by `VERSIONS.md`'s 14 and its
+  reworded Makefile box — cli-tool 5,332 → 5,342, library 4,351 → 4,372, and
+  web-application 7,985 → 7,995, five under the budget. Each floor also carries
+  `stack/go.md`'s 77, its tier-1 scope and waiver pointer: cli-tool 11,597 → 11,684,
+  library 12,504 → 12,603, web-application 21,363 → 21,450.
 
 ## Why the CSP is what it is
 
