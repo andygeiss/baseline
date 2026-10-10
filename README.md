@@ -100,6 +100,7 @@ baseline/
 │   ├── go-auth-sessions.md
 │   ├── go-authorization.md
 │   ├── go-background-work.md
+│   ├── go-child-process.md
 │   ├── go-cli.md
 │   ├── go-config.md
 │   ├── go-data-deletion.md
@@ -198,9 +199,10 @@ below is what it currently catches, not the definition.
 - Any version pin whose note names a security fix.
 - Every rule about how a secret is handled: a secret arrives as a file and its own type
   keeps it out of the logs ([patterns/go-config.md](patterns/go-config.md) *Secrets*), a
-  secret never arrives as a flag *value* ([patterns/go-cli.md](patterns/go-cli.md)), and
-  `.env` is gitignored and never used in production
-  ([stack/makefile.md](stack/makefile.md) rule 6).
+  secret never arrives as a flag *value* ([patterns/go-cli.md](patterns/go-cli.md)), a
+  child's secret never travels on its command line
+  ([patterns/go-child-process.md](patterns/go-child-process.md)), and `.env` is
+  gitignored and never used in production ([stack/makefile.md](stack/makefile.md) rule 6).
 
 **The checklists mark this, they do not imply it.** A trigger section that is wholly
 tier 1 says so under its heading; where only some of a section's boxes are, the

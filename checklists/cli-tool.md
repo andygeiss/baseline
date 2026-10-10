@@ -80,6 +80,7 @@ runners-up under *Avoid*.
   - [ ] It is read from a file named by `-token-file`/`$MYTOOL_TOKEN_FILE`
   - [ ] `$MYTOOL_TOKEN` is documented as the leaky fallback
   - [ ] It is **never** taken from a flag value
+  - [ ] Handed to a program the tool starts, it never travels on that program's command line — `patterns/go-child-process.md`
 - **If the repo has a `.env`** — `stack/makefile.md` rule 6:
   - [ ] It is gitignored
   - [ ] Only `make run` reads it
@@ -133,6 +134,40 @@ the API is integrated.
 - [ ] Checks `resp.StatusCode`
 - [ ] Caps the body it reads
 
+## Starting a program the tool keeps running — a server it fronts, an engine, a database
+
+`patterns/go-child-process.md` — its own process group, one stop sent first, the wait.
+
+- [ ] The child runs in a process group of its own (`Setpgid`)
+- [ ] That code sits behind `//go:build unix`
+- [ ] SIGTTOU is ignored before the child starts
+- [ ] SIGTSTP is ignored before the child starts
+- [ ] It is not started with `exec.CommandContext`, whose cancel kills it
+- [ ] Its output goes to the tool's stderr
+- [ ] Its `Stdout` and `Stderr` are `*os.File`s, never another writer
+- [ ] Everything that can fail fast is checked before it starts
+- [ ] The readiness wait ends when the child exits, too
+- [ ] The stop signal goes to the child's whole process group
+- [ ] The tool sends it once, never a second SIGTERM
+- [ ] It goes out before the tool's own shutdown
+- [ ] The tool waits for the child to exit before it returns, on every path
+- [ ] What is left of the group `grace` after the stop signal gets SIGKILL
+- [ ] The wait ends as soon as the whole group has gone
+- [ ] A child that exits on its own stops the tool
+- [ ] That stop's error names the child's exit
+- [ ] SIGHUP stops the tool, unless it was started ignored
+- [ ] The force-kill hatch ignores SIGHUP before it unregisters the rest
+- [ ] Its secret reaches it through a file, or its own environment when it reads nothing else — never its command line
+- [ ] Tests run the test binary as the fake child
+- [ ] Tests assert the fake child caught SIGTERM before `run` returned
+- [ ] The fake child starts a helper, run as a mode of its own
+- [ ] The fake logs `complete` only after that helper has gone
+- [ ] A test asserts the fake that outlasts SIGTERM is gone when `run` returns
+- [ ] A test asserts the deadline counts from the stop, not from the tool's own shutdown
+- [ ] A test lets the fake leave its helper behind, and asserts the helper is gone
+- [ ] Every wait in a test is bounded
+- [ ] `t.Cleanup` kills the fake's group
+
 ## Adding an AI capability — a model that answers, summarises, extracts, or classifies
 
 `patterns/go-llm-adapter.md` — the port, the prompt in `domain`, refusals as sentinels. A
@@ -175,7 +210,7 @@ gate.
 - [ ] No `.github/dependabot.yml`
 - [ ] No `export-ignore` in `.gitattributes`
 - **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
-  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push
+  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push — for `//go:build unix`, each Unix the tool claims
 
 ## Tagging and publishing a release
 
