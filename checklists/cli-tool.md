@@ -183,7 +183,7 @@ gate.
 
 - [ ] `make ci` is green on the commit being tagged
 - [ ] The tag's message is the release note (an annotated tag)
-- [ ] `go install github.com/andygeiss/<tool>@<tag>` (or `…/cmd/<name>@<tag>` in a multi-binary module) resolves with an empty `GOMODCACHE`
+- [ ] `go install github.com/andygeiss/<tool>@<tag>` (`…/<tool>/vN@<tag>` past v1, `…/cmd/<name>@<tag>` in a multi-binary module) resolves with an empty `GOMODCACHE`
 - [ ] `<tool> -version` (or `<tool> version`) prints the tag
 - [ ] No release binaries — not until a user without a Go toolchain asks
 - [ ] Semver honored: breaking changes to flags, exit codes, `-json` fields, or the meaning of stdout output only in a major release
