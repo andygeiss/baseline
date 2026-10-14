@@ -110,10 +110,10 @@ be synced, the tag waits.
   Three comments say the SIGKILL path waits for the whole group; it waits for the child.
   And *A CLI terminates* no longer gives a reason that covers its `--watch` ban.
 - **2026-10-14 — round four's fixes, never reviewed.** v4.8.1 shipped on Andy's call
-  with the gate's first condition unmet. Four rounds of two adversarial passes found 2,
-  5, 10 and 7 defects, nearly all in the shell mechanics of `operations/ci.md` and
-  `operations/cli-release.md`. After the third, Andy chose one more round and then the
-  tag. Round four's seven fixes, `aafa39f`, touch those two files and
+  with the gate's first condition unmet. Four rounds of two adversarial passes found 5,
+  5, 7 and 6 distinct defects, nearly all in the shell mechanics of `operations/ci.md`
+  and `operations/cli-release.md`. After the third, Andy chose one more round and then
+  the tag. Round four's fixes, `aafa39f`, touch those two files and
   `checklists/cli-tool.md`. The reference ran them: `./verify.sh` green over 79 gates,
   staticcheck among them, and `make ci` green. No pass has read them. The next run's
   passes cover them too.
