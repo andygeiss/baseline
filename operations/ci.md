@@ -41,12 +41,14 @@ of it: the Makefile says what runs, and this document says why.
   fixed the findings.
 - **A Go patch staticcheck cannot read yet** breaks that gate from the other side. The
   toolchain writes export data no staticcheck release reads, so staticcheck checks no
-  package that imports the standard library, and fails on lines like
+  package that imports the standard library, and fails with errors like
   `cannot decode "math/bits", export data version 5 is greater than maximum supported version 4`.
   Take that one line out, under a dated waiver in the README that names the upstream
   issue, and keep the pin: the security floor outranks a lint. On every dependency
-  update, run `go run honnef.co/go/tools/cmd/staticcheck@latest ./...` by hand; once it
-  runs, put the line back and delete the waiver.
+  update, run `go run honnef.co/go/tools/cmd/staticcheck@latest ./...` by hand. Judge
+  it by that error, not by its exit status: it exits 1 on any finding, before the fix
+  and after. Once the error is gone, put the line back and delete the waiver; fix what
+  it reports in the same commit.
 - **Static build gate** — proves the CGO-free single-binary invariant on every run,
   not at release time.
 
@@ -102,11 +104,13 @@ export GOTOOLCHAIN=go1.27.2
 go get -u ./... && go mod tidy && make check
 ```
 
-While a waiver holds the staticcheck line out, try it by hand after the update as well
-(*Why each gate exists*). Anything that breaks on a routine update is a candidate for removal. When the Go pin
+Anything that breaks on a routine update is a candidate for removal. When the Go pin
 moved a major, `make check` may be red on the idioms the new toolchain rewrites:
 `make fmt` first, and commit that rewrite on its own, so the dependency commit stays
 one thing.
+
+While a waiver holds the staticcheck line out, try it by hand after the update as well
+(*Why each gate exists*).
 
 A dependency that asks for a newer Go is a VERSIONS.md decision, not a `go get` side
 effect. Under the pin, `go get` refuses one that asks for more than the pin
