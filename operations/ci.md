@@ -74,7 +74,10 @@ of it: the Makefile says what runs, and this document says why.
   pattern exactly as `git ls-files` prints the file, or the build fails at deploy or
   in a Linux user's `go install`.
 - **Other operating systems.** For every other OS that a `//go:build <os>` line or a
-  `_<os>.go` name targets, run `GOOS=<os> go vet ./...` before the push.
+  `_<os>.go` name targets, run `GOOS=<os> go vet ./...` before the push. `unix` is not a
+  GOOS: for a `//go:build unix` file, vet each Unix the tool claims, `GOOS=linux` at
+  least — `syscall` differs between them. Pair each with a `GOARCH` that
+  `go tool dist list` prints for it: `GOOS=solaris go vet` alone fails on an arm64 Mac.
 - **Your shell.** `GOFLAGS` and whatever else the profile exports or `go env -w`
   wrote reach the gates. Read `go env -changed` before you trust a green run: every
   line it prints is a difference between this machine and the one that builds the
