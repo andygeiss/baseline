@@ -40,15 +40,15 @@ of it: the Makefile says what runs, and this document says why.
   line to the previous version in the fixing commit and remove the pin once you have
   fixed the findings.
 - **A Go patch staticcheck cannot read yet** breaks that gate from the other side. The
-  toolchain writes export data no staticcheck release reads, so staticcheck checks no
-  package that imports the standard library, and fails with errors like
+  toolchain writes export data no staticcheck release reads, so staticcheck checks only
+  the packages that import nothing, and fails with errors like
   `cannot decode "math/bits", export data version 5 is greater than maximum supported version 4`.
   Take that one line out, under a dated waiver in the README that names the upstream
   issue, and keep the pin: the security floor outranks a lint. On every dependency
-  update, run `go run honnef.co/go/tools/cmd/staticcheck@latest ./...` by hand. Judge
-  it by that error, not by its exit status: it exits 1 on any finding, before the fix
-  and after. Once the error is gone, put the line back and delete the waiver; fix what
-  it reports in the same commit.
+  update, run `go run honnef.co/go/tools/cmd/staticcheck@latest ./...` by hand, under
+  the pin. Judge it by that error, not by its exit status: the fixed release exits 1
+  too, whenever it finds something. Once the error is gone, fix what it reports in one
+  commit, then put the line back and delete the waiver in the next.
 - **Static build gate** — proves the CGO-free single-binary invariant on every run,
   not at release time.
 
@@ -120,10 +120,11 @@ satisfies but `go 1.27` does not, such as `go 1.27.2` or `go 1.27.0`. It raises 
 `go` line to match and prints `go: upgraded go 1.27 => 1.27.2`; under `auto`, it does
 the same for a newer major. Any later `go mod tidy` raises the line again without a
 word. If the `go` line rose, put it back by hand, with the pin exported, holding each
-dependency that asked:
+dependency that asked at the version it had before the update, which
+`git show HEAD:go.mod` still names:
 
 ```sh
-go mod edit -go=1.27 -toolchain=none -require=<dep>@<current> && go mod tidy && make check
+go mod edit -go=1.27 -toolchain=none -require=<dep>@<before> && go mod tidy && make check
 ```
 
 The hold is `go mod edit -require`, not `go get`: under the pin `go get` cannot open
@@ -131,8 +132,9 @@ a `go.mod` that says `go 1.28`, and `go mod edit` never reads the module graph. 
 mod tidy` then refuses, naming the module, while any other dependency still asks for
 more than the pin. One that asks for a patch the pin satisfies it takes again, in
 silence. `go list -m -e -f '{{.Path}} {{.GoVersion}}' all` shows every module's `go`
-line, your own first: give each dependency it shows above `1.27` its own `-require`,
-`1.27.0` included, since the go command ranks that above `1.27`. `-toolchain=none`
+line, your own first: give each dependency it shows above `1.27` its own `-require` at
+its version from before the update, `1.27.0` included, since the go command ranks that
+above `1.27`. `-toolchain=none`
 removes any `toolchain` line, which would pick the Go for every machine on `auto`.
 
 ## Nothing here deploys

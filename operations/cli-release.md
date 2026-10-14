@@ -46,23 +46,30 @@ Hand the file over the way that user takes files, with its `sha256`.
 ## Cutting a release
 
 `make ci` runs the gates against the commit you are about to tag, and a red run stops
-the tag and the push. The second line installs the tag from an empty module cache; a
-tool with subcommands answers `<tool> version` in place of `<tool> -version`:
+the tag and the push:
 
 ```sh
 make ci && git tag -a vX.Y.Z -m "what changed, in one line" && git push --atomic origin main vX.Y.Z
-d=$(mktemp -d); GOMODCACHE=$d go install github.com/andygeiss/<tool>@vX.Y.Z && <tool> -version
-GOMODCACHE=$d go clean -modcache
+```
+
+Only once that push succeeds, install the tag from an empty module cache; a tool with
+subcommands answers `<tool> version` in place of `<tool> -version`:
+
+```sh
+d=$(mktemp -d); GOMODCACHE=$d go install github.com/andygeiss/<tool>@vX.Y.Z && <tool> -version; GOMODCACHE=${d:?} go clean -modcache
 ```
 
 - **The tag message is the release note.** `git log` between two tags is the
   changelog.
-- **The `go install` line is the release check.** An empty module cache proves the
-  tag resolves over the network, not from this machine.
-- **The version line proves the stamp** only if `<tool>` is the copy `go install`
+- **The `go install` is the release check, so it waits for the push.** An empty module
+  cache proves the tag resolves over the network, not from this machine. Asked before
+  the tag exists, proxy.golang.org can go on answering that the version does not exist
+  for up to 30 minutes.
+- **The version check proves the stamp** only if `<tool>` is the copy `go install`
   just wrote; `command -v <tool>` says which copy `PATH` found.
-- **The last line deletes the cache.** Its directories are read-only, so `rm -rf`
-  refuses.
+- **The same line deletes the cache, and only that one.** Its directories are
+  read-only, so `rm -rf` refuses. `${d:?}` stops it when `d` is empty: run on its own
+  in a fresh shell, `go clean -modcache` would empty this machine's own module cache.
 
 ## Rollback
 
