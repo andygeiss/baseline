@@ -68,11 +68,14 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
-- **2026-10-10 — round eight's fixes, never reviewed.** v4.8.0 shipped on Andy's call
-  with the gate's first condition unmet. Each of eight rounds of two adversarial passes
-  found defects, and review stopped after the eighth. Its eleven fixes, `e7e378c`, went
-  through the reference — `./verify.sh` green over 79 gates with staticcheck waived, and
-  `make ci` green — but no pass has read them. The next run's passes cover them too.
+- **2026-10-14 — round four's fixes, never reviewed.** v4.8.1 shipped on Andy's call
+  with the gate's first condition unmet. Four rounds of two adversarial passes found 2,
+  5, 10 and 7 defects, nearly all in the shell mechanics of `operations/ci.md` and
+  `operations/cli-release.md`. After the third, Andy chose one more round and then the
+  tag. Round four's seven fixes, `aafa39f`, touch those two files and
+  `checklists/cli-tool.md`. The reference ran them: `./verify.sh` green over 79 gates,
+  staticcheck among them, and `make ci` green. No pass has read them. The next run's
+  passes cover them too.
 
 ## Why the CSP is what it is
 
