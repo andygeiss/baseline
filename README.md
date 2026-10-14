@@ -368,10 +368,10 @@ paragraph that goes stale in one of them.
   out of place through ten readings.
 - **On every re-verification, update and re-scan every repository that is live:**
   under `export GOTOOLCHAIN=go<pin>`, `go get -u ./... && go mod tidy && make check`,
-  one `chore(deps)` commit, then `make ci`. When the Go pin moved a major, `make fmt`
-  under the new pin comes first, its rewrite as its own commit. No bot updates
-  dependencies and no server scans untouched code ([operations/ci.md](operations/ci.md)).
-  This cycle does both jobs.
+  the `go` line read and put back if it rose, one `chore(deps)` commit, then `make ci`.
+  When the Go pin moved a major, `make fmt` under the new pin comes first, its rewrite
+  as its own commit. No bot updates dependencies and no server scans untouched code
+  ([operations/ci.md](operations/ci.md)). This cycle does both jobs.
 - **Before tagging, walk the gate in [VERIFICATION.md](VERIFICATION.md).** Two clean
   adversarial passes, the reference synced, `./verify.sh` green against the commit it
   pins, nothing a project reads changed since; after the tag, the run written onto the

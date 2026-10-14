@@ -49,27 +49,33 @@ Hand the file over the way that user takes files, with its `sha256`.
 the tag and the push:
 
 ```sh
-make ci && git tag -a vX.Y.Z -m "what changed, in one line" && git push --atomic origin main vX.Y.Z
+make ci && git tag -a vX.Y.Z -m "what changed, in one line" && git push --atomic origin HEAD:main vX.Y.Z
 ```
 
-Only once that push succeeds, install the tag from an empty module cache; a tool with
-subcommands answers `<tool> version` in place of `<tool> -version`:
+If the push fails, nothing was published: delete the tag (`git tag -d vX.Y.Z`), fix the
+cause, and run the line again. Only once the push succeeds, install the tag from an
+empty module cache; a tool with subcommands answers `<tool> version` in place of
+`<tool> -version`:
 
 ```sh
-d=$(mktemp -d); GOMODCACHE=$d go install github.com/andygeiss/<tool>@vX.Y.Z && <tool> -version; GOMODCACHE=${d:?} go clean -modcache
+(d=$(mktemp -d) && trap 'GOMODCACHE=${d:?} go clean -modcache' EXIT && GOMODCACHE=$d go install github.com/andygeiss/<tool>@vX.Y.Z && <tool> -version)
 ```
 
 - **The tag message is the release note.** `git log` between two tags is the
   changelog.
+- **`HEAD:main` puts the tag on `main`.** A bare `main` pushes the local branch, so a
+  tag made on another branch would go out on a commit `main` does not have.
 - **The `go install` is the release check, so it waits for the push.** An empty module
   cache proves the tag resolves over the network, not from this machine. Asked before
   the tag exists, proxy.golang.org can go on answering that the version does not exist
-  for up to 30 minutes.
+  for up to 30 minutes. The line exits with the check's status.
 - **The version check proves the stamp** only if `<tool>` is the copy `go install`
   just wrote; `command -v <tool>` says which copy `PATH` found.
-- **The same line deletes the cache, and only that one.** Its directories are
-  read-only, so `rm -rf` refuses. `${d:?}` stops it when `d` is empty: run on its own
-  in a fresh shell, `go clean -modcache` would empty this machine's own module cache.
+- **The same line deletes the cache, and only that one, however the check ends.** Its
+  directories are read-only, so `rm -rf` refuses. The trap is set only once `mktemp`
+  has made the directory, and `d` lives and dies inside the parentheses: a shell can
+  already hold a `d` of its own (oh-my-zsh leaves one), and `go clean -modcache`
+  deletes whatever directory `GOMODCACHE` names.
 
 ## Rollback
 

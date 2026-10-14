@@ -47,8 +47,9 @@ of it: the Makefile says what runs, and this document says why.
   issue, and keep the pin: the security floor outranks a lint. On every dependency
   update, run `go run honnef.co/go/tools/cmd/staticcheck@latest ./...` by hand, under
   the pin. Judge it by that error, not by its exit status: the fixed release exits 1
-  too, whenever it finds something. Once the error is gone, fix what it reports in one
-  commit, then put the line back and delete the waiver in the next.
+  too, whenever it finds something. Once the error is gone, fix what it reports first,
+  one commit per type, then put the line back and delete the waiver in a commit of its
+  own.
 - **Static build gate** — proves the CGO-free single-binary invariant on every run,
   not at release time.
 
@@ -97,7 +98,8 @@ Two things nobody does for you:
 By hand, under the pin, on the same 90-day cycle or when
 [VERSIONS.md](../VERSIONS.md) moves. The first line sets the pin for this shell; the
 second updates the dependencies the module's packages import — not those only its
-tests import — and runs the gates. Commit what it leaves as one `chore(deps)` commit:
+tests import — and runs the gates. Read the `go` line (below) before you commit what it
+leaves as one `chore(deps)` commit:
 
 ```sh
 export GOTOOLCHAIN=go1.27.2
@@ -115,13 +117,13 @@ While a waiver holds the staticcheck line out, try it by hand after the update a
 A dependency that asks for a newer Go is a VERSIONS.md decision, not a `go get` side
 effect. Under the pin, `go get` refuses one that asks for more than the pin
 (`requires go >= 1.28`) and leaves `go.mod` alone: hold the dependency
-(`go get -u ./... <dep>@<current>`) or drop it. It takes one that asks for a Go the pin
+(`go get -u ./... <dep>@<before>`) or drop it. It takes one that asks for a Go the pin
 satisfies but `go 1.27` does not, such as `go 1.27.2` or `go 1.27.0`. It raises the
 `go` line to match and prints `go: upgraded go 1.27 => 1.27.2`; under `auto`, it does
 the same for a newer major. Any later `go mod tidy` raises the line again without a
 word. If the `go` line rose, put it back by hand, with the pin exported, holding each
 dependency that asked at the version it had before the update, which
-`git show HEAD:go.mod` still names:
+`git show HEAD:go.mod` names until you commit:
 
 ```sh
 go mod edit -go=1.27 -toolchain=none -require=<dep>@<before> && go mod tidy && make check
@@ -132,10 +134,12 @@ a `go.mod` that says `go 1.28`, and `go mod edit` never reads the module graph. 
 mod tidy` then refuses, naming the module, while any other dependency still asks for
 more than the pin. One that asks for a patch the pin satisfies it takes again, in
 silence. `go list -m -e -f '{{.Path}} {{.GoVersion}}' all` shows every module's `go`
-line, your own first: give each dependency it shows above `1.27` its own `-require` at
-its version from before the update, `1.27.0` included, since the go command ranks that
-above `1.27`. `-toolchain=none`
-removes any `toolchain` line, which would pick the Go for every machine on `auto`.
+line, your own first. Give each dependency it shows above `1.27` — `1.27.0` too, since
+the go command ranks that above `1.27` — its own `-require` at the version
+`git show HEAD:go.mod` names. One that file does not name came in with the update: hold
+whatever brought it in (`go mod graph` names it), and `go mod tidy` drops it.
+`-toolchain=none` removes any `toolchain` line, which would pick the Go for every
+machine on `auto`.
 
 ## Nothing here deploys
 
