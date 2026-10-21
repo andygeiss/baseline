@@ -85,7 +85,7 @@ Two things nobody does for you:
 - **The Go version.** `GOTOOLCHAIN=auto`, the default, runs whatever Go on the machine
   satisfies `go.mod`'s `go 1.27` line — a newer major [VERSIONS.md](../VERSIONS.md)
   has not adopted, or a patch below the floor it names, both included. When the run's
-  `go version` line is not the pin, put `GOTOOLCHAIN=go1.27.2` in front of every `go`
+  `go version` line is not the pin, put `GOTOOLCHAIN=go1.27.3` in front of every `go`
   and `make` command — never a `toolchain` line in `go.mod`. The `go fix -diff` gate
   can make a newer major red rather than silent: the fixers ship with the toolchain,
   and a newer Go demands idioms the pin never asked for.
@@ -102,7 +102,7 @@ tests import — and runs the gates. Read the `go` line (below) before you commi
 leaves as one `chore(deps)` commit:
 
 ```sh
-export GOTOOLCHAIN=go1.27.2
+export GOTOOLCHAIN=go1.27.3
 go get -u ./... && go mod tidy && make check
 ```
 

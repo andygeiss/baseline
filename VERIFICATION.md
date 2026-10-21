@@ -76,6 +76,26 @@ be synced, the tag waits.
   `checklists/cli-tool.md`. The reference ran them: `./verify.sh` green over 79 gates,
   staticcheck among them, and `make ci` green. No pass has read them. The next run's
   passes cover them too.
+- **2026-10-21 — the Go pin moves to 1.27.3.** Go 1.27.3 shipped on 2026-10-19 as a
+  security release with one advisory, GO-2026-6809: `Certificate.Verify` in `crypto/x509`
+  now drops every chain through a small set of intermediate certificates Go no longer
+  trusts. `VERSIONS.md` pins it as the floor; the pin line in `stack/go.md` and both
+  `GOTOOLCHAIN` commands in `operations/ci.md` follow it, and no `Last verified:` date
+  moved. Under 1.27.2, `govulncheck` in the reference reports the advisory as called from
+  `cmd/server`, so the old pin fails that gate there. It fails a program whose only
+  network call is `http.Get` too, even to an `http://` address, and one whose only call
+  is `smtp.SendMail`; a program that only serves HTTP passes. Under 1.27.3 it reports
+  none; GO-2026-5932, in an `x/crypto` package nothing here imports, stays
+  informational. The four Facts verified lines that name 1.27.1 stay, as they did at
+  1.27.2: each records the toolchain its fact was measured under.
+- **`VERSIONS.md` keeps its 2026-09-08 date.** Every row with a source was checked again
+  on 2026-10-21. Two have moved and are not in this change: htmx 2.0.11 (2026-09-22,
+  npm's `latest`) and `modernc.org/sqlite` v1.61.0 (2026-10-21). scs v2.9.0 and the
+  `design.md` format's `alpha` did not move, and htmx 4.0.1 has not shipped.
+- **Measured against v4.8.1:** the Go row adds two or three tokens to every path. Change
+  paths: cli-tool 5,318 → 5,320, library 4,340 → 4,343, web-application 7,963 → 7,966.
+  Floors: cli-tool 11,582 → 11,585, library 12,494 → 12,497, web-application 21,342 →
+  21,344.
 
 ## Why the CSP is what it is
 

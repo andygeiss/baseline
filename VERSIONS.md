@@ -22,7 +22,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 
 | Component | Pinned version | Released | Notes |
 |---|---|---|---|
-| Go | **1.27.2** | 2026-10-08 | A security release, so 1.27.2 is the floor: below it, `govulncheck` fails every web application. It fixes fifteen advisories, two in the `html/template` escaper: GO-2026-6599 and GO-2026-6600. Re-verify at 1.28.1, about March 2027. |
+| Go | **1.27.3** | 2026-10-19 | A security release, so 1.27.3 is the floor: below it, `govulncheck` fails every program with an HTTP or SMTP client. It fixes GO-2026-6809: `crypto/x509` distrusts compromised intermediate certificates. Re-verify at 1.28.1, about March 2027. |
 | htmx | **2.0.10** | 2026-04-21 | The 2.x line is stable. |
 | htmx 4.x | ❌ not yet | 2026-08-28 | 4.0.0 is stable, on npm's `next` tag; `latest` still names 2.x. A breaking rewrite of 2.x, fetch-based. Adoption waits for 4.0.1 — *Version policy* below. |
 | SQLite driver | **v1.58.0** | 2026-09 | `modernc.org/sqlite`. The tier-1 pragmas are only as good as the driver: v1.42.1 cancelled unrelated queries. |
@@ -49,7 +49,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 ## Sources checked (2026-09-08)
 
 Every row above was checked against its source on this date, not only the ones that
-moved; Go again on 2026-10-09.
+moved; Go again on 2026-10-21.
 
 - Go releases: https://go.dev/doc/devel/release
 - Go 1.27 notes: https://go.dev/doc/go1.27 — and https://go.dev/doc/go1.28 for the
