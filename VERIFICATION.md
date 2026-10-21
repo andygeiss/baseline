@@ -81,21 +81,25 @@ be synced, the tag waits.
   now drops every chain through a small set of intermediate certificates Go no longer
   trusts. `VERSIONS.md` pins it as the floor; the pin line in `stack/go.md` and both
   `GOTOOLCHAIN` commands in `operations/ci.md` follow it, and no `Last verified:` date
-  moved. Under 1.27.2, `govulncheck` in the reference reports the advisory as called from
-  `cmd/server`, so the old pin fails that gate there. It fails a program whose only
-  network call is `http.Get` too, even to an `http://` address, and one whose only call
-  is `smtp.SendMail`; a program that only serves HTTP passes. Under 1.27.3 it reports
-  none; GO-2026-5932, in an `x/crypto` package nothing here imports, stays
-  informational. The four Facts verified lines that name 1.27.1 stay, as they did at
-  1.27.2: each records the toolchain its fact was measured under.
+  moved. Under 1.27.2, `govulncheck` fails every program that can use TLS. The reference
+  is one: `govulncheck` reports the advisory as called from its `cmd/server`, so the old
+  pin fails that gate there. Small test programs show the line. One whose only network
+  call is `http.Get` fails, even to an `http://` address, and so does one that only calls
+  `smtp.SendMail`, `tls.Dial` or `ListenAndServeTLS`. One that only serves plain HTTP
+  passes, and so does one whose SMTP client never calls `SendMail` or `StartTLS`. Under
+  1.27.3, `govulncheck` reports none; GO-2026-5932, in an `x/crypto` package nothing
+  here imports, stays informational. The four Facts verified lines that name 1.27.1
+  stay, as they did at 1.27.2: each records the Go release its fact was read from or
+  measured under.
 - **`VERSIONS.md` keeps its 2026-09-08 date.** Every row with a source was checked again
   on 2026-10-21. Two have moved and are not in this change: htmx 2.0.11 (2026-09-22,
-  npm's `latest`) and `modernc.org/sqlite` v1.61.0 (2026-10-21). scs v2.9.0 and the
-  `design.md` format's `alpha` did not move, and htmx 4.0.1 has not shipped.
-- **Measured against v4.8.1:** the Go row adds two or three tokens to every path. Change
-  paths: cli-tool 5,318 → 5,320, library 4,340 → 4,343, web-application 7,963 → 7,966.
-  Floors: cli-tool 11,582 → 11,585, library 12,494 → 12,497, web-application 21,342 →
-  21,344.
+  npm's `latest`) and `modernc.org/sqlite` v1.61.0 (2026-10-21). The exact
+  `modernc.org/libc` the SQLite driver names, which `go get -u ./...` moves, still waits
+  for a ruling too, and the date waits for the change that rules on all three. scs
+  v2.9.0 and the `design.md` format's `alpha` did not move, and htmx 4.0.1 has not
+  shipped.
+- **Measured against v4.8.1:** no floor, change path or reach moves. Every line this
+  change rewrites on a read path keeps its length in bytes, the Go row included.
 
 ## Why the CSP is what it is
 
