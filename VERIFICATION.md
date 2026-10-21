@@ -78,31 +78,6 @@ be synced, the tag waits.
   v4.8.2's passes read only its Go pin, which changes two lines in `operations/ci.md`,
   so v4.8.2 ships with the first condition unmet for that document, as v4.8.1 did. The
   next run's passes cover them.
-- **2026-10-21 — the Go pin moves to 1.27.3.** Go 1.27.3 shipped on 2026-10-19 as a
-  security release with one advisory, GO-2026-6809: `Certificate.Verify` in `crypto/x509`
-  now drops every chain through a small set of intermediate certificates Go no longer
-  trusts. `VERSIONS.md` pins it as the floor; the pin line in `stack/go.md` and both
-  `GOTOOLCHAIN` commands in `operations/ci.md` follow it, and no `Last verified:` date
-  moved. Under 1.27.2, `govulncheck` fails every program that can reach
-  `Certificate.Verify`, and every program that can use TLS can. The reference is one:
-  `govulncheck` reports the advisory as called from its `cmd/server`, so the old pin
-  fails that gate there. Small test programs show the line. One whose only network call
-  is `http.Get` fails, even to an `http://` address, and so does one that only calls
-  `smtp.SendMail`, `tls.Dial` or `ListenAndServeTLS`, or `Certificate.Verify` with no
-  TLS at all. One that only serves plain HTTP passes, and so does one whose SMTP client
-  never calls `SendMail` or `StartTLS`. Under 1.27.3 all of them pass, the reference too;
-  GO-2026-5932, in an `x/crypto` package the reference does not import, stays
-  informational. The four Facts verified lines that name 1.27.1 stay, as they did at
-  1.27.2: each records the Go release its fact was read from or measured under.
-- **`VERSIONS.md` keeps its 2026-09-08 date.** Every row with a source was checked again
-  on 2026-10-21. Two have moved and are not in this change: htmx 2.0.11 (2026-09-22,
-  npm's `latest`) and `modernc.org/sqlite` v1.61.0 (2026-10-21). The exact
-  `modernc.org/libc` the SQLite driver names, which `go get -u ./...` moves, still waits
-  for a ruling too, and the date waits for the change that rules on all three. scs
-  v2.9.0 and the `design.md` format's `alpha` did not move, and htmx 4.0.1 has not
-  shipped.
-- **Measured against v4.8.1:** no floor, change path or reach moves. Every line this
-  change rewrites on a read path keeps its length in bytes, the Go row included.
 
 ## Why the CSP is what it is
 
