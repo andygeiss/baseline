@@ -74,8 +74,9 @@ be synced, the tag waits.
   and `operations/cli-release.md`. After the third, Andy chose one more round and then
   the tag. Round four's fixes, `aafa39f`, touch those two files and
   `checklists/cli-tool.md`. The reference ran them: `./verify.sh` green over 79 gates,
-  staticcheck among them, and `make ci` green. No pass has read them. The next run's
-  passes cover them too.
+  staticcheck among them, and `make ci` green. No pass has read them. v4.8.2's passes
+  read only its Go pin, on Andy's call, though the pin touches `operations/ci.md` too.
+  The next run's passes cover them.
 - **2026-10-21 — the Go pin moves to 1.27.3.** Go 1.27.3 shipped on 2026-10-19 as a
   security release with one advisory, GO-2026-6809: `Certificate.Verify` in `crypto/x509`
   now drops every chain through a small set of intermediate certificates Go no longer
