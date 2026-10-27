@@ -68,6 +68,48 @@ be synced, the tag waits.
 
 ## Owed: changes not yet through a run
 
+- **2026-10-04 — a child process the tool keeps running.** New
+  `patterns/go-child-process.md`, tier 2 with its secret rule tier 1, and its trigger
+  section in `checklists/cli-tool.md`. One project invented the shape — splash, a proxy
+  that starts the inference engine it fronts — and Andy chose to extract it: the child in
+  a process group of its own, one stop signal sent before the tool's own shutdown, the
+  wait before the tool returns, SIGHUP unless `nohup` ignored it, and the test binary as
+  the fake child. The first draft's stop path ran against the real engine for Ctrl-C,
+  SIGHUP, and an engine that died. Review then rewrote it: the stop goes to the group, not
+  the PID; SIGTTOU and SIGTSTP are ignored before the child starts, so it inherits both;
+  the deferred wait polls the group, ending as soon as all of it has gone, and whatever
+  outlasts a grace counted from that SIGTERM gets SIGKILL, a helper the child left behind
+  included; an interrupted run exits non-zero; and the hatch ignores the second SIGHUP a
+  closing zsh terminal sends. The tests gained a helper mode of their own, a fake that
+  leaves its helper behind, a check that the deadline counts from the stop, bounded waits,
+  and a `t.Cleanup` that kills the fake's group. The rewrite runs under a real pty, in zsh
+  and bash, against a fake engine with a helper of its own. The tier-1 secret rule binds a
+  program run to completion too; the CLI checklist checks it in its secret section. The
+  web-application checklist gets no section, and no box for that secret rule either: the
+  case arose in a CLI, and that checklist sits 18 tokens under its budget, its change
+  path 37 — a gap for the budget decision the web path is already waiting on.
+- **2026-10-09 — a CLI may serve the person who started it.** The child-process pattern's
+  proxy contradicted `project-types/cli-tool.md`, which said a process that stays up to
+  serve requests is not a CLI. Andy chose to widen the definition rather than narrow the
+  pattern: a foreground tool that serves the person who started it until Ctrl-C, like a
+  local proxy, is a CLI; one meant to stay up unattended, or to serve other people, is a
+  web application. *A CLI terminates* now draws the same line. Left open: a CLI that
+  listens on a port gets none of the web application's cross-origin rules, server
+  timeouts, or request-body cap.
+- **2026-10-10 — both back after v4.8.0, v4.8.1, v4.8.2 and v5.0.0, round five's
+  findings still open.** `7355e4b` set them aside so the Go 1.27.2 security pin could ship
+  without them, `6af59d2` did again for v4.8.1, `ebed591` for the Go 1.27.3 pin in
+  v4.8.2, and `86e02cc` for htmx 4.0.0 in v5.0.0; they return as they left. Round five found
+  ten defects in them, and none is fixed. Three are medium, all in
+  the tests the pattern prescribes: none tells the polling wait from the single probe it
+  replaced, or a deadline counted from the start from one counted from the stop; and the
+  text never says a fake must have its signal handling in before it reports ready. Seven
+  are low. The helper behaviours the tests need are not modes. A checklist box names
+  SIGTERM where the child may document another stop signal. The vet box drops the
+  `GOARCH` that `ci.md` pairs with each Unix, and that pairing is not enough for iOS or
+  Android. One sentence reads as if the fake sleeps on exit when it is not race-built.
+  Three comments say the SIGKILL path waits for the whole group; it waits for the child.
+  And *A CLI terminates* no longer gives a reason that covers its `--watch` ban.
 - **2026-10-14 — round four's fixes, never reviewed.** v4.8.1 shipped on Andy's call
   with the gate's first condition unmet. Four rounds of two adversarial passes found 5,
   5, 7 and 6 distinct defects, nearly all in the shell mechanics of `operations/ci.md`
@@ -89,6 +131,12 @@ be synced, the tag waits.
   `patterns/htmx-server-rendering.md` and `patterns/htmx-live-updates.md`. The reference
   ran them: `./verify.sh` green over 82 gates and `make ci` green, both under Go 1.27.3.
   No pass has read them. The next run's passes cover them.
+- **Measured against v5.0.0:** the cli-tool change path 5,288 → 5,832, all of it the
+  checklist's 544, and its floor 11,552 → 12,132 with the widened definition. The
+  child-process document is a trigger, 2,791 tokens. Every reach grows by
+  `operations/ci.md`'s 66, and cli-tool's by the document and checklist too: cli-tool
+  42,416 → 45,853, library 29,717 → 29,783, web-application 104,885 → 104,951. No other
+  floor or change path moves.
 
 ## Why the CSP is what it is
 
