@@ -79,6 +79,16 @@ be synced, the tag waits.
   so v4.8.2 ships with the first condition unmet for that document, as v4.8.1 did.
   v5.0.0's passes read only its htmx change, again on Andy's call; it touches neither
   file. The next run's passes cover them.
+- **2026-10-27 — round five's fixes, never reviewed.** v5.0.0 shipped on Andy's call with
+  the gate's first condition unmet. Five rounds of two adversarial passes found 19, 19, 10,
+  11 and 11 distinct defects, the later ones mostly in wording, and Andy chose the tag
+  while a sixth round was running, so it was stopped before it reported. Round five's
+  fixes, `7bd81fa`, touch `stack/htmx.md`, `stack/html.md`, `patterns/css-motion.md`,
+  `patterns/go-file-uploads.md`, `patterns/go-http-client.md`,
+  `patterns/go-http-server.md`, `patterns/go-background-work.md`,
+  `patterns/htmx-server-rendering.md` and `patterns/htmx-live-updates.md`. The reference
+  ran them: `./verify.sh` green over 82 gates and `make ci` green, both under Go 1.27.3.
+  No pass has read them. The next run's passes cover them.
 
 ## Why the CSP is what it is
 
