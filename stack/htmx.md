@@ -17,17 +17,22 @@ any element can issue HTTP requests, the server answers with HTML, htmx swaps it
   MUST NOT sit in `<body>`. htmx runs every script in the content it swaps, and a
   boosted click swaps the whole body, so each navigation would start a second htmx
   beside the first. Nothing swaps `<head>`.
-- No extensions unless a pattern document mandates one. `hx-boost:inherited="true"` on
-  `<body>` is the default starting point for smooth navigation.
+- No extensions unless a pattern document mandates one. `hx-boost:inherited="transition:true"`
+  on `<body>` is part of the canonical layout ([html.md](html.md)).
 
 ## Inheritance is explicit
 
 htmx 4 reads an attribute from an ancestor only when the ancestor writes `:inherited`:
-`hx-boost:inherited="true"`, `hx-target:inherited="#list"`. A bare attribute on a
-container governs that element alone, and htmx ignores the rest without a warning —
+`hx-boost:inherited="transition:true"`, `hx-target:inherited="#list"`. A bare attribute on
+a container governs that element alone, and htmx ignores the rest without a warning —
 `<body hx-boost="true">` boosts no link at all. Put `:inherited` on the one container
 whose children share the value. MUST NOT turn on `implicitInheritance`: it brings back
 2.x's rule, where every attribute leaks into everything below it.
+
+An inherited `hx-target` reaches boosted links and forms too. Their answers then go to
+that target as fragments, and a boosted request still pushes its URL, so a boosted POST
+leaves its own address in the history. Keep plain links and forms out of a container that
+hands down `hx-target`.
 
 ## Core attribute set (prefer these, in this order)
 
@@ -35,17 +40,17 @@ whose children share the value. MUST NOT turn on `implicitInheritance`: it bring
 |---|---|
 | `hx-get` / `hx-post` | Issue request. GET reads, POST mutates — the only two verbs with a plain-form fallback. |
 | `hx-target` | CSS selector to swap into. Default is the triggering element — usually set this explicitly. |
-| `hx-swap` | `innerHTML` (default), `outerHTML` for self-replacing fragments. `transition:false` opts a rapid-fire swap out of view transitions ([patterns/css-motion.md](../patterns/css-motion.md)). |
+| `hx-swap` | `innerHTML` (default), `outerHTML` for self-replacing fragments. `transition:true` opts a fragment swap into a view transition, which only boosted navigation runs by default ([patterns/css-motion.md](../patterns/css-motion.md)). |
 | `hx-trigger` | Only when the default event is wrong (e.g. `input changed delay:300ms` for search). Polling (`every 3s`) keeps a page current and has its own rules — [patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md). |
 | `hx-push-url` | `true` on navigation-like GETs so the URL bar and back button stay honest. |
 | `hx-indicator` | Always give requests >100ms a visible indicator (CSS `.htmx-request`) — except a background poll, which shows none ([patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md)). |
-| `hx-boost` | On `<body>`, as `hx-boost:inherited="true"`: upgrades plain links/forms to AJAX with graceful fallback. |
+| `hx-boost` | On `<body>`, as `hx-boost:inherited="transition:true"`: upgrades plain links/forms to AJAX with graceful fallback, and cross-fades them. |
 | `hx-confirm` | For destructive actions. |
 
 Attributes not listed here (e.g. `hx-on`, `hx-vals` with JS expressions) SHOULD be
 avoided — if you need them, the design is probably drifting toward client-side logic.
-The `hx-status` lines on the canonical `<body>` are not one to add per element; they
-are part of the layout ([stack/html.md](html.md)).
+`hx-status` lives only on the layout's `<body>` ([html.md](html.md)). MUST NOT add it to
+another element: the element's own line outranks the layout's, so its errors swap again.
 
 ## Rules
 
@@ -65,7 +70,17 @@ are part of the layout ([stack/html.md](html.md)).
    fade ignores `prefers-reduced-motion`. The canonical layout's `htmx-config` meta sets
    `"includeIndicatorCSS":false`; `app.css` defines `.htmx-indicator` and
    `.htmx-request` itself (see [css.md](css.md)).
-6. **Security:**
+6. **Back and forward reload the page.** htmx 4 keeps no history cache. On back/forward
+   it either re-fetches the page itself and swaps the body, or reloads. The canonical
+   `htmx-config` sets `"history":"reload"`, so back/forward are real page loads and no
+   handler ever answers a restore request. The server is the source of truth — there is
+   nothing client-side worth restoring.
+7. **htmx gives up at 60 s.** htmx 4 aborts any request still running after its
+   `defaultTimeout`, 60 s, and an aborted request swaps nothing. The canonical server
+   answers inside 30 s (`WriteTimeout`, [patterns/go-http-server.md](../patterns/go-http-server.md)).
+   A route widened past 60 s — an upload, a waived `WriteTimeout` — gives the element
+   that sends it the same number: `hx-config="timeout:90s"` for 90 s.
+8. **Security:**
    - CSP: htmx needs no policy change — it is self-hosted and writes no inline
      JS ([patterns/security-headers.md](../patterns/security-headers.md) owns
      the policy).
@@ -75,11 +90,6 @@ are part of the layout ([stack/html.md](html.md)).
      [patterns/go-http-server.md](../patterns/go-http-server.md).
    - All dynamic HTML goes through `html/template` (contextual auto-escaping). Never
      concatenate user input into HTML.
-   - **History: reload.** htmx 4 keeps no history cache. On back/forward it either
-     re-fetches the page itself and swaps the body, or reloads. The canonical
-     `htmx-config` sets `"history":"reload"`, so back/forward are real page loads, as
-     they were under 2.x with its cache off. No handler ever answers a restore request.
-     The server is the source of truth — there is nothing client-side worth restoring.
 
 ## Litmus test
 

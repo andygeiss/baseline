@@ -25,9 +25,9 @@ server's 10 s ([go-http-server.md](go-http-server.md)), and 32 MiB in 10 s is ~2
 of sustained *uplink* — more than a phone has. The read then fails mid-body, the handler
 gets a plain `i/o timeout` instead of `*http.MaxBytesError`, and the 413 below never runs.
 Raise `ReadTimeout` with the cap, and `WriteTimeout` by the same amount
-([go-http-client.md](go-http-client.md): the body is spending that one too). A budget past
-60 s also needs `hx-config="timeout:120s"` (its own number) on the upload form: htmx 4 drops
-any request still running at 60 s, and a dropped upload swaps nothing.
+([go-http-client.md](go-http-client.md): the body is spending that one too). Once
+`WriteTimeout` passes 60 s, the upload form needs the same number as an htmx timeout: htmx
+gives up at 60 s ([stack/htmx.md](../stack/htmx.md) rule 7).
 
 ```go
 // ParseMultipartForm, not ParseForm — see rule 1 below. Its argument is how
@@ -234,6 +234,9 @@ parser written in C, run on a stranger's file.
 
 ## Facts verified (2026-09-05)
 
+- htmx 4.0.0 aborts a request after `defaultTimeout`, 60000 ms, unless `hx-config` sets
+  `timeout` (checked 2026-10-27): `dist/htmx.js` in the npm tarball, the `config` block
+  and `#initTimeout`.
 - `DetectContentType` "considers at most the first 512 bytes" and returns
   `application/octet-stream` when it cannot decide:
   https://pkg.go.dev/net/http#DetectContentType

@@ -89,7 +89,7 @@ func (a *App) handleGameCreate(w http.ResponseWriter, r *http.Request) {
 	a.sessions.Put(r.Context(), "flash", "Game created.")
 	w.Header().Add("Vary", "HX-Request-Type") // this response differs by it and bypasses a.render
 	if isFragment(r) {
-		// fetch would follow a 303 and swap the full page into the fragment target.
+		// fetch would follow a 303 and swap whatever answers it into the fragment target.
 		w.Header().Set("HX-Redirect", "/games/"+game.ID)
 		return // 200, empty body
 	}

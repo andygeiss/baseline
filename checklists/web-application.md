@@ -23,7 +23,7 @@ those; there is a fix.
 - [ ] The vendored htmx is 4.0.0, matching `VERSIONS.md`
 - [ ] No dependency outside `stack/go.md`'s approved list, or the README justifies it
 - [ ] Zero hand-written JavaScript
-- [ ] htmx is the only `<script>`, deferred in `<head>`
+- [ ] htmx is the only `<script>`
 - [ ] No service worker registered
 - [ ] No CSS, font, icon, or script loaded from a third-party origin
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build ./cmd/server`
@@ -115,7 +115,7 @@ not a trigger.
 - [ ] Destructive actions have `hx-confirm`
 - [ ] Dual-mode responses send `Vary: HX-Request-Type`
 - [ ] The fragment-or-full-page test is one named function
-- [ ] `<body>` keeps the layout's four htmx attributes
+- [ ] `<head>` and `<body>` keep the layout's htmx lines
 - [ ] Dual-mode handlers tested with and without `HX-Request-Type: partial`
 
 ## Showing a time or a date
@@ -199,7 +199,7 @@ not a trigger.
 - [ ] Transition properties listed explicitly, never `all`
 - [ ] Paint and compositor properties only
 - [ ] One-shot durations from the two motion tokens
-- [ ] Rapid-fire swaps opt out (`transition:false`)
+- [ ] Only boost and chosen swaps transition (`transition:true`)
 - [ ] The view-transition kill switch is in `utilities`
 - [ ] `prefers-reduced-motion` respected
 
@@ -300,7 +300,7 @@ not a trigger.
 
 - [ ] The cursor is a row id or a count, never a time, and the server advances it
 - [ ] An empty poll answers 204
-- [ ] The route 303s a non-htmx request
+- [ ] Non-fragment requests get a 303
 - [ ] The poll carries no indicator and no rate limit
 
 ## Showing a list longer than one page

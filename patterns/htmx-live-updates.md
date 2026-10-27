@@ -10,7 +10,7 @@ attribute does it, and the cursor rides in the URL:
 <li id="poll" hidden
     hx-get="/rooms/general/messages?since=412"
     hx-trigger="every 3s"
-    hx-swap="outerHTML transition:false"></li>
+    hx-swap="outerHTML"></li>
 ```
 
 ## Why polling and not SSE
@@ -36,7 +36,7 @@ end:
   <li id="poll" hidden
       hx-get="/rooms/general/messages?since=412"
       hx-trigger="every 3s"
-      hx-swap="outerHTML transition:false"></li>
+      hx-swap="outerHTML"></li>
 </ul>
 ```
 
@@ -48,7 +48,7 @@ The handler answers with the new rows **followed by a fresh sentinel**:
 <li id="poll" hidden
     hx-get="/rooms/general/messages?since=414"
     hx-trigger="every 3s"
-    hx-swap="outerHTML transition:false"></li>
+    hx-swap="outerHTML"></li>
 ```
 
 `outerHTML` puts all of it where the sentinel was: the messages land in order at the end of
@@ -93,8 +93,9 @@ over the sentinel, and the poll is gone for good.
    ([stack/htmx.md](../stack/htmx.md)), and a background poll is the one exception. An
    indicator that blinks every three seconds trains the reader to ignore it. Set
    `hx-indicator` on the message *form*, which a person started.
-6. **Opt the swap out of view transitions** (`transition:false`). Messages arriving on a
-   timer are the rapid-fire case in [css-motion.md](css-motion.md).
+6. **Never opt the swap into a view transition.** Messages arriving on a timer are the
+   rapid-fire case in [css-motion.md](css-motion.md): a transition every three seconds
+   lands the reader's clicks on nothing.
 7. **Never rate limit the polled route.** The limiter in
    [go-auth-sessions.md](go-auth-sessions.md) guards login and registration; pointing it at
    a route every open tab hits on a timer locks out real readers.
@@ -130,7 +131,7 @@ changes is the whole of it.
   <p>… 3 pieces so far …</p>
   <span hidden
         hx-get="/jobs/7?since=3" hx-target="#job"
-        hx-swap="outerHTML transition:false" hx-trigger="every 5s"></span>
+        hx-swap="outerHTML" hx-trigger="every 5s"></span>
 </div>
 ```
 
@@ -138,8 +139,9 @@ The answer is the region again, carrying a fresh poller with the advanced cursor
 3 is the only one that gives way,** and it gives way for its own stated reason: it
 protects a reader's place in a long list, and a few lines somebody is watching change
 have no place to lose. Everything else stands — the server still decides the next cursor
-and sends it (rule 2), 204 still leaves the poller alone, an answer without one stops it,
-`transition:false`, no indicator, and 303 to the page for a plain request.
+and sends it (rule 2), 204 still leaves the poller alone, an answer with no poller in it
+stops polling, and there is no transition, no indicator, and a 303 to the page for a
+plain request.
 
 **Appended and never rewritten is what makes rule 1's count work** — pieces produced,
 lines logged. A count over anything the server edits in place hands the same piece over

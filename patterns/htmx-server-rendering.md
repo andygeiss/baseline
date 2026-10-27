@@ -55,8 +55,8 @@ block; a handler renders either the full page or just the block, depending on
 ## The dual-mode render helper
 
 ```go
-// render writes page as a full document, or only its named block when the request
-// came from an htmx interaction. block == "" always renders the full page.
+// render writes page as a full document, or only its named block when isFragment
+// reports a fragment request. block == "" always renders the full page.
 func (a *App) render(w http.ResponseWriter, r *http.Request, status int, page, block string, data any) {
 	name := "layout.html" // full page: the layout shell that invokes the page's "main"
 	if block != "" && isFragment(r) {
@@ -81,21 +81,19 @@ func isFragment(r *http.Request) bool {
 }
 ```
 
-Four details are load-bearing:
+Three details are load-bearing:
 
 - **The discriminator has one name and one definition.** htmx sends
-  `HX-Request-Type: partial` when it will swap the answer into an element, and
-  `full` when the answer replaces `<body>` — a boosted link or form, a body target,
-  or `hx-select` picking from a whole page. A plain browser request sends neither.
-  Only `partial` gets a fragment; anything else rendering one puts a bare fragment
-  where a page belongs. Handlers need the same test to choose between a fragment
-  and a 303 (*Standard flows* below), so it is a function both call, never the
-  header test written out twice. Two copies is two chances for a handler to 303 a
-  request that `render` would have answered with a fragment.
+  `HX-Request-Type: full` when it will swap the answer into `<body>` or pick from it
+  with `hx-select`, and `partial` for every other target, boosted or not. A boosted link
+  or form targets `<body>` unless an inherited `hx-target` says otherwise
+  ([stack/htmx.md](../stack/htmx.md)). A plain browser request sends neither. Only
+  `partial` gets a fragment; anything else rendering one puts a bare fragment where a
+  page belongs. Handlers need the same test to choose between a fragment and a 303
+  (*Standard flows* below), so it is a function both call, never the header test
+  written out twice. Two copies is two chances for a handler to 303 a request that
+  `render` would have answered with a fragment.
 - **Buffer first** — a template error after `WriteHeader` corrupts the response.
-- **No `HX-History-Restore-Request` handling needed** — the layout's `htmx-config`
-  sets `"history":"reload"` ([stack/htmx.md](../stack/htmx.md)), so back/forward
-  are plain browser loads and never reach this helper with htmx headers.
 - **`Vary: HX-Request-Type`** added here, once, so no dual-mode handler can
   forget it. The header chooses the body, so it must be a cache key — without it a
   cache can serve a bare fragment to a navigation.
@@ -116,7 +114,8 @@ no-htmx full page and the htmx fragment.
   `303 See Other` back to the page. Boosted POSTs need the 303 too: a direct 200
   pushes the POST's URL into history, so refresh/back re-issues a GET against a
   POST-only route → 405. And never 303 a fragment POST: `fetch` follows the redirect
-  transparently and the full page it lands on gets swapped into the fragment target.
+  transparently, carrying the same htmx headers, and whatever the route it lands on
+  answers gets swapped into the fragment target.
   When the whole page must change after a fragment action, send `HX-Redirect` (below).
 - **Form validation:** invalid POST re-renders the form fragment with errors and
   status **422**. Fields keep their submitted values. The request side of this
@@ -132,15 +131,16 @@ no-htmx full page and the htmx fragment.
   another tab already deleted) is not invalid input — respond 200 with the current
   fragment and a message, letting the swap heal the staleness.
 - **Every other error swaps nothing.** A 4xx or 5xx that is not a 422 leaves the page
-  as it was, URL included: the `hx-status:4xx` and `hx-status:5xx` lines on `<body>`
-  say `swap:none push:false`. Without them htmx 4 swaps every response but 204 and
-  304, so an error page lands inside whatever asked — a failed poll replaces its own
-  poller, and live updates stop. htmx tries the most specific code first (`422`,
-  then `42x`, then `4xx`), so the three lines work in any order. `htmx-config` MUST
-  NOT list `"4xx"` or `"5xx"` under `noSwap`: htmx reads that list first, and a
-  boosted error then pushes its URL with nothing swapped. An `hx-status` line also
-  outranks `HX-Reswap`, so an answer that must change the page is a 422 or a
-  redirect, never a bare error.
+  as it was — content, URL, and tab title. The `hx-status:4xx` and `hx-status:5xx`
+  lines on `<body>` swap nothing, run no transition, keep the title an error page would
+  bring, and push nothing. Without them htmx 4 swaps every response but 204 and 304, so
+  an error page lands inside whatever asked — a failed poll replaces its own poller, and
+  live updates stop. htmx tries the most specific code first (`422`, then `42x`, then
+  `4xx`), so the three lines work in any order. `htmx-config` MUST NOT list `"4xx"` or
+  `"5xx"` under `noSwap`: at each of those steps htmx reads that list before any
+  `hx-status` line, so a `"4xx"` there swallows the `4xx` line and a boosted error
+  pushes its URL with nothing swapped. An `hx-status` line also outranks `HX-Reswap`,
+  so an answer that must change the page is a 422 or a redirect, never a bare error.
 - **Post-action navigation from a fragment:** set `HX-Redirect: /tasks/42` header
   instead of rendering, when the whole page must change.
 - **Cross-component updates:** render extra fragments with `hx-swap-oob="true"` in the

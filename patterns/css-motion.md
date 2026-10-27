@@ -113,16 +113,20 @@ from [stack/html.md](../stack/html.md) announce what matters (WCAG 4.1.3).
 
 ## Swaps: view transitions
 
-The canonical layout's `htmx-config` meta ([stack/html.md](../stack/html.md)) sets
-`"transitions":true`, so htmx wraps every swap in the same-document View
-Transition API and boosted navigations cross-fade instead of blinking. Baseline Newly,
-inherently graceful: unsupported browsers swap instantly, and no markup changes either way.
+The canonical layout's `<body>` ([stack/html.md](../stack/html.md)) carries
+`hx-boost:inherited="transition:true"`, so htmx runs boosted navigations inside the
+same-document View Transition API, and they cross-fade instead of blinking. Every other
+swap runs without one unless it opts in. Baseline Newly, inherently graceful: unsupported
+browsers swap instantly, and no markup changes either way.
 
-1. **Rapid-fire swaps MUST opt out** with `hx-swap="outerHTML transition:false"`: active
-   search, polling, and any control users hit in quick succession. A cross-fade per
-   keystroke is noise, and the costs are real — the API briefly holds rendering while it
-   snapshots the page, and during the fade pointer input lands on nothing, because
-   captured content is exempt from hit-testing.
+1. **A fragment swap opts in only to connect old and new content:**
+   `hx-swap="outerHTML transition:true"` on a toggled row or a card that moves. Rapid-fire
+   swaps never do — active search, polling, and any control users hit in quick
+   succession. A cross-fade per keystroke is noise, and the costs are real — the API
+   briefly holds rendering while it snapshots the page, and during the fade pointer input
+   lands on nothing, because captured content is exempt from hit-testing. That cost is
+   why transitions are not on for every swap: htmx 4 wraps even a swap of nothing, a 204,
+   in one.
 2. **The kill switch lives in `utilities`** — the one layer where `!important` is allowed
    ([stack/css.md](../stack/css.md) rule 3). The fade animations come from the browser's
    stylesheet and the API does not read the media query itself; with them cancelled, a
@@ -210,4 +214,4 @@ https://web.dev/baseline at the next verification.
 - ❌ Scroll hijacking and parallax — the scrollbar belongs to the user.
 - ❌ htmx class-based swap animation (`.htmx-added` fades, `swap:`/`settle:` delays) — that
   machinery predates view transitions, and a `settle:` delay slows the swap to buy what
-  `"transitions":true` gives free.
+  `transition:true` gives free.
