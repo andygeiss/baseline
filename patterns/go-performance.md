@@ -66,7 +66,7 @@ HTML over the wire with no client framework tax. Performance work is therefore
   a deploy, and a buster that repeats itself is the same bug wearing a query
   string — which is what *Naming the assets* below is about.
 - **HTML responses:** `Cache-Control: no-store` for authenticated pages; dual-mode
-  responses already send `Vary: HX-Request, HX-Boosted` via the render helper.
+  responses already send `Vary: HX-Request-Type` via the render helper.
 - **Compression happens at the reverse proxy**, which the deployment configures —
   and most proxies do **not** compress until told to. The app does not gzip. Keep
   the app boring; let the edge do edge work.

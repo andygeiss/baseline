@@ -20,10 +20,10 @@ those; there is a fix.
 ## Every web application
 
 - [ ] `go.mod` says `go 1.27`, matching `VERSIONS.md`, and has no `toolchain` line
-- [ ] The vendored htmx is 2.0.10, matching `VERSIONS.md`
+- [ ] The vendored htmx is 4.0.0, matching `VERSIONS.md`
 - [ ] No dependency outside `stack/go.md`'s approved list, or the README justifies it
 - [ ] Zero hand-written JavaScript
-- [ ] htmx is the only `<script>`
+- [ ] htmx is the only `<script>`, deferred in `<head>`
 - [ ] No service worker registered
 - [ ] No CSS, font, icon, or script loaded from a third-party origin
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build ./cmd/server`
@@ -113,10 +113,10 @@ not a trigger.
 - [ ] Navigation-like htmx GETs use `hx-push-url`; back button behaves
 - [ ] Requests >100 ms show an indicator, except a background poll (`patterns/htmx-live-updates.md`)
 - [ ] Destructive actions have `hx-confirm`
-- [ ] Dual-mode responses send `Vary: HX-Request, HX-Boosted`
+- [ ] Dual-mode responses send `Vary: HX-Request-Type`
 - [ ] The fragment-or-full-page test is one named function
-- [ ] Boosted POSTs re-render with `HX-Push-Url: false`
-- [ ] Dual-mode handlers tested with and without `HX-Request: true`
+- [ ] `<body>` keeps the layout's four htmx attributes
+- [ ] Dual-mode handlers tested with and without `HX-Request-Type: partial`
 
 ## Showing a time or a date
 

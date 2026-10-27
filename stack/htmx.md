@@ -1,14 +1,10 @@
 # Stack: htmx
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05 · Pinned:
-htmx 2.0.10 ([VERSIONS.md](../VERSIONS.md))
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-10-27 · Pinned:
+htmx 4.0.0 ([VERSIONS.md](../VERSIONS.md))
 
 htmx is the *only* script on the page. It turns HTML into the application protocol:
 any element can issue HTTP requests, the server answers with HTML, htmx swaps it in.
-
-⚠️ **htmx 4.x is stable but MUST NOT be used yet: a fetch-based rewrite with breaking
-changes.** This baseline adopts it in a release of its own once 4.0.1 ships
-([VERSIONS.md](../VERSIONS.md) *Version policy*).
 
 ## Setup
 
@@ -21,8 +17,17 @@ changes.** This baseline adopts it in a release of its own once 4.0.1 ships
   MUST NOT sit in `<body>`. htmx runs every script in the content it swaps, and a
   boosted click swaps the whole body, so each navigation would start a second htmx
   beside the first. Nothing swaps `<head>`.
-- No extensions unless a pattern document mandates one. `hx-boost` on `<body>` is the
-  default starting point for smooth navigation.
+- No extensions unless a pattern document mandates one. `hx-boost:inherited="true"` on
+  `<body>` is the default starting point for smooth navigation.
+
+## Inheritance is explicit
+
+htmx 4 reads an attribute from an ancestor only when the ancestor writes `:inherited`:
+`hx-boost:inherited="true"`, `hx-target:inherited="#list"`. A bare attribute on a
+container governs that element alone, and htmx ignores the rest without a warning —
+`<body hx-boost="true">` boosts no link at all. Put `:inherited` on the one container
+whose children share the value. MUST NOT turn on `implicitInheritance`: it brings back
+2.x's rule, where every attribute leaks into everything below it.
 
 ## Core attribute set (prefer these, in this order)
 
@@ -34,11 +39,13 @@ changes.** This baseline adopts it in a release of its own once 4.0.1 ships
 | `hx-trigger` | Only when the default event is wrong (e.g. `input changed delay:300ms` for search). Polling (`every 3s`) keeps a page current and has its own rules — [patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md). |
 | `hx-push-url` | `true` on navigation-like GETs so the URL bar and back button stay honest. |
 | `hx-indicator` | Always give requests >100ms a visible indicator (CSS `.htmx-request`) — except a background poll, which shows none ([patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md)). |
-| `hx-boost` | On `<body>`: upgrades plain links/forms to AJAX with graceful fallback. |
+| `hx-boost` | On `<body>`, as `hx-boost:inherited="true"`: upgrades plain links/forms to AJAX with graceful fallback. |
 | `hx-confirm` | For destructive actions. |
 
 Attributes not listed here (e.g. `hx-on`, `hx-vals` with JS expressions) SHOULD be
 avoided — if you need them, the design is probably drifting toward client-side logic.
+The `hx-status` lines on the canonical `<body>` are not one to add per element; they
+are part of the layout ([stack/html.md](html.md)).
 
 ## Rules
 
@@ -50,31 +57,29 @@ avoided — if you need them, the design is probably drifting toward client-side
    action in the route instead: `"POST /items/{id}/delete"`.
 4. **Fragments are template blocks,** not separate files — see
    [patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md) for the
-   full-page-vs-fragment mechanic, response headers (`HX-Redirect`, `HX-Trigger`),
-   and out-of-band swaps.
-5. **Security:**
+   full-page-vs-fragment mechanic, which statuses swap, response headers
+   (`HX-Redirect`, `HX-Trigger`), and out-of-band swaps.
+5. **`app.css` owns the indicator styles.** By default htmx 4 adds its own indicator CSS
+   as a constructed stylesheet. The CSP does not block that one, but the sheet sits
+   outside every cascade layer, so it beats each rule `app.css` writes, and its 200 ms
+   fade ignores `prefers-reduced-motion`. The canonical layout's `htmx-config` meta sets
+   `"includeIndicatorCSS":false`; `app.css` defines `.htmx-indicator` and
+   `.htmx-request` itself (see [css.md](css.md)).
+6. **Security:**
    - CSP: htmx needs no policy change — it is self-hosted and writes no inline
      JS ([patterns/security-headers.md](../patterns/security-headers.md) owns
-     the policy). One wrinkle: by default htmx injects an inline `<style>` for
-     its indicator CSS, which the policy blocks. The canonical layout's `htmx-config`
-     meta sets `"includeIndicatorStyles":false`; `app.css` owns the
-     `.htmx-indicator`/`.htmx-request` rules instead (see [css.md](css.md)).
+     the policy).
    - CSRF: no tokens — the server uses stdlib `http.CrossOriginProtection`
      (`Sec-Fetch-Site` based, Go 1.25+), which covers htmx requests automatically
      because htmx sends real same-origin requests. See
      [patterns/go-http-server.md](../patterns/go-http-server.md).
    - All dynamic HTML goes through `html/template` (contextual auto-escaping). Never
      concatenate user input into HTML.
-   - **History cache: off.** By default htmx snapshots the full `<body>` of visited
-     pages into `localStorage` for back-button restores — authenticated HTML that
-     outlives logout and server-side session revocation. `localStorage` has no
-     expiry, so it outlives the tab and the browser too — it is still there for
-     whoever opens that browser next. Its cache-miss restore requests send
-     `HX-Request: true` while expecting a full page (a known dual-mode
-     footgun). The canonical layout's `htmx-config` sets
-     `"historyCacheSize":0` and `"refreshOnHistoryMiss":true`: back/forward are real
-     page loads. The server is the source of truth — there is nothing client-side
-     worth restoring.
+   - **History: reload.** htmx 4 keeps no history cache. On back/forward it either
+     re-fetches the page itself and swaps the body, or reloads. The canonical
+     `htmx-config` sets `"history":"reload"`, so back/forward are real page loads, as
+     they were under 2.x with its cache off. No handler ever answers a restore request.
+     The server is the source of truth — there is nothing client-side worth restoring.
 
 ## Litmus test
 

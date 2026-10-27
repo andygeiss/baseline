@@ -11,7 +11,7 @@ with a UI — from a todo list to a SaaS dashboard.
 |---|---|---|
 | Backend | Go (stdlib `net/http`) | MUST. No web frameworks (no Gin, Echo, Fiber, Chi). |
 | Templating | `html/template` | MUST. Embedded via `embed.FS`. |
-| Interactivity | htmx 2.x | MUST for dynamic behavior. Self-hosted, single script tag. |
+| Interactivity | htmx 4.x | MUST for dynamic behavior. Self-hosted, single script tag. |
 | Styling | Pure CSS | MUST. No preprocessor, no Tailwind, no framework. |
 | Icons & fonts | CSS mask icons; system font stack by default | MUST. No icon font, no icon package, no third-party origin. A brand web font is self-hosted — see [patterns/css-icons.md](../patterns/css-icons.md) and [patterns/css-typography.md](../patterns/css-typography.md). |
 | Markup | Semantic HTML | MUST. Forms and links are the API of the UI. |

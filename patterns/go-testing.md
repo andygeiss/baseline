@@ -72,7 +72,7 @@ caught it.
   hands back the same client every call, so that assignment is the server's: one server
   per test, never one shared by subtests that want different redirect rules.
 - **htmx paths:** test each dual-mode handler twice — once plain, once with
-  `HX-Request: true` — asserting full page vs fragment.
+  `HX-Request-Type: partial` — asserting full page vs fragment.
 - **Concurrency:** `testing/synctest` (`synctest.Test`) for anything with timers or
   goroutine coordination — never `time.Sleep`. Inside the bubble, advance time with
   `synctest.Sleep` (Go 1.27+): it moves the clock and then waits until every other

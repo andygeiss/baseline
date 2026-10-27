@@ -60,19 +60,17 @@ is a template function from build info, not a data field (see
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="htmx-config" content='{"includeIndicatorStyles":false,
-    "globalViewTransitions":true,
-    "historyCacheSize":0,"refreshOnHistoryMiss":true,"responseHandling":[
-    {"code":"204","swap":false},
-    {"code":"[23]..","swap":true},
-    {"code":"422","swap":true},
-    {"code":"[45]..","swap":false,"error":true}]}'>
+  <meta name="htmx-config"
+        content='{"includeIndicatorCSS":false,"transitions":true,"history":"reload"}'>
   <title>{{template "title" .}} · AppName</title>
   <link rel="stylesheet" href="/static/css/app.css?v={{version}}">
   <link rel="icon" href="/static/favicon.svg?v={{version}}" type="image/svg+xml">
   <script src="/static/js/htmx.min.js?v={{version}}" defer></script>
 </head>
-<body hx-boost="true">
+<body hx-boost:inherited="true"
+      hx-status:422:inherited="push:false"
+      hx-status:4xx:inherited="swap:none push:false"
+      hx-status:5xx:inherited="swap:none push:false">
   <header>…</header>
   <main>{{template "main" .}}</main>
   <footer>…</footer>
@@ -80,10 +78,13 @@ is a template function from build info, not a data field (see
 </html>
 ```
 
-(The `htmx-config` meta is required for the 422 validation flow — explained in
-[patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md).
-It also turns on view-transition swaps:
-[patterns/css-motion.md](../patterns/css-motion.md).)
+(Every htmx line is load-bearing. The script sits in `<head>` so no swap re-runs it, and
+`hx-boost:inherited` reaches every link and form below `<body>`
+([htmx.md](htmx.md)). The three `hx-status` lines let a 422 swap and keep every other
+error off the page — [patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md).
+The meta keeps htmx's indicator CSS out of the cascade and makes back/forward real page
+loads ([htmx.md](htmx.md)), and turns on view-transition swaps
+([patterns/css-motion.md](../patterns/css-motion.md)).)
 
 An installable project adds four head lines after the favicon link;
 [patterns/pwa.md](../patterns/pwa.md) defines them. Nothing else in the shell

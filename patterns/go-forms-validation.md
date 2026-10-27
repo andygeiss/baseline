@@ -9,7 +9,7 @@ Every form is the same loop: GET renders the form, POST parses and validates,
 an invalid POST re-renders the same form with errors and submitted values at
 422, a valid POST mutates and redirects with a flash message.
 [htmx-server-rendering.md](htmx-server-rendering.md) defines the response side
-of that loop (422, `HX-Push-Url`, PRG); [stack/html.md](../stack/html.md)
+of that loop (422, which statuses swap, PRG); [stack/html.md](../stack/html.md)
 rule 4 owns the markup. This document is the request side: the validator, the
 handler loop, and flash messages.
 
@@ -87,20 +87,19 @@ func (a *App) handleGameCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	a.sessions.Put(r.Context(), "flash", "Game created.")
-	w.Header().Add("Vary", "HX-Request, HX-Boosted") // this response differs by both and bypasses a.render
-	if r.Header.Get("HX-Request") == "true" && r.Header.Get("HX-Boosted") != "true" {
-		// The XHR would follow a 303 and swap the full page into the fragment target.
+	w.Header().Add("Vary", "HX-Request-Type") // this response differs by it and bypasses a.render
+	if isFragment(r) {
+		// fetch would follow a 303 and swap the full page into the fragment target.
 		w.Header().Set("HX-Redirect", "/games/"+game.ID)
 		return // 200, empty body
 	}
 	http.Redirect(w, r, "/games/"+game.ID, http.StatusSeeOther)
 }
 
-// renderForm re-renders a form with its errors and values at 422.
+// renderForm re-renders a form with its errors and values at 422. It sets no
+// HX-Push-Url: the layout's hx-status:422 line already stops a boosted swap
+// from pushing the POST's URL (htmx-server-rendering.md).
 func (a *App) renderForm(w http.ResponseWriter, r *http.Request, page, block string, form gameForm) {
-	if r.Header.Get("HX-Boosted") == "true" {
-		w.Header().Set("HX-Push-Url", "false") // a boosted swap otherwise pushes the POST URL — htmx-server-rendering.md
-	}
 	a.render(w, r, http.StatusUnprocessableEntity, page, block,
 		gameNewPage{view: a.view(r), gameForm: form}) // view: see Flash messages below
 }

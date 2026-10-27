@@ -23,8 +23,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 | Component | Pinned version | Released | Notes |
 |---|---|---|---|
 | Go | **1.27.3** | 2026-10-19 | A security release, so 1.27.3 is the floor: below it, `govulncheck` fails every program that can use TLS, as every `net/http` client can. It fixes one advisory, GO-2026-6809, in `crypto/x509`. Re-verify at 1.28.1, about March 2027. |
-| htmx | **2.0.10** | 2026-04-21 | The 2.x line is stable. |
-| htmx 4.x | ❌ not yet | 2026-08-28 | 4.0.0 is stable, on npm's `next` tag; `latest` still names 2.x. A breaking rewrite of 2.x, fetch-based. Adoption waits for 4.0.1 — *Version policy* below. |
+| htmx | **4.0.0** | 2026-08-28 | A breaking, fetch-based rewrite of 2.x, adopted at 4.0.0 on Andy's call. npm's `latest` tag still names 2.x; read `next`. |
 | SQLite driver | **v1.58.0** | 2026-09 | `modernc.org/sqlite`. The tier-1 pragmas are only as good as the driver: v1.42.1 cancelled unrelated queries. |
 | scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
 | Make | system default | — | Command runner only, and the only gate: `make check` against the tree, `make ci` against the commit. Makefile MUST stay runnable by GNU Make 3.81, the version macOS's Command Line Tools ship — portable subset, see [stack/makefile.md](stack/makefile.md). |
@@ -39,9 +38,8 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
   project needs a new feature immediately. Always run the latest patch release —
   that is where security fixes ship. Set `go 1.27` in `go.mod`; do not pin toolchain patch
   versions in the repo.
-- **htmx:** Track the latest 2.x patch. 4.0.1 shipping is the trigger for a baseline
-  release that adopts 4.x; projects move with that release, not with 4.0.1 itself. Vendor
-  the file (self-host, no CDN in production).
+- **htmx:** Track the latest 4.x patch. A new major is adopted by a baseline release of its
+  own; projects move with that release. Vendor the file (self-host, no CDN in production).
 - **Dependencies:** Update by hand on this file's 90-day cycle. The procedure is in
   [operations/ci.md](operations/ci.md), with the `make ci` re-scan of every live
   repository that goes with it. No bot, no CI server.
@@ -49,14 +47,14 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 ## Sources checked (2026-09-08)
 
 Every row above was checked against its source on this date, not only the ones that
-moved; Go again on 2026-10-21.
+moved; Go again on 2026-10-21, htmx on 2026-10-27.
 
 - Go releases: https://go.dev/doc/devel/release
 - Go 1.27 notes: https://go.dev/doc/go1.27 — and https://go.dev/doc/go1.28 for the
   adoption pass at 1.28.1
 - htmx versions: `npm view htmx.org dist-tags` or https://github.com/bigskysoftware/htmx/tags
   — **not** the GitHub releases page: upstream does not always create a Release object
-  for a 2.x patch
+  for a patch
 - SQLite: https://proxy.golang.org/modernc.org/sqlite/@latest
 - scs: https://github.com/alexedwards/scs/tags
 - CSS Baseline: https://web.dev/baseline

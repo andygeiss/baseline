@@ -80,8 +80,9 @@ Three rules govern every transition in the app:
 
 ## Waiting: the indicator fade (components layer)
 
-`app.css` owns the indicator CSS because the canonical layout disables htmx's inline
-version for CSP ([stack/htmx.md](../stack/htmx.md)):
+`app.css` owns the indicator CSS because the canonical layout turns htmx's own version
+off: it sits outside the cascade layers and ignores reduced motion
+([stack/htmx.md](../stack/htmx.md)):
 
 ```css
 @layer components {
@@ -113,7 +114,7 @@ from [stack/html.md](../stack/html.md) announce what matters (WCAG 4.1.3).
 ## Swaps: view transitions
 
 The canonical layout's `htmx-config` meta ([stack/html.md](../stack/html.md)) sets
-`"globalViewTransitions":true`, so htmx wraps every swap in the same-document View
+`"transitions":true`, so htmx wraps every swap in the same-document View
 Transition API and boosted navigations cross-fade instead of blinking. Baseline Newly,
 inherently graceful: unsupported browsers swap instantly, and no markup changes either way.
 
@@ -209,4 +210,4 @@ https://web.dev/baseline at the next verification.
 - ❌ Scroll hijacking and parallax — the scrollbar belongs to the user.
 - ❌ htmx class-based swap animation (`.htmx-added` fades, `swap:`/`settle:` delays) — that
   machinery predates view transitions, and a `settle:` delay slows the swap to buy what
-  `"globalViewTransitions":true` gives free.
+  `"transitions":true` gives free.

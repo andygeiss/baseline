@@ -84,7 +84,7 @@ Rules:
 4. **Every interactive state in CSS:** `:hover`, `:focus-visible`, `:active`,
    `:disabled`, plus htmx's loading states — `app.css` MUST define them itself
    (`.htmx-indicator { opacity: 0 }`, shown while `.htmx-request` is active), because
-   htmx's built-in inline indicator styles are disabled for CSP
+   the canonical layout turns htmx's built-in indicator styles off
    (see [htmx.md](htmx.md)).
 5. **Motion:** transitions/animations MUST be wrapped in
    `@media (prefers-reduced-motion: no-preference)`. The one exception is the

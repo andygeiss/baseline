@@ -95,15 +95,16 @@ MUST rules:
 3. **Redirects are `303 See Other`.** For htmx-initiated logins from a fragment, send
    `HX-Redirect` instead (full page must change after auth transitions — never swap a
    logged-in fragment into a logged-out page).
-4. **`requireAuth` middleware** on protected routes: no user ID in session → plain
-   requests get a 303 to `/login`; htmx requests get a **200 with
-   `HX-Redirect: /login` instead of the 303** — the XHR would follow a 303
-   transparently and swap the login page *into* the fragment target (rule 3).
+4. **`requireAuth` middleware** on protected routes: no user ID in session → a
+   fragment request (`isFragment`, [htmx-server-rendering.md](htmx-server-rendering.md))
+   gets a **200 with `HX-Redirect: /login` instead of the 303** — `fetch` would
+   follow a 303 transparently and swap the login page *into* the fragment target
+   (rule 3). Every other request gets the 303: a boosted one swaps the whole
+   `<body>`, so the login page lands whole, under its own URL.
    Handlers read the user from the request context, placed there by the middleware.
-   The rule-3 and rule-4 responses differ by `HX-Request` but bypass the render
-   helper, so they MUST `Add` the same `Vary: HX-Request, HX-Boosted` headers
-   themselves ([htmx-server-rendering.md](htmx-server-rendering.md)) — an
-   un-`Vary`'d variant is cacheable against the wrong mode.
+   The rule-3 and rule-4 responses differ by `HX-Request-Type` but bypass the render
+   helper, so they MUST `Add` the same `Vary: HX-Request-Type` header themselves —
+   an un-`Vary`'d variant is cacheable against the wrong mode.
 
 ## Password hashing: argon2id (`golang.org/x/crypto/argon2`)
 

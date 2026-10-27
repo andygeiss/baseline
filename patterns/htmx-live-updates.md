@@ -1,6 +1,6 @@
 # Pattern: Live Updates (htmx)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-10-27
 
 Keeping a page current while the reader looks at it — a chat room, a queue, a job that
 finishes on its own. **The page asks again on a timer; the server never pushes.** One htmx
@@ -59,30 +59,16 @@ swapped content automatically, so nothing re-registers anything.
 put and keeps polling with the cursor it has. The quiet case — most cases — costs one indexed
 lookup and an empty response.
 
-**Done for good? Answer `286`.** htmx stops polling an element on that status, and it swaps
-the response first, so the final content and the stop arrive together. Use it when the
-watched thing has ended. Nothing else stops a poll except removing the element from the page.
+**Done for good? Answer the last rows with no sentinel after them.** htmx stops a poll only
+when its element leaves the page, and the swap takes the old sentinel out, so the final
+content and the stop arrive together. Use it when the watched thing has ended. htmx 2's stop
+code is gone: in 4.x a `286` swaps like a `200`, and a sentinel inside it keeps polling.
 
-⚠️ **Both codes depend on the `htmx-config` `responseHandling` array** in the canonical
-layout ([stack/html.md](../stack/html.md)), and the 286 rule is not obvious. Traced through
-htmx 2.0.10: the cancel sits *inside* the swap branch —
-`if (shouldSwap) { if (status === 286) { cancelPolling(elt) } }`. So **286 stops a poll only
-while that array counts 286 as a swap**, which the canonical array does through its
-`{"code":"[23]..","swap":true}` rule, not by naming 286 anywhere.
-
-**How the array is read is the whole trap: each `code` is an unanchored regular expression,
-and the first rule that matches wins.** A status matching no rule does not swap. Three edits
-a tidying pass would make, and what each silently costs:
-
-| Edit | What breaks |
-|---|---|
-| Replace `[23]..` with the codes the app actually returns (`200`, `303`) | 286 then matches nothing, so it does not swap — and the cancel that lives inside the swap never runs. The poll runs forever. |
-| Group `422` after `[45]..` | `[45]..` matches `422` first, so the validation flow stops swapping and an invalid form silently does nothing ([htmx-server-rendering.md](htmx-server-rendering.md)). |
-| Move `204` after `[23]..` | `[23]..` matches `204` first, so the empty body swaps — wiping out the sentinel that was still polling. |
-
-Narrowing `[23]..` to `2..` is the one edit that looks dangerous and is not: `2..` still
-matches `286`. Keep the four rules in the order the canonical layout writes them; that order
-is the only thing holding all three flows up.
+**A failed poll changes nothing.** A 500 while the database is busy, a 503 during a deploy:
+the error swaps nothing, because the `hx-status` lines on the canonical `<body>` keep every
+error but a 422 off the page ([htmx-server-rendering.md](htmx-server-rendering.md)). The
+old sentinel asks again on its next tick. Without those lines htmx 4 swaps the error page
+over the sentinel, and the poll is gone for good.
 
 ## Rules
 
@@ -99,7 +85,8 @@ is the only thing holding all three flows up.
    content rather than a scroll position, and the sentinel is no longer the only thing at
    the ends of that list — see [htmx-lists.md](htmx-lists.md).
 4. **The polled route is htmx-only, so it MUST redirect a plain request.** Answer `303 See
-   Other` back to the page when `HX-Request` is absent. A plain reader is not missing a
+   Other` back to the page unless `isFragment` says yes
+   ([htmx-server-rendering.md](htmx-server-rendering.md)). A plain reader is not missing a
    feature: the full page already renders every row, and reloading it *is* the no-htmx
    version of this pattern.
 5. **No indicator on a poll.** Every request over 100 ms shows one
@@ -151,7 +138,7 @@ The answer is the region again, carrying a fresh poller with the advanced cursor
 3 is the only one that gives way,** and it gives way for its own stated reason: it
 protects a reader's place in a long list, and a few lines somebody is watching change
 have no place to lose. Everything else stands — the server still decides the next cursor
-and sends it (rule 2), 204 still leaves the poller alone, 286 still stops it,
+and sends it (rule 2), 204 still leaves the poller alone, an answer without one stops it,
 `transition:false`, no indicator, and 303 to the page for a plain request.
 
 **Appended and never rewritten is what makes rule 1's count work** — pieces produced,
@@ -178,7 +165,7 @@ type pollView struct {
 func (a *App) roomMessages(w http.ResponseWriter, r *http.Request) {
 	// Rule 4: this route is an optimization of "reload the page", so a reader
 	// without htmx is sent to the page rather than handed a fragment.
-	if r.Header.Get("HX-Request") != "true" {
+	if !isFragment(r) {
 		http.Redirect(w, r, "/rooms/"+r.PathValue("slug"), http.StatusSeeOther)
 		return
 	}
@@ -203,7 +190,7 @@ func (a *App) roomMessages(w http.ResponseWriter, r *http.Request) {
 	if len(msgs) == 0 {
 		// This response bypasses the render helper, so it adds the Vary header
 		// itself — an un-Vary'd variant is cacheable against the wrong mode.
-		w.Header().Add("Vary", "HX-Request, HX-Boosted")
+		w.Header().Add("Vary", "HX-Request-Type")
 		w.WriteHeader(http.StatusNoContent) // the sentinel survives, cursor intact
 		return
 	}

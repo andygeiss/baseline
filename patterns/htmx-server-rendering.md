@@ -1,13 +1,13 @@
 # Pattern: htmx Server Rendering (Go html/template)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-10-27
 
 One exception: never handing user data to `template.HTML` is tier 1, wherever a checklist
 files it.
 
 The one mechanic that makes Go + htmx work: **every dynamic view is a named template
 block; a handler renders either the full page or just the block, depending on
-`HX-Request`.**
+`HX-Request-Type`.**
 
 ## Template structure
 
@@ -67,7 +67,7 @@ func (a *App) render(w http.ResponseWriter, r *http.Request, status int, page, b
 		a.serverError(w, r, err)
 		return
 	}
-	w.Header().Add("Vary", "HX-Request, HX-Boosted") // Add, not Set — sessions.LoadAndSave already added "Vary: Cookie"
+	w.Header().Add("Vary", "HX-Request-Type") // Add, not Set — sessions.LoadAndSave already added "Vary: Cookie"
 	w.WriteHeader(status)
 	buf.WriteTo(w)
 }
@@ -77,29 +77,28 @@ func (a *App) render(w http.ResponseWriter, r *http.Request, status int, page, b
 // too, so there is one copy of the rule and a handler can never disagree with
 // its own rendering.
 func isFragment(r *http.Request) bool {
-	return r.Header.Get("HX-Request") == "true" && r.Header.Get("HX-Boosted") != "true"
+	return r.Header.Get("HX-Request-Type") == "partial"
 }
 ```
 
 Four details are load-bearing:
 
-- **The discriminator has one name and one definition.** Boosted links and forms
-  send `HX-Request: true` but swap the whole `<body>`, so they need the full page
-  — without the `HX-Boosted` half, `hx-boost` navigation renders bare fragments
-  into empty pages. Handlers need the same test to choose between a fragment and
-  a 303 (*Standard flows* below), so it is a function both call, never the header
-  pair written out twice. Two copies is two chances for a handler to 303 a
+- **The discriminator has one name and one definition.** htmx sends
+  `HX-Request-Type: partial` when it will swap the answer into an element, and
+  `full` when the answer replaces `<body>` — a boosted link or form, a body target,
+  or `hx-select` picking from a whole page. A plain browser request sends neither.
+  Only `partial` gets a fragment; anything else rendering one puts a bare fragment
+  where a page belongs. Handlers need the same test to choose between a fragment
+  and a 303 (*Standard flows* below), so it is a function both call, never the
+  header test written out twice. Two copies is two chances for a handler to 303 a
   request that `render` would have answered with a fragment.
 - **Buffer first** — a template error after `WriteHeader` corrupts the response.
 - **No `HX-History-Restore-Request` handling needed** — the layout's `htmx-config`
-  disables the history cache (`historyCacheSize: 0`, `refreshOnHistoryMiss: true`,
-  see [stack/htmx.md](../stack/htmx.md)), so back/forward are plain browser loads
-  and never reach this helper with htmx headers. Do not re-enable the cache without
-  extending the discriminator.
-- **`Vary: HX-Request, HX-Boosted`** added here, once, so no dual-mode handler can
-  forget it. Both headers participate in choosing the body (boosted requests send
-  `HX-Request: true` but get the full page), so both must be cache keys — `Vary` on
-  `HX-Request` alone lets a cache serve a bare fragment to a boosted navigation.
+  sets `"history":"reload"` ([stack/htmx.md](../stack/htmx.md)), so back/forward
+  are plain browser loads and never reach this helper with htmx headers.
+- **`Vary: HX-Request-Type`** added here, once, so no dual-mode handler can
+  forget it. The header chooses the body, so it must be a cache key — without it a
+  cache can serve a bare fragment to a navigation.
   It is `Add`, never `Set`: `Set` would clobber the `Vary: Cookie` that
   `sessions.LoadAndSave` has already put on the response, letting caches serve one
   user's page to another.
@@ -116,29 +115,32 @@ no-htmx full page and the htmx fragment.
   directly with 200. Everything else — plain forms *and boosted forms* — answers
   `303 See Other` back to the page. Boosted POSTs need the 303 too: a direct 200
   pushes the POST's URL into history, so refresh/back re-issues a GET against a
-  POST-only route → 405. And never 303 a fragment POST: the XHR follows the redirect
+  POST-only route → 405. And never 303 a fragment POST: `fetch` follows the redirect
   transparently and the full page it lands on gets swapped into the fragment target.
   When the whole page must change after a fragment action, send `HX-Redirect` (below).
 - **Form validation:** invalid POST re-renders the form fragment with errors and
   status **422**. Fields keep their submitted values. The request side of this
   flow — validator, handler loop, flash messages — is
-  [go-forms-validation.md](go-forms-validation.md).
-  ⚠️ htmx 2 does **not** swap 4xx responses by default — the 422 flow requires the
-  `htmx-config` responseHandling meta tag, already part of the canonical layout
-  `<head>` in [stack/html.md](../stack/html.md). Do not remove it, and do not
-  move its `{"code":"422","swap":true}` rule below `{"code":"[45]..","swap":false,"error":true}`:
-  htmx takes the first rule whose pattern matches, `[45]..` matches `422`, and
-  this whole flow then fails by doing nothing at all
-  ([htmx-live-updates.md](htmx-live-updates.md) has the full ordering table).
-  ⚠️ When the invalid POST is *boosted* (`HX-Boosted: true`), also set
-  `HX-Push-Url: false` on the 422 response: a boosted swap otherwise pushes the
-  POST's URL into history — the exact refresh/back → GET-on-a-POST-route → 405
-  failure the 303 rule above exists to prevent (a 422 is not a redirect, so
-  nothing else stops the push).
+  [go-forms-validation.md](go-forms-validation.md). The 422 swaps because the
+  canonical `<body>` ([stack/html.md](../stack/html.md)) carries
+  `hx-status:422:inherited="push:false"`. Its `push:false` matters as much as the
+  swap: a boosted swap otherwise pushes the POST's URL into history — the exact
+  refresh/back → GET-on-a-POST-route → 405 failure the 303 rule above exists to
+  prevent, and a 422 is not a redirect, so nothing else stops the push.
 
   Only true *input* validation gets a 422. A stale-state action (ticking off a task
   another tab already deleted) is not invalid input — respond 200 with the current
   fragment and a message, letting the swap heal the staleness.
+- **Every other error swaps nothing.** A 4xx or 5xx that is not a 422 leaves the page
+  as it was, URL included: the `hx-status:4xx` and `hx-status:5xx` lines on `<body>`
+  say `swap:none push:false`. Without them htmx 4 swaps every response but 204 and
+  304, so an error page lands inside whatever asked — a failed poll replaces its own
+  poller, and live updates stop. htmx tries the most specific code first (`422`,
+  then `42x`, then `4xx`), so the three lines work in any order. `htmx-config` MUST
+  NOT list `"4xx"` or `"5xx"` under `noSwap`: htmx reads that list first, and a
+  boosted error then pushes its URL with nothing swapped. An `hx-status` line also
+  outranks `HX-Reswap`, so an answer that must change the page is a 422 or a
+  redirect, never a bare error.
 - **Post-action navigation from a fragment:** set `HX-Redirect: /tasks/42` header
   instead of rendering, when the whole page must change.
 - **Cross-component updates:** render extra fragments with `hx-swap-oob="true"` in the
@@ -146,7 +148,7 @@ no-htmx full page and the htmx fragment.
   if a response carries 3+ OOB fragments, swap a larger target instead.
 - **Server-driven events:** `HX-Trigger: taskDeleted` response header when a decoupled
   element must react.
-- **Caching:** dual-mode responses MUST set `Vary: HX-Request, HX-Boosted`
+- **Caching:** dual-mode responses MUST set `Vary: HX-Request-Type`
   (the render helper does).
 
 ## Anti-patterns
