@@ -79,9 +79,9 @@ is a template function from build info, not a data field (see
 
 (Every htmx line is load-bearing. The script sits in `<head>` so no swap re-runs it, and
 `hx-boost:inherited` reaches every link and form below `<body>` ([htmx.md](htmx.md)); its
-`transition:true` cross-fades those navigations and nothing else
-([patterns/css-motion.md](../patterns/css-motion.md)). The three `hx-status` lines let a
-422 swap and keep every other error off the page —
+`transition:true` cross-fades the swaps a boost makes — a navigation, or a boosted form's
+422 — and nothing else ([patterns/css-motion.md](../patterns/css-motion.md)). The three
+`hx-status` lines let a 422 swap and keep every other error off the page —
 [patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md). The meta keeps
 htmx's indicator CSS out of the cascade and makes back/forward real page loads
 ([htmx.md](htmx.md)).)

@@ -114,18 +114,17 @@ from [stack/html.md](../stack/html.md) announce what matters (WCAG 4.1.3).
 ## Swaps: view transitions
 
 The canonical layout's `<body>` ([stack/html.md](../stack/html.md)) carries
-`hx-boost:inherited="transition:true"`, so htmx runs boosted navigations inside the
-same-document View Transition API, and they cross-fade instead of blinking. Every other
-swap runs without one unless it opts in. Baseline Newly, inherently graceful: unsupported
-browsers swap instantly, and no markup changes either way.
+`hx-boost:inherited="transition:true"`, so htmx runs every boosted swap — a navigation, or
+a boosted form's 422 — inside the same-document View Transition API, and it cross-fades
+instead of blinking. Every other swap runs without one unless it opts in. Baseline Newly,
+inherently graceful: unsupported browsers swap instantly, and no markup changes either way.
 
 1. **A fragment swap opts in only to connect old and new content:**
    `hx-swap="outerHTML transition:true"` on a card that moves, or a row that changes
-   place. Rapid-fire
-   swaps never do — active search, polling, and any control users hit in quick
-   succession. A cross-fade per keystroke is noise, and the costs are real — the API
-   briefly holds rendering while it snapshots the page, and during the fade pointer input
-   lands on nothing, because captured content is exempt from hit-testing. That cost is
+   place. Rapid-fire swaps never do — active search, polling, and any control users hit
+   in quick succession. A cross-fade per keystroke is noise, and the costs are real — the
+   API briefly holds rendering while it snapshots the page, and during the fade pointer
+   input lands on nothing, because captured content is exempt from hit-testing. That cost is
    why transitions are not on for every swap: with them on, htmx 4 wraps even a swap of
    nothing — a 204 poll, an error — in one.
 2. **The kill switch lives in `utilities`** — the one layer where `!important` is allowed
@@ -146,7 +145,7 @@ browsers swap instantly, and no markup changes either way.
    ```
 
 3. **Element morphs are a MAY, used sparingly.** During a transition that runs — a
-   boosted navigation, or rule 1's opt-in — `view-transition-name: score` on a stable
+   boosted swap, or rule 1's opt-in — `view-transition-name: score` on a stable
    element makes it glide to its new place instead of cross-fading. Each name MUST be
    unique on the page — a duplicate makes the browser skip the whole transition.
 

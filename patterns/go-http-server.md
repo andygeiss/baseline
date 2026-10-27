@@ -138,8 +138,9 @@ srv := &http.Server{
 else's system adds two more on the way out, and their order decides which one fires. The
 full ladder, its two failure modes, and the waiver for widening `WriteTimeout` past 30 s
 are in [go-http-client.md](go-http-client.md) *The timeout ladder* — read it before
-writing a handler that waits on another system. A route widened to 50 s or more can also
-outlast htmx, which gives up at 60 s ([stack/htmx.md](../stack/htmx.md) rule 7).
+writing a handler that waits on another system. A route widened past 50 s can also
+outlast htmx, whose 60 s clock starts before the server's
+([stack/htmx.md](../stack/htmx.md) rule 7).
 
 ## Background work
 

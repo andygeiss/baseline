@@ -102,7 +102,7 @@ wrong for anything that waits on another system.
 Widening `WriteTimeout` past its canonical 30 s is a tier-2 waiver — record it, and name
 the budget that contains it. "The work takes longer than 30 s" is the reason to add a
 budget, not to skip one; adopting one sets all three rows in that order, and htmx's
-timeout too once `WriteTimeout` reaches 50 s ([stack/htmx.md](../stack/htmx.md) rule 7).
+timeout too once `WriteTimeout` passes 50 s ([stack/htmx.md](../stack/htmx.md) rule 7).
 
 ## One request, end to end
 

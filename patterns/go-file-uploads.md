@@ -5,9 +5,8 @@
 Refusing the client's filename and the client's content type, deciding the type by
 sniffing the bytes, serving every file through a handler rather than a file server, the
 `Content-Disposition` default, and keeping the boost off every link to a file are tier 1.
-Rule 1 below, where the bytes live, and how
-orphans are swept are tier 2: getting any of those wrong loses a field or leaves garbage,
-and neither hands anything over.
+Rule 1 below, where the bytes live, and how orphans are swept are tier 2: getting any of
+those wrong loses a field or leaves garbage, and neither hands anything over.
 
 [go-authorization.md](go-authorization.md) rules rows. **A file is a row and a URL, and
 the URL is where those rules stop applying.** A static file server has no actor to name,
@@ -27,7 +26,7 @@ of sustained *uplink* — more than a phone has. The read then fails mid-body, t
 gets a plain `i/o timeout` instead of `*http.MaxBytesError`, and the 413 below never runs.
 Raise `ReadTimeout` with the cap, and `WriteTimeout` by the same amount
 ([go-http-client.md](go-http-client.md): the body is spending that one too). Once
-`WriteTimeout` reaches 50 s, give the upload form an htmx timeout at least 10 s above it
+`WriteTimeout` passes 50 s, give the upload form an htmx timeout at least 10 s above it
 (`hx-config="timeout:100s"` for 90 s): htmx gives up at 60 s, and its clock starts
 before the server's ([stack/htmx.md](../stack/htmx.md) rule 7).
 
@@ -184,9 +183,9 @@ http.ServeContent(w, r, "", file.UploadedAt, content)
   stranger's upload holding `<form hx-post="/…" hx-trigger="load">` posts as whoever
   clicks, from the same origin, and neither the CSP nor `nosniff` stops it. Opted out, the
   browser follows the link itself: an attachment downloads, a picture opens in the tab,
-  and a lapsed session reaches the sign-in page. Not `download`: with a lapsed session it
-  saves the sign-in page as the file, and a missing file fails or does nothing instead of
-  showing its 404.
+  and a lapsed session reaches the sign-in page. Not `download`: with a lapsed session the
+  browser saves the sign-in page as the file, and for a missing file it cancels, does
+  nothing, or (WebKit) saves the 404 page — it never shows it.
 - **`X-Content-Type-Options: nosniff` is what makes the stored type binding**, and
   `secureHeaders` already sends it on every response
   ([security-headers.md](security-headers.md)). Without it a browser may sniff its way
