@@ -108,10 +108,10 @@ over the sentinel, and the poll is gone for good.
 A poll is not the only thing that changes the list, and the reader's own message must not
 arrive twice or push the cursor past somebody else's.
 
-**Swap the whole region on send, and only on send.** The form targets a wrapper holding the
-list, the poller, and itself; the answer re-renders all three from one read. The cursor and
-the form then come from the same number, so they cannot drift, and the sender's message
-needs no special path.
+**Swap the whole region on send, and only on send.** The form's `hx-post` targets a wrapper
+holding the list, the poller, and itself; the answer re-renders all three from one read.
+The cursor and the form then come from the same number, so they cannot drift, and the
+sender's message needs no special path.
 
 That is the opposite of rule 3, and the difference is who asked. The reader pressed Send, so
 they are looking at the bottom of the list and expect it to change. A poll doing the same

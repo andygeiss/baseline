@@ -45,8 +45,8 @@ func NewClient(baseURL, key string) *Client {
 ```
 
 - **`Timeout` covers the whole exchange** — dial, request, response, *and*
-  reading the body. It is the backstop; `ResponseHeaderTimeout` is the one that
-  tells a slow answer apart from a slow download.
+  reading the body. It is the backstop; `ResponseHeaderTimeout` tells a slow answer
+  from a slow download.
 - **`Timeout` bounds one attempt, not one call.** With the retries below, the
   worst case is roughly `maxAttempts × Timeout` plus the backoff. The caller's
   context is what bounds the whole operation, which is why every method takes
@@ -101,8 +101,8 @@ wrong for anything that waits on another system.
 
 Widening `WriteTimeout` past its canonical 30 s is a tier-2 waiver — record it, and name
 the budget that contains it. "The work takes longer than 30 s" is the reason to add a
-budget, not to skip one; adopting one sets all three rows in that order, and past 60 s
-htmx's timeout too ([stack/htmx.md](../stack/htmx.md) rule 7).
+budget, not to skip one; adopting one sets all three rows in that order, and htmx's
+timeout too once `WriteTimeout` reaches 50 s ([stack/htmx.md](../stack/htmx.md) rule 7).
 
 ## One request, end to end
 

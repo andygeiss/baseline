@@ -168,9 +168,9 @@ dropping it loses data, leaks it, or hands over an account.** Apply the test; th
 below is what it currently catches, not the definition.
 
 - The headers and the request surface — CSRF, escaping user input, request body caps, the
-  security-header policy, the ops listener never proxied
-  ([patterns/security-headers.md](patterns/security-headers.md),
-  [patterns/go-http-server.md](patterns/go-http-server.md)).
+  security-header policy, the ops listener never proxied, and no boost on a link or form
+  whose answer is not a page ([patterns/security-headers.md](patterns/security-headers.md),
+  [patterns/go-http-server.md](patterns/go-http-server.md), [stack/htmx.md](stack/htmx.md)).
 - Everything about who is signed in: session cookie flags, renewal on login and password
   change, password hashing, auth rate limiting, constant-time login, and every
   machine-token rule ([patterns/go-auth-sessions.md](patterns/go-auth-sessions.md)).

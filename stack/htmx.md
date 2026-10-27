@@ -3,6 +3,10 @@
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-10-27 · Pinned:
 htmx 4.0.0 ([VERSIONS.md](../VERSIONS.md))
 
+**One rule here is tier 1 and never waived:** rule 8's *Boost only pages*. A boosted
+answer that is not a page can carry htmx markup a stranger wrote, and it runs as the
+reader.
+
 htmx is the *only* script on the page. It turns HTML into the application protocol:
 any element can issue HTTP requests, the server answers with HTML, htmx swaps it in.
 
@@ -29,11 +33,12 @@ a container governs that element alone, and htmx ignores the rest without a warn
 whose children share the value. MUST NOT turn on `implicitInheritance`: it brings back
 2.x's rule, where every attribute leaks into everything below it.
 
-An `hx-target` that reaches a link or form without `hx-get` or `hx-post`, its own or an
-inherited one, retargets the boost. The answer goes to that target as a fragment, and a
-boosted request still pushes its URL, so a boosted POST leaves its own address in the
-history. Put `hx-target` only on an element that carries `hx-get` or `hx-post`, and
-`hx-target:inherited` only on a container whose every link and form does too.
+A link or form without `hx-get` or `hx-post` is boosted, and an `hx-target` that reaches
+it — set on it or inherited — retargets the boost. The answer goes to that target as a
+fragment, and a boosted request still pushes its URL, so a boosted POST leaves its own
+address in the history. Put `hx-target` only on an element that carries `hx-get` or
+`hx-post`, and `hx-target:inherited` only on a container whose every link and form does
+too.
 
 ## Core attribute set (prefer these, in this order)
 
@@ -51,9 +56,11 @@ history. Put `hx-target` only on an element that carries `hx-get` or `hx-post`, 
 Attributes not listed here (e.g. `hx-on`, `hx-vals` with JS expressions) SHOULD be
 avoided — if you need them, the design is probably drifting toward client-side logic.
 `hx-status` lives only on the layout's `<body>` ([html.md](html.md)). MUST NOT add it to
-another element: htmx tries a code's exact line, then `42x`, then `4xx`, on the element
-and its ancestors alike, so a line there replaces the layout's wherever it matches as
-closely, and that error swaps, pushes and takes its title unless the line says otherwise. `hx-config` appears only for rule 7's timeout.
+another element. For each code htmx tries the exact code, then its first two digits
+(`42x` for a 422), then its first (`4xx`), each on the element and its ancestors, so a
+line on another element wins wherever it matches at least as closely as the layout's.
+That error then swaps and takes its title, and on a boosted element pushes its URL,
+unless the line says otherwise. `hx-config` appears only for rule 7's timeout.
 
 ## Rules
 
@@ -81,9 +88,10 @@ closely, and that error swaps, pushes and takes its title unless the line says o
 7. **htmx gives up at 60 s.** htmx 4 aborts any request still running after its
    `defaultTimeout`, 60 s, and an aborted request swaps nothing. The canonical server
    answers inside 30 s (`WriteTimeout`, [patterns/go-http-server.md](../patterns/go-http-server.md)).
-   A route widened past 60 s — an upload, a waived `WriteTimeout` — gives the element
-   that sends it a longer timeout than `WriteTimeout`, because htmx's clock starts before
-   the server's: `hx-config="timeout:100s"` for a 90 s `WriteTimeout`.
+   htmx's clock starts before the server's, which waits for the request's headers, so
+   htmx can give up first on a route widened to 50 s or more — an upload, a waived
+   `WriteTimeout`. The element that sends that request carries a timeout at least 10 s
+   above `WriteTimeout`: `hx-config="timeout:100s"` for a 90 s `WriteTimeout`.
 8. **Security:**
    - CSP: htmx needs no policy change — it is self-hosted and writes no inline
      JS ([patterns/security-headers.md](../patterns/security-headers.md) owns
@@ -95,8 +103,8 @@ closely, and that error swaps, pushes and takes its title unless the line says o
    - All dynamic HTML goes through `html/template` (contextual auto-escaping). Never
      concatenate user input into HTML.
    - **Boost only pages.** htmx parses a boosted answer as HTML whatever its type, and
-     acts on every htmx attribute in it. A link to anything the app does not render as a
-     page — a file, an export — carries `hx-boost="false"`
+     acts on every htmx attribute in it. A link or form whose answer is not a page — a
+     file, an export — carries `hx-boost="false"`
      ([patterns/go-file-uploads.md](../patterns/go-file-uploads.md)).
 
 ## Litmus test

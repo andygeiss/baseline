@@ -133,11 +133,12 @@ no-htmx full page and the htmx fragment.
 - **Every other error swaps nothing.** A 4xx or 5xx that is not a 422 leaves the page
   as it was — content, URL, and tab title. The `hx-status:4xx` and `hx-status:5xx`
   lines on `<body>` swap nothing, run no transition, ignore the title an error page
-  would bring, and push nothing. They stop the main swap alone: an `hx-swap-oob` element in
-  an error's body still lands, so an error answer carries none. Without them htmx 4 swaps every response but 204 and 304, so
-  an error page lands inside whatever asked — a failed poll replaces its own poller, and
-  live updates stop. htmx tries the most specific code first (`422`, then `42x`, then
-  `4xx`), so the three lines work in any order. `htmx-config` MUST NOT list `"4xx"` or
+  would bring, and push nothing. They stop the main swap alone: an `hx-swap-oob` element or
+  an `<hx-partial>` in an error's body still lands, so an error answer carries neither.
+  Without them htmx 4 swaps every response but 204 and 304, so an error page lands inside
+  whatever asked — a failed poll replaces its own poller, and live updates stop. htmx
+  tries the most specific code first (`422`, then `42x`, then `4xx`), so the three lines
+  work in any order. `htmx-config` MUST NOT list `"4xx"` or
   `"5xx"` under `noSwap`: at each of those steps htmx reads that list before any
   `hx-status` line, so a `"4xx"` there swallows the `4xx` line and a boosted error
   pushes its URL with nothing swapped. An `hx-status` line also outranks `HX-Reswap`, so
