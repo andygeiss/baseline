@@ -2,10 +2,8 @@
 
 **Last verified: 2026-09-05**
 
-Command-line tool: starts, does one job, exits — or, in the foreground, serves the person
-who started it until Ctrl-C, like a local proxy. If the process is meant to stay up
-unattended, or to serve other people, it is not a CLI — build a
-[web application](web-application.md).
+Command-line tool: starts, does one job, exits. If the process is meant to stay up
+and serve requests, it is not a CLI — build a [web application](web-application.md).
 
 ## Mandated stack
 
@@ -61,8 +59,8 @@ Working on a tool that already follows this document? That file and the tool's
   code in [patterns/go-cli.md](../patterns/go-cli.md).
 - **A CLI terminates.** Ctrl-C/SIGTERM cancels the context and the tool exits
   cleanly, finishing or rolling back the current unit of work. No daemon mode, no
-  `--watch` loops by default — a process meant to stay up unattended, or to serve
-  other people, is a different project type.
+  `--watch` loops by default — a process that should run forever is a different
+  project type.
 - **No interactivity.** Everything arrives via flags, arguments, environment, or
   stdin. No prompts, no TUI. A tool that needs a conversation with the user
   probably wants to be a web application.
