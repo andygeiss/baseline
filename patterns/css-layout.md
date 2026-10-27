@@ -78,8 +78,8 @@ properties:
 as phone browser chrome shows and hides.
 
 The shell assumes `layout.html`'s markup ([stack/html.md](../stack/html.md)): `header`,
-`main`, and `footer` are the only in-flow children of `body`, and the trailing `<script>`
-takes no row. **Any other visible child takes one** — a skip link before `header` hands
+`main`, and `footer` are the only in-flow children of `body`, one grid row each. **Any
+other visible child takes a row too** — a skip link before `header` hands
 `1fr` to the wrong element, a toast after `footer` un-pins the footer. Keep such elements
 off `body`'s grid: the top layer (`<dialog>`, popover), `position: fixed`, markup inside
 `main`, or `.visually-hidden` — the skip link's usual home.

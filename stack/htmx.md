@@ -15,8 +15,12 @@ changes.** This baseline adopts it in a release of its own once 4.0.1 ships
 - **Self-host.** Vendor `htmx.min.js` into the project (`web/static/js/htmx.min.js`)
   and serve via `embed.FS`. MUST NOT load from a CDN in production (availability,
   privacy, CSP, supply chain).
-- Single tag before `</body>`: `<script src="/static/js/htmx.min.js?v={{version}}"></script>`
+- **One tag, last in `<head>`, deferred:**
+  `<script src="/static/js/htmx.min.js?v={{version}}" defer></script>`
   (version-busted like all static assets — see [patterns/go-performance.md](../patterns/go-performance.md)).
+  MUST NOT sit in `<body>`. htmx runs every script in the content it swaps, and a
+  boosted click swaps the whole body, so each navigation would start a second htmx
+  beside the first. Nothing swaps `<head>`.
 - No extensions unless a pattern document mandates one. `hx-boost` on `<body>` is the
   default starting point for smooth navigation.
 

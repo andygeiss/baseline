@@ -70,12 +70,12 @@ is a template function from build info, not a data field (see
   <title>{{template "title" .}} · AppName</title>
   <link rel="stylesheet" href="/static/css/app.css?v={{version}}">
   <link rel="icon" href="/static/favicon.svg?v={{version}}" type="image/svg+xml">
+  <script src="/static/js/htmx.min.js?v={{version}}" defer></script>
 </head>
 <body hx-boost="true">
   <header>…</header>
   <main>{{template "main" .}}</main>
   <footer>…</footer>
-  <script src="/static/js/htmx.min.js?v={{version}}"></script>
 </body>
 </html>
 ```
