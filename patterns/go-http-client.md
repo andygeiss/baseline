@@ -55,9 +55,8 @@ func NewClient(baseURL, key string) *Client {
   the default carries proxy support, HTTP/2, and sane dial timeouts that an
   empty struct silently drops.
 - **One transport, reused.** A transport per request defeats connection
-  pooling and leaks file descriptors under load — this is the single most
-  expensive mistake in this document. The `Client` struct exists to make
-  reuse the only convenient option.
+  pooling and leaks file descriptors under load, the costliest mistake here.
+  The `Client` struct exists to make reuse the only convenient option.
 - **The package exposes domain methods, not HTTP.** `Forecast(ctx, city)
   (domain.Forecast, error)` — never a `*http.Response`. The rest of the app
   should not know this dependency speaks HTTP, so swapping it for a fake in
@@ -97,12 +96,13 @@ trade, not an oversight. `Timeout` bounds one attempt, so once it reaches the bu
 first attempt can use all of it and the context ends the work before a second starts.
 
 **A handler that inherits only `r.Context()` has no deadline of its own** — it runs until
-the client disconnects or `WriteTimeout` kills the socket. Fine for a query measured in
-milliseconds, wrong for anything that waits on another system.
+the client disconnects or `WriteTimeout` kills the socket. Fine for a millisecond query,
+wrong for anything that waits on another system.
 
 Widening `WriteTimeout` past its canonical 30 s is a tier-2 waiver — record it, and name
 the budget that contains it. "The work takes longer than 30 s" is the reason to add a
-budget, not to skip one, and adopting one means setting all three rows in that order.
+budget, not to skip one; adopting one sets all three rows in that order, and past 60 s
+htmx's timeout too ([stack/htmx.md](../stack/htmx.md) rule 7).
 
 ## One request, end to end
 

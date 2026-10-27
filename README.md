@@ -182,8 +182,9 @@ below is what it currently catches, not the definition.
   route's protection not being optional where it is registered
   ([patterns/go-authorization.md](patterns/go-authorization.md)).
 - Everything about a file a user handed you: the generated stored name, the type decided
-  by sniffing the bytes, the download served by a handler rather than a file server, and
-  the attachment default ([patterns/go-file-uploads.md](patterns/go-file-uploads.md)).
+  by sniffing the bytes, the download served by a handler rather than a file server, the
+  attachment default, and no boost on a link to it
+  ([patterns/go-file-uploads.md](patterns/go-file-uploads.md)).
 - What a delete reaches, and what still authenticates once it has: an `ON DELETE` action on
   every table holding a person's rows, their queued mail and their bytes going with them,
   and a credential resolving to a row rather than to an id

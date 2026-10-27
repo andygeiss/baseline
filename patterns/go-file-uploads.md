@@ -3,8 +3,9 @@
 **Tier 1** (safety — never waived) · Last verified: 2026-09-08
 
 Refusing the client's filename and the client's content type, deciding the type by
-sniffing the bytes, serving every file through a handler rather than a file server, and
-the `Content-Disposition` default are tier 1. Rule 1 below, where the bytes live, and how
+sniffing the bytes, serving every file through a handler rather than a file server, the
+`Content-Disposition` default, and keeping the boost off every link to a file are tier 1.
+Rule 1 below, where the bytes live, and how
 orphans are swept are tier 2: getting any of those wrong loses a field or leaves garbage,
 and neither hands anything over.
 
@@ -26,9 +27,9 @@ of sustained *uplink* — more than a phone has. The read then fails mid-body, t
 gets a plain `i/o timeout` instead of `*http.MaxBytesError`, and the 413 below never runs.
 Raise `ReadTimeout` with the cap, and `WriteTimeout` by the same amount
 ([go-http-client.md](go-http-client.md): the body is spending that one too). Once
-`WriteTimeout` passes 60 s, give the upload form that number as its htmx timeout
-(`hx-config="timeout:90s"` for 90 s): htmx gives up at 60 s
-([stack/htmx.md](../stack/htmx.md) rule 7).
+`WriteTimeout` passes 60 s, give the upload form a longer htmx timeout
+(`hx-config="timeout:100s"` for 90 s): htmx gives up at 60 s, and its clock starts
+before the server's ([stack/htmx.md](../stack/htmx.md) rule 7).
 
 ```go
 // ParseMultipartForm, not ParseForm — see rule 1 below. Its argument is how
@@ -178,10 +179,13 @@ http.ServeContent(w, r, "", file.UploadedAt, content)
 - **`inlineOK` is shorter than the upload allowlist.** Only the types the app renders in
   its own pages — the images in an `<img>` — are served inline. Everything else is an
   attachment, so a browser that would have rendered it downloads it instead.
-- **A link to a file opts out of the layout's boost.** Boosted, htmx fetches the file and
-  swaps its bytes into the page instead of downloading or showing it. An attachment's
-  link carries `download`, which htmx never boosts; a link that opens a picture in the tab
-  carries `hx-boost="false"`.
+- **A link to a file carries `hx-boost="false"`.** Boosted, htmx fetches the file, parses
+  its bytes as HTML whatever their type, and acts on every htmx attribute in them: a
+  stranger's upload holding `<form hx-post="/…" hx-trigger="load">` posts as whoever
+  clicks, from the same origin, and neither the CSP nor `nosniff` stops it. Opted out, the
+  browser follows the link itself: an attachment downloads, a picture opens in the tab,
+  and a lapsed session reaches the sign-in page. Not `download`, which saves whatever the
+  link answers, that sign-in page or a 404 included.
 - **`X-Content-Type-Options: nosniff` is what makes the stored type binding**, and
   `secureHeaders` already sends it on every response
   ([security-headers.md](security-headers.md)). Without it a browser may sniff its way

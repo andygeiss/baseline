@@ -140,7 +140,7 @@ The answer is the region again, carrying a fresh poller with the advanced cursor
 protects a reader's place in a long list, and a few lines somebody is watching change
 have no place to lose. Everything else stands — the server still decides the next cursor
 and sends it (rule 2), 204 still leaves the poller alone, an answer with no poller in it
-stops polling, the poll opts into no transition and shows no indicator, and a plain
+stops polling, the poll never opts into a transition and shows no indicator, and a plain
 request still gets a 303 to the page.
 
 **Appended and never rewritten is what makes rule 1's count work** — pieces produced,

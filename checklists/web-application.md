@@ -111,7 +111,7 @@ not a trigger.
 
 - [ ] Every feature works with htmx disabled (plain forms/links, full-page renders)
 - [ ] Navigation-like htmx GETs use `hx-push-url`; back button behaves
-- [ ] Requests >100 ms show an indicator, except a background poll (`patterns/htmx-live-updates.md`)
+- [ ] Requests >100 ms show an indicator, except a background poll
 - [ ] Destructive actions have `hx-confirm`
 - [ ] Dual-mode responses send `Vary: HX-Request-Type`
 - [ ] The fragment-or-full-page test is one named function
@@ -271,6 +271,7 @@ not a trigger.
 - [ ] The type is `http.DetectContentType`'s answer, checked against an exact allowlist
 - [ ] Downloads go through a handler, never a file server
 - [ ] Anything not rendered inline is sent `Content-Disposition: attachment`
+- [ ] File links carry `hx-boost="false"`
 - [ ] The upload-that-lies test pins what those bytes are never served as
 
 ## Sending an email — a reset link, a verification, any notification

@@ -133,16 +133,17 @@ no-htmx full page and the htmx fragment.
 - **Every other error swaps nothing.** A 4xx or 5xx that is not a 422 leaves the page
   as it was — content, URL, and tab title. The `hx-status:4xx` and `hx-status:5xx`
   lines on `<body>` swap nothing, run no transition, ignore the title an error page
-  would bring, and push nothing. Without them htmx 4 swaps every response but 204 and 304, so
+  would bring, and push nothing. They stop the main swap alone: an `hx-swap-oob` element in
+  an error's body still lands, so an error answer carries none. Without them htmx 4 swaps every response but 204 and 304, so
   an error page lands inside whatever asked — a failed poll replaces its own poller, and
   live updates stop. htmx tries the most specific code first (`422`, then `42x`, then
   `4xx`), so the three lines work in any order. `htmx-config` MUST NOT list `"4xx"` or
   `"5xx"` under `noSwap`: at each of those steps htmx reads that list before any
   `hx-status` line, so a `"4xx"` there swallows the `4xx` line and a boosted error
   pushes its URL with nothing swapped. An `hx-status` line also outranks `HX-Reswap`, so
-  no header makes an error swap. A refusal the reader has to read — an upload over its
-  cap, a sign-in past the rate limit — shows nothing on the htmx path; to show it, answer
-  422 with the message in the form.
+  no header makes an error swap. A refusal whose status another rule fixes — 413 past
+  an upload's cap, 429 past the rate limit — keeps that status, so on the htmx path it
+  shows nothing. MUST NOT turn it into a 422 to make it show.
 - **Post-action navigation from a fragment:** set `HX-Redirect: /tasks/42` header
   instead of rendering, when the whole page must change.
 - **Cross-component updates:** render extra fragments with `hx-swap-oob="true"` in the

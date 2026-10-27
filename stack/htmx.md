@@ -29,11 +29,11 @@ a container governs that element alone, and htmx ignores the rest without a warn
 whose children share the value. MUST NOT turn on `implicitInheritance`: it brings back
 2.x's rule, where every attribute leaks into everything below it.
 
-An `hx-target` on a plain link or form, its own or an inherited one, retargets the boost.
-The answer goes to that target as a fragment, and a boosted request still pushes its URL,
-so a boosted POST leaves its own address in the history. Put `hx-target` only on an
-element that also carries `hx-get` or `hx-post`, never on a container that holds plain
-links or forms.
+An `hx-target` that reaches a link or form without `hx-get` or `hx-post`, its own or an
+inherited one, retargets the boost. The answer goes to that target as a fragment, and a
+boosted request still pushes its URL, so a boosted POST leaves its own address in the
+history. Put `hx-target` only on an element that carries `hx-get` or `hx-post`, and
+`hx-target:inherited` only on a container whose every link and form does too.
 
 ## Core attribute set (prefer these, in this order)
 
@@ -51,8 +51,9 @@ links or forms.
 Attributes not listed here (e.g. `hx-on`, `hx-vals` with JS expressions) SHOULD be
 avoided — if you need them, the design is probably drifting toward client-side logic.
 `hx-status` lives only on the layout's `<body>` ([html.md](html.md)). MUST NOT add it to
-another element: a line there takes over from the layout's for the codes it names, so
-those errors swap. `hx-config` appears only for rule 7's timeout.
+another element: htmx tries a code's exact line, then `42x`, then `4xx`, on the element
+and its ancestors alike, so a line there replaces the layout's wherever it matches as
+closely, and that error swaps, pushes and takes its title unless the line says otherwise. `hx-config` appears only for rule 7's timeout.
 
 ## Rules
 
@@ -81,7 +82,8 @@ those errors swap. `hx-config` appears only for rule 7's timeout.
    `defaultTimeout`, 60 s, and an aborted request swaps nothing. The canonical server
    answers inside 30 s (`WriteTimeout`, [patterns/go-http-server.md](../patterns/go-http-server.md)).
    A route widened past 60 s — an upload, a waived `WriteTimeout` — gives the element
-   that sends it the same number: `hx-config="timeout:90s"` for 90 s.
+   that sends it a longer timeout than `WriteTimeout`, because htmx's clock starts before
+   the server's: `hx-config="timeout:100s"` for a 90 s `WriteTimeout`.
 8. **Security:**
    - CSP: htmx needs no policy change — it is self-hosted and writes no inline
      JS ([patterns/security-headers.md](../patterns/security-headers.md) owns
@@ -92,6 +94,10 @@ those errors swap. `hx-config` appears only for rule 7's timeout.
      [patterns/go-http-server.md](../patterns/go-http-server.md).
    - All dynamic HTML goes through `html/template` (contextual auto-escaping). Never
      concatenate user input into HTML.
+   - **Boost only pages.** htmx parses a boosted answer as HTML whatever its type, and
+     acts on every htmx attribute in it. A link to anything the app does not render as a
+     page — a file, an export — carries `hx-boost="false"`
+     ([patterns/go-file-uploads.md](../patterns/go-file-uploads.md)).
 
 ## Litmus test
 
