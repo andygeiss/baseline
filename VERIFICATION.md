@@ -76,8 +76,9 @@ be synced, the tag waits.
   `checklists/cli-tool.md`. The reference ran them: `./verify.sh` green over 79 gates,
   staticcheck among them, and `make ci` green. No pass has read them. On Andy's call,
   v4.8.2's passes read only its Go pin, which changes two lines in `operations/ci.md`,
-  so v4.8.2 ships with the first condition unmet for that document, as v4.8.1 did. The
-  next run's passes cover them.
+  so v4.8.2 ships with the first condition unmet for that document, as v4.8.1 did.
+  v5.0.0's passes read only its htmx change, again on Andy's call; it touches neither
+  file. The next run's passes cover them.
 
 ## Why the CSP is what it is
 
