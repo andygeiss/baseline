@@ -115,7 +115,7 @@ not a trigger.
 - [ ] Destructive actions have `hx-confirm`
 - [ ] Dual-mode responses send `Vary: HX-Request-Type`
 - [ ] The fragment-or-full-page test is one named function
-- [ ] `<head>` and `<body>` keep the layout's htmx lines
+- [ ] The layout's htmx lines are intact
 - [ ] Dual-mode handlers tested with and without `HX-Request-Type: partial`
 
 ## Showing a time or a date
@@ -199,7 +199,7 @@ not a trigger.
 - [ ] Transition properties listed explicitly, never `all`
 - [ ] Paint and compositor properties only
 - [ ] One-shot durations from the two motion tokens
-- [ ] Only boost and chosen swaps transition (`transition:true`)
+- [ ] No poll or rapid-fire swap sets `transition:true`
 - [ ] The view-transition kill switch is in `utilities`
 - [ ] `prefers-reduced-motion` respected
 

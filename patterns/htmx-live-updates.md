@@ -140,8 +140,8 @@ The answer is the region again, carrying a fresh poller with the advanced cursor
 protects a reader's place in a long list, and a few lines somebody is watching change
 have no place to lose. Everything else stands — the server still decides the next cursor
 and sends it (rule 2), 204 still leaves the poller alone, an answer with no poller in it
-stops polling, and there is no transition, no indicator, and a 303 to the page for a
-plain request.
+stops polling, the poll opts into no transition and shows no indicator, and a plain
+request still gets a 303 to the page.
 
 **Appended and never rewritten is what makes rule 1's count work** — pieces produced,
 lines logged. A count over anything the server edits in place hands the same piece over
@@ -168,6 +168,7 @@ func (a *App) roomMessages(w http.ResponseWriter, r *http.Request) {
 	// Rule 4: this route is an optimization of "reload the page", so a reader
 	// without htmx is sent to the page rather than handed a fragment.
 	if !isFragment(r) {
+		w.Header().Add("Vary", "HX-Request-Type") // this answer bypasses render too
 		http.Redirect(w, r, "/rooms/"+r.PathValue("slug"), http.StatusSeeOther)
 		return
 	}

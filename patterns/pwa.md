@@ -85,8 +85,8 @@ no-pipeline rule of [go-performance.md](go-performance.md) holds.
 
 ## The head lines
 
-The layout from [stack/html.md](../stack/html.md) gains exactly four lines, after the
-favicon link. Nothing else in the shell changes:
+The layout from [stack/html.md](../stack/html.md) gains exactly four lines, between the
+favicon link and the htmx script. Nothing else in the shell changes:
 
 ```html
 <link rel="manifest" href="/static/manifest.webmanifest?v={{version}}">

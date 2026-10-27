@@ -86,10 +86,10 @@ Three details are load-bearing:
 - **The discriminator has one name and one definition.** htmx sends
   `HX-Request-Type: full` when it will swap the answer into `<body>` or pick from it
   with `hx-select`, and `partial` for every other target, boosted or not. A boosted link
-  or form targets `<body>` unless an inherited `hx-target` says otherwise
-  ([stack/htmx.md](../stack/htmx.md)). A plain browser request sends neither. Only
-  `partial` gets a fragment; anything else rendering one puts a bare fragment where a
-  page belongs. Handlers need the same test to choose between a fragment and a 303
+  or form targets `<body>` unless an `hx-target`, its own or an inherited one, says
+  otherwise ([stack/htmx.md](../stack/htmx.md)). A plain browser request sends neither. Only
+  `partial` gets a fragment; a fragment sent to any other request lands where a page
+  belongs. Handlers need the same test to choose between a fragment and a 303
   (*Standard flows* below), so it is a function both call, never the header test
   written out twice. Two copies is two chances for a handler to 303 a request that
   `render` would have answered with a fragment.
@@ -114,8 +114,8 @@ no-htmx full page and the htmx fragment.
   `303 See Other` back to the page. Boosted POSTs need the 303 too: a direct 200
   pushes the POST's URL into history, so refresh/back re-issues a GET against a
   POST-only route → 405. And never 303 a fragment POST: `fetch` follows the redirect
-  transparently, carrying the same htmx headers, and whatever the route it lands on
-  answers gets swapped into the fragment target.
+  transparently, carrying the same htmx headers, and the redirected route's answer,
+  whatever it is, lands in the fragment target.
   When the whole page must change after a fragment action, send `HX-Redirect` (below).
 - **Form validation:** invalid POST re-renders the form fragment with errors and
   status **422**. Fields keep their submitted values. The request side of this
@@ -132,15 +132,17 @@ no-htmx full page and the htmx fragment.
   fragment and a message, letting the swap heal the staleness.
 - **Every other error swaps nothing.** A 4xx or 5xx that is not a 422 leaves the page
   as it was — content, URL, and tab title. The `hx-status:4xx` and `hx-status:5xx`
-  lines on `<body>` swap nothing, run no transition, keep the title an error page would
-  bring, and push nothing. Without them htmx 4 swaps every response but 204 and 304, so
+  lines on `<body>` swap nothing, run no transition, ignore the title an error page
+  would bring, and push nothing. Without them htmx 4 swaps every response but 204 and 304, so
   an error page lands inside whatever asked — a failed poll replaces its own poller, and
   live updates stop. htmx tries the most specific code first (`422`, then `42x`, then
   `4xx`), so the three lines work in any order. `htmx-config` MUST NOT list `"4xx"` or
   `"5xx"` under `noSwap`: at each of those steps htmx reads that list before any
   `hx-status` line, so a `"4xx"` there swallows the `4xx` line and a boosted error
-  pushes its URL with nothing swapped. An `hx-status` line also outranks `HX-Reswap`,
-  so an answer that must change the page is a 422 or a redirect, never a bare error.
+  pushes its URL with nothing swapped. An `hx-status` line also outranks `HX-Reswap`, so
+  no header makes an error swap. A refusal the reader has to read — an upload over its
+  cap, a sign-in past the rate limit — shows nothing on the htmx path; to show it, answer
+  422 with the message in the form.
 - **Post-action navigation from a fragment:** set `HX-Redirect: /tasks/42` header
   instead of rendering, when the whole page must change.
 - **Cross-component updates:** render extra fragments with `hx-swap-oob="true"` in the

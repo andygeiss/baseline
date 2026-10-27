@@ -29,10 +29,11 @@ a container governs that element alone, and htmx ignores the rest without a warn
 whose children share the value. MUST NOT turn on `implicitInheritance`: it brings back
 2.x's rule, where every attribute leaks into everything below it.
 
-An inherited `hx-target` reaches boosted links and forms too. Their answers then go to
-that target as fragments, and a boosted request still pushes its URL, so a boosted POST
-leaves its own address in the history. Keep plain links and forms out of a container that
-hands down `hx-target`.
+An `hx-target` on a plain link or form, its own or an inherited one, retargets the boost.
+The answer goes to that target as a fragment, and a boosted request still pushes its URL,
+so a boosted POST leaves its own address in the history. Put `hx-target` only on an
+element that also carries `hx-get` or `hx-post`, never on a container that holds plain
+links or forms.
 
 ## Core attribute set (prefer these, in this order)
 
@@ -50,7 +51,8 @@ hands down `hx-target`.
 Attributes not listed here (e.g. `hx-on`, `hx-vals` with JS expressions) SHOULD be
 avoided — if you need them, the design is probably drifting toward client-side logic.
 `hx-status` lives only on the layout's `<body>` ([html.md](html.md)). MUST NOT add it to
-another element: the element's own line outranks the layout's, so its errors swap again.
+another element: a line there takes over from the layout's for the codes it names, so
+those errors swap. `hx-config` appears only for rule 7's timeout.
 
 ## Rules
 
@@ -65,7 +67,7 @@ another element: the element's own line outranks the layout's, so its errors swa
    full-page-vs-fragment mechanic, which statuses swap, response headers
    (`HX-Redirect`, `HX-Trigger`), and out-of-band swaps.
 5. **`app.css` owns the indicator styles.** By default htmx 4 adds its own indicator CSS
-   as a constructed stylesheet. The CSP does not block that one, but the sheet sits
+   as a constructed stylesheet. The CSP does not block it, but the sheet sits
    outside every cascade layer, so it beats each rule `app.css` writes, and its 200 ms
    fade ignores `prefers-reduced-motion`. The canonical layout's `htmx-config` meta sets
    `"includeIndicatorCSS":false`; `app.css` defines `.htmx-indicator` and

@@ -120,13 +120,14 @@ swap runs without one unless it opts in. Baseline Newly, inherently graceful: un
 browsers swap instantly, and no markup changes either way.
 
 1. **A fragment swap opts in only to connect old and new content:**
-   `hx-swap="outerHTML transition:true"` on a toggled row or a card that moves. Rapid-fire
+   `hx-swap="outerHTML transition:true"` on a card that moves, or a row that changes
+   place. Rapid-fire
    swaps never do — active search, polling, and any control users hit in quick
    succession. A cross-fade per keystroke is noise, and the costs are real — the API
    briefly holds rendering while it snapshots the page, and during the fade pointer input
    lands on nothing, because captured content is exempt from hit-testing. That cost is
-   why transitions are not on for every swap: htmx 4 wraps even a swap of nothing, a 204,
-   in one.
+   why transitions are not on for every swap: with them on, htmx 4 wraps even a swap of
+   nothing — a 204 poll, an error — in one.
 2. **The kill switch lives in `utilities`** — the one layer where `!important` is allowed
    ([stack/css.md](../stack/css.md) rule 3). The fade animations come from the browser's
    stylesheet and the API does not read the media query itself; with them cancelled, a
@@ -144,7 +145,8 @@ browsers swap instantly, and no markup changes either way.
    }
    ```
 
-3. **Element morphs are a MAY, used sparingly.** `view-transition-name: score` on a stable
+3. **Element morphs are a MAY, used sparingly.** During a transition that runs — a
+   boosted navigation, or rule 1's opt-in — `view-transition-name: score` on a stable
    element makes it glide to its new place instead of cross-fading. Each name MUST be
    unique on the page — a duplicate makes the browser skip the whole transition.
 

@@ -26,8 +26,9 @@ of sustained *uplink* — more than a phone has. The read then fails mid-body, t
 gets a plain `i/o timeout` instead of `*http.MaxBytesError`, and the 413 below never runs.
 Raise `ReadTimeout` with the cap, and `WriteTimeout` by the same amount
 ([go-http-client.md](go-http-client.md): the body is spending that one too). Once
-`WriteTimeout` passes 60 s, the upload form needs the same number as an htmx timeout: htmx
-gives up at 60 s ([stack/htmx.md](../stack/htmx.md) rule 7).
+`WriteTimeout` passes 60 s, give the upload form that number as its htmx timeout
+(`hx-config="timeout:90s"` for 90 s): htmx gives up at 60 s
+([stack/htmx.md](../stack/htmx.md) rule 7).
 
 ```go
 // ParseMultipartForm, not ParseForm — see rule 1 below. Its argument is how
@@ -177,6 +178,10 @@ http.ServeContent(w, r, "", file.UploadedAt, content)
 - **`inlineOK` is shorter than the upload allowlist.** Only the types the app renders in
   its own pages — the images in an `<img>` — are served inline. Everything else is an
   attachment, so a browser that would have rendered it downloads it instead.
+- **A link to a file opts out of the layout's boost.** Boosted, htmx fetches the file and
+  swaps its bytes into the page instead of downloading or showing it. An attachment's
+  link carries `download`, which htmx never boosts; a link that opens a picture in the tab
+  carries `hx-boost="false"`.
 - **`X-Content-Type-Options: nosniff` is what makes the stored type binding**, and
   `secureHeaders` already sends it on every response
   ([security-headers.md](security-headers.md)). Without it a browser may sniff its way

@@ -147,7 +147,9 @@ is a second table says to build your own rather than borrow that one.
 `WriteTimeout`; this work has no socket above it, so it leaves the ladder and its budget
 stands alone. A project that widened `WriteTimeout` to cover the work while it was still
 synchronous MUST narrow that waiver when it detaches: only a path that still waits — a
-plain form post, which has nowhere to put a poller — needs the room.
+plain form post, which has nowhere to put a poller — needs the room. Boosted, that post is
+an htmx request, so past 60 s it needs htmx's timeout raised too
+([stack/htmx.md](../stack/htmx.md) rule 7).
 
 **Hold it in a registry, keyed by an id the client can ask about.**
 [htmx-live-updates.md](htmx-live-updates.md) is how it asks. Two rules keep the registry

@@ -23,7 +23,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 | Component | Pinned version | Released | Notes |
 |---|---|---|---|
 | Go | **1.27.3** | 2026-10-19 | A security release, so 1.27.3 is the floor: below it, `govulncheck` fails every program that can use TLS, as every `net/http` client can. It fixes one advisory, GO-2026-6809, in `crypto/x509`. Re-verify at 1.28.1, about March 2027. |
-| htmx | **4.0.0** | 2026-08-28 | A breaking, fetch-based rewrite of 2.x, adopted at 4.0.0 on Andy's call. npm's `latest` tag still names 2.x; read `next`. |
+| htmx | **4.0.0** | 2026-08-28 | Stable; a breaking, fetch-based rewrite of 2.x, adopted at 4.0.0 on Andy's call. npm's `latest` still names 2.x; read `next`. |
 | SQLite driver | **v1.58.0** | 2026-09 | `modernc.org/sqlite`. The tier-1 pragmas are only as good as the driver: v1.42.1 cancelled unrelated queries. |
 | scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
 | Make | system default | — | Command runner only, and the only gate: `make check` against the tree, `make ci` against the commit. Makefile MUST stay runnable by GNU Make 3.81, the version macOS's Command Line Tools ship — portable subset, see [stack/makefile.md](stack/makefile.md). |

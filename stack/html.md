@@ -1,6 +1,6 @@
 # Stack: HTML
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-13 · Target: WHATWG Living Standard
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-10-27 · Target: WHATWG Living Standard
 
 The no-JavaScript rule is the one the README's waiver example is written about, so read
 that example before waiving it.
@@ -86,7 +86,7 @@ is a template function from build info, not a data field (see
 htmx's indicator CSS out of the cascade and makes back/forward real page loads
 ([htmx.md](htmx.md)).)
 
-An installable project adds four head lines after the favicon link;
+An installable project adds four head lines between the favicon link and the htmx script;
 [patterns/pwa.md](../patterns/pwa.md) defines them. Nothing else in the shell
 changes, and the no-JavaScript rule holds: install needs no service worker.
 
