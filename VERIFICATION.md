@@ -367,8 +367,33 @@ be synced, the tag waits.
   the `js/wasm` `go fix -diff` exits 1 where the host's exits 0, and `go fix` clears it;
   the tagged `js/wasm` `go list -deps` reaches `syscall/js`, the untagged one does not.
   `make` exits 0: `wasm-client.md` 3,604 → 3,656 of 3,800, `stack/makefile.md` 3,110 →
-  3,171, floor web-application 23,908 → 23,949, heads unchanged, the WebAssembly section
-  498 → 504 of 600. No pass has read the fixes.
+  3,171, floors cli-tool 12,665 → 12,679, library 12,895 → 12,909, web-application
+  23,908 → 23,949, heads unchanged, `checklists/web-application.md` 5,673 → 5,692, the
+  WebAssembly section 498 → 504 of 600. No pass has read the fixes.
+- **2026-10-31 — review pass 6.** Reviewers found 12 distinct defects in the baseline,
+  all fixed; the reference's are fixed there separately. `wasm-client.md` rule 6 re-runs
+  the handshake's resolver and access check, not only scs `Load`, which still succeeds
+  for a deleted person's session. A boosted form into the program page never starts the
+  module either, so the opt-out covers a link or form whose answer is that page; a
+  boosted link out of a page whose `<head>` adds a stylesheet leaves it styling the
+  next, so the `hx-boost` row covers that too. Headless Chrome confirmed Back after a
+  boosted link out of the map page reloads it (Chromium only). Rule 7's control-frame
+  cap is tier 1 in the header and README, 1002 in the box; the box caps frames a second.
+  Rule 2's digest uses rule 3's `go list`: run on the host it drops `_js.go` files. Rule
+  4 names `golang.org/x/sync/...`, since that module has no root package. The js/wasm
+  `go fix` and staticcheck lines join the fixer switch and the staticcheck hold-back; an
+  added `go fix -diff` gets a bounded `fmt` loop (the review ran one pass: `check`
+  stayed red). The OS-vet boxes and `ci.md` scope js/wasm to a WebAssembly client; the
+  TinyGo-tag exemption covers only packages rule 3 vets. `make wasm`'s version test is a
+  gate, not a branch, and required targets do not count against one screen. Executed
+  (scratchpad `fix6/m`, Go 1.27.3): host `go list -deps` omits a `_js.go` file the
+  js/wasm one lists; a `tinygo`-tagged error in a package the main package does not
+  import passed host vet and the js/wasm line; `golang.org/x/sync` v0.18.0 has no root
+  `.go` file. `make` exits 0: `wasm-client.md` 3,656 → 3,685 of 3,800,
+  `stack/makefile.md` 3,171 → 3,231, `operations/ci.md` 2,451 → 2,464, floors cli-tool
+  12,679 → 12,690, library 12,909 → 12,920, web-application 23,949 → 23,992, heads
+  unchanged, checklists cli-tool 3,110 → 3,122, library 1,486 → 1,498, web-application
+  5,692 → 5,716, the WebAssembly section 504 → 516 of 600. No pass has read the fixes.
 
 ## Why the CSP is what it is
 

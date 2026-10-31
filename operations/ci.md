@@ -22,8 +22,8 @@ of it: the Makefile says what runs, and this document says why.
   applies it. Read that diff before you commit it: Go says the fixes *should* not
   change behavior, not that they cannot. Switch a fix you judge wrong off by name,
   `-<fixer>=false`, in the commit that says why. It goes on every `go fix` command:
-  `check`'s, and both in `fmt`'s loop. Switch it back on once the code no longer trips
-  it; the name is the toolchain's, and a later major may drop it.
+  each `-diff` line in `check`, both in each `fmt` loop. Switch it back on once the code
+  no longer trips it; the name is the toolchain's, and a later major may drop it.
 - **`govulncheck`** — call-graph-aware CVE scanning: it reports a vulnerability in a
   function you never call as exactly that, not as red. A red gate means: bump the
   dependency, don't silence the check.
@@ -43,8 +43,8 @@ of it: the Makefile says what runs, and this document says why.
   toolchain writes export data no staticcheck release reads, so staticcheck checks only
   the packages that import nothing, and fails with errors like
   `cannot decode "math/bits", export data version 5 is greater than maximum supported version 4`.
-  Take that one line out, under a dated waiver in the README that names the upstream
-  issue, and keep the pin: the security floor outranks a lint. On every dependency
+  Take the staticcheck lines out, under a dated waiver in the README that names the
+  upstream issue, and keep the pin: the security floor outranks a lint. On every dependency
   update, run `go run honnef.co/go/tools/cmd/staticcheck@latest ./...` by hand, under
   the pin. Judge it by that error, not by its exit status: the fixed release exits 1
   too, whenever it finds something. Once the error is gone, fix what it reports first,
@@ -78,7 +78,7 @@ of it: the Makefile says what runs, and this document says why.
   GOOS: for a `//go:build unix` file, vet each Unix the tool claims, `GOOS=linux` at
   least — `syscall` differs between them. Pair each with a `GOARCH` that
   `go tool dist list` prints for it: `GOOS=solaris go vet` alone fails on an arm64 Mac.
-  `js/wasm` is not `./...`: `check`'s line over
+  For a WebAssembly client, `js/wasm` is not `./...`: `check`'s line over
   [wasm-client.md](../patterns/wasm-client.md) rule 3's package list vets it.
 - **Your shell.** `GOFLAGS` and whatever else the profile exports or `go env -w`
   wrote reach the gates. Read `go env -changed` before you trust a green run: every

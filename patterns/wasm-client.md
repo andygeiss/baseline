@@ -5,9 +5,10 @@
 **Five rules here are tier 1 and never waived:** the socket's handshake refuses a
 missing `Origin` or one that is not the page's own host (rule 5); the socket creates or
 changes no durable state and acts only under the credential its handshake presented,
-re-resolved (rule 6); each message is size-capped (rule 7); the handler returns right
-after the handshake (rule 8); and the policy gains `'wasm-unsafe-eval'` and nothing else
-([security-headers.md](security-headers.md) owns it).
+re-resolved (rule 6); each message and control frame is size-capped (rule 7); the
+handler returns right after the handshake (rule 8); and the policy gains
+`'wasm-unsafe-eval'` and nothing else ([security-headers.md](security-headers.md) owns
+it).
 
 A web application whose page is a program — a game, a simulation, a canvas redrawn every
 frame — written in Go, compiled to WebAssembly, and talking to the server over one
@@ -29,11 +30,11 @@ with scripts off.
 2. **The module is committed and embedded.** `make ci` needs no TinyGo; `make wasm`, a
    makefile rule-3 target, rebuilds it. Beside each module it writes a `.build` file
    (compiler version, flags, and rule 3's tags) and a `.sum` of its inputs — the Go and
-   embedded files of this module's own packages that `go list -deps -tags` reaches from
-   the main package, `go.mod`, and the `.build`. **A server test recomputes the digest**
-   with the tags the `.build` records, so a source change cannot ship with an old
-   module, and holds each `.build` line equal to the Makefile's version, flags and tags
-   variables. Both are served from `web/static/`; they hold nothing secret.
+   embedded files of the packages rule 3's `go list` reaches, `go.mod`, and the `.build`.
+   **A server test recomputes the digest** with the tags the `.build` records, so a
+   source change cannot ship with an old module, and holds each `.build` line equal to
+   the Makefile's version, flags and tags variables. Both are served from
+   `web/static/`; they hold nothing secret.
 3. **Two gate lines in `check`** ([stack/makefile.md](../stack/makefile.md) rule 1):
    `GOOS=js GOARCH=wasm go vet` over every package the module is made of, because the
    host vet never sees a `js && wasm` file, and a size limit per module, its number in a
@@ -45,8 +46,8 @@ with scripts off.
    `tinygo info -target wasm <the module's flags>` prints, comma-separated —
    `-scheduler` and `-gc` change them — and `make wasm` checks it against that output.
    A third-party package in the list fails staticcheck on code the project cannot
-   change. In a Makefile the template's `$` is `$$`, and a line that uses the list fails
-   closed:
+   change. The template is shown as a Makefile writes it (`$$`), and a line that uses the
+   list fails closed:
    `l=$$(<list>) && test -n "$$l" && GOOS=js GOARCH=wasm go vet -tags $(WASM_TAGS) $$l`.
    A failing `go list`, an unescaped `$` among them, or an empty list otherwise leaves
    `go vet` vetting `.`, which passes wherever `.` is a clean package. `staticcheck` and
@@ -61,7 +62,7 @@ with scripts off.
    driver.
 4. **The browser packages stay small.** A `deps_test.go`
    ([go-project-layout.md](go-project-layout.md) rule 3) forbids `net/http`, `os/signal`,
-   and `golang.org/x/sync` in every package the module compiles, its `go list -deps`
+   and `golang.org/x/sync/...` in every package the module compiles, its `go list -deps`
    under `GOOS=js GOARCH=wasm` and the tags the `.build` records — a denylist, since an
    allowed list of the standard library for browser packages would be the whole list.
    Code both sides share — the rules, the wire format — lives in packages that pass it.
@@ -78,9 +79,9 @@ Under `web/static/js/`, beside htmx, and nothing else:
   the module's. No build step, no npm, no framework.
 
 Both load deferred in `<head>`, before htmx, on the module's page only: a script in
-`<body>` runs again on every boosted swap. A boosted link swaps only the body, so a link
-*into* that page carries `hx-boost="false"`. A link out needs nothing: the canonical
-`"history":"reload"` makes Back and Forward full loads
+`<body>` runs again on every boosted swap. A boosted request swaps only the body, so a
+link or form whose answer is that page carries `hx-boost="false"`. A link out needs
+nothing: the canonical `"history":"reload"` makes Back and Forward full loads
 ([stack/htmx.md](../stack/htmx.md) rule 6). The module still stops itself, socket and
 all, once its canvas has left the document.
 
@@ -102,12 +103,13 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
 6. **Everything that creates or changes state is a POST form first — tier 1.** An
    identity, a room, a session, any record that outlives the socket, is made or changed
    by a plain form; the socket does neither. It acts only under the credential the
-   handshake presented (cookie session or machine token,
-   [go-auth-sessions.md](go-auth-sessions.md) rule 6), re-resolved, not remembered. At a
-   fixed interval of at most 10 seconds, whether or not the client sends anything, the
-   socket re-reads the store under a deadline inside that interval — scs `Load` of the
-   handshake's token into a context not derived from the request's (the app's own, or
-   `context.Background()`), where a deleted session comes back empty. Never
+   handshake presented (cookie session or machine token), re-resolved, not remembered.
+   At a fixed interval of at most 10 seconds, whether or not the client sends anything,
+   the socket re-runs the handshake's checks under a deadline inside that interval:
+   [go-auth-sessions.md](go-auth-sessions.md) rule 6's resolver, which loads the user's
+   row, and [go-authorization.md](go-authorization.md)'s access check. A session's half is
+   scs `Load` of the handshake's token into a context not derived from the request's (the
+   app's own, or `context.Background()`), where a deleted session comes back empty. Never
    `context.WithoutCancel(r.Context())`: it keeps the handshake's session data, and
    `Load` returns that copy, as `Get` on the handshake's context does, always alive. It
    closes with 1008 once the credential, its user, or its access is gone — a logout, a
@@ -115,7 +117,7 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    ([go-data-deletion.md](go-data-deletion.md)), a lost membership — and with 1011, no
    reason text, on a store error or a missed deadline; while a due check is unanswered
    the socket acts on nothing. Ten seconds bounds how long a revoked credential keeps
-   acting, at one store read per socket; a check per message as well is optional. The
+   acting, at one re-check per socket; a check per message as well is optional. The
    socket does not refresh the session's idle deadline, since only an HTTP request
    commits, so under `IdleTimeout` a socket-only user is closed at the idle
    window — intended unless the project says otherwise. A cookie the server keeps no
@@ -123,12 +125,12 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    to revoke: it is re-checked only for an expiry it carries, if any. Any other is
    re-resolved like a session. What dies with the connection — a position, who is
    looking — the socket may keep.
-7. **The socket is capped like a body.** A message size (1 KiB is plenty for input) —
-   tier 1, since after `Hijack` no `MaxBytesReader` guards the connection — counts a
-   whole message, its fragments counted together, each checked by its declared length
-   before its payload is read (RFC 6455 section 10.4); a control frame over 125 bytes
-   fails the connection (section 5.5). The frames a second and the queue toward a slow
-   client are capped too. Past a cap the server closes the socket, it does not buffer,
+7. **The socket is capped like a body.** Its sizes are tier 1, since after `Hijack` no
+   `MaxBytesReader` guards the connection: a message (1 KiB is plenty for input) counts
+   whole, its fragments together, each checked by its declared length before its payload
+   is read (RFC 6455 section 10.4); a control frame over 125 bytes is malformed
+   (section 5.5). The frames a second and the queue toward a slow client are capped
+   too. Past a cap the server closes the socket, it does not buffer,
    and the code says which cap: 1009 too big, 1008 too many, 1002 malformed, 1013 a
    reader too slow, which a client may retry.
 8. **Hijack, return, then own the deadlines.** The handler returns right after the
