@@ -335,7 +335,7 @@ tier 1.
 - [ ] `deps_test.go` keeps `net/http`, `os/signal`, `golang.org/x/sync/...` out of the browser packages
 - **The socket, `GET /ws`:**
   - [ ] The handshake refuses a missing `Origin` and one whose host is not the request's
-  - [ ] It makes or changes nothing a credential resolver or access check reads in a store or in memory, acts only under the handshake's credential, re-resolved read-only at least every 10 seconds under a deadline, in a context not derived from the request's, acts on nothing while a check is due, and closes with 1008 once it, its user, or its access is gone, 1011 on a store error or missed deadline
+  - [ ] It makes or changes nothing that decides who passes a credential resolver or access check, acts only under the handshake's credential, re-resolved read-only at least every 10 seconds under a deadline, in a context not derived from the request's, acts on nothing while a check is due, and closes with 1008 once it, its user, or its access is gone, 1011 on a store error or missed deadline
   - [ ] The handler returns after the handshake, so session middleware cannot save a revoked session again
   - [ ] The socket runs on a goroutine the app tracks
   - [ ] Message size is capped across continuation frames, a control frame at 125 bytes, before a payload is read, the declared length read unsigned with its top bit 0 and compared with what the cap has left, never summed
@@ -453,7 +453,7 @@ gate.
 - **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`, but not `ignore` or `unix`):**
   - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set
 - **If a recipe runs a tool whose output is committed or flashed (generated code, a module) — not `go build`, not a formatter:**
-  - [ ] It names an exact version, never `@latest`, and every recipe running it checks that version first
+  - [ ] It names an exact version, never `@latest`, and every recipe running it as an installed binary checks that version first; a `go run …@$(V)` line is its own check
 
 ## Configuring the build, or serving a static asset
 

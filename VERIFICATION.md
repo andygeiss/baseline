@@ -457,6 +457,29 @@ be synced, the tag waits.
   heads unchanged, checklists cli-tool 3,140 → 3,116, library 1,517 → 1,493,
   web-application 5,797 → 5,798, the WebAssembly section 578 → 578 of 600, background
   work 198 → 224. No pass has read the fixes.
+- **2026-10-31 — review pass 10.** Reviewers found 6 distinct defects in the baseline,
+  all fixed; the reference's are fixed there separately. The mechanics reviewer built a
+  new WebAssembly client from the docs alone: `make wasm`, `check`, `fmt` and `ci` green,
+  and the module drew in headless Chrome under the CSP. "Nothing a credential resolver
+  or access check reads" forbade the board the access check reads with its row: the
+  tier-1 line is now nothing that decides who passes one, the same phrase in the header,
+  rule 6, README and box; a stored board or a move row is the socket's, and a room, its
+  owner or host, a membership take a form. Rule 6 adds that a close may drop what its
+  user held and grants nothing (a host handed on by event order is a grant), drops
+  `context.Background()` for the app's own context as `go-background-work.md` names,
+  and sends shutdown's cancel to rule 8's 1001, not 1011. `stack/makefile.md` rule 1:
+  every file in a package the host cannot build carries `js && wasm`, not only one
+  importing `syscall/js` — in scratchpad `fix10/tag`, Go 1.27.3, TinyGo 0.44.0, a
+  `tinygo`-only file beside a `js && wasm` one fails `go vet -tags $WASM_TAGS ./...`
+  with "undefined: Doc", exit 1, and exits 0 as `tinygo && js && wasm`. The version
+  check is for an installed binary (`tinygo`, `wasm-opt`); a `go run …@$(V)` line is
+  its own check, since stringer v0.52.0 rejects `-version`, exit 2 (rule 4 and the
+  pinned-tool box in all three checklists). Rule 5 says "any other origin of the same
+  site". `make` exits 0: `wasm-client.md` 3,769 → 3,764 of 3,800, `stack/makefile.md`
+  3,387 → 3,439, floors cli-tool 12,685 → 12,701, library 12,915 → 12,931,
+  web-application 24,118 → 24,133, heads unchanged, checklists cli-tool 3,116 → 3,133,
+  library 1,493 → 1,509, web-application 5,798 → 5,813, the WebAssembly section 578 →
+  576 of 600. No pass has read the fixes.
 
 ## Why the CSP is what it is
 

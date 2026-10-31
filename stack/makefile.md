@@ -101,9 +101,11 @@ test:
    a tagged file can stop compiling with every gate green. TinyGo's tags get an ordinary
    line, `go vet -tags $(WASM_TAGS) ./...`
    ([patterns/wasm-client.md](../patterns/wasm-client.md) rule 3 names the variable).
-   It passes because a file that imports `syscall/js` carries `js && wasm` in its
-   constraint, not `tinygo` alone. A `tinygo`-only one fails it: under TinyGo's tags
-   the host vet compiles that file, and `syscall/js` builds only for `js/wasm`.
+   It passes because every file in a package the host cannot build carries
+   `js && wasm`: one that imports `syscall/js`, and every other file in its package
+   (`tinygo && js && wasm` for a TinyGo-only one). A `tinygo`-only file fails it:
+   under TinyGo's tags the host vet compiles it without its `js && wasm` siblings, so
+   neither `syscall/js` nor their names resolve.
 2. **Portable subset only.** The file MUST run under GNU Make 3.81: `=`
    assignment, `.PHONY`, `.DEFAULT_GOAL` (new in 3.81, so exactly at the floor),
    plain tab-indented recipes. MUST NOT use post-3.81 features (`.ONESHELL` —
@@ -133,10 +135,11 @@ test:
    transpiler whose output is committed or flashed MUST name its version, in a
    variable (rule 5), so a new release cannot change the artifact without a
    commit. A tool with a [VERSIONS.md](../VERSIONS.md) row, like TinyGo, takes
-   that row's version; the variable only makes it checkable. Every recipe that runs
-   the tool checks that version first, a `tinygo test` line in `check` too. A compiler
-   running tests is not the pass-or-fail tool `@latest` is for: one commit passes
-   under TinyGo 0.42, whose `testing.AllocsPerRun` always returns 0, and fails under
+   that row's version; the variable only makes it checkable. Every recipe running
+   an installed binary (`tinygo`, `wasm-opt`) checks that version first, a
+   `tinygo test` line in `check` too; a `go run …@$(V)` line is its own check. A
+   compiler running tests is not the pass-or-fail tool `@latest` is for: one commit
+   passes under TinyGo 0.42, whose `testing.AllocsPerRun` always returns 0, and fails under
    0.44, which counts. A formatter (`goimports`, `go fix`) is outside this rule: its
    output is source, reviewed in the diff. So is `go build`: the Go row pins the
    toolchain.
