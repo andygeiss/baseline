@@ -224,13 +224,24 @@ be synced, the tag waits.
   a per-project pin; the version policy gains a TinyGo line and ties a new Go minor to
   it; the checklist box asks for the row's version; the JavaScript row admits the two
   scripts. No pass has read it.
-  - **Decision left:** a new Go minor now waits for TinyGo in *every* project, WebAssembly
-    or not, because there is one Go row. The other road is a project-level Go floor for
-    WebAssembly projects only, which the single-pin policy does not have.
+  - **Decided 2026-10-31 by Andy:** one Go row, coupled. A new Go minor waits for TinyGo
+    in *every* project, WebAssembly or not; no WebAssembly-only Go floor. Andy also chose
+    to adopt 0.44.0 once it has built the reference's module here.
   - **Measured under GNU Make 3.81 at this commit,** closing *Not run* above: heads cli-tool 3,852 → 4,032,
     library 3,711 → 3,891, web-application 3,754 → 3,933. Floors: cli-tool 12,386 →
     12,565, library 12,620 → 12,800, web-application 22,946 → 23,132.
     `checklists/web-application.md` 5,345 → 5,351.
+- **2026-10-31 — what the reference's WebAssembly client taught the pattern.**
+  baseline-reference `fdeaec3` (branch `wasm-client`) implements every rule; building it
+  found eleven gaps, folded into `wasm-client.md` and `security-headers.md`: rule 8's
+  middleware needs `Unwrap` for `Hijack`, and the socket's goroutines end before the
+  session store and database close; the two scripts load deferred in `<head>`, the link
+  into the page is `hx-boost="false"`, and the module stops when its canvas leaves the
+  document; a 401 from an earlier guard satisfies rule 5; rule 6 names durable state, not
+  "a seat"; rule 7 names close codes 1009/1008/1013; rule 3 notes `staticcheck` and
+  `go fix` are blind to `js && wasm` files; `.build`/`.sum` are served; a second
+  optimizer is pinned like any tool; the loader *may* publish; the CSP token is
+  app-wide. **A tier-1 document changed again.** No pass has read any of it.
 
 ## Why the CSP is what it is
 
