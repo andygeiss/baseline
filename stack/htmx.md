@@ -114,4 +114,5 @@ title, and pushes a URL wherever the element would — boosted, or carrying `hx-
 
 If you are about to write `<script>` or reach for an htmx extension to do client-side
 state, stop: move the state to the server and re-render the fragment. That is the
-architecture, not a limitation.
+architecture, not a limitation. A WebAssembly client's two scripts are
+[patterns/wasm-client.md](../patterns/wasm-client.md)'s.

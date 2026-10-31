@@ -175,12 +175,13 @@ below is what it currently catches, not the definition.
   [patterns/go-http-server.md](patterns/go-http-server.md), [stack/htmx.md](stack/htmx.md)).
 - A WebSocket handshake that refuses a missing `Origin` or one other than the page's own,
   because no CSRF check sees a GET, and a socket that makes or changes nothing that
-  decides who passes a credential resolver or access check (but giving up its own
-  user's seat held in memory), acts only under the
-  credential its handshake presented, re-resolved by reads alone and closed once it, its
-  user, or its access is gone, caps each message's and control frame's size without
-  summing lengths, and runs after its handler has returned, so session middleware cannot
-  save a revoked session again ([patterns/wasm-client.md](patterns/wasm-client.md)).
+  decides who passes a credential resolver or access check (but giving up its own user's
+  in-memory seat, membership or host role, to no one), acts only under the credential its
+  handshake presented with its latest check's access, re-resolved by reads alone and
+  closed once it, its user, or its access is gone, caps each message's and control
+  frame's size without summing lengths, and runs after its handler has returned, so
+  session middleware cannot save a revoked session again
+  ([patterns/wasm-client.md](patterns/wasm-client.md)).
 - Everything about who is signed in: session cookie flags, renewal on login and password
   change, password hashing, auth rate limiting, constant-time login, and every
   machine-token rule ([patterns/go-auth-sessions.md](patterns/go-auth-sessions.md)).

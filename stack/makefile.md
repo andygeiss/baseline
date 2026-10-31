@@ -107,7 +107,7 @@ test:
    (`tinygo && js && wasm` for a TinyGo-only one). A counterpart in a package both
    builds compile negates its file's constraint exactly: `!tinygo || !js || !wasm` for
    a `tinygo && js && wasm` file, `!tinygo` for a `tinygo` one. A `tinygo`-only file
-   fails the line when it imports `syscall/js`, uses a sibling's name, or meets a
+   fails the line when it imports `syscall/js`, uses a name only a `js && wasm` file declares, or meets a
    counterpart that does not negate it.
 2. **Portable subset only.** The file MUST run under GNU Make 3.81: `=`
    assignment, `.PHONY`, `.DEFAULT_GOAL` (new in 3.81, so exactly at the floor),

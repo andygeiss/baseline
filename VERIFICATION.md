@@ -520,6 +520,27 @@ be synced, the tag waits.
   24,148, checklist web-application 5,820 → 5,830, the WebAssembly section within 600. No
   pass has read the fixes.
 
+- **2026-10-31 — review pass 13.** Six defects. A fourth WebAssembly client from the docs
+  alone (a buzzer room) went green under GNU Make 3.81 and drew in headless Chrome under
+  the CSP with no CSP errors; a hand-written rule-6 server passed logout, slow-store,
+  shutdown, Leave and demotion tests. Fixed: pass 12's entry was wrong that the header,
+  README and box carried rule 6's exception: the header's "seat aside" exempted the seat
+  outright (so the socket could claim one) and all three named only the seat. Rule 6 now
+  names the user's "hold in memory — a seat, membership or host role", given up "to no
+  one", and the header, README and box say the same. "Acts with the access the latest
+  check returned" was in rule 6 alone; one changed line in the reviewer's server kept a
+  demoted host resetting while every box still passed (executed), so the header, README
+  and box carry it. "The app's own expiry" was unbounded and let a close-started expiry
+  delete stored state again (pass 11's hole); a stored one is never started by a close.
+  Rule 6 now says a stored board or move row is written as go-authorization.md says, so a
+  removed member's write fails at once, not after the next check. `stack/htmx.md`'s
+  litmus line gains the WebAssembly exception. `stack/makefile.md` rule 1: only a name a
+  `js && wasm` file declares fails the TinyGo-tag vet (executed). Cut to pay: "(a form, an
+  API call)", "whether or not the client sends anything" → "unprompted", the restated
+  `Get` clause. `make` exits 0: `wasm-client.md` 3,795 → 3,783 of 3,800,
+  `stack/makefile.md` 3,505 → 3,511, `stack/htmx.md` 2,092 → 2,116, floor
+  web-application 24,148 → 24,178, checklist web-application 5,830 → 5,836, the
+  WebAssembly section within 600. No pass has read the fixes.
 ## Why the CSP is what it is
 
 The standing record behind [patterns/security-headers.md](patterns/security-headers.md).

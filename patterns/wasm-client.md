@@ -4,11 +4,11 @@
 
 **Five rules here are tier 1 and never waived:** the socket's handshake refuses a missing
 `Origin` or one that is not the page's own host (rule 5); the socket makes or changes
-nothing that decides who passes a credential resolver or access check, its own user's
-in-memory seat aside, and acts only under the credential its handshake presented,
-re-resolved (rule 6); each message and control frame is size-capped (rule 7); the
-handler returns right after the handshake (rule 8); and the policy gains
-`'wasm-unsafe-eval'` and nothing else
+nothing that decides who passes a credential resolver or access check but its own user's
+in-memory hold, given up to no one, and acts only under the credential its handshake
+presented, re-resolved, with the latest check's access (rule 6); each message and control
+frame is size-capped (rule 7); the handler returns right after the handshake (rule 8);
+and the policy gains `'wasm-unsafe-eval'` and nothing else
 ([security-headers.md](security-headers.md) owns it).
 
 A web application whose page is a program — a game, a simulation, a canvas redrawn every
@@ -106,30 +106,28 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
 6. **The socket makes or changes nothing that decides who passes a credential resolver or
    access check — tier 1.** An identity, a session, a room, its owner or host, a
    membership, a ban — in a store or in memory — is made, changed or deleted by an
-   ordinary HTTP request (a form, an API call) or the app's own expiry, never the socket;
-   a stored board or a move row is the socket's. The socket may give up only its own
-   user's seat, membership or host role held in memory, by a message or a close, and
-   hands it to no one. It acts only under the credential the handshake presented, which
-   it keeps and re-resolves, with the access the latest check returned. At a fixed
-   interval of at most 10 seconds, whether or not the client sends anything, it re-runs
-   the handshake's checks with that credential under a deadline inside that interval: the
-   lookup [go-auth-sessions.md](go-auth-sessions.md) rule 6's resolver makes, to the
-   user's row (a token by its hash), and [go-authorization.md](go-authorization.md)'s
+   ordinary HTTP request or the app's own expiry (a stored one never started by a close),
+   never the socket; a stored board or a move row is the socket's, written as
+   [go-authorization.md](go-authorization.md) says. The socket may give up only its own
+   user's hold in memory — a seat, membership or host role — by a message or a close, to
+   no one. It acts only under the credential the handshake presented, which it keeps and
+   re-resolves, with the access the latest check returned. At most every 10 seconds,
+   unprompted, it re-runs the handshake's checks with that credential under a deadline
+   inside that interval: the lookup [go-auth-sessions.md](go-auth-sessions.md) rule 6's
+   resolver makes, to the user's row (a token by its hash), and go-authorization.md's
    access check, the read made as that user, wherever the membership is held. The
    re-check only reads: no `last_used_at` touch, no `Destroy`. A session's lookup is scs
-   `Load` of the handshake's token into a context not derived from the request's (the
-   app's own), where a deleted session comes back empty. Never
-   `context.WithoutCancel(r.Context())`: `Load` returns the handshake's copy, always
-   alive. It closes with 1008 once the credential, its user, or its access is gone — a
-   logout, a revoking reset, a revoked token, a deleted account
+   `Load` of the handshake's token into the app's own context, where a deleted session
+   comes back empty; never `context.WithoutCancel(r.Context())`, whose `Load` returns the
+   handshake's copy, always alive. It closes with 1008 once the credential, its user, or
+   its access is gone — a logout, a revoking reset, a revoked token, a deleted account
    ([go-data-deletion.md](go-data-deletion.md)), a lost membership — and with 1011, no
    reason text, on a store error or a missed deadline (shutdown's cancel is rule 8's
-   1001); while a due check is unanswered the socket acts on nothing. The socket does not
-   refresh the session's idle deadline, since only an HTTP request commits, so under
-   `IdleTimeout` a socket-only user is closed at the idle window. A cookie the server
-   keeps no record of, naming no user and reaching none, has nothing to revoke: it is
-   re-checked only for an expiry it carries, if any. Any other is re-resolved like a
-   session.
+   1001); while a due check is unanswered it acts on nothing. Only an HTTP request
+   commits the session, so under `IdleTimeout` a socket-only user is closed at the idle
+   window. A cookie the server keeps no record of, naming no user and reaching none, has
+   nothing to revoke: it is re-checked only for an expiry it carries. Any other is
+   re-resolved like a session.
 7. **The socket is capped like a body.** Message and control-frame sizes are tier 1,
    since after `Hijack` no `MaxBytesReader` guards the connection: a message (1 KiB)
    counts whole, its fragments together, each checked by its declared length — read

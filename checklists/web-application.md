@@ -335,7 +335,7 @@ tier 1.
 - [ ] `deps_test.go` keeps `net/http`, `os/signal`, `golang.org/x/sync/...` out of the browser packages
 - **The socket, `GET /ws`:**
   - [ ] The handshake refuses a missing `Origin` and one whose host is not the request's
-  - [ ] It makes or changes nothing that decides who passes a credential resolver or access check but its own user's in-memory seat given up, acts only under the handshake's credential, re-resolved read-only at least every 10 seconds under a deadline, in a context not derived from the request's, acts on nothing while a check is due, and closes with 1008 once it, its user, or its access is gone, 1011 on a store error or missed deadline (shutdown's cancel: 1001)
+  - [ ] It makes or changes nothing that decides who passes a credential resolver or access check but its own user's in-memory hold given up to no one, acts only under the handshake's credential and its latest check's access, re-resolved read-only at least every 10 seconds under a deadline from the app's own context, acts on nothing while a check is due, and closes with 1008 once it, its user, or its access is gone, 1011 on a store error or missed deadline (shutdown's cancel: 1001)
   - [ ] The handler returns after the handshake, so session middleware cannot save a revoked session again
   - [ ] The socket runs on a goroutine the app tracks
   - [ ] Message size is capped across continuation frames, a control frame at 125 bytes, before a payload is read, the declared length read unsigned with its top bit 0 and compared with what the cap has left, never summed
