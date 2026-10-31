@@ -194,6 +194,27 @@ be synced, the tag waits.
   web-application 7,932 → 7,989. Floors: cli-tool 12,132 → 12,192, library 12,464 →
   12,503, web-application 22,168 → 22,225. Reach: cli-tool 45,853 → 46,387, library
   29,783 → 29,822, web-application 104,951 → 105,482.
+- **2026-10-31 — seven deviations promoted, on Andy's call.** `4285b2a` through
+  `adfd466`. Andy read every project's *Baseline deviations* section and chose the ones
+  that recur across projects or name a gap here. `4285b2a` is the shape budget (*Budget
+  decisions*). `75a599d`: `stack/makefile.md` rules 1, 4, 5 and 6 — added gate lines and
+  build-tag vets, exact pins for a tool whose output ships, variables beside `MAIN`, and
+  "no gate reads `.env`". `c2e22e2`: the module path names its owner, and a private
+  repository's `go install`. `e388983`: `/healthz` with no database, the `deps_test.go`
+  rule, and two cli-tool checklist answers. `adfd466`: new `patterns/wasm-client.md`,
+  with `'wasm-unsafe-eval'` in `security-headers.md` — **a tier-1 document, changed**.
+  No pass has read any of it, and no `Last verified:` date moved.
+  - **Not run:** `make tokens` under GNU Make 3.81 — only 4.4.1 was at hand. The new
+    `HEAD` and `TRIGGERS` variables use `\#`, as `REQUIRED` already did.
+  - **Not pinned:** TinyGo has no row in `VERSIONS.md`. The pattern makes each project
+    name its version; the next re-verification gives it a row.
+  - **Not synced:** baseline-reference carries no WebAssembly client, so `verify.sh`
+    exercises none of `wasm-client.md`. game and game-lab are its only running copies.
+- **Measured against `ab31e65`, after `adfd466`:** heads cli-tool 3,852, library 3,711,
+  web-application 3,754. Floors: cli-tool 12,191 → 12,386, library 12,503 → 12,620,
+  web-application 22,224 → 22,946. Reach: cli-tool 46,398 → 47,040, library 29,822 →
+  30,386, web-application 105,493 → 108,002. `checklists/web-application.md` 4,998 →
+  5,345, now a report; its new section 263 of 600.
 
 ## Why the CSP is what it is
 
