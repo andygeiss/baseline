@@ -542,6 +542,37 @@ be synced, the tag waits.
   web-application 24,148 → 24,178, checklist web-application 5,830 → 5,836, the
   WebAssembly section within 600. No pass has read the fixes.
 
+- **2026-10-31 — review pass 14.** Nine distinct defects. A fifth WebAssembly client from
+  the docs alone, SQLite-backed "Pixel Room", went green under GNU Make 3.81 and drew in
+  headless Chrome. Andy decided two things the same day. The re-check's mechanics moved
+  out of `wasm-client.md` rule 6 into a new tier-1 section of `go-auth-sessions.md`,
+  *Re-resolving a long-lived connection* (the read-only lookup, scs `Load` into the app's
+  own context and why never `context.WithoutCancel`, the deadline, the stateless cookie,
+  the idle window, and the scs `Load` fact); rule 6 keeps the statement and points there,
+  as do `go-background-work.md`, `go-data-deletion.md` and the two checklist boxes. And a
+  cap on in-memory presence that grants no privilege is a resource limit, so the socket
+  may take or free a seat, which makes game-lab and baseline-reference conform. Fixed:
+  "at most every 10 seconds" (a rate limit, and "that interval" dangled) → "at least …
+  inside the interval"; the header gains "read-only" and "closed once it, its user, or
+  its access is gone", agreeing with README and the box; a stored expiry is "never
+  started by the socket", not "by a close", and an expiry in memory grants nothing; the
+  stateless cookie's lookup checks only an expiry and the access check still runs; a row
+  written under a membership names it in its own statement (`INSERT … SELECT … FROM
+  members WHERE room_id = ? AND user_id = ?`, now `go-authorization.md` rule 6, its box
+  "ownership or membership"), and an in-memory membership is checked in the write's
+  step, under its lock — executed on modernc sqlite v1.61.0, the `VALUES` form stored a
+  removed member's move (1 row), the `SELECT` form stored none (0 rows) and a member's
+  (1 row). `stack/makefile.md` rule 1's fmt template gains `n=3 &&` and says a `;` after
+  the list fails open (executed under 3.81: a failing or empty list exits 2 with `&&`, 0
+  with `;`; without the counter the loop exits 1 before its first `go fix`); its failure
+  list now names a package made only of `js && wasm` files and a name a `_js.go` or
+  `_wasm.go` file declares (each executed under TinyGo 0.44.0's tags: all exit 1). `make`
+  exits 0: `wasm-client.md` 3,783 → 3,628 of 3,800, `go-auth-sessions.md` 3,061 →
+  3,533, `go-authorization.md` 2,120 → 2,209, `go-background-work.md` 2,486 → 2,497,
+  `go-data-deletion.md` 3,172 → 3,202, `stack/makefile.md` 3,511 → 3,559, the
+  WebAssembly section 599 → 570 of 600, checklist web-application 5,836 → 5,812, floor
+  web-application 24,178 → 24,154, head 4,032 → 4,034. No pass has read the fixes.
+
 ## Why the CSP is what it is
 
 The standing record behind [patterns/security-headers.md](patterns/security-headers.md).
