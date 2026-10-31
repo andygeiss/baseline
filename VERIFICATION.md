@@ -159,13 +159,13 @@ be synced, the tag waits.
   reads a destination starting `file:` as a URI too, so the snapshot's gets `./`.
   **The run.** Six rounds of two passes, one on facts against the driver source and one on
   the corpus, found 12, 12, 11, 6, 8 and 8 distinct defects; rounds five and six found
-  nothing high and round six nothing medium. The first condition is not met. **The
-  reference** pins `bcbb2aa` in `8e40a0e` (a local commit, not yet pushed; its patch is
-  handed over separately): `gofmt`, `go vet`, `go mod tidy -diff` and every test green
-  without `-race`. `TestTheDSNIsGuarded` fails on every case with the escape removed;
-  `TestLockWaitEndsAtTheDeadline` was not run against v1.58.0, whose 5 s wait it bounds. The
-  race build, `go fix`, `staticcheck` and `govulncheck` of the driver's `lib` package do
-  not fit in the 2 GB claude-sandbox, so `./verify.sh` is owed whole.
+  nothing high and round six nothing medium. The first condition is not met; v5.1.0 ships
+  on Andy's call, and round six's fixes, `bcbb2aa`, enter Owed unread. **The reference**
+  pins `bcbb2aa` in `2870635`: `./verify.sh` green over 82 gates and `make ci` green, both
+  under Go 1.27.3 on the Mac. `govulncheck` reports GO-2026-5932 in
+  `golang.org/x/crypto` v0.58.0, no fix released and not called.
+  `TestTheDSNIsGuarded` fails on every case with the escape removed;
+  `TestLockWaitEndsAtTheDeadline` was not run against v1.58.0, whose 5 s wait it bounds.
   **Left open:**
   - **`StrictPragmas`' tier, for Andy.** With the path escaped, nothing reaches the DSN's
     query but the constant, so dropping the switch loses nothing today; three reviewers
