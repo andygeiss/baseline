@@ -185,6 +185,11 @@ func OpsHandler(readDB *sql.DB, version string) http.Handler {
 }
 ```
 
+**With no database, `/healthz` answers 200 `ok` and the version** once the process
+answers at all — there is nothing to ping. State kept in a file is not a database
+either: the probe stays the version check a deploy reads, and a failed write is logged
+where it happens.
+
 `main.go` wires it as a second `http.Server` under the same `errgroup` as the app server:
 
 ```go

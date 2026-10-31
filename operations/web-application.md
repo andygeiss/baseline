@@ -22,7 +22,9 @@ code, and there when it changes only the server.**
     200 + JSON `{"status":"ok","version":…}` and pings the database **via the
     read pool** with a 1 s timeout, 503 on failure. Never the write pool: its
     single connection is busy during any long write, and a ping queued behind it
-    times out — a healthy app flapping 503. `/debug/pprof/…` lives here too;
+    times out — a healthy app flapping 503. With no database it pings nothing and
+    answers `ok` ([patterns/go-http-server.md](../patterns/go-http-server.md)).
+    `/debug/pprof/…` lives here too;
     being localhost-only *is* its access control.
 - **Logs to stdout only**, structured ([patterns/go-errors-logging.md](../patterns/go-errors-logging.md)).
   It MUST NOT open a log file or rotate anything. Whatever runs it owns shipping

@@ -80,6 +80,8 @@ runners-up under *Avoid*.
   - [ ] It is read from a file named by `-token-file`/`$MYTOOL_TOKEN_FILE`
   - [ ] `$MYTOOL_TOKEN` is documented as the leaky fallback
   - [ ] It is **never** taken from a flag value
+- **If the tool reads no environment variable:**
+  - [ ] `-h` names every input — it is the whole contract
   - [ ] Handed to a program the tool starts, it never travels on that program's command line — `patterns/go-child-process.md`
 - **If the repo has a `.env`** — `stack/makefile.md` rule 6:
   - [ ] It is gitignored
@@ -220,7 +222,10 @@ gate.
 
 ## Tagging and publishing a release
 
-`operations/cli-release.md` — the release is a tag, and `go install` is the channel.
+`operations/cli-release.md` — the release is a tag, and `go install` is the channel. A
+`cmd/<name>` that a `make` target runs with `go run`, in a module that ships something
+else, is never released: this section does not fire for it, and the target is its
+interface.
 
 - [ ] `make ci` is green on the commit being tagged
 - [ ] The tag's message is the release note (an annotated tag)
