@@ -225,8 +225,12 @@ be synced, the tag waits.
   it; the checklist box asks for the row's version; the JavaScript row admits the two
   scripts. No pass has read it.
   - **Decided 2026-10-31 by Andy:** one Go row, coupled. A new Go minor waits for TinyGo
-    in *every* project, WebAssembly or not; no WebAssembly-only Go floor. Andy also chose
-    to adopt 0.44.0 once it has built the reference's module here.
+    in *every* project, WebAssembly or not; no WebAssembly-only Go floor.
+  - **0.44.0 adopted the same day, on Andy's call.** Installed from the release tarball
+    (sha256 matching the tinygo-org/homebrew-tools formula); it rebuilt the reference's
+    module in `11c10c7`, 45,191 → 51,606 bytes against a 60,000 limit, and
+    `./verify.sh` exited 0. game and game-lab still name 0.42.0 in their `make wasm`;
+    their `make ci` needs no TinyGo, and each moves when it next rebuilds its module.
   - **Measured under GNU Make 3.81 at this commit,** closing *Not run* above: heads cli-tool 3,852 → 4,032,
     library 3,711 → 3,891, web-application 3,754 → 3,933. Floors: cli-tool 12,386 →
     12,565, library 12,620 → 12,800, web-application 22,946 → 23,132.
