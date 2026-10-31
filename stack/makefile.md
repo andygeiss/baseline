@@ -90,13 +90,15 @@ test:
    rule 5's staticcheck adjustment allows. An added line checks what the
    canonical eight cannot see, and goes after them: a second target's vet
    (`GOOS=js GOARCH=wasm go vet …`), or a size limit on a committed artifact
-   ([patterns/wasm-client.md](../patterns/wasm-client.md)).
+   ([patterns/wasm-client.md](../patterns/wasm-client.md)); an added `go fix -diff`
+   line brings its `go fix` into `fmt`.
    **A file behind a custom build tag (not a GOOS or GOARCH) MUST be vetted
    under that tag**, one `go vet -tags <tag> ./...` line per tag set (but not
    `ignore`, which marks generator scripts and fails `go vet -tags ignore ./...`, nor
-   `unix`, which each OS's vet covers): the
-   canonical lines read the default build, so a tagged file can stop compiling
-   with every gate green.
+   `unix`, which each OS's vet covers, nor TinyGo's tags, which the `js/wasm` line of
+   [patterns/wasm-client.md](../patterns/wasm-client.md) rule 3 vets): the canonical
+   lines read the default build, so a tagged file can stop compiling with every gate
+   green.
 2. **Portable subset only.** The file MUST run under GNU Make 3.81: `=`
    assignment, `.PHONY`, `.DEFAULT_GOAL` (new in 3.81, so exactly at the floor),
    plain tab-indented recipes. MUST NOT use post-3.81 features (`.ONESHELL` —
@@ -151,11 +153,12 @@ test:
    - *A `go fix` fixer judged wrong:* switched off by name, `-<fixer>=false`, on
      every `go fix` command — `check`'s, and both in `fmt`'s loop — until the
      code no longer trips it ([operations/ci.md](../operations/ci.md)).
-   - *A variable beside `MAIN`:* for a value two recipes must agree on (a size
-     limit `check` and a build target both test), a pinned tool version (rule
-     4), or a value a person overrides for one run (`make bench HOST=…`). One
-     plain `=` assignment each, with its comment on the line above. No recipe
-     branches on one — conditionals stay banned.
+   - *A variable beside `MAIN`:* for a value two places must agree on — recipes,
+     lines of one recipe, or a recipe and a test (a size limit `check` and a build
+     target both test) — a pinned tool version (rule 4), or a value a person
+     overrides for one run (`make bench HOST=…`). One plain `=` assignment each,
+     with its comment on the line above. No recipe branches on one — conditionals
+     stay banned.
 6. **`run` loads `.env` when it is there. No gate does.** A binary that
    needs a token or a database URL otherwise needs two commands to start, and
    the second one is the one people forget. The recipe above is the whole

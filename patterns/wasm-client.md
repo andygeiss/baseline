@@ -25,15 +25,15 @@ with scripts off.
    `make wasm` checks against `tinygo version` ([stack/makefile.md](../stack/makefile.md)
    rules 4 and 5). That row also bounds the Go row: a Go minor TinyGo cannot build waits.
    A project moves with the row and rebuilds its module in the same commit. A second
-   optimizer after TinyGo, such as `wasm-opt`, is a tool like any other: its version is
-   named and checked the same way.
+   optimizer, such as `wasm-opt`, is named and checked the same way.
 2. **The module is committed and embedded.** `make ci` needs no TinyGo; `make wasm`, a
-   makefile rule-3 target, rebuilds it. Beside each module it writes a `.build` file (compiler
-   version, flags, and rule 3's tags) and a `.sum` of its inputs — the Go and embedded
-   files of this module's own packages that `go list -deps -tags` reaches from the main
-   package, `go.mod`, and the `.build`. **A server test recomputes the digest** with the
-   tags the `.build` records, so a source change cannot ship with an old module. Both
-   files sit under `web/static/` and are served with it; they hold nothing secret.
+   makefile rule-3 target, rebuilds it. Beside each module it writes a `.build` file
+   (compiler version, flags, and rule 3's tags) and a `.sum` of its inputs — the Go and
+   embedded files of this module's own packages that `go list -deps -tags` reaches from
+   the main package, `go.mod`, and the `.build`. **A server test recomputes the digest**
+   with the tags the `.build` records, so a source change cannot ship with an old
+   module, and holds each `.build` line equal to the Makefile's version, flags and tags
+   variables. Both are served from `web/static/`; they hold nothing secret.
 3. **Two gate lines in `check`** ([stack/makefile.md](../stack/makefile.md) rule 1):
    `GOOS=js GOARCH=wasm go vet` over every package the module is made of, because the
    host vet never sees a `js && wasm` file, and a size limit per module, its number in a
@@ -54,12 +54,15 @@ with scripts off.
    of its own over the same list, and nothing else checks them:
    `GOOS=js GOARCH=wasm go fix -diff -tags $(WASM_TAGS) $$l` and
    `go run -exec 'env GOOS=js GOARCH=wasm' honnef.co/go/tools/cmd/staticcheck@latest -tags $(WASM_TAGS) $$l`.
-   With `GOOS` in front, `go run` builds staticcheck itself for the browser, and it
-   cannot start. Over `./...` both fail on any server package that cannot build for
-   `js/wasm`, such as one that imports the SQLite driver.
+   `GOOS` in front of `go run` would build staticcheck for the browser. A function
+   TinyGo exports (`//export`, `//go:wasmexport`) carries
+   `//lint:ignore U1000 exported to JavaScript`. Over `./...` both lines fail on any
+   server package that cannot build for `js/wasm`, such as one that imports the SQLite
+   driver.
 4. **The browser packages stay small.** A `deps_test.go`
    ([go-project-layout.md](go-project-layout.md) rule 3) forbids `net/http`, `os/signal`,
-   and `golang.org/x/sync` in every package the module compiles — a denylist, since an
+   and `golang.org/x/sync` in every package the module compiles, its `go list -deps`
+   under `GOOS=js GOARCH=wasm` and the tags the `.build` records — a denylist, since an
    allowed list of the standard library for browser packages would be the whole list.
    Code both sides share — the rules, the wire format — lives in packages that pass it.
 
@@ -74,13 +77,12 @@ Under `web/static/js/`, beside htmx, and nothing else:
   memory, the GPU's name), and it decides nothing: every branch on game or page state is
   the module's. No build step, no npm, no framework.
 
-Both load deferred in `<head>`, on the module's page only: a script in `<body>` runs
-again on every boosted swap. A boosted link swaps only the body, and htmx's Back and
-Forward restore a boosted page the same way, so the links *into* that page and *out* of
-it carry `hx-boost="false"`: leaving and returning are full loads. Most links out sit in
-the layout's shared header, so the layout gives them a per-page hook — an empty template
-the program page defines as ` hx-boost="false"`. The module still stops itself, socket
-and all, once its canvas has left the document.
+Both load deferred in `<head>`, before htmx, on the module's page only: a script in
+`<body>` runs again on every boosted swap. A boosted link swaps only the body, so a link
+*into* that page carries `hx-boost="false"`. A link out needs nothing: the canonical
+`"history":"reload"` makes Back and Forward full loads
+([stack/htmx.md](../stack/htmx.md) rule 6). The module still stops itself, socket and
+all, once its canvas has left the document.
 
 A script for anything else — a browser API with no Go reach, like audio after a gesture —
 is a waiver in the project's README, not this pattern.
@@ -96,8 +98,7 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    `Origin` naming the host. The session cookie is `SameSite=Lax`, so without the check
    the socket still opens for any other origin the cookie reaches — a sibling
    subdomain — or any page in a browser that ignores `SameSite`. An authentication guard
-   that runs first may refuse with 401 instead; what matters is that no refused request
-   is upgraded.
+   may refuse first with 401; no refused request is upgraded.
 6. **Everything that creates or changes state is a POST form first — tier 1.** An
    identity, a room, a session, any record that outlives the socket, is made or changed
    by a plain form; the socket does neither. It acts only under the credential the
@@ -109,13 +110,14 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    `context.Background()`), where a deleted session comes back empty. Never
    `context.WithoutCancel(r.Context())`: it keeps the handshake's session data, and
    `Load` returns that copy, as `Get` on the handshake's context does, always alive. It
-   closes with 1008 once the credential or its user is gone — a logout, a revoking reset,
-   a revoked token, a deleted account ([go-data-deletion.md](go-data-deletion.md)) — and
-   with 1011, no reason text, on a store error or a missed deadline; while a check is
-   overdue the socket acts on nothing. Ten seconds bounds how long a revoked credential
-   keeps acting, at one store read per socket each time; a check per message as well is
-   optional. The socket does not refresh the session's idle deadline, since only an HTTP
-   request commits, so under `IdleTimeout` a socket-only user is closed at the idle
+   closes with 1008 once the credential, its user, or its access is gone — a logout, a
+   revoking reset, a revoked token, a deleted account
+   ([go-data-deletion.md](go-data-deletion.md)), a lost membership — and with 1011, no
+   reason text, on a store error or a missed deadline; while a due check is unanswered
+   the socket acts on nothing. Ten seconds bounds how long a revoked credential keeps
+   acting, at one store read per socket; a check per message as well is optional. The
+   socket does not refresh the session's idle deadline, since only an HTTP request
+   commits, so under `IdleTimeout` a socket-only user is closed at the idle
    window — intended unless the project says otherwise. A cookie the server keeps no
    record of, that names no user, and that reaches no record the server keeps has nothing
    to revoke: it is re-checked only for an expiry it carries, if any. Any other is
@@ -124,11 +126,11 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
 7. **The socket is capped like a body.** A message size (1 KiB is plenty for input) —
    tier 1, since after `Hijack` no `MaxBytesReader` guards the connection — counts a
    whole message, its fragments counted together, each checked by its declared length
-   before its payload is read (RFC 6455 section 5.4); a control frame over 125 bytes fails
-   the connection (section 5.5). The messages a second and the queue toward a slow
+   before its payload is read (RFC 6455 section 10.4); a control frame over 125 bytes
+   fails the connection (section 5.5). The frames a second and the queue toward a slow
    client are capped too. Past a cap the server closes the socket, it does not buffer,
-   and the code says which cap: 1009 too big, 1008 too many or malformed, 1013 a reader
-   too slow, which a client may retry.
+   and the code says which cap: 1009 too big, 1008 too many, 1002 malformed, 1013 a
+   reader too slow, which a client may retry.
 8. **Hijack, return, then own the deadlines.** The handler returns right after the
    handshake — tier 1 — and the socket runs on a goroutine the app tracks. Served inside
    its handler, the socket lets session middleware re-commit the session it opened
@@ -144,11 +146,11 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    then waits for its goroutines ([go-background-work.md](go-background-work.md)) —
    before the session store and the database close, since rule 6's re-check reads them.
 
-The standard library has no WebSocket. Writing the server half by hand — RFC 6455's
-framing, binary messages only — is what the first projects did. A dependency is the other
-road, justified in the README like any outside [stack/go.md](../stack/go.md)'s list.
-The socket carries the module's bytes, never HTML, so it is not the htmx WebSocket
-extension [htmx-live-updates.md](htmx-live-updates.md) refuses.
+The standard library has no WebSocket: write the server half by hand (RFC 6455's
+framing, binary messages only), or justify a dependency in the README like any outside
+[stack/go.md](../stack/go.md)'s list. The socket carries the module's bytes, never
+HTML, so it is not the htmx WebSocket extension
+[htmx-live-updates.md](htmx-live-updates.md) refuses.
 
 ## Anti-patterns
 
@@ -198,6 +200,10 @@ extension [htmx-live-updates.md](htmx-live-updates.md) refuses.
   template left `go vet` vetting `.` with exit 0, where the `l=$$(…) &&` form exited 2.
   GNU Make 3.81. The `{{with .Module}}` list drops a third-party package that the
   `{{if not .Standard}}` list keeps, Go 1.27.3
-- htmx 4.0.0 keeps only the `<title>` of a swapped answer's `<head>`, marks the history
-  entry of the page it starts on, and on Back or Forward to a marked entry fetches the
-  page and swaps the body: the vendored `htmx.min.js`, read, not run in a browser
+- htmx 4.0.0 keeps only the `<title>` of a swapped answer's `<head>`, and on Back or
+  Forward to an entry it marked calls `location.reload()` when `history` is `"reload"`
+  (otherwise it fetches the page and swaps the body): the vendored `htmx.min.js`, read,
+  not run in a browser
+- The `js/wasm` staticcheck line flags an `//export` or `//go:wasmexport` function
+  U1000, and `//lint:ignore U1000` above it clears that: staticcheck 2026.2.2, TinyGo
+  0.44.0

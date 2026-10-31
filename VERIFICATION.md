@@ -347,6 +347,28 @@ be synced, the tag waits.
   the layout's shared links out take a per-page hook; the 1.9 MB fact names `go 1.27`. `make` exits 0: `wasm-client.md` 3,109 → 3,604 of 3,800,
   floor web-application 23,854 → 23,908, heads unchanged, `checklists/web-application.md`
   5,620 → 5,673, its WebAssembly section 446 → 498 of 600. No pass has read the fixes.
+- **2026-10-31 — review pass 5.** Reviewers found 12 distinct defects in the baseline,
+  all fixed, and 3 in the reference, fixed there separately. Links out of the program
+  page need no `hx-boost="false"`: vendored htmx 4.0.0's restore calls
+  `location.reload()` when `history` is `"reload"`, which the canonical `htmx-config`
+  sets, so the per-page hook is gone (`wasm-client.md`, the box, the `hx-boost` row).
+  Rule 6 closes on lost access too (a lost membership) and acts on nothing while a due
+  check is unanswered; the box and README say "re-resolved", as a stateless cookie is
+  not re-read. Rule 7 cites RFC 6455 section 10.4, caps frames a second, and closes a
+  malformed socket with 1002; the size box names the 125-byte control cap. The server
+  test holds the `.build` to the Makefile's version, flags and tags; `deps_test.go`'s
+  browser list runs under `js/wasm` and those tags; an exported TinyGo function carries
+  `//lint:ignore U1000`. `stack/makefile.md` rule 1 exempts TinyGo's tags from the
+  custom-tag vet (host `go vet -tags tinygo ./...` exits 1 on `syscall/js`), and the
+  three checklists with it; an added `go fix -diff` line brings its `go fix` into
+  `fmt`; rule 5's variable is for a value two places must agree on. Executed in
+  scratchpad `fix5/m`, Go 1.27.3, TinyGo 0.44.0, staticcheck 2026.2.2: U1000 on
+  `//export` and `//go:wasmexport` until the ignore, the module still exporting both;
+  the `js/wasm` `go fix -diff` exits 1 where the host's exits 0, and `go fix` clears it;
+  the tagged `js/wasm` `go list -deps` reaches `syscall/js`, the untagged one does not.
+  `make` exits 0: `wasm-client.md` 3,604 → 3,656 of 3,800, `stack/makefile.md` 3,110 →
+  3,171, floor web-application 23,908 → 23,949, heads unchanged, the WebAssembly section
+  498 → 504 of 600. No pass has read the fixes.
 
 ## Why the CSP is what it is
 

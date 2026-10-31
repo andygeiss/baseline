@@ -325,7 +325,7 @@ tier 1.
 
 - [ ] Under `web/static/js/`: htmx, an unedited `wasm_exec.js`, one loader, nothing else
 - [ ] Both scripts load deferred in `<head>`, on the module's page only
-- [ ] The links into and out of that page carry `hx-boost="false"`
+- [ ] The links into that page carry `hx-boost="false"`
 - [ ] The module stops, socket and all, once its canvas leaves the document
 - [ ] CSP adds `script-src 'self' 'wasm-unsafe-eval'` and nothing more — `patterns/security-headers.md`
 - [ ] `make wasm` names `VERSIONS.md`'s TinyGo version and refuses another
@@ -335,10 +335,10 @@ tier 1.
 - [ ] `deps_test.go` keeps `net/http`, `os/signal`, `golang.org/x/sync` out of the browser packages
 - **The socket, `GET /ws`:**
   - [ ] The handshake refuses a missing `Origin` and one whose host is not the request's
-  - [ ] It creates or changes no durable state; it acts only under the handshake's credential, re-read from the store at least every 10 seconds under a deadline, in a context not derived from the request's, and closes with 1008 once it or its user is gone, 1011 on a store error or missed deadline
+  - [ ] It creates or changes no durable state; it acts only under the handshake's credential, re-resolved at least every 10 seconds under a deadline, in a context not derived from the request's, and closes with 1008 once it, its user, or its access is gone, 1011 on a store error or missed deadline
   - [ ] The handler returns after the handshake, so session middleware cannot save a revoked session again
   - [ ] The socket runs on a goroutine the app tracks
-  - [ ] Message size is capped across continuation frames before a payload is read (1009 past it)
+  - [ ] Message size is capped across continuation frames, a control frame at 125 bytes, before a payload is read (1009 past it)
   - [ ] Messages a second and the outbound queue are capped
   - [ ] Read and write deadlines set after `Hijack`, before the first read
   - [ ] Shutdown closes every socket with 1001, then waits, before the session store and database close
@@ -450,7 +450,7 @@ gate.
 - [ ] No `export-ignore` in `.gitattributes`
 - **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
   - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push (js/wasm is not `./...`: `check`'s line over `patterns/wasm-client.md` rule 3's package list is this box)
-- **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`, but not `ignore` or `unix`):**
+- **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`, but not `ignore`, `unix`, or TinyGo's, which `patterns/wasm-client.md` rule 3 vets):**
   - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set
 - **If a recipe runs a tool whose output is committed or flashed (generated code, a module) — not `go build`, not a formatter:**
   - [ ] It names an exact version, never `@latest`
