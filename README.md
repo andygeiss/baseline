@@ -449,7 +449,8 @@ Three budgets cap a path somebody walks:
   that the ceiling is further off.
 - **The head stays within 4,500 tokens** — `SKILL.md`, `VERSIONS.md`, and the checklist
   up to the end of its *Every …* section. Every change pays it before the sections it
-  fires, so it is the number paid most often, and nothing a new pattern adds lands in it.
+  fires, so it is the number paid most often, and a new pattern lands in it only through
+  a `VERSIONS.md` row or an *Every* box.
 - **Reach is reported, not budgeted.** Every document a project type can get to is a
   ceiling no build ever pays, because no project fires every trigger. `make tokens` ranks
   the heaviest documents on each reach path and marks whether every project of that type

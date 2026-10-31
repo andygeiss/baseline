@@ -80,9 +80,9 @@ runners-up under *Avoid*.
   - [ ] It is read from a file named by `-token-file`/`$MYTOOL_TOKEN_FILE`
   - [ ] `$MYTOOL_TOKEN` is documented as the leaky fallback
   - [ ] It is **never** taken from a flag value
+  - [ ] Handed to a program the tool starts, it never travels on that program's command line — `patterns/go-child-process.md`
 - **If the tool reads no environment variable:**
   - [ ] `-h` names every input — it is the whole contract
-  - [ ] Handed to a program the tool starts, it never travels on that program's command line — `patterns/go-child-process.md`
 - **If the repo has a `.env`** — `stack/makefile.md` rule 6:
   - [ ] It is gitignored
   - [ ] No gate reads it — `check`, `ci`, `test`
@@ -217,7 +217,7 @@ gate.
   - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push — for `//go:build unix`, each Unix the tool claims
 - **If a file carries a build tag that is not an OS (`//go:build <tag>`):**
   - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set
-- **If a recipe runs a tool whose output is committed or shipped — a generator, a compiler:**
+- **If a recipe runs a tool whose output is an artifact — generated code, a binary, a module (a formatter like `goimports` is not one):**
   - [ ] It names an exact version, never `@latest`
 
 ## Tagging and publishing a release

@@ -86,10 +86,11 @@ test:
    added to `check` is in `ci` by construction. No `export-ignore` in
    `.gitattributes`: `git archive` honours it and the go command does not, so
    `make ci` would test a tree `go install` never builds.
-   **A project MAY add a gate line to `check`, never take one away.** An added
-   line checks what the canonical eight cannot see, and goes after them: a
-   second target's vet (`GOOS=js GOARCH=wasm go vet …`), or a size limit on a
-   committed artifact ([patterns/wasm-client.md](../patterns/wasm-client.md)).
+   **A project MAY add a gate line to `check`, never take one away**, except as
+   rule 5's staticcheck adjustment allows. An added line checks what the
+   canonical eight cannot see, and goes after them: a second target's vet
+   (`GOOS=js GOARCH=wasm go vet …`), or a size limit on a committed artifact
+   ([patterns/wasm-client.md](../patterns/wasm-client.md)).
    **A file behind a build tag MUST be vetted under that tag**, one
    `go vet -tags <tag> ./...` line per tag set: the canonical lines read the
    default build, so a tagged file can stop compiling with every gate green.
@@ -122,7 +123,9 @@ test:
    transpiler whose output is committed or flashed MUST name its version, in a
    variable (rule 5), so a new release cannot change the artifact without a
    commit. A tool with a [VERSIONS.md](../VERSIONS.md) row, like TinyGo, takes
-   that row's version; the variable only makes it checkable.
+   that row's version; the variable only makes it checkable. A formatter
+   (`goimports`, `go fix`) is outside this rule: its output is source,
+   reviewed in the diff.
 5. **Adjustments** — exactly these, nothing else:
    - *Single-binary CLI* (`MAIN = .`): a build of `.` drops `./<tool>` into the
      repository root — the checklist's `go build .`, and `check`'s

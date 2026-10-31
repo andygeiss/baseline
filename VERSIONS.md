@@ -31,7 +31,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 | CSS | Baseline "Widely available" | rolling | No preprocessor, no framework. Allowed feature set defined in [stack/css.md](stack/css.md). |
 | `design.md` spec (`DESIGN.md`) | **alpha** | rolling | Google Labs format for the project design file — see [patterns/design-system.md](patterns/design-system.md). Sanctioned alpha exception: a document format, not software; worst case it reads as plain markdown. |
 | HTML | Living Standard | rolling | Semantic HTML5, validated. |
-| JavaScript | ❌ none | — | No hand-written JS, no bundlers, no npm. htmx is the only script tag, but for a [WebAssembly client](patterns/wasm-client.md)'s two. |
+| JavaScript | ❌ none | — | No hand-written JS but a [WebAssembly client](patterns/wasm-client.md)'s loader; no bundlers, no npm. htmx is the only script tag, but for that client's two. |
 
 ## Version policy
 
@@ -62,8 +62,8 @@ on 2026-10-31, when TinyGo got its row.
 - SQLite: https://proxy.golang.org/modernc.org/sqlite/@latest
 - scs: https://github.com/alexedwards/scs/tags
 - TinyGo: https://github.com/tinygo-org/tinygo/releases — the Go range it builds is
-  `minorMin`/`minorMax` in `builder/config.go` at the tag (from 0.44.0,
-  `compileopts/config.go`), not the notes
+  `MinimumGoMinorVersion`/`MaximumGoMinorVersion` in `compileopts/config.go` at the
+  tag (through 0.43.0, `minorMin`/`minorMax` in `builder/config.go`), not the notes
 - CSS Baseline: https://web.dev/baseline
 - `design.md` spec: https://github.com/google-labs-code/design.md — its README is where
   the status lives, not the releases page: the tagged release number is the CLI's, and

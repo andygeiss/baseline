@@ -2,9 +2,10 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-10-31
 
-**Two rules here are tier 1 and never waived:** the socket's handshake refuses any
-`Origin` that is not the page's own host, and the policy gains `'wasm-unsafe-eval'` and
-nothing else ([security-headers.md](security-headers.md) owns it).
+**Three rules here are tier 1 and never waived:** the socket's handshake refuses any
+`Origin` that is not the page's own host, the socket acts only under what the cookie
+already holds (rule 6), and the policy gains `'wasm-unsafe-eval'` and nothing else
+([security-headers.md](security-headers.md) owns it).
 
 A web application whose page is a program — a game, a simulation, a canvas redrawn every
 frame — written in Go, compiled to WebAssembly, and talking to the server over one
@@ -34,7 +35,10 @@ with scripts off.
    package the module is made of, because the host vet never sees a `js && wasm` file,
    and a size limit per module, its number in a variable `make wasm` tests too.
    `staticcheck` and `go fix -diff` are as blind to those files; a project may give each
-   a `js/wasm` line of its own, and nothing else checks them.
+   a `js/wasm` line of its own, and nothing else checks them. The lines are
+   `GOOS=js GOARCH=wasm go fix -diff ./...` and `go run -exec 'env GOOS=js GOARCH=wasm'
+   honnef.co/go/tools/cmd/staticcheck@latest ./...`: with `GOOS` in front, `go run`
+   builds staticcheck itself for the browser, and it cannot start.
 4. **The browser packages stay small.** A `deps_test.go`
    ([go-project-layout.md](go-project-layout.md) rule 3) keeps `net/http`, `os/signal`,
    and `golang.org/x/sync` out of every package the module compiles. Code both sides
@@ -66,24 +70,29 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
 
 5. **The handshake checks `Origin` itself — tier 1.** `http.CrossOriginProtection`
    always lets a GET through, so it never sees this request. Refuse with 403 an `Origin`
-   whose host is not `r.Host`, or no `Origin` at all. Without the check any site can open
-   the socket with the player's cookie. An authentication guard that runs first may
-   refuse with 401 instead; what matters is that no refused request is upgraded.
-6. **Everything that creates state is a POST form first.** An identity, a room, a session,
-   any record that outlives the socket, is made by a plain form; the socket acts only
-   under what the cookie already holds. What dies with the connection — a position, who
-   is looking — the socket may keep.
+   whose host is not `r.Host`, or no `Origin` at all. The session cookie is
+   `SameSite=Lax`, so without the check the socket still opens for any other origin the
+   cookie reaches — a sibling subdomain — or any page in a browser that ignores
+   `SameSite`. An authentication guard that runs first may refuse with 401 instead; what
+   matters is that no refused request is upgraded.
+6. **Everything that creates state is a POST form first** — tier 1 where it says what
+   the socket may act under. An identity, a room, a session, any record that outlives
+   the socket, is made by a plain form; the socket acts only under what the cookie
+   already holds. What dies with the connection — a position, who is looking — the
+   socket may keep.
 7. **The socket is capped like a body.** A message size (1 KiB is plenty for input), the
    messages a second, and the queue toward a slow client. Past a cap the server closes
    the socket, it does not buffer, and the code says which cap: 1009 too big, 1008 too
    many or malformed, 1013 a reader too slow, which a client may retry.
-8. **Hijack, then own the deadlines.** `http.ResponseController` reaches `Hijack`
-   through every middleware wrapper that has an `Unwrap` method; a wrapper without one
-   fails it with `ErrNotSupported`. The server's timeouts stay on the connection after
-   `Hijack`; clear them and set the socket's own. `srv.Shutdown` does not track a hijacked
-   connection, so shutdown closes every socket with 1001 and then waits for its goroutines
-   ([go-background-work.md](go-background-work.md)) — before the session store and the
-   database close, since session middleware still runs when the handler returns.
+8. **Hijack, then own the deadlines.** `http.ResponseController` calls a wrapper's own
+   `Hijack` method if it has one, else follows its `Unwrap` (scs's has only that); a
+   wrapper with neither fails with `ErrNotSupported`. `Hijack` leaves the connection
+   with no deadline (Go clears the server's; the `Hijacker` doc allows that it may not),
+   so set the socket's own read and write deadlines before the first read. `srv.Shutdown`
+   does not track a hijacked connection, so shutdown closes every socket with 1001 and
+   then waits for its goroutines ([go-background-work.md](go-background-work.md)) —
+   before the session store and the database close, since session middleware still runs
+   when the handler returns.
 
 The standard library has no WebSocket. Writing the server half by hand — RFC 6455's
 framing, binary messages only — is what the first projects did. A dependency is the other
@@ -101,9 +110,12 @@ extension [htmx-live-updates.md](htmx-live-updates.md) refuses.
 
 ## Facts verified (2026-10-31)
 
-- `ResponseController` reaches `Hijack` through a wrapper only by its `Unwrap` method, and
-  returns an error matching `ErrNotSupported` otherwise: `go doc
-  net/http.NewResponseController`, Go 1.27.3
+- `ResponseController.Hijack` calls the writer's `Hijack` if it is a `Hijacker`, else
+  follows `Unwrap`, and returns an error matching `ErrNotSupported` for a writer with
+  neither: `net/http/responsecontroller.go`, Go 1.27.3
+- The server's `Hijack` clears the connection's deadlines (`rwc.SetDeadline(time.Time{})`
+  in `(*conn).hijackLocked`, `net/http/server.go` line 326); the `Hijacker` doc says they
+  may remain: Go 1.27.3
 - Without `'wasm-unsafe-eval'` (or `'unsafe-eval'`) in `script-src`, a page under a CSP
   cannot compile WebAssembly; `'unsafe-eval'` also allows `eval`:
   https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src
@@ -111,4 +123,8 @@ extension [htmx-live-updates.md](htmx-live-updates.md) refuses.
   net/http.CrossOriginProtection`, Go 1.27.3
 - The browser sends `Origin` on the handshake and the server is to check it:
   https://www.rfc-editor.org/rfc/rfc6455#section-10.2
-- `GOOS=js GOARCH=wasm go build` of a `println` main: 1,892,384 bytes, Go 1.27.3
+- `GOOS=js GOARCH=wasm go build -trimpath` of a `println` main in `module x`: 1,889,724
+  bytes, about 1.9 MB; without `-trimpath` the size moves with the build directory, Go
+  1.27.3
+- `GOOS=js GOARCH=wasm go run …staticcheck@latest` fails with `exec format error`; the
+  `-exec 'env GOOS=js GOARCH=wasm'` form reports findings in a `js && wasm` file, Go 1.27.3

@@ -22,7 +22,8 @@ asking.
 
 1. **Boring technology.** Standard library first. Every dependency must justify itself.
 2. **No JavaScript.** Interactivity comes from htmx and modern CSS. If a feature seems to
-   require custom JS, redesign the feature ([stack/html.md](stack/html.md)).
+   require custom JS, redesign the feature ([stack/html.md](stack/html.md); a canvas
+   redrawn every frame is [patterns/wasm-client.md](patterns/wasm-client.md)).
 3. **Server is the source of truth.** State lives on the server; the client renders
    hypermedia.
 4. **Simplicity over cleverness.** Code is read far more often than written.

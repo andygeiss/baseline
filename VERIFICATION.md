@@ -219,7 +219,9 @@ be synced, the tag waits.
   The row pins **0.42.0** (2026-09-01): the newest release that has built a module here,
   in game and game-lab. 0.44.0 (2026-10-28) is upstream's latest and is held — it could
   not be installed on this machine, so it has built nothing. Both build Go 1.25 through
-  1.27 (`minorMin`/`minorMax` at each tag), so the Go row's 1.27.3 sits inside the range.
+  1.27 (`minorMin`/`minorMax` in `builder/config.go` at 0.42.0,
+  `MinimumGoMinorVersion`/`MaximumGoMinorVersion` in `compileopts/config.go` at
+  0.44.0), so the Go row's 1.27.3 sits inside the range.
   `wasm-client.md` rule 1 and `stack/makefile.md` rule 4 now point at the row instead of
   a per-project pin; the version policy gains a TinyGo line and ties a new Go minor to
   it; the checklist box asks for the row's version; the JavaScript row admits the two
@@ -246,6 +248,29 @@ be synced, the tag waits.
   `go fix` are blind to `js && wasm` files; `.build`/`.sum` are served; a second
   optimizer is pinned like any tool; the loader *may* publish; the CSP token is
   app-wide. **A tier-1 document changed again.** No pass has read any of it.
+- **2026-10-31 — review pass 1.** Three reviewers (contradictions, executed mechanics,
+  facts and tier 1) found 16 distinct defects on `promote-deviations`, all fixed. A
+  cli-tool box had pushed the child-process secret box out of *Any secret*; it is back.
+  The WebAssembly exception now reaches every place stating the absolute rule — the
+  *Every* boxes, `project-types/web-application.md`, `stack/htmx.md` (script and GET),
+  `go-project-layout.md`, `go-http-server.md`, `SKILL.md`, the JavaScript row — and
+  README no longer says a new pattern never lands in the head. `stack/makefile.md` rule 1
+  admits rule 5's staticcheck waiver; rule 4 and its three checklist boxes cover
+  artifact-producing tools, not formatters, so `fmt`'s `goimports@latest` stands. The
+  checklist head lists seven partly-tier-1 sections. Rule 6's cookie clause is tier 1,
+  and its box names durable state; the Origin box refuses a missing `Origin`. Rule 8 was
+  wrong twice, read in Go 1.27.3's source: `ResponseController` calls a wrapper's own
+  `Hijack` before its `Unwrap` (scs v2.9.0's writer has only `Unwrap`), and `Hijack`
+  clears the server's deadlines (`server.go` line 326). Rule 3 names the working
+  `js/wasm` `go fix` and staticcheck lines, run here; `GOOS=js go run …staticcheck` fails
+  with `exec format error`. Rule 5's reason is the `SameSite=Lax` cookie reaching a
+  sibling subdomain. The TinyGo source names are `MinimumGoMinorVersion`/
+  `MaximumGoMinorVersion` from 0.44.0; the CSP row says `wss:`; the `Permissions-Policy`
+  reason no longer claims no script; the size fact is 1,889,724 bytes with `-trimpath`;
+  the CSP test matches the banned keywords with both quotes. `make` exits 0: heads
+  cli-tool 4,016 → 4,058, library 3,875 → 3,917, web-application 3,918 → 3,994; floors
+  12,550 → 12,602, 12,784 → 12,837, 23,127 → 23,357; `checklists/web-application.md`
+  5,351 → 5,407. No pass has read the fixes.
 
 ## Why the CSP is what it is
 
@@ -265,15 +290,17 @@ Every feature in the baseline, and what it needs:
 | Web app manifest | nothing | `manifest-src` falls back to `default-src`, and the manifest is same-origin ([patterns/pwa.md](patterns/pwa.md)). |
 | View transitions, CSS motion | nothing | Pure CSS ([patterns/css-motion.md](patterns/css-motion.md)). |
 | Forms | `form-action 'self'` | Already in the policy. |
-| WebAssembly client | `script-src 'self' 'wasm-unsafe-eval'` | Only in an app carrying [patterns/wasm-client.md](patterns/wasm-client.md). Without it no browser compiles the module; `'unsafe-eval'` would also work and would also allow `eval`, so it stays banned. Its socket needs nothing: `ws:` to the page's own host falls under `default-src 'self'`. game and game-lab shipped this token as a conformance note against the gap before it was here. |
+| WebAssembly client | `script-src 'self' 'wasm-unsafe-eval'` | Only in an app carrying [patterns/wasm-client.md](patterns/wasm-client.md). Without it no browser compiles the module; `'unsafe-eval'` would also work and would also allow `eval`, so it stays banned. Its socket needs nothing: `wss:` (or `ws:` on a plain-HTTP dev page) to the page's own host and port falls under `default-src 'self'`. game and game-lab shipped this token as a conformance note against the gap before it was here. |
 | Uploaded files | nothing | A file is served by the app's own handler, so `img-src 'self'` already covers a picture ([patterns/go-file-uploads.md](patterns/go-file-uploads.md)). What keeps that safe is not the policy but three rules in that document: the type comes from sniffing the bytes, `nosniff` makes it binding, and no link to the file is boosted, because htmx parses a boosted answer as HTML whatever its type and ignores both of the other two. A project that ever serves user files from a second origin needs a row here and a directive to match. |
 
 Why each absent header stays absent:
 
 - **`X-Frame-Options`** — superseded by `frame-ancestors`, honored by every browser in
   the support window. Two headers saying one thing is one more to keep in sync.
-- **`Permissions-Policy`** — it disables browser APIs only JavaScript can call, and this
-  baseline ships none ([stack/html.md](stack/html.md)).
+- **`Permissions-Policy`** — it disables browser APIs only a script can call, and the only
+  script that reaches them is the app's own (htmx, or a WebAssembly client's module and
+  loader), so a policy would restrict only the app against itself; an injected script is
+  already refused by the CSP.
 - **`object-src 'none'`** — `default-src 'self'` already denies cross-origin plugin
   content, and the app embeds none.
 - **CSP reporting (`report-to`)** — needs an endpoint and somebody to read it. Add it

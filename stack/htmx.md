@@ -6,7 +6,8 @@ htmx 4.0.0 ([VERSIONS.md](../VERSIONS.md))
 **Rule 8, Security, is tier 1 and never waived:** the policy, CSRF, escaping, and *Boost
 only pages*. Each one stops a stranger's markup or request from acting as the reader.
 
-htmx is the *only* script on the page. It turns HTML into the application protocol:
+htmx is the *only* script on the page, but for a WebAssembly client's two
+([patterns/wasm-client.md](../patterns/wasm-client.md)). It turns HTML into the application protocol:
 any element can issue HTTP requests, the server answers with HTML, htmx swaps it in.
 
 ## Setup
@@ -67,7 +68,8 @@ title, and pushes a URL wherever the element would — boosted, or carrying `hx-
 1. **Progressive enhancement is mandatory.** Every htmx interaction MUST degrade to a
    working plain `<a>`/`<form>`. Build the no-htmx version first, then enhance.
 2. **Server returns HTML, never JSON.** There is no client-side templating.
-3. **GET never mutates; every mutation is a POST.** htmx *can* send PUT/DELETE, but
+3. **GET never mutates; every mutation is a POST** — but a WebAssembly client's socket
+   ([patterns/wasm-client.md](../patterns/wasm-client.md)). htmx *can* send PUT/DELETE, but
    plain HTML forms cannot — a PUT/DELETE route has no no-JS fallback (405). Name the
    action in the route instead: `"POST /items/{id}/delete"`.
 4. **Fragments are template blocks,** not separate files — see

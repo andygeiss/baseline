@@ -8,22 +8,22 @@ you call the work complete. Paths are from the repository root.
 
 Every unchecked box is either fixed or waived on the record — the format is in `README.md`
 *Which rules can be waived*. **Tier 1 is decided by what a rule protects, not by which
-section it landed in**, so a wholly tier-1 section says so in its heading. Six sections
+section it landed in**, so a wholly tier-1 section says so in its heading. Seven sections
 are only partly tier 1: `Config.LogValue` and the three `.env` boxes under *Reading a
 flag…*; the pragmas, the path box, both pools, and parameterized SQL under *Storing
 anything*; the zero-CSP-violations check under *Adding an icon*; every box under *Reading
 or writing a row somebody owns* except the one naming the shared rows; the base-URL and
 the header box under *Sending an email*; every box under *Deleting a person* except the
-one naming where each table's answer is written. No waiver for any of those; there is a
-fix.
+one naming where each table's answer is written; the CSP, Origin, and cookie boxes under
+*Shipping a WebAssembly client*. No waiver for any of those; there is a fix.
 
 ## Every web application
 
 - [ ] `go.mod` says `go 1.27`, matching `VERSIONS.md`, and has no `toolchain` line
 - [ ] The vendored htmx is 4.0.0, matching `VERSIONS.md`
 - [ ] No dependency outside `stack/go.md`'s approved list, or the README justifies it
-- [ ] Zero hand-written JavaScript
-- [ ] htmx is the only `<script>`
+- [ ] Zero hand-written JavaScript, but `patterns/wasm-client.md`'s loader
+- [ ] htmx is the only `<script>`, but that pattern's two
 - [ ] No service worker registered
 - [ ] No CSS, font, icon, or script loaded from a third-party origin
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build ./cmd/server`
@@ -319,7 +319,7 @@ not a trigger.
 ## Shipping a WebAssembly client — a game, a canvas redrawn every frame
 
 `patterns/wasm-client.md` — the module, its two scripts, and its socket. Choosing it is a
-shape decision. The CSP and Origin boxes are tier 1.
+shape decision. The CSP, Origin, and cookie boxes are tier 1.
 
 - [ ] Under `web/static/js/`: htmx, an unedited `wasm_exec.js`, one loader, nothing else
 - [ ] CSP adds `script-src 'self' 'wasm-unsafe-eval'` and nothing more — `patterns/security-headers.md`
@@ -329,8 +329,8 @@ shape decision. The CSP and Origin boxes are tier 1.
 - [ ] `check` holds each module to its size limit
 - [ ] `deps_test.go` keeps `net/http`, `os/signal`, `golang.org/x/sync` out of the browser packages
 - **The socket, `GET /ws`:**
-  - [ ] The handshake refuses an `Origin` whose host is not the request's
-  - [ ] It acts only for the seat or session the cookie already holds
+  - [ ] The handshake refuses a missing `Origin` and one whose host is not the request's
+  - [ ] It creates no durable state; it acts only under what the cookie already holds
   - [ ] Message size, messages a second, and the outbound queue are capped
   - [ ] Shutdown closes every socket with 1001, then waits
 
@@ -443,7 +443,7 @@ gate.
   - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push
 - **If a file carries a build tag that is not an OS (`//go:build <tag>`):**
   - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set
-- **If a recipe runs a tool whose output is committed or shipped — a generator, a compiler:**
+- **If a recipe runs a tool whose output is an artifact — generated code, a binary, a module (a formatter like `goimports` is not one):**
   - [ ] It names an exact version, never `@latest`
 
 ## Configuring the build, or serving a static asset

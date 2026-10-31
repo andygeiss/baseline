@@ -11,11 +11,11 @@ with a UI — from a todo list to a SaaS dashboard.
 |---|---|---|
 | Backend | Go (stdlib `net/http`) | MUST. No web frameworks (no Gin, Echo, Fiber, Chi). |
 | Templating | `html/template` | MUST. Embedded via `embed.FS`. |
-| Interactivity | htmx 4.x | MUST for dynamic behavior. Self-hosted, single script tag. |
+| Interactivity | htmx 4.x | MUST for dynamic behavior. Self-hosted, single script tag (but [patterns/wasm-client.md](../patterns/wasm-client.md)'s two). |
 | Styling | Pure CSS | MUST. No preprocessor, no Tailwind, no framework. |
 | Icons & fonts | CSS mask icons; system font stack by default | MUST. No icon font, no icon package, no third-party origin. A brand web font is self-hosted — see [patterns/css-icons.md](../patterns/css-icons.md) and [patterns/css-typography.md](../patterns/css-typography.md). |
 | Markup | Semantic HTML | MUST. Forms and links are the API of the UI. |
-| Client-side JS | — | MUST NOT write any. htmx is the only script. |
+| Client-side JS | — | MUST NOT write any, but [patterns/wasm-client.md](../patterns/wasm-client.md)'s loader. htmx is the only script, but that pattern's two. |
 | Install (PWA) | Web app manifest + icons | MAY, per project. MUST NOT add a service worker — see [patterns/pwa.md](../patterns/pwa.md). |
 | Persistence | SQLite (`modernc.org/sqlite`) first | SHOULD. Postgres (`pgx`) only when concurrency/scale demands it. |
 | Sessions | `alexedwards/scs/v2`, server-side in SQLite | MUST when there are users. Cookie carries a random token only. |

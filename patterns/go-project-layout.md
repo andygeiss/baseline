@@ -33,7 +33,7 @@ project/
     ├── static/
     │   ├── css/app.css
     │   ├── favicon.svg
-    │   └── js/htmx.min.js   ← vendored, the only JS
+    │   └── js/htmx.min.js   ← vendored, the only JS (but wasm-client.md's two)
     └── templates/           ← html/template files (see htmx-server-rendering.md)
         ├── <feature>.html
         └── layout.html

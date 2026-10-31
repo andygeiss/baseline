@@ -36,7 +36,8 @@ func (a *App) Routes() http.Handler {
 ```
 
 - Method in the pattern, always. Path values via `r.PathValue("id")`.
-- Mutations are POST — never GET, and not PUT/DELETE either: plain forms can't send
+- Mutations are POST — never GET (but a WebAssembly client's socket,
+  [wasm-client.md](wasm-client.md)), and not PUT/DELETE either: plain forms can't send
   those, so they'd break the no-JS fallback. Name the action in the path
   (`"POST /items/{id}/delete"`) — see [stack/htmx.md](../stack/htmx.md).
 - Wildcard `{$}` for exact root; avoid trailing-slash subtree matches unless serving files.

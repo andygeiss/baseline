@@ -58,8 +58,9 @@ the policy exists, and no baseline pattern needs either.
 `"script-src 'self' 'wasm-unsafe-eval'; "` after `default-src`. Browsers refuse to
 compile WebAssembly without it, and it allows nothing for JavaScript — `eval` stays
 blocked ([wasm-client.md](wasm-client.md)). It goes into the one `csp` constant, so every
-page of that app carries it, and the
-test that pins the policy also pins that neither banned keyword appears.
+page of that app carries it, and the test that pins the policy also pins that neither
+banned keyword appears, matched with both quotes: `'wasm-unsafe-eval'` contains
+`unsafe-eval'`.
 
 **Every feature in this baseline is already covered.** htmx, its indicators, self-hosted
 fonts, the web app manifest, view transitions, and forms all need nothing beyond the five
@@ -84,8 +85,8 @@ feature that loads something new, and add a row when the policy changes.
 ## What is deliberately not here
 
 **MUST NOT add `X-Frame-Options`, `Permissions-Policy`, `object-src`, or CSP reporting.**
-Each is superseded, unreachable without JavaScript, already covered by `default-src`, or
-needs an endpoint nobody reads. The reasoning per header is in
+Each is superseded, reached only by the app's own script, already covered by
+`default-src`, or needs an endpoint nobody reads. The reasoning per header is in
 [VERIFICATION.md](../VERIFICATION.md) *Why the CSP is what it is*.
 
 **Cookie attributes are not here either.** `Secure`, `HttpOnly`, and `SameSite=Lax` are
