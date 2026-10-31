@@ -240,8 +240,9 @@ what it may do and when it closes. This is tier 1, as that rule is:
    it keeps the request's values, and `Load` returns the session data a context already
    holds, unchanged — the handshake's copy, alive after a logout deleted it.
 4. **A cookie the server keeps no record of**, naming no user and reaching none, has
-   nothing to revoke: its lookup checks only an expiry the cookie carries, and the access
-   check still runs. Any other cookie is re-resolved like a session.
+   nothing to revoke: its lookup checks only an expiry the cookie carries, if any, and the
+   access check runs for whatever the cookie names (a room it was issued for); a cookie
+   naming nothing has nothing to re-check. Any other cookie is re-resolved like a session.
 5. **Only an HTTP request commits the session**, so under `IdleTimeout` a user who only
    uses the socket is closed at the idle window: `Load` finds the row expired.
 

@@ -110,11 +110,13 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    ordinary HTTP request or the app's own expiry, a stored one never started by the
    socket; an expiry held in memory grants nothing, so it never hands a role on. The
    socket may give up its own user's hold in memory — a membership or host role — by a
-   message or a close, to no one. A cap on in-memory presence that grants no privilege (a
-   seat, a room's head count) is a resource limit, not an access check: the socket may
-   take or free such a seat. A row it writes under a membership names that membership in
-   its own statement ([go-authorization.md](go-authorization.md) rule 6), and a
-   membership held in memory is checked in the same step as the write, under its lock.
+   message or a close, to no one. A cap on in-memory presence is a resource limit, not an
+   access check, while holding a place in it passes no access check, makes or hands on
+   no role, and its order decides nothing a check reads (a spectator slot, a room's head
+   count; a player's seat that moves are checked against is a membership): the socket may
+   take or free such a place. A row it writes under a stored membership names it in its
+   own statement ([go-authorization.md](go-authorization.md) rule 6); under a membership
+   held in memory, the check and the write run in one step, under its lock.
    It acts only under the credential the handshake presented, with the access the latest
    check returned, re-resolved read-only at least every 10 seconds, unprompted, under a
    deadline inside the interval ([go-auth-sessions.md](go-auth-sessions.md)

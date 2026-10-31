@@ -232,7 +232,9 @@ be synced, the tag waits.
     (sha256 matching the tinygo-org/homebrew-tools formula); it rebuilt the reference's
     module in `11c10c7`, 45,191 → 51,606 bytes against a 60,000 limit, and
     `./verify.sh` exited 0. game and game-lab still name 0.42.0 in their `make wasm`;
-    their `make ci` needs no TinyGo, and each moves when it next rebuilds its module.
+    each moves when it next rebuilds its module. (Corrected in review pass 15: game-lab's
+    `check` now runs a version-checked `tinygo test`, so its `make ci` needs 0.42.0 and
+    is red where only 0.44.0 is installed; it is owed the row, not exempt from it.)
   - **Measured under GNU Make 3.81 at this commit,** closing *Not run* above: heads cli-tool 3,852 → 4,032,
     library 3,711 → 3,891, web-application 3,754 → 3,933. Floors: cli-tool 12,386 →
     12,565, library 12,620 → 12,800, web-application 22,946 → 23,132.
@@ -572,6 +574,25 @@ be synced, the tag waits.
   `go-data-deletion.md` 3,172 → 3,202, `stack/makefile.md` 3,511 → 3,559, the
   WebAssembly section 599 → 570 of 600, checklist web-application 5,836 → 5,812, floor
   web-application 24,178 → 24,154, head 4,032 → 4,034. No pass has read the fixes.
+- **2026-10-31 — review pass 15.** Six defects; the mechanics reviewer found **zero** for
+  the first time — a sixth docs-only client (a SQLite dice tower with machine tokens)
+  went green under GNU Make 3.81, also with TinyGo off `PATH` for `make ci`, its
+  re-check written from *Re-resolving a long-lived connection* alone closed correctly for
+  logout, revocation, deletion, lost membership, slow store, shutdown and idle window,
+  and headless Chrome confirmed both the `'wasm-unsafe-eval'` and boosted-form claims.
+  Fixed: pass 14's box split dropped "acts on nothing while a check is due" and the 1011
+  close, which the new auth section never carried, so a fail-open re-check passed every
+  box; the box carries both again. The capacity clause's "grants no privilege" was
+  undecidable and its example, "a seat", could be a player's seat moves are checked
+  against (a membership); it is now stated in rule 6's own terms. A membership held in
+  memory had no form go-authorization.md allowed (SQL only, never a Go comparison); both
+  documents and the box now name the in-memory case: check and write in one step, under
+  its lock. The stateless-cookie clause asked for an access check with no subject; it
+  runs for what the cookie names, and a cookie naming nothing has nothing to re-check.
+  The TinyGo 0.44.0 entry said game-lab's `make ci` needs no TinyGo; corrected in place.
+  `make` exits 0: `wasm-client.md` 3,628 → 3,672, `go-auth-sessions.md` 3,533 → 3,560,
+  `go-authorization.md` 2,209 → 2,247, checklist web-application 5,812 → 5,853, floor
+  web-application 24,154 → 24,195. No pass has read the fixes.
 
 ## Why the CSP is what it is
 

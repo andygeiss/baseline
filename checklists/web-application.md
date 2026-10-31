@@ -248,7 +248,7 @@ not a trigger.
 `patterns/go-authorization.md` — the actor in the signature, the predicate in the SQL.
 
 - [ ] Every store method touching an owned row takes the actor as a parameter
-- [ ] Ownership is a predicate in the SQL, never a comparison in Go
+- [ ] Ownership is a predicate in the SQL, never a comparison in Go (a membership held in memory: checked under its lock in the write's step)
 - [ ] The actor comes from the session, never the request
 - [ ] Somebody else's row and a row that never existed answer identically
 - [ ] No route answers 403 for a row, only for a route the actor may never use
@@ -336,7 +336,7 @@ boxes are tier 1.
 - **The socket, `GET /ws`:**
   - [ ] The handshake refuses a missing `Origin` and one whose host is not the request's
   - [ ] It makes or changes nothing that decides who passes a credential resolver or access check but its own user's in-memory hold, given up to no one
-  - [ ] It acts only under the handshake's credential with its latest check's access, re-resolved read-only at least every 10 seconds (`patterns/go-auth-sessions.md`), closing once it, its user, or its access is gone
+  - [ ] It acts only under the handshake's credential with its latest check's access, re-resolved read-only at least every 10 seconds (`patterns/go-auth-sessions.md`), acting on nothing while a check is due, closing 1008 once it, its user, or its access is gone and 1011 on a store error or missed deadline
   - [ ] The handler returns after the handshake, so session middleware cannot save a revoked session again
   - [ ] The socket runs on a goroutine the app tracks
   - [ ] Message size is capped across continuation frames, a control frame at 125 bytes, before a payload is read, the declared length read unsigned with its top bit 0 and compared with what the cap has left, never summed

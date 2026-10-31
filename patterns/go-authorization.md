@@ -62,7 +62,9 @@ The rules behind it — all MUST:
    room, names the membership the same way:
    `INSERT INTO moves (room_id, user_id, cell) SELECT room_id, user_id, ? FROM members
    WHERE room_id = ? AND user_id = ?`, where zero rows means not a member. `VALUES (?, ?,
-   ?)` names the actor and checks nothing, so a removed member's move is stored. What a
+   ?)` names the actor and checks nothing, so a removed member's move is stored. A
+   membership held in memory has no row to name: the check and the write run in one
+   step under its lock ([wasm-client.md](wasm-client.md) rule 6). What a
    delete has to reach past the row it named is [go-data-deletion.md](go-data-deletion.md).
 7. **Sentinels stay at the store boundary.** Callers see `domain.ErrNotFound`, never a
    `database/sql` error ([go-errors-logging.md](go-errors-logging.md)).
