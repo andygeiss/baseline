@@ -98,12 +98,12 @@ test:
    under that tag**, one `go vet -tags <tag> ./...` line per tag set (but not
    `ignore`, which marks generator scripts and fails `go vet -tags ignore ./...`, nor
    `unix`, which each OS's vet covers): the canonical lines read the default build, so
-   a tagged file can stop compiling with every gate green. For TinyGo's tags the line
-   runs over the packages [patterns/wasm-client.md](../patterns/wasm-client.md) rule
-   3's list leaves out, since a browser package's `syscall/js` fails the host vet:
-   `l=$$(<list>) && test -n "$$l" && o=$$(go list -e -tags $(WASM_TAGS) ./... | grep -vxF "$$l") && go vet -tags $(WASM_TAGS) $$o`.
-   A file that imports `syscall/js` carries `js && wasm` in its constraint, not
-   `tinygo` alone: a server package that imports its package would compile it here.
+   a tagged file can stop compiling with every gate green. TinyGo's tags get an ordinary
+   line, `go vet -tags $(WASM_TAGS) ./...`
+   ([patterns/wasm-client.md](../patterns/wasm-client.md) rule 3 names the variable).
+   It passes because a file that imports `syscall/js` carries `js && wasm` in its
+   constraint, not `tinygo` alone. A `tinygo`-only one fails it: under TinyGo's tags
+   the host vet compiles that file, and `syscall/js` builds only for `js/wasm`.
 2. **Portable subset only.** The file MUST run under GNU Make 3.81: `=`
    assignment, `.PHONY`, `.DEFAULT_GOAL` (new in 3.81, so exactly at the floor),
    plain tab-indented recipes. MUST NOT use post-3.81 features (`.ONESHELL` —

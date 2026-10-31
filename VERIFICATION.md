@@ -438,6 +438,25 @@ be synced, the tag waits.
   24,117, heads unchanged, checklists cli-tool 3,124 → 3,140, library 1,500 → 1,517,
   web-application 5,747 → 5,797, the WebAssembly section 545 → 578 of 600. No pass has
   read the fixes.
+- **2026-10-31 — review pass 9.** Reviewers found 6 distinct defects in the baseline,
+  all fixed, and 1 in the reference, fixed there separately. "Says who may act" was
+  undecidable, since whose turn it is says who acts next: the tier-1 line is now the
+  authorization boundary — the socket makes or changes nothing a credential resolver or
+  access check reads (an identity, a session, a membership, a ban, a host), the same
+  phrase in the header, rule 6, README and box, and a board or whose turn it is stays
+  the socket's. Rule 6 drops "it never remembers the user"; the box gains "acts on
+  nothing while a check is due"; the background-work box excepts work that re-reads a
+  session (the app's context); the pinned-tool box in all three checklists says every
+  recipe running the tool checks its version first. The TinyGo-tag vet is an ordinary
+  `go vet -tags $(WASM_TAGS) ./...`, unscoped, now that a `syscall/js` file carries
+  `js && wasm`: in scratchpad `fix9`, GNU Make 3.81, Go 1.27.3, it exits 0 on archives
+  of baseline-reference 9f8387c, game-lab 6e379aa and game `baseline-promotions`, and a
+  planted `tinygo`-only `syscall/js` file makes it exit 2. `make` exits 0:
+  `wasm-client.md` 3,773 → 3,769 of 3,800, `stack/makefile.md` 3,409 → 3,387, floors
+  cli-tool 12,709 → 12,685, library 12,939 → 12,915, web-application 24,117 → 24,118,
+  heads unchanged, checklists cli-tool 3,140 → 3,116, library 1,517 → 1,493,
+  web-application 5,797 → 5,798, the WebAssembly section 578 → 578 of 600, background
+  work 198 → 224. No pass has read the fixes.
 
 ## Why the CSP is what it is
 

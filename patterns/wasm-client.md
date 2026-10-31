@@ -4,11 +4,11 @@
 
 **Five rules here are tier 1 and never waived:** the socket's handshake refuses a
 missing `Origin` or one that is not the page's own host (rule 5); the socket makes or
-changes nothing that says who may act, and acts only under the credential its handshake
-presented, re-resolved (rule 6); each message and control frame is size-capped (rule 7);
-the handler returns right after the handshake (rule 8); and the policy gains
-`'wasm-unsafe-eval'` and nothing else ([security-headers.md](security-headers.md) owns
-it).
+changes nothing a credential resolver or access check reads, and acts only under the
+credential its handshake presented, re-resolved (rule 6); each message and control frame
+is size-capped (rule 7); the handler returns right after the handshake (rule 8); and the
+policy gains `'wasm-unsafe-eval'` and nothing else
+([security-headers.md](security-headers.md) owns it).
 
 A web application whose page is a program — a game, a simulation, a canvas redrawn every
 frame — written in Go, compiled to WebAssembly, and talking to the server over one
@@ -102,14 +102,14 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    the socket still opens for any other origin the cookie reaches — a sibling
    subdomain — or any page in a browser that ignores `SameSite`. An authentication guard
    may refuse first with 401; no refused request is upgraded.
-6. **The socket makes or changes nothing that says who may act — tier 1.** An identity,
-   a room, a session, a membership — whatever says who may act, in a store or in
-   memory — is made or changed by a plain form. State that grants nothing — a position,
-   a board, who is looking — is the socket's. It acts only under the credential the
-   handshake presented (cookie session or machine token), which it keeps and
-   re-resolves; it never remembers the user. At a fixed interval of at most 10 seconds,
-   whether or not the client sends anything, it re-runs the handshake's checks with that
-   credential under a deadline inside that interval: the lookup
+6. **The socket makes or changes nothing a credential resolver or access check reads —
+   tier 1.** An identity, a session, a membership, a ban, a host — in a store or in
+   memory — is made or changed by a plain form. The rest — a board, whose turn it is,
+   who is looking — is the socket's. It acts only under the credential the handshake
+   presented (cookie session or machine token), which it keeps and re-resolves. At a
+   fixed interval of at most 10 seconds, whether or not the client sends anything, it
+   re-runs the handshake's checks with that credential under a deadline inside that
+   interval: the lookup
    [go-auth-sessions.md](go-auth-sessions.md) rule 6's resolver makes, to the user's row
    (a token by its hash), and [go-authorization.md](go-authorization.md)'s access check,
    the read made as that user, wherever the membership is held. The re-check only
