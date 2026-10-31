@@ -261,9 +261,9 @@ be synced, the tag waits.
   and its box names durable state; the Origin box refuses a missing `Origin`. Rule 8 was
   wrong twice, read in Go 1.27.3's source: `ResponseController` calls a wrapper's own
   `Hijack` before its `Unwrap` (scs v2.9.0 defines one, `session_go120.go:16`), and `Hijack`
-  clears the server's deadlines (`server.go` line 326). Rule 3 names the working
-  `js/wasm` `go fix` and staticcheck lines, run here; `GOOS=js go run …staticcheck` fails
-  with `exec format error`. Rule 5's reason is the `SameSite=Lax` cookie reaching a
+  clears the server's deadlines (`server.go` line 326). Rule 3 names `js/wasm`
+  `go fix` and staticcheck lines — over `./...`, which pass 2 found fails on a real
+  module; `GOOS=js go run …staticcheck` fails with `exec format error`. Rule 5's reason is the `SameSite=Lax` cookie reaching a
   sibling subdomain. The TinyGo source names are `MinimumGoMinorVersion`/
   `MaximumGoMinorVersion` from 0.44.0; the CSP row says `wss:`; the `Permissions-Policy`
   reason no longer claims no script; the size fact is 1,889,724 bytes with `-trimpath`;
@@ -271,6 +271,30 @@ be synced, the tag waits.
   cli-tool 4,016 → 4,058, library 3,875 → 3,917, web-application 3,918 → 3,994; floors
   12,550 → 12,602, 12,784 → 12,837, 23,127 → 23,357; `checklists/web-application.md`
   5,351 → 5,407. No pass has read the fixes.
+- **2026-10-31 — review pass 2.** Three reviewers found 14 distinct defects on
+  `promote-deviations`, all fixed. `wasm-client.md` rule 6 and its box re-resolve the
+  cookie's session, and the user it names, at a fixed interval or per message and close
+  with 1008 once either is gone, so a logout, a revoking reset, or a deleted account
+  reaches an open socket; README's tier-1 list names that and the missing `Origin`. A
+  WebAssembly client's `script-src` is the second directive a default policy gets wrong.
+  The banned keywords match case-folded, and `TestSecureHeaders` now checks them —
+  compiled, run, `go vet` and staticcheck clean under Go 1.27.3. Rule 3's `go fix` and
+  staticcheck lines run over the vet line's package list: over `./...` both fail on
+  baseline-reference `11c10c7` in `modernc.org/libc`; over the list both pass and each
+  catches a planted finding. `stack/makefile.md` rule 1's tag vet is for custom tags,
+  not GOOS/GOARCH; the pinned-tool boxes say committed or flashed, not `go build`. The
+  program-page exception reaches `project-types/web-application.md`, `stack/html.md`,
+  and `stack/htmx.md` rule 8; four WebAssembly boxes are new (head scripts, the unboosted
+  link, the canvas stop, deadlines after `Hijack`) and shutdown precedes the store
+  closing. Both checklist heads name two tier-1 `.env` boxes. The `Permissions-Policy`
+  reason and the RFC 6455 citation (sections 4.1 and 10.2) are exact. Pass 1's fixer
+  wrongly said scs has no `Hijack`; `a181e8f` corrected it. `make` exits 0: heads
+  cli-tool 4,058 → 4,062, library 3,917, web-application 3,994 → 3,999; floors 12,602 →
+  12,623, 12,837 → 12,853, 23,357 → 23,719; reach web-application 109,204 → 109,877,
+  and cli-tool 47,329 → 49,748 and library 30,676 → 33,090 because their OS-vet boxes
+  now point at `wasm-client.md`;
+  `checklists/web-application.md` 5,407 → 5,534, its WebAssembly section 385 of 600. No
+  pass has read the fixes.
 
 ## Why the CSP is what it is
 
@@ -285,7 +309,7 @@ Every feature in the baseline, and what it needs:
 |---|---|---|
 | htmx | `script-src 'self'` | `default-src`; htmx is self-hosted, no inline JS ([stack/htmx.md](stack/htmx.md)). |
 | htmx indicators | nothing | htmx 4 adds its indicator styles as a constructed stylesheet, which the policy does not block (measured in Chromium, Firefox and WebKit). The canonical layout turns it off anyway, for the cascade and for reduced motion, and `app.css` owns those rules ([stack/htmx.md](stack/htmx.md)). |
-| Mask icons | `img-src data:` | The one directive a default policy would get wrong. |
+| Mask icons | `img-src data:` | One of two directives a default policy would get wrong; the other is a WebAssembly client's `script-src`. |
 | Self-hosted font | nothing | Same-origin `.woff2` ([patterns/css-typography.md](patterns/css-typography.md)). A third-party font host would need a `font-src` hole — one reason there isn't one. |
 | Web app manifest | nothing | `manifest-src` falls back to `default-src`, and the manifest is same-origin ([patterns/pwa.md](patterns/pwa.md)). |
 | View transitions, CSS motion | nothing | Pure CSS ([patterns/css-motion.md](patterns/css-motion.md)). |
@@ -297,10 +321,10 @@ Why each absent header stays absent:
 
 - **`X-Frame-Options`** — superseded by `frame-ancestors`, honored by every browser in
   the support window. Two headers saying one thing is one more to keep in sync.
-- **`Permissions-Policy`** — it disables browser APIs only a script can call, and the only
-  script that reaches them is the app's own (htmx, or a WebAssembly client's module and
-  loader), so a policy would restrict only the app against itself; an injected script is
-  already refused by the CSP.
+- **`Permissions-Policy`** — it mostly governs browser APIs a script calls; the rest
+  (autoplay, a frame's `allow`) the app does not use. The only script that reaches the
+  others is the app's own (htmx, or a WebAssembly client's module and loader), so a
+  policy would restrict only the app against itself; the CSP refuses an injected one.
 - **`object-src 'none'`** — `default-src 'self'` already denies cross-origin plugin
   content, and the app embeds none.
 - **CSP reporting (`report-to`)** — needs an endpoint and somebody to read it. Add it

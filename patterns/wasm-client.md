@@ -2,10 +2,10 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-10-31
 
-**Three rules here are tier 1 and never waived:** the socket's handshake refuses any
-`Origin` that is not the page's own host, the socket acts only under what the cookie
-already holds (rule 6), and the policy gains `'wasm-unsafe-eval'` and nothing else
-([security-headers.md](security-headers.md) owns it).
+**Three rules here are tier 1 and never waived:** the socket's handshake refuses a
+missing `Origin` or one that is not the page's own host, the socket acts only under what
+the cookie holds, re-resolved (rule 6), and the policy gains `'wasm-unsafe-eval'` and
+nothing else ([security-headers.md](security-headers.md) owns it).
 
 A web application whose page is a program — a game, a simulation, a canvas redrawn every
 frame — written in Go, compiled to WebAssembly, and talking to the server over one
@@ -26,19 +26,23 @@ with scripts off.
    optimizer after TinyGo, such as `wasm-opt`, is a tool like any other: its version is
    named and checked the same way.
 2. **The module is committed and embedded.** `make ci` needs no TinyGo; `make wasm`, a
-   rule-3 target, rebuilds it. Beside each module it writes a `.build` file (compiler
+   makefile rule-3 target, rebuilds it. Beside each module it writes a `.build` file (compiler
    version and flags) and a `.sum` of its inputs — every Go file the `js/wasm` target
    compiles, `go.mod`, and the `.build`. **A server test recomputes the digest**, so a
    source change cannot ship with an old module. Both files sit under `web/static/` and
    are served with it; they hold nothing secret.
-3. **Two gate lines in `check`** (rule 1): `GOOS=js GOARCH=wasm go vet` over every
-   package the module is made of, because the host vet never sees a `js && wasm` file,
-   and a size limit per module, its number in a variable `make wasm` tests too.
+3. **Two gate lines in `check`** ([stack/makefile.md](../stack/makefile.md) rule 1):
+   `GOOS=js GOARCH=wasm go vet` over every package the module is made of, because the
+   host vet never sees a `js && wasm` file, and a size limit per module, its number in a
+   variable `make wasm` tests too. That package list is `go list -deps` of the module's
+   main package under `GOOS=js GOARCH=wasm`, standard packages left out.
    `staticcheck` and `go fix -diff` are as blind to those files; a project may give each
-   a `js/wasm` line of its own, and nothing else checks them. The lines are
-   `GOOS=js GOARCH=wasm go fix -diff ./...` and `go run -exec 'env GOOS=js GOARCH=wasm'
-   honnef.co/go/tools/cmd/staticcheck@latest ./...`: with `GOOS` in front, `go run`
-   builds staticcheck itself for the browser, and it cannot start.
+   a `js/wasm` line of its own over the same list, and nothing else checks them. The
+   lines are `GOOS=js GOARCH=wasm go fix -diff <list>` and
+   `go run -exec 'env GOOS=js GOARCH=wasm' honnef.co/go/tools/cmd/staticcheck@latest
+   <list>`: with `GOOS` in front, `go run` builds staticcheck itself for the browser, and
+   it cannot start. Over `./...` both fail on any server package that cannot build for
+   `js/wasm`, such as one that imports the SQLite driver.
 4. **The browser packages stay small.** A `deps_test.go`
    ([go-project-layout.md](go-project-layout.md) rule 3) keeps `net/http`, `os/signal`,
    and `golang.org/x/sync` out of every package the module compiles. Code both sides
@@ -70,16 +74,21 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
 
 5. **The handshake checks `Origin` itself — tier 1.** `http.CrossOriginProtection`
    always lets a GET through, so it never sees this request. Refuse with 403 an `Origin`
-   whose host is not `r.Host`, or no `Origin` at all. The session cookie is
-   `SameSite=Lax`, so without the check the socket still opens for any other origin the
-   cookie reaches — a sibling subdomain — or any page in a browser that ignores
-   `SameSite`. An authentication guard that runs first may refuse with 401 instead; what
-   matters is that no refused request is upgraded.
+   whose host is not `r.Host`, or no `Origin` at all; a non-browser client sends an
+   `Origin` naming the host. The session cookie is `SameSite=Lax`, so without the check
+   the socket still opens for any other origin the cookie reaches — a sibling
+   subdomain — or any page in a browser that ignores `SameSite`. An authentication guard
+   that runs first may refuse with 401 instead; what matters is that no refused request
+   is upgraded.
 6. **Everything that creates state is a POST form first** — tier 1 where it says what
    the socket may act under. An identity, a room, a session, any record that outlives
    the socket, is made by a plain form; the socket acts only under what the cookie
-   already holds. What dies with the connection — a position, who is looking — the
-   socket may keep.
+   holds. That is re-resolved, not remembered: the socket checks the session, and the
+   user it names where there is one, again at a fixed interval or per message, and
+   closes with 1008 once either is gone — a logout, a reset that revokes sessions
+   ([go-auth-sessions.md](go-auth-sessions.md)), a deleted account
+   ([go-data-deletion.md](go-data-deletion.md)). What dies with the connection — a
+   position, who is looking — the socket may keep.
 7. **The socket is capped like a body.** A message size (1 KiB is plenty for input), the
    messages a second, and the queue toward a slow client. Past a cap the server closes
    the socket, it does not buffer, and the code says which cap: 1009 too big, 1008 too
@@ -121,10 +130,16 @@ extension [htmx-live-updates.md](htmx-live-updates.md) refuses.
   https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src
 - `CrossOriginProtection` always allows GET, HEAD and OPTIONS: `go doc
   net/http.CrossOriginProtection`, Go 1.27.3
-- The browser sends `Origin` on the handshake and the server is to check it:
+- A browser client's handshake MUST include `Origin` (section 4.1, client requirement 8),
+  and the server is to check it (section 10.2):
+  https://www.rfc-editor.org/rfc/rfc6455#section-4.1,
   https://www.rfc-editor.org/rfc/rfc6455#section-10.2
-- `GOOS=js GOARCH=wasm go build -trimpath` of a `println` main in `module x`: 1,889,724
-  bytes, about 1.9 MB; without `-trimpath` the size moves with the build directory, Go
-  1.27.3
+- `GOOS=js GOARCH=wasm go build -trimpath` of `func main() { println("hi") }` in
+  `module x`: 1,889,724 bytes, about 1.9 MB; without `-trimpath` the size moves with the
+  build directory, Go 1.27.3
 - `GOOS=js GOARCH=wasm go run …staticcheck@latest` fails with `exec format error`; the
   `-exec 'env GOOS=js GOARCH=wasm'` form reports findings in a `js && wasm` file, Go 1.27.3
+- On baseline-reference `11c10c7`, both `js/wasm` lines over `./...` fail in
+  `modernc.org/libc` ("build constraints exclude all Go files"); over the `go list -deps`
+  list of `./cmd/roommap` both exit 0, and each reports a finding planted in a
+  `js && wasm` file, Go 1.27.3

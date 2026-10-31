@@ -59,13 +59,13 @@ the policy exists, and no baseline pattern needs either.
 compile WebAssembly without it, and it allows nothing for JavaScript — `eval` stays
 blocked ([wasm-client.md](wasm-client.md)). It goes into the one `csp` constant, so every
 page of that app carries it, and the test that pins the policy also pins that neither
-banned keyword appears, matched with both quotes: `'wasm-unsafe-eval'` contains
-`unsafe-eval'`.
+banned keyword appears, matched with both quotes, case-folded: browsers match keywords
+regardless of case, and `'wasm-unsafe-eval'` contains `unsafe-eval'`.
 
 **Every feature in this baseline is already covered.** htmx, its indicators, self-hosted
 fonts, the web app manifest, view transitions, and forms all need nothing beyond the five
-directives above; mask icons need `img-src data:`, and that is the only directive a
-default policy would get wrong. The feature-by-feature record is in
+directives above; mask icons need `img-src data:`, one of two directives a default
+policy would get wrong. The other is a WebAssembly client's `script-src`. The feature-by-feature record is in
 [VERIFICATION.md](../VERIFICATION.md) *Why the CSP is what it is* — read it when adding a
 feature that loads something new, and add a row when the policy changes.
 
@@ -135,12 +135,23 @@ func TestSecureHeaders(t *testing.T) {
 	if !strings.Contains(csp, "img-src 'self' data:") {
 		t.Error("CSP lost img-src 'self' data: — every mask icon is now blocked")
 	}
+
+	// Browsers match keywords case-folded, and with both quotes:
+	// 'wasm-unsafe-eval' contains unsafe-eval'.
+	p := strings.ToLower(csp)
+	if strings.Contains(p, "'unsafe-eval'") {
+		t.Error("CSP allows 'unsafe-eval'")
+	}
+	if strings.Contains(p, "'unsafe-inline'") {
+		t.Error("CSP allows 'unsafe-inline'")
+	}
 }
 ```
 
 Comparing the CSP against the `csp` constant only proves the header is *sent*. The
-explicit `img-src` check is the part with teeth, because that directive is the one a
-future tightening pass would remove without knowing its cost. The rest of the policy is
+explicit `img-src` check has teeth, because that directive is the one a future
+tightening pass would remove without knowing its cost; the keyword checks catch a
+loosening pass. The rest of the policy is
 reviewed against the feature map above, and the end-to-end proof is the reference
 implementation rendering its icons.
 

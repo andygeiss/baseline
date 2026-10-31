@@ -9,13 +9,13 @@ you call the work complete. Paths are from the repository root.
 Every unchecked box is either fixed or waived on the record — the format is in `README.md`
 *Which rules can be waived*. **Tier 1 is decided by what a rule protects, not by which
 section it landed in**, so a wholly tier-1 section says so in its heading. Seven sections
-are only partly tier 1: `Config.LogValue` and the three `.env` boxes under *Reading a
-flag…*; the pragmas, the path box, both pools, and parameterized SQL under *Storing
-anything*; the zero-CSP-violations check under *Adding an icon*; every box under *Reading
-or writing a row somebody owns* except the one naming the shared rows; the base-URL and
-the header box under *Sending an email*; every box under *Deleting a person* except the
-one naming where each table's answer is written; the CSP, Origin, and cookie boxes under
-*Shipping a WebAssembly client*. No waiver for any of those; there is a fix.
+are only partly tier 1: `Config.LogValue` and the gitignore and production `.env` boxes
+under *Reading a flag…*; the pragmas, the path box, both pools, and parameterized SQL
+under *Storing anything*; the zero-CSP-violations check under *Adding an icon*; every box
+under *Reading or writing a row somebody owns* except the one naming the shared rows; the
+base-URL and the header box under *Sending an email*; every box under *Deleting a person*
+except the one naming where each table's answer is written; the CSP, Origin, and cookie
+boxes under *Shipping a WebAssembly client*. No waiver for any of those; there is a fix.
 
 ## Every web application
 
@@ -322,6 +322,9 @@ not a trigger.
 shape decision. The CSP, Origin, and cookie boxes are tier 1.
 
 - [ ] Under `web/static/js/`: htmx, an unedited `wasm_exec.js`, one loader, nothing else
+- [ ] Both scripts load deferred in `<head>`, on the module's page only
+- [ ] The link into that page carries `hx-boost="false"`
+- [ ] The module stops, socket and all, once its canvas leaves the document
 - [ ] CSP adds `script-src 'self' 'wasm-unsafe-eval'` and nothing more — `patterns/security-headers.md`
 - [ ] `make wasm` names `VERSIONS.md`'s TinyGo version and refuses another
 - [ ] A test recomputes each committed module's input digest
@@ -330,9 +333,10 @@ shape decision. The CSP, Origin, and cookie boxes are tier 1.
 - [ ] `deps_test.go` keeps `net/http`, `os/signal`, `golang.org/x/sync` out of the browser packages
 - **The socket, `GET /ws`:**
   - [ ] The handshake refuses a missing `Origin` and one whose host is not the request's
-  - [ ] It creates no durable state; it acts only under what the cookie already holds
+  - [ ] It creates no durable state; it acts only under what the cookie holds, re-resolved at a fixed interval or per message, and closes with 1008 once the session or its user is gone
   - [ ] Message size, messages a second, and the outbound queue are capped
-  - [ ] Shutdown closes every socket with 1001, then waits
+  - [ ] Read and write deadlines set after `Hijack`, before the first read
+  - [ ] Shutdown closes every socket with 1001, then waits, before the session store and database close
 
 ## Running work outside a request — a ticker, or work a request starts and leaves
 
@@ -440,10 +444,10 @@ gate.
 - [ ] No `.github/dependabot.yml`
 - [ ] No `export-ignore` in `.gitattributes`
 - **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
-  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push
-- **If a file carries a build tag that is not an OS (`//go:build <tag>`):**
+  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push (js/wasm: `GOOS=js GOARCH=wasm`, `patterns/wasm-client.md` rule 3)
+- **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`):**
   - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set
-- **If a recipe runs a tool whose output is an artifact — generated code, a binary, a module (a formatter like `goimports` is not one):**
+- **If a recipe runs a tool whose output is committed or flashed (generated code, a module) — not `go build`, not a formatter:**
   - [ ] It names an exact version, never `@latest`
 
 ## Configuring the build, or serving a static asset

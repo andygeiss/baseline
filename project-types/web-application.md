@@ -66,10 +66,13 @@ Working on a project that already follows this document? That file and the proje
   a backup replicator); the application MUST NOT need any of them to be correct, and its
   code MUST NOT name one.
 - **Server-side state.** Session data lives in SQLite and the cookie carries only a
-  random token, so the browser holds that token and rendered HTML, nothing else. Cookie
-  flags: [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md).
+  random token, so the browser holds that token and rendered HTML, nothing else — but a
+  WebAssembly client's program page, which also holds its module
+  ([patterns/wasm-client.md](../patterns/wasm-client.md)). Cookie flags:
+  [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md).
 - **Progressive enhancement.** Every feature MUST work with plain HTML forms and links
-  if htmx fails to load. htmx upgrades the experience; it is not a dependency for
+  if htmx fails to load — but a WebAssembly client's program page; every page around it
+  still holds to this. htmx upgrades the experience; it is not a dependency for
   correctness.
 - **HTTPS in public, plain HTTP inside.** The proxy terminates TLS and redirects HTTP to
   it; the binary only ever speaks plain HTTP, so `curl` against it works with nothing in

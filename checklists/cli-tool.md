@@ -11,8 +11,9 @@ Every unchecked box is either fixed or waived on the record — the waiver forma
 `README.md` under *Which rules can be waived*. **Tier 1 is decided by what a rule
 protects, not by which section it landed in**, and these are the boxes: partial work
 staying safe, a destructive action needing an explicit flag, every box about how a secret
-is handled — a secret never arrives as a flag *value*, and `.env` is gitignored — and the
-pragmas, the path box, and parameterized SQL under *Storing anything between runs*.
+is handled — a secret never arrives as a flag *value* — the gitignore and production
+`.env` boxes, and the pragmas, the path box, and parameterized SQL under *Storing
+anything between runs*.
 There is no waiver for any of them; there is a fix.
 
 ## Every CLI tool
@@ -214,10 +215,10 @@ gate.
 - [ ] No `.github/dependabot.yml`
 - [ ] No `export-ignore` in `.gitattributes`
 - **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
-  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push — for `//go:build unix`, each Unix the tool claims
-- **If a file carries a build tag that is not an OS (`//go:build <tag>`):**
+  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push — for `//go:build unix`, each Unix the tool claims (js/wasm: `GOOS=js GOARCH=wasm`, `patterns/wasm-client.md` rule 3)
+- **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`):**
   - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set
-- **If a recipe runs a tool whose output is an artifact — generated code, a binary, a module (a formatter like `goimports` is not one):**
+- **If a recipe runs a tool whose output is committed or flashed (generated code, a module) — not `go build`, not a formatter:**
   - [ ] It names an exact version, never `@latest`
 
 ## Tagging and publishing a release

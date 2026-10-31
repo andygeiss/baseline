@@ -10,7 +10,7 @@ HTML is the application. Links and forms are the API; the DOM is the client-side
 ## The no-JavaScript rule
 
 **MUST NOT ship hand-written JavaScript.** The single permitted script is the vendored
-htmx file. Consequences of this rule:
+htmx file, but a WebAssembly client's two (below). Consequences of this rule:
 
 - Interactivity beyond htmx swaps comes from native elements:
   `<details>`/`<summary>` (disclosure), `<dialog>` (modals, via `command`/`commandfor`

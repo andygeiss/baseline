@@ -91,9 +91,10 @@ test:
    canonical eight cannot see, and goes after them: a second target's vet
    (`GOOS=js GOARCH=wasm go vet …`), or a size limit on a committed artifact
    ([patterns/wasm-client.md](../patterns/wasm-client.md)).
-   **A file behind a build tag MUST be vetted under that tag**, one
-   `go vet -tags <tag> ./...` line per tag set: the canonical lines read the
-   default build, so a tagged file can stop compiling with every gate green.
+   **A file behind a custom build tag (not a GOOS or GOARCH) MUST be vetted
+   under that tag**, one `go vet -tags <tag> ./...` line per tag set: the
+   canonical lines read the default build, so a tagged file can stop compiling
+   with every gate green.
 2. **Portable subset only.** The file MUST run under GNU Make 3.81: `=`
    assignment, `.PHONY`, `.DEFAULT_GOAL` (new in 3.81, so exactly at the floor),
    plain tab-indented recipes. MUST NOT use post-3.81 features (`.ONESHELL` —
@@ -125,7 +126,7 @@ test:
    commit. A tool with a [VERSIONS.md](../VERSIONS.md) row, like TinyGo, takes
    that row's version; the variable only makes it checkable. A formatter
    (`goimports`, `go fix`) is outside this rule: its output is source,
-   reviewed in the diff.
+   reviewed in the diff. So is `go build`: the Go row pins the toolchain.
 5. **Adjustments** — exactly these, nothing else:
    - *Single-binary CLI* (`MAIN = .`): a build of `.` drops `./<tool>` into the
      repository root — the checklist's `go build .`, and `check`'s
