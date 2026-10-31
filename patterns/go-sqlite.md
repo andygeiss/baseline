@@ -3,9 +3,10 @@
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08 · Driver: `modernc.org/sqlite` (pure Go)
 
 **The pragmas, the single-writer pool, closing what it hands out, parameterized
-queries, and the strict-pragma switch are tier 1 and never waived.** Dropping any of the
+queries, and rule 10's guard on the DSN are tier 1 and never waived.** Dropping any of the
 first three loses data — rule 8 is the failure mode the single-writer pool itself
-creates — and dropping either of the last two runs text as SQL that was never meant to be.
+creates — and dropping either of the last two lets text that is not code run as SQL, which
+can read or delete any row.
 
 SQLite is the default database. Configured correctly it serves thousands of requests
 per second on one small box with zero operational overhead. Configured by default it
@@ -23,9 +24,12 @@ const pragmas = "?_pragma=busy_timeout(5000)" +
 
 // openDB returns two pools over the same file: many readers, exactly one
 // writer. Neither call touches the file — the first query does — so a bad path
-// surfaces when the migrations run, not here.
+// surfaces when the migrations run, not here, unless rule 10 refuses it.
 func openDB(path string) (readDB, writeDB *sql.DB, err error) {
-	sqlite.StrictPragmas(true) // rule 10: path is not a constant
+	if strings.ContainsAny(path, "?#%") { // rule 10
+		return nil, nil, fmt.Errorf("database path %q: no ?, # or %%", path)
+	}
+	sqlite.StrictPragmas(true) // rule 10
 
 	readDB, err = sql.Open("sqlite", "file:"+path+pragmas)
 	if err != nil {
@@ -62,7 +66,8 @@ The rules behind it — all MUST:
    client cancels its work. A *running* query stops within milliseconds, and so do a wait
    for a pooled connection and a wait for SQLite's write lock: from driver v1.61.0 the busy
    handler gives up once the context is done and returns the context's error. Rule 2's
-   number bounds only a write with no deadline.
+   number still caps every wait for the lock; a context that ends sooner ends it sooner.
+   `Commit` and `Rollback` take no context, so only rule 2's number bounds theirs.
 8. **Every `Rows`, `Stmt` and `Tx` is closed on every path** — `defer rows.Close()`, and
    `defer tx.Rollback()` after a successful `Begin`. On a one-connection write pool a
    single leak is not a slow leak: it wedges every later write forever, and `busy_timeout`
@@ -71,12 +76,12 @@ The rules behind it — all MUST:
    `return`, and the error path wedge.
 9. **`rows.Err()` after the loop.** `rows.Next()` returns false for "done" and for
    "failed"; without the check a truncated result set reads as an empty one.
-10. **`sqlite.StrictPragmas(true)` before the first connection opens.** A `_pragma`
-    value runs as SQL text, so anything after a `;` in it runs too, and `path` is not a
-    constant: a `?` in it starts a query string, `_pragma` included. The switch is
-    process-wide and refuses such a DSN before it applies anything. It narrows a DSN to
-    the pragmas it names and no further, so `path` still comes from the operator, never
-    from a request. Import the driver by name, not as `_`, to call it.
+10. **The DSN is guarded twice.** `path` is not a constant, and a `file:` DSN reads a
+    `?` in it as the start of a query string: an innocent one swallows `busy_timeout`, a
+    crafted one carries a `_pragma`, and a `_pragma` value runs as SQL text, so anything
+    after a `;` in it runs too. `#` ends the name and `%` decodes. So `openDB` refuses a
+    path holding any of the three, and calls `sqlite.StrictPragmas(true)` — process-wide,
+    refusing a `_pragma` of more than one statement before any pragma runs. Import the driver by name, not as `_`, to call it.
 
 ## Schema migrations
 
