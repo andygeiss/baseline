@@ -124,7 +124,8 @@ baseline/
 │   ├── local-https.md
 │   ├── pwa.md
 │   ├── security-headers.md
-│   └── time-and-dates.md
+│   ├── time-and-dates.md
+│   └── wasm-client.md
 ├── project-types/                  ← entry point per kind of project
 │   ├── cli-tool.md
 │   ├── library.md
@@ -172,6 +173,8 @@ below is what it currently catches, not the definition.
   security-header policy, the ops listener never proxied, and no boost on a link or form
   whose answer is not a page ([patterns/security-headers.md](patterns/security-headers.md),
   [patterns/go-http-server.md](patterns/go-http-server.md), [stack/htmx.md](stack/htmx.md)).
+- A WebSocket handshake that refuses an `Origin` other than the page's own, because no
+  CSRF check sees a GET ([patterns/wasm-client.md](patterns/wasm-client.md)).
 - Everything about who is signed in: session cookie flags, renewal on login and password
   change, password hashing, auth rate limiting, constant-time login, and every
   machine-token rule ([patterns/go-auth-sessions.md](patterns/go-auth-sessions.md)).

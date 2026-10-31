@@ -21,6 +21,8 @@ htmx file. Consequences of this rule:
   (first-line validation).
 - If a feature genuinely cannot be built with HTML + CSS + htmx, the feature is
   redesigned or rejected — escalate to the user, do not quietly add a script tag.
+- The one sanctioned exception is a page that is a program compiled to WebAssembly: its
+  two scripts, and nothing more, are [patterns/wasm-client.md](../patterns/wasm-client.md).
 
 ## Semantics
 

@@ -29,7 +29,7 @@ fix.
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build ./cmd/server`
 - [ ] The binary never serves TLS (`patterns/local-https.md`)
 - [ ] Routes registered in one file
-- [ ] Every mutation is a POST route — never GET, and no PUT/DELETE
+- [ ] Every mutation is a POST route — never GET, and no PUT/DELETE — but a WebAssembly client's socket
 - [ ] Server sets read, write, and idle timeouts
 - [ ] Server shuts down gracefully
 - [ ] Valid HTML, spot-checked with the Nu validator
@@ -315,6 +315,24 @@ not a trigger.
 - [ ] The cursor rides in the query string, on an `<a href>` that works without htmx
 - [ ] A filter or sort change drops the cursor
 - [ ] Where the list also polls, the two cursors have different names
+
+## Shipping a WebAssembly client — a game, a canvas redrawn every frame
+
+`patterns/wasm-client.md` — the module, its two scripts, and its socket. Choosing it is a
+shape decision. The CSP and Origin boxes are tier 1.
+
+- [ ] Under `web/static/js/`: htmx, an unedited `wasm_exec.js`, one loader, nothing else
+- [ ] CSP adds `script-src 'self' 'wasm-unsafe-eval'` and nothing more — `patterns/security-headers.md`
+- [ ] `make wasm` names the TinyGo version exactly
+- [ ] A test recomputes each committed module's input digest
+- [ ] `check` vets the browser packages under `GOOS=js GOARCH=wasm`
+- [ ] `check` holds each module to its size limit
+- [ ] `deps_test.go` keeps `net/http`, `os/signal`, `golang.org/x/sync` out of the browser packages
+- **The socket, `GET /ws`:**
+  - [ ] The handshake refuses an `Origin` whose host is not the request's
+  - [ ] It acts only for the seat or session the cookie already holds
+  - [ ] Message size, messages a second, and the outbound queue are capped
+  - [ ] Shutdown closes every socket with 1001, then waits
 
 ## Running work outside a request — a ticker, or work a request starts and leaves
 

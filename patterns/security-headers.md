@@ -54,6 +54,12 @@ called `WriteHeader` is silently dropped — the status line is already on the w
 MUST NOT add `'unsafe-inline'` or `'unsafe-eval'` to any directive. Both undo the reason
 the policy exists, and no baseline pattern needs either.
 
+**A WebAssembly client adds one directive, and only that client:**
+`"script-src 'self' 'wasm-unsafe-eval'; "` after `default-src`. Browsers refuse to
+compile WebAssembly without it, and it allows nothing for JavaScript — `eval` stays
+blocked ([wasm-client.md](wasm-client.md)). It goes into the one `csp` constant, and the
+test that pins the policy also pins that neither banned keyword appears.
+
 **Every feature in this baseline is already covered.** htmx, its indicators, self-hosted
 fonts, the web app manifest, view transitions, and forms all need nothing beyond the five
 directives above; mask icons need `img-src data:`, and that is the only directive a

@@ -89,7 +89,7 @@ test:
    **A project MAY add a gate line to `check`, never take one away.** An added
    line checks what the canonical eight cannot see, and goes after them: a
    second target's vet (`GOOS=js GOARCH=wasm go vet …`), or a size limit on a
-   committed artifact.
+   committed artifact ([patterns/wasm-client.md](../patterns/wasm-client.md)).
    **A file behind a build tag MUST be vetted under that tag**, one
    `go vet -tags <tag> ./...` line per tag set: the canonical lines read the
    default build, so a tagged file can stop compiling with every gate green.
