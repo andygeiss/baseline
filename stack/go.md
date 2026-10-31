@@ -132,7 +132,9 @@ frameworks, viper/cobra everywhere — CLIs included (stdlib `flag` + env vars, 
 
 ## Module hygiene
 
-- Module path: `github.com/andygeiss/<project>`.
+- Module path: `github.com/<owner>/<project>`, the owner being `andygeiss` or the GitHub
+  organization the repository belongs to (`github.com/abi-peak/library`). Paths in the
+  baseline's examples say `andygeiss`; read them as the owner.
 - `go.mod` declares `go 1.27` — `go mod init` writes the running patch, so correct it.
   Commit `go.sum`. Run `go mod tidy` before every commit.
 - No `replace` directives on main branch.

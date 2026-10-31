@@ -75,6 +75,9 @@ subcommands answers `<tool> version` in place of `<tool> -version`:
   cache proves the tag resolves over the network, not from this machine. Asked before
   the tag exists, proxy.golang.org can go on answering that the version does not exist
   for up to 30 minutes. The check line exits with the check's status.
+- **A private repository needs `GOPRIVATE=github.com/<owner>/*`** and GitHub
+  credentials for git: the proxy cannot see it, so the check resolves straight from
+  GitHub, still from an empty module cache. `go install` stays the one channel.
 - **The version check proves the stamp** only if `<tool>` is the copy `go install`
   just wrote; `command -v <tool>` says which copy `PATH` found.
 - **The check line deletes its cache, and only that one, whether the check passes,
