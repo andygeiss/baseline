@@ -260,7 +260,7 @@ be synced, the tag waits.
   checklist head lists seven partly-tier-1 sections. Rule 6's cookie clause is tier 1,
   and its box names durable state; the Origin box refuses a missing `Origin`. Rule 8 was
   wrong twice, read in Go 1.27.3's source: `ResponseController` calls a wrapper's own
-  `Hijack` before its `Unwrap` (scs v2.9.0's writer has only `Unwrap`), and `Hijack`
+  `Hijack` before its `Unwrap` (scs v2.9.0 defines one, `session_go120.go:16`), and `Hijack`
   clears the server's deadlines (`server.go` line 326). Rule 3 names the working
   `js/wasm` `go fix` and staticcheck lines, run here; `GOOS=js go run …staticcheck` fails
   with `exec format error`. Rule 5's reason is the `SameSite=Lax` cookie reaching a

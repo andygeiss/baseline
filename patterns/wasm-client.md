@@ -85,7 +85,7 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    the socket, it does not buffer, and the code says which cap: 1009 too big, 1008 too
    many or malformed, 1013 a reader too slow, which a client may retry.
 8. **Hijack, then own the deadlines.** `http.ResponseController` calls a wrapper's own
-   `Hijack` method if it has one, else follows its `Unwrap` (scs's has only that); a
+   `Hijack` method if it has one (scs's does), else follows its `Unwrap`; a
    wrapper with neither fails with `ErrNotSupported`. `Hijack` leaves the connection
    with no deadline (Go clears the server's; the `Hijacker` doc allows that it may not),
    so set the socket's own read and write deadlines before the first read. `srv.Shutdown`
