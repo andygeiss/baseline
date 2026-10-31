@@ -541,6 +541,7 @@ be synced, the tag waits.
   `stack/makefile.md` 3,505 → 3,511, `stack/htmx.md` 2,092 → 2,116, floor
   web-application 24,148 → 24,178, checklist web-application 5,830 → 5,836, the
   WebAssembly section within 600. No pass has read the fixes.
+
 ## Why the CSP is what it is
 
 The standing record behind [patterns/security-headers.md](patterns/security-headers.md).
