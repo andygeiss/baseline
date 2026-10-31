@@ -3,10 +3,10 @@
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08 · Driver: `modernc.org/sqlite` (pure Go)
 
 **The pragmas, the single-writer pool, closing what it hands out, parameterized
-queries, and rule 10's guard on the DSN are tier 1 and never waived.** Dropping any of the
-first three loses data — rule 8 is the failure mode the single-writer pool itself
-creates — and dropping either of the last two lets text that is not code run as SQL, which
-can read or delete any row.
+queries, and rule 10's guards on the DSN are tier 1 and never waived.** Dropping any of
+the first three loses data — rule 8 is the failure mode the single-writer pool itself
+creates — dropping the fourth hands over the database, and dropping the last lets a
+path rewrite the DSN that carries the pragmas.
 
 SQLite is the default database. Configured correctly it serves thousands of requests
 per second on one small box with zero operational overhead. Configured by default it
@@ -22,14 +22,15 @@ const pragmas = "?_pragma=busy_timeout(5000)" +
 	"&_pragma=synchronous(NORMAL)" +
 	"&_pragma=foreign_keys(1)"
 
+// uriEscaper keeps a path's "?", "#" and "%" out of the DSN's syntax (rule 10).
+var uriEscaper = strings.NewReplacer("%", "%25", "?", "%3F", "#", "%23")
+
 // openDB returns two pools over the same file: many readers, exactly one
-// writer. Neither call touches the file — the first query does — so a bad path
-// surfaces when the migrations run, not here, unless rule 10 refuses it.
+// writer. Neither sql.Open touches the file — the first query does — so a
+// missing directory surfaces when the migrations run, not here.
 func openDB(path string) (readDB, writeDB *sql.DB, err error) {
-	if strings.ContainsAny(path, "?#%") { // rule 10
-		return nil, nil, fmt.Errorf("database path %q: no ?, # or %%", path)
-	}
 	sqlite.StrictPragmas(true) // rule 10
+	path = uriEscaper.Replace(path)
 
 	readDB, err = sql.Open("sqlite", "file:"+path+pragmas)
 	if err != nil {
@@ -62,7 +63,7 @@ The rules behind it — all MUST:
    both and hides the split from callers.
 6. **`_txlock=immediate` on the write pool.** Write transactions take the lock at
    `BEGIN`, not at first write — prevents deadlock-style upgrade failures.
-7. **Every query takes a context** (`QueryRowContext`, `ExecContext`) so a disconnected
+7. **Every query takes a context** (`QueryRowContext`, `ExecContext`, `BeginTx`) so a disconnected
    client cancels its work. A *running* query stops within milliseconds, and so do a wait
    for a pooled connection and a wait for SQLite's write lock: from driver v1.61.0 the busy
    handler gives up once the context is done and returns the context's error. Rule 2's
@@ -77,11 +78,13 @@ The rules behind it — all MUST:
 9. **`rows.Err()` after the loop.** `rows.Next()` returns false for "done" and for
    "failed"; without the check a truncated result set reads as an empty one.
 10. **The DSN is guarded twice.** `path` is not a constant, and a `file:` DSN reads a
-    `?` in it as the start of a query string: an innocent one swallows `busy_timeout`, a
-    crafted one carries a `_pragma`, and a `_pragma` value runs as SQL text, so anything
-    after a `;` in it runs too. `#` ends the name and `%` decodes. So `openDB` refuses a
-    path holding any of the three, and calls `sqlite.StrictPragmas(true)` — process-wide,
-    refusing a `_pragma` of more than one statement before any pragma runs. Import the driver by name, not as `_`, to call it.
+    `?` in it as the start of a query string: an innocent one swallows `busy_timeout`,
+    and a crafted one sets SQLite's `mode`, `immutable` or `vfs`, or a `_pragma`. `#`
+    ends the name and `%` decodes. So `openDB` escapes all three, which turns any path
+    back into a file name — that is the guard. `sqlite.StrictPragmas(true)` is the
+    backstop: it refuses a `_pragma` of more than one statement, which runs as SQL text,
+    before any pragma runs. A table test's `t.TempDir()` can hold `#` and `%`, so
+    escape; never refuse. Import the driver by name, not as `_`, to call it.
 
 ## Schema migrations
 

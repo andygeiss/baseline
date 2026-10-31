@@ -12,7 +12,7 @@ Every unchecked box is either fixed or waived on the record — the waiver forma
 protects, not by which section it landed in**, and these are the boxes: partial work
 staying safe, a destructive action needing an explicit flag, every box about how a secret
 is handled — a secret never arrives as a flag *value*, and `.env` is gitignored — and the
-pragmas, the strict-pragma switch, and parameterized SQL under *Storing anything between runs*. There is no waiver
+pragmas, both DSN guards, and parameterized SQL under *Storing anything between runs*. There is no waiver
 for any of them; there is a fix.
 
 ## Every CLI tool
@@ -193,6 +193,7 @@ the reasoning that leaks into the visible answer.
 `patterns/go-sqlite.md` — pragmas, pools, migrations. Prefer staying stateless.
 
 - [ ] Pragmas: WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)`
+- [ ] Path escaped in the DSN
 - [ ] `sqlite.StrictPragmas(true)`
 - [ ] SQL only via parameterized queries
 - [ ] Migrations embedded and forward-only

@@ -47,7 +47,8 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 ## Sources checked (2026-09-08)
 
 Every row above was checked against its source on this date, not only the ones that
-moved; Go again on 2026-10-21, htmx on 2026-10-27, and Go, htmx, SQLite and scs again on 2026-10-31.
+moved; Go again on 2026-10-21, htmx on 2026-10-27, and Go, htmx, SQLite and scs again
+on 2026-10-31.
 
 - Go releases: https://go.dev/doc/devel/release
 - Go 1.27 notes: https://go.dev/doc/go1.27 — and https://go.dev/doc/go1.28 for the
