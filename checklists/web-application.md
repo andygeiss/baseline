@@ -330,14 +330,16 @@ tier 1.
 - [ ] CSP adds `script-src 'self' 'wasm-unsafe-eval'` and nothing more — `patterns/security-headers.md`
 - [ ] `make wasm` names `VERSIONS.md`'s TinyGo version and refuses another
 - [ ] A test recomputes each committed module's input digest
-- [ ] `check` vets the browser packages under `GOOS=js GOARCH=wasm`
+- [ ] `check` vets the browser packages under `GOOS=js GOARCH=wasm` and TinyGo's tags, failing closed on an empty list
 - [ ] `check` holds each module to its size limit
 - [ ] `deps_test.go` keeps `net/http`, `os/signal`, `golang.org/x/sync` out of the browser packages
 - **The socket, `GET /ws`:**
   - [ ] The handshake refuses a missing `Origin` and one whose host is not the request's
-  - [ ] It creates no durable state; it acts only under the handshake's credential, re-read from the store at least every 10 seconds, and closes with 1008 once it or its user is gone, 1011 on a store error
-  - [ ] The handler returns after the handshake and the socket runs on a tracked goroutine, so session middleware cannot save a revoked session again
-  - [ ] Message size is capped (1009 past it); messages a second and the outbound queue are capped too
+  - [ ] It creates or changes no durable state; it acts only under the handshake's credential, re-read from the store at least every 10 seconds under a deadline, in a context not derived from the request's, and closes with 1008 once it or its user is gone, 1011 on a store error or missed deadline
+  - [ ] The handler returns after the handshake, so session middleware cannot save a revoked session again
+  - [ ] The socket runs on a goroutine the app tracks
+  - [ ] Message size is capped across continuation frames before a payload is read (1009 past it)
+  - [ ] Messages a second and the outbound queue are capped
   - [ ] Read and write deadlines set after `Hijack`, before the first read
   - [ ] Shutdown closes every socket with 1001, then waits, before the session store and database close
 

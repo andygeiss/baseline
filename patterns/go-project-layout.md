@@ -51,9 +51,10 @@ project/
    **A package held to fewer imports than its module** — an engine, a package a
    browser build compiles — says so in a `deps_test.go` at the module root. The test
    runs `go list -deps` over it, once per target it builds for, and fails on any
-   import outside its allowed list. `go.mod` cannot say this, because it is one per
-   module. The package keeps its own tests and `Example`; it stays in `internal/`
-   until rule 2's second project arrives.
+   import outside its allowed list — or, for a browser build, on any import in its
+   denied list ([wasm-client.md](wasm-client.md) rule 4). `go.mod` cannot say this,
+   because it is one per module. The package keeps its own tests and `Example`; it stays
+   in `internal/` until rule 2's second project arrives.
 4. **Group by feature, not by kind.** `internal/app/game.go` with its handlers,
    not `internal/handlers/` + `internal/services/` + `internal/models/` mirrors.
 5. **Embed all assets** in the binary from the `web/` tree:

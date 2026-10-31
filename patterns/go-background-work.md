@@ -109,6 +109,10 @@ a.running.Go(func() {
 })
 ```
 
+Work that re-reads a session is the exception: it starts from the app's own context, not
+the request's, because scs's `Load` returns the session data a request's values already
+carry, still alive after a logout deleted it ([wasm-client.md](wasm-client.md) rule 6).
+
 **`srv.Shutdown` does not wait for this, and that is the trap.** Shutdown waits for
 in-flight *requests*, and this goroutine is not one — the request it came from returned
 seconds ago. Without a second wait the process exits mid-write, the work is lost, and

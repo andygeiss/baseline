@@ -174,10 +174,10 @@ below is what it currently catches, not the definition.
   whose answer is not a page ([patterns/security-headers.md](patterns/security-headers.md),
   [patterns/go-http-server.md](patterns/go-http-server.md), [stack/htmx.md](stack/htmx.md)).
 - A WebSocket handshake that refuses a missing `Origin` or one other than the page's own,
-  because no CSRF check sees a GET, and a socket that creates no durable state, acts
-  only under the credential its handshake presented, re-read from the store, caps each
-  message's size, and runs after its handler has returned, so session middleware cannot
-  save a revoked session again ([patterns/wasm-client.md](patterns/wasm-client.md)).
+  because no CSRF check sees a GET, and a socket that creates or changes no durable
+  state, acts only under the credential its handshake presented, re-read from the store,
+  caps each message's size, and runs after its handler has returned, so session
+  middleware cannot save a revoked session again ([patterns/wasm-client.md](patterns/wasm-client.md)).
 - Everything about who is signed in: session cookie flags, renewal on login and password
   change, password hashing, auth rate limiting, constant-time login, and every
   machine-token rule ([patterns/go-auth-sessions.md](patterns/go-auth-sessions.md)).

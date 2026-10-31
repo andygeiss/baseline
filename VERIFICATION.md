@@ -323,6 +323,30 @@ be synced, the tag waits.
   library 3,917 → 3,942, web-application 3,999 → 4,032; floors 12,623 → 12,665,
   12,853 → 12,895, 23,719 → 23,854; `checklists/web-application.md` 5,534 → 5,620, its
   WebAssembly section 385 → 446 of 600. No pass has read the fixes.
+- **2026-10-31 — review pass 4.** Reviewers found 11 distinct defects on
+  `promote-deviations`, all fixed. `wasm-client.md` rule 6 re-reads the store in a
+  context not derived from the request's: after `Store.Delete`, scs v2.9.0's
+  `Load(context.WithoutCancel(r.Context()), token)` still found the user and
+  `Load(context.Background(), token)` did not — an executed test (scratchpad
+  `fix4/scs`, Go 1.27.3); `go-background-work.md` and the box carry the exception. The
+  re-read has a deadline inside the interval, a miss closes with 1011, and the socket
+  acts on nothing while a check is overdue; it creates or changes no durable state
+  (header, rule, README's tier-1 list, box); only a cookie that reaches no server record
+  skips the re-read. Rule 7 counts a whole message across its fragments before a payload
+  is read and caps control frames at 125 bytes (RFC 6455 sections 5.4, 5.5). Rule 3's
+  list, vet, `go fix` and staticcheck lines take `-tags $(WASM_TAGS)`, which `make wasm`
+  checks against `tinygo info -target wasm` with the module's flags, and fail closed on a
+  failing or empty list (`$$` in a Makefile); rule 2's digest lists Go and embedded files
+  under those tags, which the `.build` records so `make ci` needs no TinyGo. On an archive
+  of baseline-reference `b8542dc` under GNU Make 3.81 a planted `tinygo`-tagged file
+  passed the old vet and left the old digest unchanged, and the tagged lines caught both;
+  an unescaped `$` or an empty list exited 0 in the old form, 2 in the new. The
+  checklist splits handler-return and message-size from their tier-2 neighbours;
+  `go-project-layout.md` rule 3 names the browser denylist; `stack/htmx.md` moves the
+  program-page links, into and out of it, from tier-1 rule 8 to the `hx-boost` row, and
+  the layout's shared links out take a per-page hook; the 1.9 MB fact names `go 1.27`. `make` exits 0: `wasm-client.md` 3,109 → 3,604 of 3,800,
+  floor web-application 23,854 → 23,908, heads unchanged, `checklists/web-application.md`
+  5,620 → 5,673, its WebAssembly section 446 → 498 of 600. No pass has read the fixes.
 
 ## Why the CSP is what it is
 
