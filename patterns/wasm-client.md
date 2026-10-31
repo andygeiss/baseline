@@ -30,7 +30,8 @@ with scripts off.
 2. **The module is committed and embedded.** `make ci` needs no TinyGo; `make wasm`, a
    makefile rule-3 target, rebuilds it. Beside each module it writes a `.build` file (compiler
    version and flags) and a `.sum` of its inputs — the Go files of rule 3's packages as
-   TinyGo sees them (listed with `-tags tinygo`, a tag TinyGo adds) and their embedded
+   TinyGo sees them (listed with `-tags` set to the build tags `tinygo info -target wasm`
+   prints, not `tinygo` alone) and their embedded
    files, `go.mod`, and the `.build`. **A server test recomputes the digest**, so a
    source change cannot ship with an old module. Both files sit under `web/static/` and
    are served with it; they hold nothing secret.

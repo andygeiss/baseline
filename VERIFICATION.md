@@ -309,7 +309,9 @@ be synced, the tag waits.
   rule 6. Rule 3's list is this module's own packages (`{{with .Module}}{{if .Main}}`),
   checked on archives of game `442d9dd` and baseline-reference `ef68418` and on a module
   importing scs, which the old list kept; rule 2's digest lists files with
-  `-tags tinygo`, which changes nothing on either. The three OS-vet boxes and
+  TinyGo's own tags, which change nothing on either; `-tags tinygo` alone, the fix as first
+  written, missed nine of the ten `tinygo info -target wasm` prints (0.44.0), corrected
+  before pass 4. The three OS-vet boxes and
   `operations/ci.md` send js/wasm to that `check` line, not `./...`; the custom-tag vet
   excludes `ignore` (`go vet -tags ignore ./...` fails, Go 1.27.3) and `unix`. Rule 4
   calls `deps_test.go` a denylist on purpose. `stack/htmx.md` narrows "a `<head>` that
