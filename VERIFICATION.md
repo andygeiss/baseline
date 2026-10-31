@@ -137,27 +137,62 @@ be synced, the tag waits.
   `operations/ci.md`'s 66, and cli-tool's by the document and checklist too: cli-tool
   42,416 → 45,853, library 29,717 → 29,783, web-application 104,885 → 104,951. No other
   floor or change path moves.
-- **2026-10-31 — the SQLite driver pin moves to v1.61.0.** v1.59.0, v1.60.0, v1.60.1
-  and v1.61.0 shipped after the v1.58.0 pin; none has an advisory in the Go vulnerability
-  database, and upstream's new `SECURITY.md` supports only the latest release. v1.61.0
-  makes a statement waiting for a lock under `busy_timeout` stop once its context is
-  done, so `patterns/go-sqlite.md` rule 7, which said the wait ran the full timeout
-  whatever the deadline, is rewritten and its "keep every handler deadline above it"
-  dropped; no other document leaned on it. Measured with two write pools over one WAL
-  file under the canonical pragmas, one holding the lock, the other writing with a 200 ms
-  deadline, under Go 1.27.3: at v1.58.0 `ExecContext` waited 5,076 ms and returned
-  `context deadline exceeded`, and `BeginTx` waited 5,112 ms and returned `SQLITE_BUSY`;
-  at v1.61.0 both waited 200 ms and returned `context deadline exceeded`. No
-  `Last verified:` date moved, and `VERSIONS.md` keeps 2026-09-08: CSS Baseline and the
-  `design.md` row were not checked again. The reference has not run it; `./verify.sh`
-  under v1.61.0 is owed.
-  Left open, for Andy: v1.60.0's opt-in `StrictPragmas`, which upstream recommends for
-  any application whose DSN is not a compile-time constant, as `openDB`'s is not, since
-  it takes `path`.
-- **Measured against the commit before it:** the driver row adds about 20 tokens to every
-  path. Change paths: cli-tool 5,832 → 5,852, library 4,310 → 4,330, web-application
-  7,932 → 7,952. Floors: cli-tool 12,132 → 12,152, library 12,464 → 12,484,
-  web-application 22,168 → 22,188.
+- **2026-10-31 — the SQLite driver at v1.61.0, and rule 10 guarding the DSN.** `963cacf`
+  through `bcbb2aa`. v1.59.0 to v1.61.0 shipped after the v1.58.0 pin, none with an
+  advisory, and upstream supports only its latest release. v1.61.0 ends a wait for the lock
+  once the context is done, so rule 7 drops "keep every handler deadline above
+  `busy_timeout`"; nothing else leaned on it. Measured with two pools over one WAL file, one
+  holding the lock and the other writing under a 200 ms deadline, Go 1.27.3: at v1.58.0
+  `ExecContext` waited 5,076 ms and `BeginTx` 5,112 ms, the second returning `SQLITE_BUSY`;
+  at v1.61.0 both waited 200 ms and returned `context deadline exceeded`.
+  **Rule 10 is new and tier 1, on Andy's call.** Andy chose v1.60.0's `StrictPragmas` as
+  tier 1 when it was the only guard in view. Review then found the hole it sits behind: a `file:`
+  DSN reads the path's `?` as the start of its own query, so `a?b.db` opened a file named
+  `a` with `busy_timeout` 0, `x.db?mode=memory&a=` an in-memory database, and an encoded `;`
+  in a `_pragma` attached and wrote a second file; `#` ends the name, `%HH` decodes, a
+  leading `//` names a host, and `""` and `:memory:` vanish. `openDB` now collapses a
+  leading `//`, puts `./` before a relative path and escapes `?`, `#` and `%`: every one of
+  28 kinds of path then opened as its own file with all four pragmas. Refusing those
+  characters was tried first and broke tests, because `t.TempDir()` keeps `#` and `%` and
+  `t.Run` names an unnamed case `#00`; `filepath.Clean` was tried second and folded `..`
+  through a symlink as text, opening a different file than the OS means. `VACUUM INTO`
+  reads a destination starting `file:` as a URI too, so the snapshot's gets `./`.
+  **The run.** Six rounds of two passes, one on facts against the driver source and one on
+  the corpus, found 12, 12, 11, 6, 8 and 8 distinct defects; rounds five and six found
+  nothing high and round six nothing medium. The first condition is not met. **The
+  reference** pins `bcbb2aa` in `8e40a0e` (a local commit, not yet pushed; its patch is
+  handed over separately): `gofmt`, `go vet`, `go mod tidy -diff` and every test green
+  without `-race`. `TestTheDSNIsGuarded` fails on every case with the escape removed;
+  `TestLockWaitEndsAtTheDeadline` was not run against v1.58.0, whose 5 s wait it bounds. The
+  race build, `go fix`, `staticcheck` and `govulncheck` of the driver's `lib` package do
+  not fit in the 2 GB claude-sandbox, so `./verify.sh` is owed whole.
+  **Left open:**
+  - **`StrictPragmas`' tier, for Andy.** With the path escaped, nothing reaches the DSN's
+    query but the constant, so dropping the switch loses nothing today; three reviewers
+    held it fails the tier-1 test. It stays tier 1 until Andy decides.
+  - **`modernc.org/libc`.** The driver says a project must pin the libc its `go.mod` names,
+    v1.79.0, and `go get -u ./...` in `operations/ci.md` raises it to v1.79.1. Nothing in
+    the corpus holds it back.
+  - **An empty database path** is refused nowhere at the config edge: `-database-url=`
+    overrides `cmp.Or`'s default, and `openDB` fails only at the first query.
+  - **A `..` through a symlink** opens the file the OS means, but the snapshot is built
+    from `filepath.Dir`, which folds it as text and lands elsewhere.
+  - **Windows paths** — `\data\app.db`, `C:app.db`, UNC — rule 10 says it reads paths the
+    Unix way and goes no further.
+  - **No box checks closing `Rows`, `Stmt` and `Tx`,** in either checklist, and the CLI's has
+    none for the single-writer pool, though the README lists both as tier 1. Older than
+    this change.
+  - **`go-sqlite.md` keeps `Last verified: 2026-09-08`:** the run read rules 7 and 10, not
+    the document. `VERSIONS.md` keeps its date too: CSS Baseline and `design.md` were not
+    checked again.
+  - **`baseline-ops` was not read:** whether a deployed `DATABASE_URL` holds any of rule
+    10's six values is unchecked.
+- **Measured against v5.0.0's corpus at `e963d2e`:** `checklists/web-application.md` 4,981
+  → 4,999 of 5,000, paid for in part by trimming its section lead; `checklists/cli-tool.md`
+  2,881 → 2,902. Change paths: cli-tool 5,832 → 5,892, library 4,310 → 4,350,
+  web-application 7,932 → 7,989. Floors: cli-tool 12,132 → 12,192, library 12,464 →
+  12,503, web-application 22,168 → 22,225. Reach: cli-tool 45,853 → 46,387, library
+  29,783 → 29,822, web-application 104,951 → 105,482.
 
 ## Why the CSP is what it is
 
