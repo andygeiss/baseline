@@ -3,8 +3,9 @@
 **Tier 1** (safety — never waived) · Last verified: 2026-09-08 · Sessions: `alexedwards/scs/v2` (v2.9.0) · Hashing: argon2id
 
 The cookie flags, `RenewToken` and `Destroy`, the argon2id parameters, the
-no-enumeration rule, the rate limits, `FindCtx` treating expired rows as not found, and
-every machine-token rule are tier 1 wherever a checklist files them. The scs wiring,
+no-enumeration rule, the rate limits, `FindCtx` treating expired rows as not found,
+every machine-token rule, and re-resolving a long-lived connection are tier 1 wherever a
+checklist files them. The scs wiring,
 the store implementation, and the redirect mechanics are tier 2 — shape, waived only on
 the record.
 
@@ -204,9 +205,8 @@ MUST rules:
 6. **One function resolves either credential** — a bearer token or a session —
    and puts the same user *row* in the request context, never just the id it came
    from. Everything downstream stops
-   caring which one arrived. A WebSocket's re-check makes the same lookup but only
-   reads: no `last_used_at` touch, no `Destroy`
-   ([wasm-client.md](wasm-client.md) rule 6).
+   caring which one arrived. A long-lived connection's re-check makes the same lookup
+   but only reads (*Re-resolving a long-lived connection* below).
 
    What it MUST NOT do is decide the answer when there is no user, because the
    two surfaces disagree. A browser is sent to the sign-in page; a program gets
@@ -223,8 +223,37 @@ non-browser client, so the CLI is not blocked. That is correct rather than a
 loophole: CSRF is an attack on *ambient* authority, and a browser never attaches
 a bearer token by itself. The cookie half of the app is still covered.
 
+## Re-resolving a long-lived connection
+
+A WebSocket made its one request at the handshake, so a logout, a revoking reset, a
+revoked token or a deleted account never reaches it. It keeps the credential its
+handshake presented and re-resolves it; [wasm-client.md](wasm-client.md) rule 6 says
+what it may do and when it closes. This is tier 1, as that rule is:
+
+1. **At least every 10 seconds, unprompted, under a deadline inside the interval,** it
+   re-runs the handshake's checks: *Machine tokens* rule 6's lookup, to the user's row
+   (a token by its hash), and [go-authorization.md](go-authorization.md)'s access check,
+   the read made as that user, wherever the membership is held.
+2. **It only reads.** No `last_used_at` touch, no `Destroy`.
+3. **A session's lookup is scs `Load` of the kept token into the app's own context**,
+   where a deleted session comes back empty. Never `context.WithoutCancel(r.Context())`:
+   it keeps the request's values, and `Load` returns the session data a context already
+   holds, unchanged — the handshake's copy, alive after a logout deleted it.
+4. **A cookie the server keeps no record of**, naming no user and reaching none, has
+   nothing to revoke: its lookup checks only an expiry the cookie carries, and the access
+   check still runs. Any other cookie is re-resolved like a session.
+5. **Only an HTTP request commits the session**, so under `IdleTimeout` a user who only
+   uses the socket is closed at the idle window: `Load` finds the row expired.
+
 ## CSRF
 
 Handled globally by `http.CrossOriginProtection`, not per-form tokens — see
 [go-http-server.md](go-http-server.md). Session cookies with `SameSite=Lax` are the
 second, independent layer.
+
+## Facts verified (2026-10-31)
+
+- scs v2.9.0: `Load` returns a context that already holds session data unchanged
+  (`data.go` line 55): after `Store.Delete`, `Load(context.WithoutCancel(r.Context()),
+  token)` still found the user and `Load(context.Background(), token)` did not; a session
+  re-`Load`ed but never committed was gone once `IdleTimeout` passed, Go 1.27.3

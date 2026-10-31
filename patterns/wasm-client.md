@@ -6,7 +6,8 @@
 `Origin` or one that is not the page's own host (rule 5); the socket makes or changes
 nothing that decides who passes a credential resolver or access check but its own user's
 in-memory hold, given up to no one, and acts only under the credential its handshake
-presented, re-resolved, with the latest check's access (rule 6); each message and control
+presented with the latest check's access, re-resolved read-only and closed once it, its
+user, or its access is gone (rule 6); each message and control
 frame is size-capped (rule 7); the handler returns right after the handshake (rule 8);
 and the policy gains `'wasm-unsafe-eval'` and nothing else
 ([security-headers.md](security-headers.md) owns it).
@@ -106,28 +107,23 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
 6. **The socket makes or changes nothing that decides who passes a credential resolver or
    access check — tier 1.** An identity, a session, a room, its owner or host, a
    membership, a ban — in a store or in memory — is made, changed or deleted by an
-   ordinary HTTP request or the app's own expiry (a stored one never started by a close),
-   never the socket; a stored board or a move row is the socket's, written as
-   [go-authorization.md](go-authorization.md) says. The socket may give up only its own
-   user's hold in memory — a seat, membership or host role — by a message or a close, to
-   no one. It acts only under the credential the handshake presented, which it keeps and
-   re-resolves, with the access the latest check returned. At most every 10 seconds,
-   unprompted, it re-runs the handshake's checks with that credential under a deadline
-   inside that interval: the lookup [go-auth-sessions.md](go-auth-sessions.md) rule 6's
-   resolver makes, to the user's row (a token by its hash), and go-authorization.md's
-   access check, the read made as that user, wherever the membership is held. The
-   re-check only reads: no `last_used_at` touch, no `Destroy`. A session's lookup is scs
-   `Load` of the handshake's token into the app's own context, where a deleted session
-   comes back empty; never `context.WithoutCancel(r.Context())`, whose `Load` returns the
-   handshake's copy, always alive. It closes with 1008 once the credential, its user, or
-   its access is gone — a logout, a revoking reset, a revoked token, a deleted account
-   ([go-data-deletion.md](go-data-deletion.md)), a lost membership — and with 1011, no
-   reason text, on a store error or a missed deadline (shutdown's cancel is rule 8's
-   1001); while a due check is unanswered it acts on nothing. Only an HTTP request
-   commits the session, so under `IdleTimeout` a socket-only user is closed at the idle
-   window. A cookie the server keeps no record of, naming no user and reaching none, has
-   nothing to revoke: it is re-checked only for an expiry it carries. Any other is
-   re-resolved like a session.
+   ordinary HTTP request or the app's own expiry, a stored one never started by the
+   socket; an expiry held in memory grants nothing, so it never hands a role on. The
+   socket may give up its own user's hold in memory — a membership or host role — by a
+   message or a close, to no one. A cap on in-memory presence that grants no privilege (a
+   seat, a room's head count) is a resource limit, not an access check: the socket may
+   take or free such a seat. A row it writes under a membership names that membership in
+   its own statement ([go-authorization.md](go-authorization.md) rule 6), and a
+   membership held in memory is checked in the same step as the write, under its lock.
+   It acts only under the credential the handshake presented, with the access the latest
+   check returned, re-resolved read-only at least every 10 seconds, unprompted, under a
+   deadline inside the interval ([go-auth-sessions.md](go-auth-sessions.md)
+   *Re-resolving a long-lived connection* says how); while a check is due it acts on
+   nothing. It closes with 1008 once the credential, its user, or its access is gone — a
+   logout, a revoking reset, a revoked token, a deleted account
+   ([go-data-deletion.md](go-data-deletion.md)), a lost membership, a write that found
+   none — and with 1011, no reason text, on a store error or a missed deadline
+   (shutdown's cancel is rule 8's 1001).
 7. **The socket is capped like a body.** Message and control-frame sizes are tier 1,
    since after `Hijack` no `MaxBytesReader` guards the connection: a message (1 KiB)
    counts whole, its fragments together, each checked by its declared length — read
@@ -193,10 +189,8 @@ HTML, so it is not the htmx WebSocket extension
   `modernc.org/libc` ("build constraints exclude all Go files"); over the `go list -deps`
   list of `./cmd/roommap` both exit 0, and each reports a finding planted in a
   `js && wasm` file, Go 1.27.3
-- scs v2.9.0: `Load` returns a context that already holds session data unchanged
-  (`data.go` line 55): after `Store.Delete`, `Load(context.WithoutCancel(r.Context()),
-  token)` still found the user and `Load(context.Background(), token)` did not. It marks
-  a found session modified under `IdleTimeout` (line 82); `LoadAndSave` commits after the
+- scs v2.9.0: `Load` marks a found session modified under `IdleTimeout` (`data.go`
+  line 82); `LoadAndSave` commits after the
   handler unless `Write` or `WriteHeader` ran (`session.go` line 163), and its `Hijack`
   (`session_go120.go`) runs neither. A test that deleted the session from the store while
   its handler held the socket found it saved again once the handler returned, Go 1.27.3

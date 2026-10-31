@@ -93,8 +93,9 @@ test:
    ([patterns/wasm-client.md](../patterns/wasm-client.md)). An added `go fix -diff`
    line joins `fmt`'s one bounded loop, which repeats every `go fix` until every
    `-diff` line is empty, its list computed once before the loop and failing closed
-   (`l=$$(<list>) && test -n "$$l" && until <canonical line> && <that line over $$l>;
-   do …`): a rewrite in a package both builds compile can expose a fixer in the other.
+   (`l=$$(<list>) && test -n "$$l" && n=3 && until <canonical line> && <that line over
+   $$l>; do …`), never a `;` after the list, which fails open: a rewrite in a package
+   both builds compile can expose a fixer in the other.
    **A file behind a custom build tag (not a GOOS or GOARCH) MUST be vetted
    under that tag**, one `go vet -tags <tag> ./...` line per tag set (but not
    `ignore`, which marks generator scripts and fails `go vet -tags ignore ./...`, nor
@@ -107,8 +108,10 @@ test:
    (`tinygo && js && wasm` for a TinyGo-only one). A counterpart in a package both
    builds compile negates its file's constraint exactly: `!tinygo || !js || !wasm` for
    a `tinygo && js && wasm` file, `!tinygo` for a `tinygo` one. A `tinygo`-only file
-   fails the line when it imports `syscall/js`, uses a name only a `js && wasm` file declares, or meets a
-   counterpart that does not negate it.
+   fails the line when it imports a package the host cannot build (`syscall/js`, or one
+   made only of `js && wasm` files), uses a name only a file the host skips declares (by
+   a `js`/`wasm` tag or a `_js`/`_wasm` file name), or meets a counterpart that does not
+   negate it.
 2. **Portable subset only.** The file MUST run under GNU Make 3.81: `=`
    assignment, `.PHONY`, `.DEFAULT_GOAL` (new in 3.81, so exactly at the floor),
    plain tab-indented recipes. MUST NOT use post-3.81 features (`.ONESHELL` —

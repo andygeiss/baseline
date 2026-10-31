@@ -58,8 +58,12 @@ The rules behind it — all MUST:
 6. **A write proves ownership in its own statement**, deletes included. `UPDATE games SET
    state = ? WHERE id = ? AND user_id = ?`, then check `RowsAffected` — zero means not
    theirs, and it answers by rule 4. A read followed by an unqualified write is two
-   statements where one would do. What a delete has to reach past the row it named is
-   [go-data-deletion.md](go-data-deletion.md).
+   statements where one would do. A row written under a membership, such as a move in a
+   room, names the membership the same way:
+   `INSERT INTO moves (room_id, user_id, cell) SELECT room_id, user_id, ? FROM members
+   WHERE room_id = ? AND user_id = ?`, where zero rows means not a member. `VALUES (?, ?,
+   ?)` names the actor and checks nothing, so a removed member's move is stored. What a
+   delete has to reach past the row it named is [go-data-deletion.md](go-data-deletion.md).
 7. **Sentinels stay at the store boundary.** Callers see `domain.ErrNotFound`, never a
    `database/sql` error ([go-errors-logging.md](go-errors-logging.md)).
 

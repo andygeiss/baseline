@@ -123,7 +123,8 @@ next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), userKey, u)))
 ```
 
 - **An open WebSocket outlives that check**, because it made its one request already;
-  [wasm-client.md](wasm-client.md) rule 6 closes it.
+  it re-runs the check as [go-auth-sessions.md](go-auth-sessions.md) *Re-resolving a
+  long-lived connection* says, and [wasm-client.md](wasm-client.md) rule 6 closes it.
 - **Machine tokens need no rule of their own.** They are rows with a `user_id`, so they
   cascade, and the next request presenting one gets the `401` that
   [go-auth-sessions.md](go-auth-sessions.md) rule 6 already requires.

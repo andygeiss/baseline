@@ -14,8 +14,8 @@ under *Reading a flag…*; the pragmas, the path box, both pools, and parameteri
 under *Storing anything*; the zero-CSP-violations check under *Adding an icon*; every box
 under *Reading or writing a row somebody owns* except the one naming the shared rows; the
 base-URL and the header box under *Sending an email*; every box under *Deleting a person*
-except the one naming where each table's answer is written; the CSP, Origin, credential,
-handler-return, and message-size boxes under *Shipping a WebAssembly client*. No waiver
+except the one naming where each table's answer is written; the CSP, Origin, access,
+credential, handler-return, and message-size boxes under *Shipping a WebAssembly client*. No waiver
 for any of those; there is a fix.
 
 ## Every web application
@@ -253,7 +253,7 @@ not a trigger.
 - [ ] Somebody else's row and a row that never existed answer identically
 - [ ] No route answers 403 for a row, only for a route the actor may never use
 - [ ] Lists, counts, and aggregates carry the same predicate
-- [ ] Writes prove ownership in their own statement and check `RowsAffected`
+- [ ] Writes prove ownership or membership in their own statement and check `RowsAffected`
 - [ ] A route's protection is not optional where it is registered
 - [ ] The rows nobody owns are named in `README.md` or `DESIGN.md`
 - [ ] The two-user test covers every handler that touches an owned row
@@ -319,9 +319,9 @@ not a trigger.
 
 ## Shipping a WebAssembly client — a game, a canvas redrawn every frame
 
-`patterns/wasm-client.md` — the module, its two scripts, and its socket. Choosing it is a
-shape decision. The CSP, Origin, credential, handler-return, and message-size boxes are
-tier 1.
+`patterns/wasm-client.md` — the module, its scripts, and its socket. Choosing it is a
+shape decision. The CSP, Origin, access, credential, handler-return, and message-size
+boxes are tier 1.
 
 - [ ] Under `web/static/js/`: htmx, an unedited `wasm_exec.js`, one loader, nothing else
 - [ ] Both scripts load deferred in `<head>`, on the module's page only
@@ -335,7 +335,8 @@ tier 1.
 - [ ] `deps_test.go` keeps `net/http`, `os/signal`, `golang.org/x/sync/...` out of the browser packages
 - **The socket, `GET /ws`:**
   - [ ] The handshake refuses a missing `Origin` and one whose host is not the request's
-  - [ ] It makes or changes nothing that decides who passes a credential resolver or access check but its own user's in-memory hold given up to no one, acts only under the handshake's credential and its latest check's access, re-resolved read-only at least every 10 seconds under a deadline from the app's own context, acts on nothing while a check is due, and closes with 1008 once it, its user, or its access is gone, 1011 on a store error or missed deadline (shutdown's cancel: 1001)
+  - [ ] It makes or changes nothing that decides who passes a credential resolver or access check but its own user's in-memory hold, given up to no one
+  - [ ] It acts only under the handshake's credential with its latest check's access, re-resolved read-only at least every 10 seconds (`patterns/go-auth-sessions.md`), closing once it, its user, or its access is gone
   - [ ] The handler returns after the handshake, so session middleware cannot save a revoked session again
   - [ ] The socket runs on a goroutine the app tracks
   - [ ] Message size is capped across continuation frames, a control frame at 125 bytes, before a payload is read, the declared length read unsigned with its top bit 0 and compared with what the cap has left, never summed
@@ -351,7 +352,7 @@ the second wait.
 - [ ] A ticker runs under the `errgroup` tied to the signal context, never a bare `go func()`
 - [ ] It runs once before entering its ticker loop
 - [ ] It treats `context.Canceled` at shutdown as normal
-- [ ] Work that outlives its request takes `context.WithoutCancel` and a budget of its own, but work that re-reads a session starts from the app's own context (`patterns/wasm-client.md` rule 6)
+- [ ] Work that outlives its request takes `context.WithoutCancel` and a budget of its own, but work that re-reads a session starts from the app's own context (`patterns/go-auth-sessions.md`)
 - [ ] Shutdown cancels it, and `main` waits after `g.Wait()`; `srv.Shutdown` does neither
 - [ ] Losing it mid-flight costs nothing, or it is a durable queue instead
 - [ ] Its registry drops finished entries when the next one starts
