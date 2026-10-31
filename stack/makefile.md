@@ -92,8 +92,9 @@ test:
    (`GOOS=js GOARCH=wasm go vet …`), or a size limit on a committed artifact
    ([patterns/wasm-client.md](../patterns/wasm-client.md)). An added `go fix -diff`
    line joins `fmt`'s one bounded loop, which repeats every `go fix` until every
-   `-diff` line is empty (`until <canonical line> && <that line>; do …`): a rewrite
-   in a package both builds compile can expose a fixer in the other.
+   `-diff` line is empty, its list computed once before the loop and failing closed
+   (`l=$$(<list>) && test -n "$$l" && until <canonical line> && <that line over $$l>;
+   do …`): a rewrite in a package both builds compile can expose a fixer in the other.
    **A file behind a custom build tag (not a GOOS or GOARCH) MUST be vetted
    under that tag**, one `go vet -tags <tag> ./...` line per tag set (but not
    `ignore`, which marks generator scripts and fails `go vet -tags ignore ./...`, nor
@@ -103,10 +104,11 @@ test:
    ([patterns/wasm-client.md](../patterns/wasm-client.md) rule 3 names the variable).
    It passes because every file in a package the host cannot build carries
    `js && wasm`: one that imports `syscall/js`, and every other file in its package
-   (`tinygo && js && wasm` for a TinyGo-only one); in a package both builds compile,
-   that file's counterpart carries `!tinygo || !js || !wasm`, not `!tinygo`. A
-   `tinygo`-only file that imports `syscall/js` or uses a sibling's name fails it:
-   under TinyGo's tags the host vet compiles it without its `js && wasm` siblings.
+   (`tinygo && js && wasm` for a TinyGo-only one). A counterpart in a package both
+   builds compile negates its file's constraint exactly: `!tinygo || !js || !wasm` for
+   a `tinygo && js && wasm` file, `!tinygo` for a `tinygo` one. A `tinygo`-only file
+   fails the line when it imports `syscall/js`, uses a sibling's name, or meets a
+   counterpart that does not negate it.
 2. **Portable subset only.** The file MUST run under GNU Make 3.81: `=`
    assignment, `.PHONY`, `.DEFAULT_GOAL` (new in 3.81, so exactly at the floor),
    plain tab-indented recipes. MUST NOT use post-3.81 features (`.ONESHELL` —

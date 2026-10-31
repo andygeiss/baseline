@@ -480,7 +480,6 @@ be synced, the tag waits.
   web-application 24,118 → 24,133, heads unchanged, checklists cli-tool 3,116 → 3,133,
   library 1,493 → 1,509, web-application 5,798 → 5,813, the WebAssembly section 578 →
   576 of 600. No pass has read the fixes.
-
 - **2026-10-31 — review pass 11.** Five defects, all wording; the reference at
   `3de5087` followed every rule checked, and the mechanics reviewer built a second
   WebAssembly client from the docs alone (a shared drawing board: `make wasm`, `check`,
@@ -493,8 +492,33 @@ be synced, the tag waits.
   rule 1 now covers a package both builds compile (the counterpart carries
   `!tinygo || !js || !wasm`, executed) and no longer says every `tinygo`-only file fails
   the TinyGo-tag vet, only one that imports `syscall/js` or uses a sibling's name
-  (executed). The tier-1 credential box gains pass 10's shutdown 1001. `wasm-client.md`
-  3,764 → 3,757. No pass has read the fixes.
+  (executed). The tier-1 credential box gains pass 10's shutdown 1001. `make` exits 0:
+  `wasm-client.md` 3,764 → 3,757, `stack/makefile.md` 3,439 → 3,467, `stack/htmx.md`
+  2,094 → 2,092, floor web-application 24,133 → 24,138, checklist web-application
+  5,813 → 5,820, the WebAssembly section 576 → 583 of 600. No pass has read the fixes.
+- **2026-10-31 — review pass 12.** Six defects; a third WebAssembly client written from
+  the docs alone (two-player Nim, rooms by form, moves over the socket) went green under
+  GNU Make 3.81 (`make wasm`, `check`, `fmt`, `ci`), its hand-written frame reader
+  passed every attack (fragments, 2^63-1 on a continuation, oversized and fragmented
+  control frames, 31 frames a second), its re-check closed 1008 on logout, leaving and
+  account deletion, 1011 on a slow store and 1001 on shutdown mid-check, and in headless
+  Chrome a move crossed between two players under the CSP. Fixed: rule 6 said a plain
+  form alone makes, changes or deletes an identity, session, room or membership, which
+  outlawed session expiry, game's room timeouts and the reference's own JSON room API;
+  it now reads an ordinary HTTP request (a form, an API call) or the app's own expiry,
+  never the socket. "A close may drop its user's hold" named nothing; the socket may now
+  give up only its own user's in-memory seat, membership or host role, by a message or a
+  close, and hands it to no one (game's in-canvas Leave conforms), with the same
+  exception in the header, README and box. Rule 6 now acts with the access the latest
+  check returned, so a demoted host stops acting as host. `stack/makefile.md` rule 1: the
+  `fmt` loop computes the js/wasm list once before it, failing closed (executed: the
+  list was empty on the first pass), and a counterpart negates its file's constraint
+  exactly, with every case that fails the TinyGo-tag vet named (executed: "now
+  redeclared"). The pass-11 entry gains its missing numbers. `make` exits 0:
+  `wasm-client.md` 3,757 → 3,795 of 3,800 (the idle-window aside and a restated `Get`
+  clause cut to pay), `stack/makefile.md` 3,467 → 3,505, floor web-application 24,138 →
+  24,148, checklist web-application 5,820 → 5,830, the WebAssembly section within 600. No
+  pass has read the fixes.
 
 ## Why the CSP is what it is
 
