@@ -5,9 +5,9 @@
 **The pragmas, the single-writer pool, closing what it hands out, parameterized
 queries, and rule 10's guards on the DSN are tier 1 and never waived.** Dropping any of
 the first three loses data — rule 8 is the failure mode the single-writer pool itself
-creates. Dropping the fourth hands over the database, and dropping the last — the path
-made a file name, with `StrictPragmas` behind it — lets a path rewrite the DSN that
-carries the pragmas.
+creates. Dropping the fourth hands over the database; dropping the path guard lets a path
+rewrite the DSN that carries the pragmas, and `StrictPragmas` is the backstop for a DSN
+that one day stops being built from constants.
 
 SQLite is the default database. Configured correctly it serves thousands of requests
 per second on one small box with zero operational overhead. Configured by default it
@@ -34,7 +34,7 @@ func openDB(path string) (readDB, writeDB *sql.DB, err error) {
 	if strings.HasPrefix(path, "//") {
 		path = "/" + strings.TrimLeft(path, "/") // "//" names a host
 	} else if !filepath.IsAbs(path) {
-		path = "./" + path // "" and ":memory:" are files
+		path = "./" + path // ":memory:" is a file; "" fails to open
 	}
 	path = uriEscaper.Replace(path)
 
@@ -84,21 +84,16 @@ The rules behind it — all MUST:
    `return`, and the error path wedge.
 9. **`rows.Err()` after the loop.** `rows.Next()` returns false for "done" and for
    "failed"; without the check a truncated result set reads as an empty one.
-10. **The path is made a file name; `StrictPragmas` backs it up.** `path` is not a
-    constant, and a `file:` DSN reads a `?` in it as the start of a query string: an
-    innocent one opens a different file and swallows `busy_timeout`, and a crafted one
-    sets SQLite's `mode`, `immutable` or `vfs`, or a `_pragma`. `#` ends the name, `%`
-    decodes, a leading `//` names a host, and `""` and `:memory:` are databases that
-    vanish. So `openDB` collapses a leading `//`, puts `./` before a relative path, and
-    escapes the three characters, which makes any path a file name — that is the guard;
-    everything else reaches SQLite as the OS reads it. `DATABASE_URL` is a path, never a
-    URI: a value holding `?`, `#`, `%`, a leading `//` or `:memory:` names a different
-    file under this `openDB` than under one without the guard, so check it before
-    adopting. `t.TempDir()` can hold `#` and `%`, which is why `openDB` escapes rather
-    than refuses; `newTestDB` passes it unescaped. A `_pragma` runs as SQL text, and
-    `sqlite.StrictPragmas(true)` is a narrow backstop: it refuses one of more than one
-    statement before any pragma runs, and nothing else. Import the driver by name, not as
-    `_`, to call it.
+10. **The path is made a file name; `StrictPragmas` backs it up.** `DATABASE_URL` is a
+    path, never a URI, but a `file:` DSN reads `?`, `#`, `%`, a leading `//`, `""` and
+    `:memory:` as syntax: another file, a dropped pragma, or a database that vanishes. So
+    `openDB` collapses a leading `//`, puts `./` before a relative path, and escapes `?`,
+    `#` and `%`. That is the guard. Every other character reaches SQLite unchanged, read
+    the Unix way. Escape, never refuse: `t.TempDir()` can hold `#` and `%`. Before moving
+    a project with a database onto this `openDB`, check its deployed value for any of the
+    six. `sqlite.StrictPragmas(true)` is the backstop: process-wide, it refuses a
+    `_pragma` value that holds more than one statement, before any pragma runs, and
+    nothing else. Import the driver by name, not as `_`, to call it.
 
 ## Schema migrations
 
@@ -132,6 +127,9 @@ Three answers are legitimate — "I don't know" is not:
 // every other path may be read-only, and VACUUM INTO resolves a relative path
 // against the process's working directory, not the database's.
 dst := filepath.Join(filepath.Dir(cfg.DatabaseURL), "app-"+day+".db")
+if !filepath.IsAbs(dst) {
+	dst = "./" + dst // a leading "file:" would make it a URI (rule 10)
+}
 
 // The read pool, never the write pool: this statement only reads, so running
 // it on the single write connection would starve writes for its whole duration.
