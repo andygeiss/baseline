@@ -5,9 +5,9 @@
 **The pragmas, the single-writer pool, closing what it hands out, parameterized
 queries, and rule 10's guards on the DSN are tier 1 and never waived.** Dropping any of
 the first three loses data — rule 8 is the failure mode the single-writer pool itself
-creates. Dropping the fourth hands over the database; dropping the path guard lets a path
-rewrite the DSN that carries the pragmas, and `StrictPragmas` is the backstop for a DSN
-that one day stops being built from constants.
+creates. Dropping the fourth hands over the database; dropping the first guard lets a
+path rewrite the DSN that carries the pragmas, and `StrictPragmas` is the backstop if
+that guard is ever lost.
 
 SQLite is the default database. Configured correctly it serves thousands of requests
 per second on one small box with zero operational overhead. Configured by default it
@@ -74,8 +74,8 @@ The rules behind it — all MUST:
    so do a wait for a pooled connection and a wait for SQLite's write lock: from driver
    v1.61.0 the busy handler gives up once the context is done and returns the context's
    error. Rule 2's number still caps every wait for the lock; a context that ends sooner
-   ends it sooner. `Commit` and `Rollback` take no context, so only rule 2's number bounds
-   theirs.
+   ends it sooner. Once started, `Commit` and `Rollback` ignore the context; only rule 2's
+   number bounds them.
 8. **Every `Rows`, `Stmt` and `Tx` is closed on every path** — `defer rows.Close()`, and
    `defer tx.Rollback()` after a successful `BeginTx`. On a one-connection write pool a
    single leak is not a slow leak: it wedges every later write forever, and `busy_timeout`
@@ -84,16 +84,19 @@ The rules behind it — all MUST:
    `return`, and the error path wedge.
 9. **`rows.Err()` after the loop.** `rows.Next()` returns false for "done" and for
    "failed"; without the check a truncated result set reads as an empty one.
-10. **The path is made a file name; `StrictPragmas` backs it up.** `DATABASE_URL` is a
-    path, never a URI, but a `file:` DSN reads `?`, `#`, `%`, a leading `//`, `""` and
-    `:memory:` as syntax: another file, a dropped pragma, or a database that vanishes. So
-    `openDB` collapses a leading `//`, puts `./` before a relative path, and escapes `?`,
-    `#` and `%`. That is the guard. Every other character reaches SQLite unchanged, read
-    the Unix way. Escape, never refuse: `t.TempDir()` can hold `#` and `%`. Before moving
-    a project with a database onto this `openDB`, check its deployed value for any of the
-    six. `sqlite.StrictPragmas(true)` is the backstop: process-wide, it refuses a
-    `_pragma` value that holds more than one statement, before any pragma runs, and
-    nothing else. Import the driver by name, not as `_`, to call it.
+10. **The path is made a file name; `StrictPragmas` backs it up.** The configured path
+    (`DATABASE_URL` in a web application) is a path, never a URI, but a `file:` DSN reads
+    `?`, `#`, `%`, a leading `//`, `""` and `:memory:` as syntax: another file, a dropped
+    pragma, or a database that vanishes. So `openDB` collapses a leading `//`, puts `./`
+    before a relative path, and escapes `?`, `#` and `%`. That is the first guard. Every
+    other character reaches SQLite unchanged, read the Unix way. Escape those characters,
+    never refuse them: `t.TempDir()` can hold `#` and `%`. A relative path starting
+    `file:` is a URI wherever SQLite takes a file name, `VACUUM INTO` included, so it too
+    gets `./`. Before moving a project with a database onto this `openDB`, check every
+    value it is given for any of the six. `sqlite.StrictPragmas(true)` is the second
+    guard, a backstop: process-wide, it refuses a `_pragma` value that holds more than one
+    statement, before any pragma runs, and nothing else. Import the driver by name, not as
+    `_`, to call it.
 
 ## Schema migrations
 
