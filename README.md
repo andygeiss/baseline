@@ -429,9 +429,10 @@ Two budgets cap a single document:
   arguing when it should be ruling; past budget on code means *Write to the reader's
   competence* below. **Aim at 1,800 for a new document;** 3,800 is the ceiling, not the
   target.
-- **A checklist stays within 5,000 tokens.** It is paid whole by every project of that
-  type, on every change and at every milestone — the most-paid document in the corpus,
-  and the reason it was worth folding the router into rather than beside it.
+- **A checklist trigger section stays within 600 tokens.** A change reads the sections
+  it fires, so a section is the unit a change pays; past 600 it usually owns two
+  subjects. A checklist's total is reported, not capped: it grows by one section per
+  pattern, which is the corpus doing its job, and the floor below still bounds it.
 
 Three budgets cap a path somebody walks:
 
@@ -443,9 +444,9 @@ Three budgets cap a path somebody walks:
   test is what keeps the number down, not the number** — it held the floor for three
   releases while the ceiling was thirteen tokens away, and it is the whole defence now
   that the ceiling is further off.
-- **A change stays within 8,000 tokens** — `SKILL.md`, `VERSIONS.md`, and the checklist.
-  This is the most common thing anyone does here and therefore the number paid most
-  often.
+- **The head stays within 4,500 tokens** — `SKILL.md`, `VERSIONS.md`, and the checklist
+  up to the end of its *Every …* section. Every change pays it before the sections it
+  fires, so it is the number paid most often, and nothing a new pattern adds lands in it.
 - **Reach is reported, not budgeted.** Every document a project type can get to is a
   ceiling no build ever pays, because no project fires every trigger. `make tokens` ranks
   the heaviest documents on each reach path and marks whether every project of that type
@@ -453,11 +454,13 @@ Three budgets cap a path somebody walks:
   often it is read does.** How often is the maintainer's judgement; the report is what
   that judgement gets applied to.
 
-**A budget number moves only in a commit that moves nothing else.** Three have moved, all
-on 2026-08-18: the checklist and change numbers, then the floor. The reason is the same
+**A budget number moves only in a commit that moves nothing else.** Three moved on
+2026-08-18: the checklist and change numbers, then the floor. The reason is the same
 each time — the corpus's promise to extract every recurring decision into a pattern costs
 the paths about 125 tokens per pattern forever, and a fixed number and a growing corpus
-cannot both hold. The corpus is the point. Every number before and after, and the argument
+cannot both hold. The corpus is the point. On 2026-10-31 the checklist and change
+budgets became the trigger-section and head budgets, so a new pattern no longer moves a
+number at all. Every number before and after, and the argument
 behind each move, is in [VERIFICATION.md](VERIFICATION.md) *Budget decisions*. Raising one
 to clear a red `make tokens` inside the change that blew it is the move this rule exists
 to stop.

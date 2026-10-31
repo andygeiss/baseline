@@ -12,11 +12,25 @@ SKILL_DIR = $(HOME)/.claude/skills/engineering-baseline
 # code alike, because a reader pays for both and a split budget only measures
 # which side of the fence an author put the answer on. The split is still
 # printed, as a diagnosis: prose grows by arguing, code by spelling out what
-# the reader can already write. Every other budget is a read path.
-DOC_BUDGET       = 3800
-CHECKLIST_BUDGET = 5000
-FLOOR_BUDGET     = 25000
-CHANGE_BUDGET    = 8000
+# the reader can already write. TRIGGER_BUDGET caps one checklist trigger
+# section; a checklist's total is reported, not capped, because no change
+# fires every section. Every other budget is a read path.
+DOC_BUDGET     = 3800
+TRIGGER_BUDGET = 600
+FLOOR_BUDGET   = 25000
+HEAD_BUDGET    = 4500
+
+# A checklist's shared head, in bytes: everything up to the end of its
+# *Every …* section, which every change pays. Expects $$check to name the
+# checklist. LC_ALL=C makes length() count bytes, as wc -c does.
+HEAD = LC_ALL=C awk '/^\#\# / && seen { exit } /^\#\# Every / { seen = 1 } \
+	{ n += length($$0) + 1 } END { print n + 0 }' "$$check"
+
+# Each trigger section after the head, as "tokens<TAB>heading". Expects
+# $$check to name the checklist.
+TRIGGERS = LC_ALL=C awk '/^\#\# / { if (h != "") printf "%d\t%s\n", n / 4, h; \
+	if (seen) h = $$0; if ($$0 ~ /^\#\# Every /) seen = 1; n = 0 } \
+	{ n += length($$0) + 1 } END { if (h != "") printf "%d\t%s\n", n / 4, h }' "$$check"
 
 # Every document a checklist can send an agent to. The checklists name their
 # documents as bare repository-root paths, so this is the reach path with no
@@ -109,18 +123,19 @@ tokens:
 	done; \
 	if [ $$over -eq 0 ]; then echo "  all within budget"; else \
 		echo "  $$over over budget"; fail=1; fi; \
-	echo "checklists/*.md: $(CHECKLIST_BUDGET)"; \
-	for f in checklists/*.md; do \
-		t=$$(( $$(wc -c < "$$f") / 4 )); \
-		if [ $$t -gt $(CHECKLIST_BUDGET) ]; then printf "  OVER %6d  %s\n" $$t "$$f"; \
-			fail=1; else printf "       %6d  %s\n" $$t "$$f"; fi; \
+	echo "each checklist trigger section: $(TRIGGER_BUDGET) (the whole file is a report)"; \
+	for check in checklists/*.md; do \
+		printf "       %6d  %s\n" $$(( $$(wc -c < "$$check") / 4 )) "$$check"; \
+		o=$$($(TRIGGERS) | awk -F '\t' -v b=$(TRIGGER_BUDGET) \
+			'$$1 > b { printf "  OVER %6d  %s\n", $$1, $$2 }'); \
+		if [ -n "$$o" ]; then echo "$$o"; fail=1; fi; \
 	done; \
 	echo; \
 	echo "== one read path =="; \
 	echo "floor  $(FLOOR_BUDGET)  before the first line of code"; \
-	echo "change $(CHANGE_BUDGET)  an ordinary change to a project that already conforms"; \
+	echo "head   $(HEAD_BUDGET)  every change: SKILL.md, VERSIONS.md, the checklist to its *Every* section"; \
 	echo "reach  (report)  every document the type can reach — no build fires every row"; \
-	printf "\n  %6s %6s %6s  %s\n" floor change reach project-type; \
+	printf "\n  %6s %6s %6s  %s\n" floor head reach project-type; \
 	for base in project-types/*.md; do \
 		name=$${base#project-types/}; name=$${name%.md}; \
 		check="checklists/$$name.md"; \
@@ -128,7 +143,7 @@ tokens:
 		for d in $$($(REQUIRED)); do \
 			floor=$$(( floor + $$(wc -c < "$$d") / 4 )); \
 		done; \
-		change=$$(( $$(cat SKILL.md VERSIONS.md "$$check" | wc -c) / 4 )); \
+		head=$$(( ( $$(cat SKILL.md VERSIONS.md | wc -c) + $$($(HEAD)) ) / 4 )); \
 		reach=$$floor; \
 		req=" $$($(REQUIRED) | tr '\n' ' ') "; \
 		for d in $$($(REACHED)); do \
@@ -136,9 +151,9 @@ tokens:
 			reach=$$(( reach + $$(wc -c < "$$d") / 4 )); \
 		done; \
 		mark=" "; \
-		if [ $$floor -gt $(FLOOR_BUDGET) ] || [ $$change -gt $(CHANGE_BUDGET) ]; then \
+		if [ $$floor -gt $(FLOOR_BUDGET) ] || [ $$head -gt $(HEAD_BUDGET) ]; then \
 			mark="!"; fail=1; fi; \
-		printf "%s %6d %6d %6d  %s\n" "$$mark" $$floor $$change $$reach "$$name"; \
+		printf "%s %6d %6d %6d  %s\n" "$$mark" $$floor $$head $$reach "$$name"; \
 	done; \
 	echo; \
 	echo "== where the mass is (report only) =="; \

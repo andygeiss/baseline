@@ -256,6 +256,34 @@ Why a budget number is the number it is. A number here moves only in a commit th
 nothing else — [README.md](README.md) *Size budgets* carries that rule; this is where the
 argument behind each move lives.
 
+### 2026-10-31 — the shape budget: a capped head, capped sections, a reported total
+
+**Decided by Andy.** The checklist budget (5,000) and the change path (8,000) are gone.
+In their place: **each checklist trigger section stays within 600 tokens**, and **the
+head stays within 4,500** — `SKILL.md`, `VERSIONS.md`, and the checklist up to the end of
+its *Every …* section. A checklist's total is reported. The per-document budget (3,800)
+and the floor (25,000) did not move.
+
+**The collision.** The entry below named its own end: both numbers going over together is
+the growth curve arriving, and the signal to take the branch it did not take rather than
+raise a third time. On 2026-10-31 the web-application checklist stood at 4,998 of 5,000
+and its change path at 7,988 of 8,000, and seven baseline deviations that recur across
+projects were waiting to be promoted, two of them on that path: a WebAssembly client, and
+the boxes for a `/healthz` with no database to ping.
+
+**Why this branch.** It is the one the 2026-08-18 entry deferred, and it dissolves the
+collision instead of moving it. A new pattern adds a trigger section, and a trigger section
+lands in neither capped number: it is capped on its own, and the head does not grow.
+Measured at the switch: heads 3,852 (cli-tool), 3,711 (library), 3,744
+(web-application); the largest section 499, the child-process section in
+`checklists/cli-tool.md`.
+
+**What it does not buy.** An agent that reads a checklist reads the file, not the sections
+it fired, so the reported total is still what a change often pays in practice. The floor
+is what still bounds it: every checklist sits inside its floor whole, and the floor has not
+moved. **What would make this wrong:** a web-application floor that climbs toward 25,000
+on trigger sections — then the checklist itself needs splitting, and no number fixes that.
+
 ### 2026-08-18 — the floor, raised so the corpus can keep growing
 
 **Decided by Andy.** The floor 19,500 → **25,000**. The per-document budget (3,800), the
