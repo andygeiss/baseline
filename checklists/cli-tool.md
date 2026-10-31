@@ -193,7 +193,7 @@ the reasoning that leaks into the visible answer.
 `patterns/go-sqlite.md` — pragmas, pools, migrations. Prefer staying stateless.
 
 - [ ] Pragmas: WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)`
-- [ ] Path escaped in the DSN
+- [ ] Path made a file name
 - [ ] `sqlite.StrictPragmas(true)`
 - [ ] SQL only via parameterized queries
 - [ ] Migrations embedded and forward-only

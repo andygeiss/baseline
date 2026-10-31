@@ -208,7 +208,7 @@ not a trigger.
 `patterns/go-sqlite.md` — pragmas, pools, migrations, backups.
 
 - [ ] Pragmas: WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)`
-- [ ] Path escaped in the DSN
+- [ ] Path made a file name
 - [ ] `sqlite.StrictPragmas(true)`
 - [ ] SQL only via parameterized queries
 - **Two pools:**
