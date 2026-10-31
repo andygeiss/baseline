@@ -215,6 +215,22 @@ be synced, the tag waits.
   web-application 22,224 → 22,946. Reach: cli-tool 46,398 → 47,040, library 29,822 →
   30,386, web-application 105,493 → 108,002. `checklists/web-application.md` 4,998 →
   5,345, now a report; its new section 263 of 600.
+- **2026-10-31 — TinyGo gets a `VERSIONS.md` row.** Closes the *Not pinned* gap above.
+  The row pins **0.42.0** (2026-09-01): the newest release that has built a module here,
+  in game and game-lab. 0.44.0 (2026-10-28) is upstream's latest and is held — it could
+  not be installed on this machine, so it has built nothing. Both build Go 1.25 through
+  1.27 (`minorMin`/`minorMax` at each tag), so the Go row's 1.27.3 sits inside the range.
+  `wasm-client.md` rule 1 and `stack/makefile.md` rule 4 now point at the row instead of
+  a per-project pin; the version policy gains a TinyGo line and ties a new Go minor to
+  it; the checklist box asks for the row's version; the JavaScript row admits the two
+  scripts. No pass has read it.
+  - **Decision left:** a new Go minor now waits for TinyGo in *every* project, WebAssembly
+    or not, because there is one Go row. The other road is a project-level Go floor for
+    WebAssembly projects only, which the single-pin policy does not have.
+  - **Measured under GNU Make 3.81 at this commit,** closing *Not run* above: heads cli-tool 3,852 → 4,032,
+    library 3,711 → 3,891, web-application 3,754 → 3,933. Floors: cli-tool 12,386 →
+    12,565, library 12,620 → 12,800, web-application 22,946 → 23,132.
+    `checklists/web-application.md` 5,345 → 5,351.
 
 ## Why the CSP is what it is
 

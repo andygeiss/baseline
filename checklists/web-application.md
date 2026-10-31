@@ -323,7 +323,7 @@ shape decision. The CSP and Origin boxes are tier 1.
 
 - [ ] Under `web/static/js/`: htmx, an unedited `wasm_exec.js`, one loader, nothing else
 - [ ] CSP adds `script-src 'self' 'wasm-unsafe-eval'` and nothing more — `patterns/security-headers.md`
-- [ ] `make wasm` names the TinyGo version exactly
+- [ ] `make wasm` names `VERSIONS.md`'s TinyGo version and refuses another
 - [ ] A test recomputes each committed module's input digest
 - [ ] `check` vets the browser packages under `GOOS=js GOARCH=wasm`
 - [ ] `check` holds each module to its size limit

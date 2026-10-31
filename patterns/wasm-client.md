@@ -17,10 +17,11 @@ with scripts off.
 ## The module
 
 1. **TinyGo builds it.** Size is the claim a module makes, and standard Go's `js/wasm`
-   starts at about 1.9 MB for a `println`. The `wasm` target names TinyGo's version
-   exactly ([stack/makefile.md](../stack/makefile.md) rules 4 and 5), and TinyGo decides
-   which Go the module can be built with: the Go pin never moves ahead of it. Bump both in
-   one commit, and rebuild the module in it.
+   starts at about 1.9 MB for a `println`. Its version is
+   [VERSIONS.md](../VERSIONS.md)'s TinyGo row, named exactly in a Makefile variable that
+   `make wasm` checks against `tinygo version` ([stack/makefile.md](../stack/makefile.md)
+   rules 4 and 5). That row also bounds the Go row: a Go minor TinyGo cannot build waits.
+   A project moves with the row and rebuilds its module in the same commit.
 2. **The module is committed and embedded.** `make ci` needs no TinyGo; `make wasm`, a
    rule-3 target, rebuilds it. Beside each module it writes a `.build` file (compiler
    version and flags) and a `.sum` of its inputs — every Go file the `js/wasm` target

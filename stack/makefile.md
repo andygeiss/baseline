@@ -121,7 +121,8 @@ test:
    binary ([operations/ci.md](../operations/ci.md)). A generator, compiler, or
    transpiler whose output is committed or flashed MUST name its version, in a
    variable (rule 5), so a new release cannot change the artifact without a
-   commit.
+   commit. A tool with a [VERSIONS.md](../VERSIONS.md) row, like TinyGo, takes
+   that row's version; the variable only makes it checkable.
 5. **Adjustments** — exactly these, nothing else:
    - *Single-binary CLI* (`MAIN = .`): a build of `.` drops `./<tool>` into the
      repository root — the checklist's `go build .`, and `check`'s

@@ -26,18 +26,21 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 | htmx | **4.0.0** | 2026-08-28 | Stable; a breaking, fetch-based rewrite of 2.x, adopted at 4.0.0 on Andy's call. npm's `latest` still names 2.x; read `next`. |
 | SQLite driver | **v1.61.0** | 2026-10-21 | `modernc.org/sqlite`. The tier-1 pragmas are only as good as the driver: v1.42.1 cancelled unrelated queries. [patterns/go-sqlite.md](patterns/go-sqlite.md) rule 7 needs v1.61.0, rule 10's `StrictPragmas` v1.60.0. |
 | scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
+| TinyGo | **0.42.0** | 2026-09-01 | Only for a [WebAssembly client](patterns/wasm-client.md). Builds Go 1.25 through 1.27; the Go row stays in that range. 0.44.0 (2026-10-28) is held: it has built no module here yet. |
 | Make | system default | — | Command runner only, and the only gate: `make check` against the tree, `make ci` against the commit. Makefile MUST stay runnable by GNU Make 3.81, the version macOS's Command Line Tools ship — portable subset, see [stack/makefile.md](stack/makefile.md). |
 | CSS | Baseline "Widely available" | rolling | No preprocessor, no framework. Allowed feature set defined in [stack/css.md](stack/css.md). |
 | `design.md` spec (`DESIGN.md`) | **alpha** | rolling | Google Labs format for the project design file — see [patterns/design-system.md](patterns/design-system.md). Sanctioned alpha exception: a document format, not software; worst case it reads as plain markdown. |
 | HTML | Living Standard | rolling | Semantic HTML5, validated. |
-| JavaScript | ❌ none | — | No hand-written JS, no bundlers, no npm. htmx is the only script tag. |
+| JavaScript | ❌ none | — | No hand-written JS, no bundlers, no npm. htmx is the only script tag, but for a [WebAssembly client](patterns/wasm-client.md)'s two. |
 
 ## Version policy
 
 - **Go:** Adopt a new major (x.y) release after its first patch release (x.y.1) unless a
   project needs a new feature immediately. Always run the latest patch release —
   that is where security fixes ship. Set `go 1.27` in `go.mod`; do not pin toolchain patch
-  versions in the repo.
+  versions in the repo. A new Go minor waits for a TinyGo row that builds it.
+- **TinyGo:** Track the newest release once it has built the reference's module. A
+  project moves with this row and rebuilds its module in the same commit.
 - **htmx:** Track the latest 4.x patch. A new major is adopted by a baseline release of its
   own; projects move with that release. Vendor the file (self-host, no CDN in production).
 - **Dependencies:** Update by hand on this file's 90-day cycle. The procedure is in
@@ -48,7 +51,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 
 Every row above was checked against its source on this date, not only the ones that
 moved; Go again on 2026-10-21, htmx on 2026-10-27, and Go, htmx, SQLite and scs again
-on 2026-10-31.
+on 2026-10-31, when TinyGo got its row.
 
 - Go releases: https://go.dev/doc/devel/release
 - Go 1.27 notes: https://go.dev/doc/go1.27 — and https://go.dev/doc/go1.28 for the
@@ -58,6 +61,9 @@ on 2026-10-31.
   for a patch
 - SQLite: https://proxy.golang.org/modernc.org/sqlite/@latest
 - scs: https://github.com/alexedwards/scs/tags
+- TinyGo: https://github.com/tinygo-org/tinygo/releases — the Go range it builds is
+  `minorMin`/`minorMax` in `builder/config.go` at the tag (from 0.44.0,
+  `compileopts/config.go`), not the notes
 - CSS Baseline: https://web.dev/baseline
 - `design.md` spec: https://github.com/google-labs-code/design.md — its README is where
   the status lives, not the releases page: the tagged release number is the CLI's, and
