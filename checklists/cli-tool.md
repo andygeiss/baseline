@@ -12,7 +12,7 @@ Every unchecked box is either fixed or waived on the record — the waiver forma
 protects, not by which section it landed in**, and these are the boxes: partial work
 staying safe, a destructive action needing an explicit flag, every box about how a secret
 is handled — a secret never arrives as a flag *value*, and `.env` is gitignored — and the
-pragmas, both DSN guards, and parameterized SQL under *Storing anything between runs*.
+pragmas, the path box, and parameterized SQL under *Storing anything between runs*.
 There is no waiver for any of them; there is a fix.
 
 ## Every CLI tool

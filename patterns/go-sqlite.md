@@ -3,11 +3,10 @@
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08 · Driver: `modernc.org/sqlite` (pure Go)
 
 **The pragmas, the single-writer pool, closing what it hands out, parameterized
-queries, and rule 10's guards on the DSN are tier 1 and never waived.** Dropping any of
-the first three loses data — rule 8 is the failure mode the single-writer pool itself
-creates. Dropping the fourth hands over the database; dropping the first guard lets a
-path rewrite the DSN that carries the pragmas, and `StrictPragmas` is the backstop if
-that guard is ever lost.
+queries, and rule 10's path guard are tier 1 and never waived.** Dropping any of the
+first three loses data — rule 8 is the failure mode the single-writer pool itself
+creates. Dropping the fourth hands over the database; dropping the guard lets a path
+rewrite the DSN that carries the pragmas. `StrictPragmas`, its backstop, is tier 2.
 
 SQLite is the default database. Configured correctly it serves thousands of requests
 per second on one small box with zero operational overhead. Configured by default it
@@ -94,7 +93,8 @@ The rules behind it — all MUST:
     `file:` is a URI wherever SQLite takes a file name, `VACUUM INTO` included, so it too
     gets `./`. Before moving a project with a database onto this `openDB`, check every
     value it is given for any of the six. `sqlite.StrictPragmas(true)` is the second
-    guard, a backstop: process-wide, it refuses a `_pragma` value that holds more than one
+    guard, a backstop, and tier 2: with the path escaped only the constant reaches the
+    DSN's query. Process-wide, it refuses a `_pragma` value that holds more than one
     statement, before any pragma runs, and nothing else. Import the driver by name, not as
     `_`, to call it.
 

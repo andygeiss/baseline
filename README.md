@@ -175,9 +175,9 @@ below is what it currently catches, not the definition.
 - Everything about who is signed in: session cookie flags, renewal on login and password
   change, password hashing, auth rate limiting, constant-time login, and every
   machine-token rule ([patterns/go-auth-sessions.md](patterns/go-auth-sessions.md)).
-- Parameterized SQL, the SQLite pragmas and the two guards on the DSN that carries them
-  (the path made a file name, `StrictPragmas`), the single-writer pool, and closing every
-  `Rows`, `Stmt` and `Tx` that pool hands out — a single leak wedges every later write
+- Parameterized SQL, the SQLite pragmas and the guard on the DSN that carries them (the
+  path made a file name), the single-writer pool, and closing every `Rows`, `Stmt` and
+  `Tx` that pool hands out — a single leak wedges every later write
   ([patterns/go-sqlite.md](patterns/go-sqlite.md)).
 - Whether the signed-in actor may touch the row it asked for: the actor in the store
   signature, the predicate in the SQL, the two answers being indistinguishable, and a

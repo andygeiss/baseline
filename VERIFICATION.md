@@ -167,9 +167,10 @@ be synced, the tag waits.
   `TestTheDSNIsGuarded` fails on every case with the escape removed;
   `TestLockWaitEndsAtTheDeadline` was not run against v1.58.0, whose 5 s wait it bounds.
   **Left open:**
-  - **`StrictPragmas`' tier, for Andy.** With the path escaped, nothing reaches the DSN's
-    query but the constant, so dropping the switch loses nothing today; three reviewers
-    held it fails the tier-1 test. It stays tier 1 until Andy decides.
+  - **`StrictPragmas`' tier: decided, tier 2, on Andy's call (2026-10-31).** With the path
+    escaped, nothing reaches the DSN's query but the constant, so dropping the switch loses
+    nothing today; three reviewers held it fails the tier-1 test. Rule 10, the README's
+    tier-1 list and both checklists' preambles now name only the path guard. Unreviewed.
   - **`modernc.org/libc`.** The driver says a project must pin the libc its `go.mod` names,
     v1.79.0, and `go get -u ./...` in `operations/ci.md` raises it to v1.79.1. Nothing in
     the corpus holds it back.
