@@ -6,16 +6,16 @@ One topic per section: **the moment it fires, the document that rules it, and wh
 looks like.** Read a section before you write the thing it covers; walk its boxes before
 you call the work complete. Paths are from the repository root.
 
-Every unchecked box is either fixed or waived on the record — the format is in
-`README.md` *Which rules can be waived*. **Tier 1 is decided by what a rule
-protects, not by which section it landed in**, so a wholly tier-1 section says so in its
-heading. Six sections are only partly tier 1: `Config.LogValue` and the three `.env`
-boxes under *Reading a flag…*; the pragmas, both DSN guards, both pools, and parameterized SQL under
-*Storing anything*; the zero-CSP-violations check under *Adding an icon*; every box under
-*Reading or writing a row somebody owns* except the one naming the shared rows; the
-base-URL and the header box under *Sending an email*; every box under *Deleting a
-person* except the one naming where each table's answer is written. No waiver for any of
-those; there is a fix.
+Every unchecked box is either fixed or waived on the record — the format is in `README.md`
+*Which rules can be waived*. **Tier 1 is decided by what a rule protects, not by which
+section it landed in**, so a wholly tier-1 section says so in its heading. Six sections
+are only partly tier 1: `Config.LogValue` and the three `.env` boxes under *Reading a
+flag…*; the pragmas, both DSN guards, both pools, and parameterized SQL under *Storing
+anything*; the zero-CSP-violations check under *Adding an icon*; every box under *Reading
+or writing a row somebody owns* except the one naming the shared rows; the base-URL and
+the header box under *Sending an email*; every box under *Deleting a person* except the
+one naming where each table's answer is written. No waiver for any of those; there is a
+fix.
 
 ## Every web application
 

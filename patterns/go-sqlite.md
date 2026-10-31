@@ -5,8 +5,8 @@
 **The pragmas, the single-writer pool, closing what it hands out, parameterized
 queries, and rule 10's guards on the DSN are tier 1 and never waived.** Dropping any of
 the first three loses data — rule 8 is the failure mode the single-writer pool itself
-creates — dropping the fourth hands over the database, and dropping the last lets a
-path rewrite the DSN that carries the pragmas.
+creates. Dropping the fourth hands over the database, and dropping the last lets a path
+rewrite the DSN that carries the pragmas.
 
 SQLite is the default database. Configured correctly it serves thousands of requests
 per second on one small box with zero operational overhead. Configured by default it
@@ -29,7 +29,11 @@ var uriEscaper = strings.NewReplacer("%", "%25", "?", "%3F", "#", "%23")
 // writer. Neither sql.Open touches the file — the first query does — so a
 // missing directory surfaces when the migrations run, not here.
 func openDB(path string) (readDB, writeDB *sql.DB, err error) {
-	sqlite.StrictPragmas(true) // rule 10
+	sqlite.StrictPragmas(true)  // rule 10
+	path = filepath.Clean(path) // "//" and "" stop being special
+	if !filepath.IsAbs(path) {
+		path = "./" + path // ":memory:" is a file
+	}
 	path = uriEscaper.Replace(path)
 
 	readDB, err = sql.Open("sqlite", "file:"+path+pragmas)
@@ -63,14 +67,15 @@ The rules behind it — all MUST:
    both and hides the split from callers.
 6. **`_txlock=immediate` on the write pool.** Write transactions take the lock at
    `BEGIN`, not at first write — prevents deadlock-style upgrade failures.
-7. **Every query takes a context** (`QueryRowContext`, `ExecContext`, `BeginTx`) so a disconnected
-   client cancels its work. A *running* query stops within milliseconds, and so do a wait
-   for a pooled connection and a wait for SQLite's write lock: from driver v1.61.0 the busy
-   handler gives up once the context is done and returns the context's error. Rule 2's
-   number still caps every wait for the lock; a context that ends sooner ends it sooner.
-   `Commit` and `Rollback` take no context, so only rule 2's number bounds theirs.
+7. **Every query takes a context** (`QueryRowContext`, `ExecContext`, `BeginTx`) so a
+   disconnected client cancels its work. A *running* query stops within milliseconds, and
+   so do a wait for a pooled connection and a wait for SQLite's write lock: from driver
+   v1.61.0 the busy handler gives up once the context is done and returns the context's
+   error. Rule 2's number still caps every wait for the lock; a context that ends sooner
+   ends it sooner. `Commit` and `Rollback` take no context, so only rule 2's number bounds
+   theirs.
 8. **Every `Rows`, `Stmt` and `Tx` is closed on every path** — `defer rows.Close()`, and
-   `defer tx.Rollback()` after a successful `Begin`. On a one-connection write pool a
+   `defer tx.Rollback()` after a successful `BeginTx`. On a one-connection write pool a
    single leak is not a slow leak: it wedges every later write forever, and `busy_timeout`
    never fires, because the wait is in Go's pool rather than in SQLite. Draining a `Rows`
    to the end releases it, so the happy path hides this and only `break`, an early
@@ -78,13 +83,17 @@ The rules behind it — all MUST:
 9. **`rows.Err()` after the loop.** `rows.Next()` returns false for "done" and for
    "failed"; without the check a truncated result set reads as an empty one.
 10. **The DSN is guarded twice.** `path` is not a constant, and a `file:` DSN reads a
-    `?` in it as the start of a query string: an innocent one swallows `busy_timeout`,
-    and a crafted one sets SQLite's `mode`, `immutable` or `vfs`, or a `_pragma`. `#`
-    ends the name and `%` decodes. So `openDB` escapes all three, which turns any path
-    back into a file name — that is the guard. `sqlite.StrictPragmas(true)` is the
-    backstop: it refuses a `_pragma` of more than one statement, which runs as SQL text,
-    before any pragma runs. A table test's `t.TempDir()` can hold `#` and `%`, so
-    escape; never refuse. Import the driver by name, not as `_`, to call it.
+    `?` in it as the start of a query string: an innocent one opens a different file and
+    swallows `busy_timeout`, and a crafted one sets SQLite's `mode`, `immutable` or
+    `vfs`, or a `_pragma`. `#` ends the name, `%` decodes, a leading `//` names a host,
+    and `""` and `:memory:` are databases that vanish. So `openDB` cleans the path, puts
+    `./` before a relative one, and escapes the three characters — that is the guard.
+    `DATABASE_URL` is a path, never a URI, and a project adopting this checks its value
+    first: one holding any of the three now names a different file. A table test's
+    `t.TempDir()` can hold `#` and `%`, so escape such a path; never refuse it. A
+    `_pragma` runs as SQL text, and `sqlite.StrictPragmas(true)` is the backstop: it
+    refuses one of more than one statement before any pragma runs. Import the driver by
+    name, not as `_`, to call it.
 
 ## Schema migrations
 
