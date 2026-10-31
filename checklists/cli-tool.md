@@ -192,7 +192,7 @@ the reasoning that leaks into the visible answer.
 
 `patterns/go-sqlite.md` — pragmas, pools, migrations. Prefer staying stateless.
 
-- [ ] Pragmas: WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)`
+- [ ] Pragmas: WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)`, and `sqlite.StrictPragmas(true)`
 - [ ] SQL only via parameterized queries
 - [ ] Migrations embedded and forward-only
 

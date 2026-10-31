@@ -207,7 +207,7 @@ not a trigger.
 
 `patterns/go-sqlite.md` — pragmas, the two pools, migrations, backups.
 
-- [ ] Pragmas: WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)`
+- [ ] Pragmas: WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)`, and `sqlite.StrictPragmas(true)`
 - [ ] SQL only via parameterized queries
 - **Two pools:**
   - [ ] Reads pooled

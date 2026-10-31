@@ -2,10 +2,10 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08 · Driver: `modernc.org/sqlite` (pure Go)
 
-**The pragmas, the single-writer pool, closing what it hands out, and parameterized
-queries are tier 1 and never waived.** Dropping any of the first three loses data —
-rule 8 is the failure mode the single-writer pool itself creates — and dropping the
-last hands over the database.
+**The pragmas, the single-writer pool, closing what it hands out, parameterized
+queries, and the strict-pragma switch are tier 1 and never waived.** Dropping any of the
+first three loses data — rule 8 is the failure mode the single-writer pool itself
+creates — and dropping either of the last two runs text as SQL that was never meant to be.
 
 SQLite is the default database. Configured correctly it serves thousands of requests
 per second on one small box with zero operational overhead. Configured by default it
@@ -25,6 +25,8 @@ const pragmas = "?_pragma=busy_timeout(5000)" +
 // writer. Neither call touches the file — the first query does — so a bad path
 // surfaces when the migrations run, not here.
 func openDB(path string) (readDB, writeDB *sql.DB, err error) {
+	sqlite.StrictPragmas(true) // rule 10: path is not a constant
+
 	readDB, err = sql.Open("sqlite", "file:"+path+pragmas)
 	if err != nil {
 		return nil, nil, fmt.Errorf("open read pool: %w", err)
@@ -69,6 +71,12 @@ The rules behind it — all MUST:
    `return`, and the error path wedge.
 9. **`rows.Err()` after the loop.** `rows.Next()` returns false for "done" and for
    "failed"; without the check a truncated result set reads as an empty one.
+10. **`sqlite.StrictPragmas(true)` before the first connection opens.** A `_pragma`
+    value runs as SQL text, so anything after a `;` in it runs too, and `path` is not a
+    constant: a `?` in it starts a query string, `_pragma` included. The switch is
+    process-wide and refuses such a DSN before it applies anything. It narrows a DSN to
+    the pragmas it names and no further, so `path` still comes from the operator, never
+    from a request. Import the driver by name, not as `_`, to call it.
 
 ## Schema migrations
 
