@@ -328,17 +328,17 @@ tier 1.
 - [ ] A link or form whose answer is that page carries `hx-boost="false"`
 - [ ] The module stops, socket and all, once its canvas leaves the document
 - [ ] CSP adds `script-src 'self' 'wasm-unsafe-eval'` and nothing more — `patterns/security-headers.md`
-- [ ] `make wasm` names `VERSIONS.md`'s TinyGo version and refuses another
+- [ ] Every recipe that runs `tinygo` names `VERSIONS.md`'s TinyGo version and refuses another
 - [ ] A test recomputes each committed module's input digest
 - [ ] `check` vets the browser packages under `GOOS=js GOARCH=wasm` and TinyGo's tags, failing closed on an empty list
 - [ ] `check` holds each module to its size limit
 - [ ] `deps_test.go` keeps `net/http`, `os/signal`, `golang.org/x/sync/...` out of the browser packages
 - **The socket, `GET /ws`:**
   - [ ] The handshake refuses a missing `Origin` and one whose host is not the request's
-  - [ ] It creates or changes no stored record (memory-only state, like a board, is its own); it acts only under the handshake's credential, re-resolved at least every 10 seconds under a deadline, in a context not derived from the request's, and closes with 1008 once it, its user, or its access is gone, 1011 on a store error or missed deadline
+  - [ ] It makes or changes nothing that says who may act, in a store or in memory (state that grants nothing, like a board, is its own); it acts only under the handshake's credential, re-resolved by reads alone at least every 10 seconds under a deadline, in a context not derived from the request's, and closes with 1008 once it, its user, or its access is gone, 1011 on a store error or missed deadline
   - [ ] The handler returns after the handshake, so session middleware cannot save a revoked session again
   - [ ] The socket runs on a goroutine the app tracks
-  - [ ] Message size is capped across continuation frames, a control frame at 125 bytes, before a payload is read, the declared length read unsigned with its top bit 0
+  - [ ] Message size is capped across continuation frames, a control frame at 125 bytes, before a payload is read, the declared length read unsigned with its top bit 0 and compared with what the cap has left, never summed
   - [ ] Frames a second and the outbound queue are capped; past a cap the close code names it (1009, 1008, 1002, 1013)
   - [ ] Read and write deadlines set after `Hijack`, before the first read
   - [ ] Shutdown closes every socket with 1001, then waits, before the session store and database close
@@ -451,7 +451,7 @@ gate.
 - **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
   - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push (for a WebAssembly client, js/wasm is not `./...`: `check`'s line over `patterns/wasm-client.md` rule 3's package list is this box)
 - **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`, but not `ignore` or `unix`; TinyGo's only over the packages `patterns/wasm-client.md` rule 3's list leaves out):**
-  - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set
+  - [ ] `check` has a `go vet -tags <tag>` line for each tag set — over `./...`, or for TinyGo's tags `stack/makefile.md` rule 1's line
 - **If a recipe runs a tool whose output is committed or flashed (generated code, a module) — not `go build`, not a formatter:**
   - [ ] It names an exact version, never `@latest`
 

@@ -204,7 +204,9 @@ MUST rules:
 6. **One function resolves either credential** — a bearer token or a session —
    and puts the same user *row* in the request context, never just the id it came
    from. Everything downstream stops
-   caring which one arrived.
+   caring which one arrived. A WebSocket's re-check makes the same lookup but only
+   reads: no `last_used_at` touch, no `Destroy`
+   ([wasm-client.md](wasm-client.md) rule 6).
 
    What it MUST NOT do is decide the answer when there is no user, because the
    two surfaces disagree. A browser is sent to the sign-in page; a program gets

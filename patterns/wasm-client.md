@@ -3,10 +3,10 @@
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-10-31
 
 **Five rules here are tier 1 and never waived:** the socket's handshake refuses a
-missing `Origin` or one that is not the page's own host (rule 5); the socket creates or
-changes no stored record and acts only under the credential its handshake presented,
-re-resolved (rule 6); each message and control frame is size-capped (rule 7); the
-handler returns right after the handshake (rule 8); and the policy gains
+missing `Origin` or one that is not the page's own host (rule 5); the socket makes or
+changes nothing that says who may act, and acts only under the credential its handshake
+presented, re-resolved (rule 6); each message and control frame is size-capped (rule 7);
+the handler returns right after the handshake (rule 8); and the policy gains
 `'wasm-unsafe-eval'` and nothing else ([security-headers.md](security-headers.md) owns
 it).
 
@@ -23,14 +23,16 @@ with scripts off.
 1. **TinyGo builds it.** Size is the claim a module makes, and standard Go's `js/wasm`
    starts at about 1.9 MB for a `println`. Its version is
    [VERSIONS.md](../VERSIONS.md)'s TinyGo row, named exactly in a Makefile variable that
-   `make wasm` checks against `tinygo version` ([stack/makefile.md](../stack/makefile.md)
-   rules 4 and 5). That row also bounds the Go row: a Go minor TinyGo cannot build waits.
-   A project moves with the row and rebuilds its module in the same commit. A second
-   optimizer, such as `wasm-opt`, is named and checked the same way.
-2. **The module is committed and embedded.** `make ci` needs no TinyGo; `make wasm`, a
-   makefile rule-3 target, rebuilds it. Beside each module it writes a `.build` file
-   (compiler version, flags, and rule 3's tags) and a `.sum` of its inputs — the Go and
-   embedded files of the packages rule 3's `go list` reaches, `go.mod`, and the `.build`.
+   every recipe running `tinygo` checks against `tinygo version` first
+   ([stack/makefile.md](../stack/makefile.md) rules 4 and 5). That row also bounds the
+   Go row: a Go minor TinyGo cannot build waits. A project moves with the row and
+   rebuilds its module in the same commit. A second optimizer, such as `wasm-opt`, is
+   named and checked the same way.
+2. **The module is committed and embedded.** `make ci` needs no TinyGo unless `check`
+   tests under it; `make wasm`, a makefile rule-3 target, rebuilds it. Beside each
+   module it writes a `.build` file (compiler version, flags, and rule 3's tags) and a
+   `.sum` of its inputs — the Go and embedded files of the packages rule 3's `go list`
+   reaches, `go.mod`, and the `.build`.
    **A server test recomputes the digest** with the tags the `.build` records, so a
    source change cannot ship with an old module, and holds each `.build` line equal to
    the Makefile's version, flags and tags variables. Both are served from
@@ -100,56 +102,56 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    the socket still opens for any other origin the cookie reaches — a sibling
    subdomain — or any page in a browser that ignores `SameSite`. An authentication guard
    may refuse first with 401; no refused request is upgraded.
-6. **Every stored record is made by a POST form first — tier 1.** An identity, a room,
-   a session, any record kept in a store, is made or changed by a plain form; the socket
-   does neither. State held only in memory — a position, a board two sockets share, who
-   is looking — is the socket's to change. It acts only under the credential the
+6. **The socket makes or changes nothing that says who may act — tier 1.** An identity,
+   a room, a session, a membership — whatever says who may act, in a store or in
+   memory — is made or changed by a plain form. State that grants nothing — a position,
+   a board, who is looking — is the socket's. It acts only under the credential the
    handshake presented (cookie session or machine token), which it keeps and
    re-resolves; it never remembers the user. At a fixed interval of at most 10 seconds,
    whether or not the client sends anything, it re-runs the handshake's checks with that
    credential under a deadline inside that interval: the lookup
    [go-auth-sessions.md](go-auth-sessions.md) rule 6's resolver makes, to the user's row
    (a token by its hash), and [go-authorization.md](go-authorization.md)'s access check,
-   the store read made as that user (the room re-read as its actor). A session's lookup
-   is scs `Load` of the handshake's token into a context not derived from the request's
-   (the app's own, or `context.Background()`), where a deleted session comes back empty. Never
-   `context.WithoutCancel(r.Context())`: it keeps the handshake's session data, and
-   `Load` returns that copy, as `Get` on the handshake's context does, always alive. It
-   closes with 1008 once the credential, its user, or its access is gone — a logout, a
-   revoking reset, a revoked token, a deleted account
-   ([go-data-deletion.md](go-data-deletion.md)), a lost membership — and with 1011, no
-   reason text, on a store error or a missed deadline; while a due check is unanswered
-   the socket acts on nothing. Ten seconds bounds how long a revoked credential keeps
-   acting, at one re-check per socket; a check per message as well is optional. The
-   socket does not refresh the session's idle deadline, since only an HTTP request
-   commits, so under `IdleTimeout` a socket-only user is closed at the idle
-   window — intended unless the project says otherwise. A cookie the server keeps no
-   record of, that names no user, and that reaches no record the server keeps has nothing
-   to revoke: it is re-checked only for an expiry it carries, if any. Any other is
-   re-resolved like a session.
-7. **The socket is capped like a body.** Its sizes are tier 1, since after `Hijack` no
-   `MaxBytesReader` guards the connection: a message (1 KiB is plenty for input) counts
-   whole, its fragments together, each checked by its declared length — read unsigned,
-   its top bit 0 (RFC 6455 section 5.2) — before its payload is read (section 10.4); a
-   signed read lets a negative length past the cap and into `make`, which panics on the
-   socket's goroutine. A control frame over 125 bytes is malformed (section 5.5). The
-   frames a second and the queue toward a slow client are capped too. Past a cap the
-   server closes the socket, it does not buffer, and the code says which cap: 1009 too big, 1008 too many, 1002 malformed, 1013 a
-   reader too slow, which a client may retry.
+   the read made as that user, wherever the membership is held. The re-check only
+   reads — no `last_used_at` touch, no `Destroy` — and leaves cleanup to the next HTTP
+   request. A session's lookup is scs `Load` of the handshake's token into a context not
+   derived from the request's (the app's own, or `context.Background()`), where a
+   deleted session comes back empty. Never `context.WithoutCancel(r.Context())`: `Load`
+   returns the handshake's copy, as `Get` on its context does, always alive. It closes
+   with 1008 once the credential, its user, or its access is gone — a logout, a revoking
+   reset, a revoked token, a deleted account ([go-data-deletion.md](go-data-deletion.md)),
+   a lost membership — and with 1011, no reason text, on a store error or a missed
+   deadline; while a due check is unanswered the socket acts on nothing. A check per
+   message as well is optional. The socket does not refresh the session's idle deadline,
+   since only an HTTP request commits, so under `IdleTimeout` a socket-only user is
+   closed at the idle window — intended unless the project says otherwise. A cookie the
+   server keeps no record of, that names no user, and that reaches no record the server
+   keeps has nothing to revoke: it is re-checked only for an expiry it carries, if any.
+   Any other is re-resolved like a session.
+7. **The socket is capped like a body.** Message and control-frame sizes are tier 1,
+   since after `Hijack` no `MaxBytesReader` guards the connection: a message (1 KiB)
+   counts whole, its fragments together, each checked by its declared length — read
+   unsigned, its top bit 0 (RFC 6455 section 5.2) — against what the cap has left
+   (`n > max-total`), never a sum, before its payload is read (section 10.4). A signed
+   read, or `total+n` overflowing, lets a length past the cap and into `make`, which
+   panics on the socket's goroutine. A control frame over 125 bytes is malformed
+   (section 5.5). The frames a second and the queue toward a slow client are capped
+   too. Past a cap the server closes the socket, it does not buffer, and the code says
+   which cap: 1009 too big, 1008 too many, 1002 malformed, 1013 a reader too slow, which
+   a client may retry.
 8. **Hijack, return, then own the deadlines.** The handler returns right after the
-   handshake — tier 1 — and the socket runs on a goroutine the app tracks. Served inside
-   its handler, the socket lets session middleware re-commit the session it opened
-   under: scs's `LoadAndSave` commits once the handler returns (under `IdleTimeout`
-   every load counts as a change, and `Hijack` never marks the response written), so it
-   saves the handshake's copy again under the old token after a logout deleted it.
-   `http.ResponseController` calls a wrapper's own `Hijack` method if it has one
-   (scs's does), else follows its `Unwrap`; a wrapper with neither fails with
-   `ErrNotSupported`. `Hijack` leaves the connection
-   with no deadline (Go clears the server's; the `Hijacker` doc allows that it may not),
-   so set the socket's own read and write deadlines before the first read. `srv.Shutdown`
-   does not track a hijacked connection, so shutdown closes every socket with 1001 and
-   then waits for its goroutines ([go-background-work.md](go-background-work.md)) —
-   before the session store and the database close, since rule 6's re-check reads them.
+   handshake — tier 1 — and the socket runs on a goroutine the app tracks. Inside its
+   handler, the socket lets scs's `LoadAndSave`, which commits once the handler returns
+   (under `IdleTimeout` every load is a change; `Hijack` marks nothing written), save
+   the handshake's session again after a logout deleted it. `http.ResponseController`
+   calls a wrapper's own `Hijack` method if it has one (scs's does), else follows its
+   `Unwrap`; a wrapper with neither fails with `ErrNotSupported`. `Hijack` leaves the
+   connection with no deadline (Go clears the server's; the `Hijacker` doc allows that
+   it may not), so set the socket's own read and write deadlines before the first read.
+   `srv.Shutdown` does not track a hijacked connection, so shutdown closes every socket
+   with 1001 and then waits for its goroutines
+   ([go-background-work.md](go-background-work.md)) — before the session store and the
+   database close, since rule 6's re-check reads them.
 
 The standard library has no WebSocket: write the server half by hand (RFC 6455's
 framing, binary messages only), or justify a dependency in the README like any outside

@@ -415,6 +415,29 @@ be synced, the tag waits.
   web-application 23,992 → 24,021, heads unchanged, checklists cli-tool 3,122 → 3,124,
   library 1,498 → 1,500, web-application 5,716 → 5,747, the WebAssembly section 516 →
   545 of 600. No pass has read the fixes.
+- **2026-10-31 — review pass 8.** Reviewers found 9 distinct defects in the baseline,
+  all fixed. Rule 7 compares a fragment's length with what the cap has left
+  (`n > max-total`), never a sum: in scratchpad `fix8/ovf`, Go 1.27.3, a length of
+  2^63-1 passes the unsigned read, `total+n` wraps negative, passes the cap and panics
+  in `make`, where the difference form refuses it. Rule 6's tier-1 line is by role,
+  not medium — the socket makes or changes nothing that says who may act, in a store or
+  in memory — the same phrase in the header, rule 6, README and box; its re-check only
+  reads (no `last_used_at`, no `Destroy`, recorded as Claude's decision), with a pointer
+  in `go-auth-sessions.md` rule 6. Every recipe that runs `tinygo` checks its version,
+  `check`'s `tinygo test` line too (`stack/makefile.md` rule 4): in `fix8/allocs` one
+  zero-allocation test passes under TinyGo 0.42.0, whose `AllocsPerRun` returns 0, and
+  fails under 0.44.0. A `syscall/js` file carries `js && wasm` (rule 1): in `fix8/tagjs`,
+  GNU Make 3.81, a `tinygo`-only file in a package the server imports fails the scoped
+  TinyGo vet line, exit 2, and `tinygo && js && wasm` exits 0 with TinyGo still
+  building. `stack/html.md` gives the layout a `{{block "head" .}}{{end}}` slot before
+  htmx (executed: a page without `head` renders nothing there). Also: "Message and
+  control-frame sizes are tier 1", the live-updates "never pushes" exception, and the
+  custom-tag box naming rule 1's TinyGo line. `make` exits 0: `wasm-client.md` 3,767 →
+  3,773 of 3,800, `stack/makefile.md` 3,293 → 3,409, `stack/html.md` 1,329 → 1,375,
+  floors cli-tool 12,692 → 12,709, library 12,922 → 12,939, web-application 24,021 →
+  24,117, heads unchanged, checklists cli-tool 3,124 → 3,140, library 1,500 → 1,517,
+  web-application 5,747 → 5,797, the WebAssembly section 545 → 578 of 600. No pass has
+  read the fixes.
 
 ## Why the CSP is what it is
 

@@ -89,8 +89,13 @@ htmx's indicator CSS out of the cascade and makes back/forward real page loads
 ([htmx.md](htmx.md)).)
 
 An installable project adds four head lines between the favicon link and the htmx script;
-[patterns/pwa.md](../patterns/pwa.md) defines them. Nothing else in the shell
-changes, and the no-JavaScript rule holds: install needs no service worker.
+[patterns/pwa.md](../patterns/pwa.md) defines them. The no-JavaScript rule holds:
+install needs no service worker.
+
+A WebAssembly client's layout adds `{{block "head" .}}{{end}}` just before the htmx
+script, and only its program page defines `head`
+([patterns/wasm-client.md](../patterns/wasm-client.md)). Nothing else in the shell
+changes.
 
 A project with a self-hosted font adds one `preload` line after the stylesheet
 link; [patterns/css-typography.md](../patterns/css-typography.md) defines it,

@@ -102,6 +102,8 @@ test:
    runs over the packages [patterns/wasm-client.md](../patterns/wasm-client.md) rule
    3's list leaves out, since a browser package's `syscall/js` fails the host vet:
    `l=$$(<list>) && test -n "$$l" && o=$$(go list -e -tags $(WASM_TAGS) ./... | grep -vxF "$$l") && go vet -tags $(WASM_TAGS) $$o`.
+   A file that imports `syscall/js` carries `js && wasm` in its constraint, not
+   `tinygo` alone: a server package that imports its package would compile it here.
 2. **Portable subset only.** The file MUST run under GNU Make 3.81: `=`
    assignment, `.PHONY`, `.DEFAULT_GOAL` (new in 3.81, so exactly at the floor),
    plain tab-indented recipes. MUST NOT use post-3.81 features (`.ONESHELL` —
@@ -131,9 +133,13 @@ test:
    transpiler whose output is committed or flashed MUST name its version, in a
    variable (rule 5), so a new release cannot change the artifact without a
    commit. A tool with a [VERSIONS.md](../VERSIONS.md) row, like TinyGo, takes
-   that row's version; the variable only makes it checkable. A formatter
-   (`goimports`, `go fix`) is outside this rule: its output is source,
-   reviewed in the diff. So is `go build`: the Go row pins the toolchain.
+   that row's version; the variable only makes it checkable. Every recipe that runs
+   the tool checks that version first, a `tinygo test` line in `check` too. A compiler
+   running tests is not the pass-or-fail tool `@latest` is for: one commit passes
+   under TinyGo 0.42, whose `testing.AllocsPerRun` always returns 0, and fails under
+   0.44, which counts. A formatter (`goimports`, `go fix`) is outside this rule: its
+   output is source, reviewed in the diff. So is `go build`: the Go row pins the
+   toolchain.
 5. **Adjustments** — exactly these, nothing else:
    - *Single-binary CLI* (`MAIN = .`): a build of `.` drops `./<tool>` into the
      repository root — the checklist's `go build .`, and `check`'s

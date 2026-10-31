@@ -3,8 +3,9 @@
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-10-27
 
 Keeping a page current while the reader looks at it — a chat room, a queue, a job that
-finishes on its own. **The page asks again on a timer; the server never pushes.** One htmx
-attribute does it, and the cursor rides in the URL:
+finishes on its own. **The page asks again on a timer; the server never pushes** (but a
+WebAssembly client's socket, [wasm-client.md](wasm-client.md)). One htmx attribute does
+it, and the cursor rides in the URL:
 
 ```html
 <li id="poll" hidden
