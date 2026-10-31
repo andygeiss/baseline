@@ -57,10 +57,10 @@ The rules behind it — all MUST:
 6. **`_txlock=immediate` on the write pool.** Write transactions take the lock at
    `BEGIN`, not at first write — prevents deadlock-style upgrade failures.
 7. **Every query takes a context** (`QueryRowContext`, `ExecContext`) so a disconnected
-   client cancels its work. A *running* query stops within milliseconds, and so does a
-   wait for a pooled connection. A wait for SQLite's write lock does not: the busy handler
-   runs the full `busy_timeout` whatever the deadline says, so rule 2's number is the floor
-   on how long a contended write holds its connection. Keep every handler deadline above it.
+   client cancels its work. A *running* query stops within milliseconds, and so do a wait
+   for a pooled connection and a wait for SQLite's write lock: from driver v1.61.0 the busy
+   handler gives up once the context is done and returns the context's error. Rule 2's
+   number bounds only a write with no deadline.
 8. **Every `Rows`, `Stmt` and `Tx` is closed on every path** — `defer rows.Close()`, and
    `defer tx.Rollback()` after a successful `Begin`. On a one-connection write pool a
    single leak is not a slow leak: it wedges every later write forever, and `busy_timeout`

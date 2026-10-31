@@ -137,6 +137,27 @@ be synced, the tag waits.
   `operations/ci.md`'s 66, and cli-tool's by the document and checklist too: cli-tool
   42,416 → 45,853, library 29,717 → 29,783, web-application 104,885 → 104,951. No other
   floor or change path moves.
+- **2026-10-31 — the SQLite driver pin moves to v1.61.0.** v1.59.0, v1.60.0, v1.60.1
+  and v1.61.0 shipped after the v1.58.0 pin; none has an advisory in the Go vulnerability
+  database, and upstream's new `SECURITY.md` supports only the latest release. v1.61.0
+  makes a statement waiting for a lock under `busy_timeout` stop once its context is
+  done, so `patterns/go-sqlite.md` rule 7, which said the wait ran the full timeout
+  whatever the deadline, is rewritten and its "keep every handler deadline above it"
+  dropped; no other document leaned on it. Measured with two write pools over one WAL
+  file under the canonical pragmas, one holding the lock, the other writing with a 200 ms
+  deadline, under Go 1.27.3: at v1.58.0 `ExecContext` waited 5,076 ms and returned
+  `context deadline exceeded`, and `BeginTx` waited 5,112 ms and returned `SQLITE_BUSY`;
+  at v1.61.0 both waited 200 ms and returned `context deadline exceeded`. No
+  `Last verified:` date moved, and `VERSIONS.md` keeps 2026-09-08: CSS Baseline and the
+  `design.md` row were not checked again. The reference has not run it; `./verify.sh`
+  under v1.61.0 is owed.
+  Left open, for Andy: v1.60.0's opt-in `StrictPragmas`, which upstream recommends for
+  any application whose DSN is not a compile-time constant, as `openDB`'s is not, since
+  it takes `path`.
+- **Measured against the commit before it:** the driver row adds about 20 tokens to every
+  path. Change paths: cli-tool 5,832 → 5,852, library 4,310 → 4,330, web-application
+  7,932 → 7,952. Floors: cli-tool 12,132 → 12,152, library 12,464 → 12,484,
+  web-application 22,168 → 22,188.
 
 ## Why the CSP is what it is
 
