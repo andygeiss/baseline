@@ -103,9 +103,10 @@ test:
    ([patterns/wasm-client.md](../patterns/wasm-client.md) rule 3 names the variable).
    It passes because every file in a package the host cannot build carries
    `js && wasm`: one that imports `syscall/js`, and every other file in its package
-   (`tinygo && js && wasm` for a TinyGo-only one). A `tinygo`-only file fails it:
-   under TinyGo's tags the host vet compiles it without its `js && wasm` siblings, so
-   neither `syscall/js` nor their names resolve.
+   (`tinygo && js && wasm` for a TinyGo-only one); in a package both builds compile,
+   that file's counterpart carries `!tinygo || !js || !wasm`, not `!tinygo`. A
+   `tinygo`-only file that imports `syscall/js` or uses a sibling's name fails it:
+   under TinyGo's tags the host vet compiles it without its `js && wasm` siblings.
 2. **Portable subset only.** The file MUST run under GNU Make 3.81: `=`
    assignment, `.PHONY`, `.DEFAULT_GOAL` (new in 3.81, so exactly at the floor),
    plain tab-indented recipes. MUST NOT use post-3.81 features (`.ONESHELL` —

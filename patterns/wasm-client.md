@@ -105,9 +105,9 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
 6. **The socket makes or changes nothing that decides who passes a credential resolver
    or access check — tier 1.** An identity, a session, a room, its owner or host, a
    membership, a ban — in a store or in memory — is made, changed or deleted by a plain
-   form; a stored board or a move row is the socket's. A close may drop what its own
-   user held; it grants nothing. It acts only under the credential the handshake
-   presented (cookie session or machine token), which it keeps and re-resolves. At a
+   form; a stored board or a move row is the socket's. A close may drop only its
+   user's hold in memory; it grants nothing. It acts only under the credential the
+   handshake presented, which it keeps and re-resolves. At a
    fixed interval of at most 10 seconds, whether or not the client sends anything, it
    re-runs the handshake's checks with that credential under a deadline inside that
    interval: the lookup

@@ -481,6 +481,21 @@ be synced, the tag waits.
   library 1,493 → 1,509, web-application 5,798 → 5,813, the WebAssembly section 578 →
   576 of 600. No pass has read the fixes.
 
+- **2026-10-31 — review pass 11.** Five defects, all wording; the reference at
+  `3de5087` followed every rule checked, and the mechanics reviewer built a second
+  WebAssembly client from the docs alone (a shared drawing board: `make wasm`, `check`,
+  `fmt`, `ci` green under GNU Make 3.81; the module ran and its socket opened in headless
+  Chrome under the CSP). Fixed: rule 6's close clause had no limit, so a shutdown, a
+  store error or an attacker-forced 1013 could delete stored rooms, memberships or host
+  roles; a close now drops only its user's hold in memory. `stack/htmx.md`'s `hx-boost`
+  row let a link between two program pages stay boosted (same scripts, so "a script the
+  other does not" never fired); it now reads "a script of its own". `stack/makefile.md`
+  rule 1 now covers a package both builds compile (the counterpart carries
+  `!tinygo || !js || !wasm`, executed) and no longer says every `tinygo`-only file fails
+  the TinyGo-tag vet, only one that imports `syscall/js` or uses a sibling's name
+  (executed). The tier-1 credential box gains pass 10's shutdown 1001. `wasm-client.md`
+  3,764 → 3,757. No pass has read the fixes.
+
 ## Why the CSP is what it is
 
 The standing record behind [patterns/security-headers.md](patterns/security-headers.md).
