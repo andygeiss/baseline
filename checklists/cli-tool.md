@@ -83,7 +83,7 @@ runners-up under *Avoid*.
   - [ ] Handed to a program the tool starts, it never travels on that program's command line — `patterns/go-child-process.md`
 - **If the repo has a `.env`** — `stack/makefile.md` rule 6:
   - [ ] It is gitignored
-  - [ ] Only `make run` reads it
+  - [ ] No gate reads it — `check`, `ci`, `test`
   - [ ] Production takes its secrets from credential files instead
 
 ## Returning an error, or logging anything
@@ -203,7 +203,7 @@ the reasoning that leaks into the visible answer.
 `stack/makefile.md`, then `operations/ci.md` — there is no CI server; the Makefile is the
 gate.
 
-- [ ] `Makefile` at the repo root is `stack/makefile.md`'s, differing only as its rule 5 allows and by any rule-3 target
+- [ ] `Makefile` at the repo root is `stack/makefile.md`'s, differing only as its rules 1, 3 and 5 allow
 - [ ] Targets alphabetical
 - [ ] `check` named as `.DEFAULT_GOAL`
 - [ ] `make check` is green
@@ -213,6 +213,10 @@ gate.
 - [ ] No `export-ignore` in `.gitattributes`
 - **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
   - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push — for `//go:build unix`, each Unix the tool claims
+- **If a file carries a build tag that is not an OS (`//go:build <tag>`):**
+  - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set
+- **If a recipe runs a tool whose output is committed or shipped — a generator, a compiler:**
+  - [ ] It names an exact version, never `@latest`
 
 ## Tagging and publishing a release
 

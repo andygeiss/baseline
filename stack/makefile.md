@@ -68,7 +68,7 @@ fmt:
 	n=3; until go fix -diff ./... > /dev/null 2>&1; do [ $$n -gt 0 ] || exit 1; go fix ./... || exit 1; n=$$((n - 1)); done
 	go run golang.org/x/tools/cmd/goimports@latest -w .
 
-# Loads .env when it is there, so a local start is one command. Only run:
+# Loads .env when it is there, so a local start is one command. No gate may:
 # check and test MUST NOT depend on a developer's machine (rule 6). One shell
 # line, because each recipe line gets its own shell.
 run:
@@ -86,6 +86,13 @@ test:
    added to `check` is in `ci` by construction. No `export-ignore` in
    `.gitattributes`: `git archive` honours it and the go command does not, so
    `make ci` would test a tree `go install` never builds.
+   **A project MAY add a gate line to `check`, never take one away.** An added
+   line checks what the canonical eight cannot see, and goes after them: a
+   second target's vet (`GOOS=js GOARCH=wasm go vet …`), or a size limit on a
+   committed artifact.
+   **A file behind a build tag MUST be vetted under that tag**, one
+   `go vet -tags <tag> ./...` line per tag set: the canonical lines read the
+   default build, so a tagged file can stop compiling with every gate green.
 2. **Portable subset only.** The file MUST run under GNU Make 3.81: `=`
    assignment, `.PHONY`, `.DEFAULT_GOAL` (new in 3.81, so exactly at the floor),
    plain tab-indented recipes. MUST NOT use post-3.81 features (`.ONESHELL` —
@@ -109,6 +116,12 @@ test:
    ([operations/cli-release.md](../operations/cli-release.md)). **A web
    application's deployment belongs to the operations repository**, which knows
    the server.
+   **A tool whose output ships is pinned to an exact version.** `@latest` is for
+   a tool that passes or fails, which can redden a run but never change the
+   binary ([operations/ci.md](../operations/ci.md)). A generator, compiler, or
+   transpiler whose output is committed or flashed MUST name its version, in a
+   variable (rule 5), so a new release cannot change the artifact without a
+   commit.
 5. **Adjustments** — exactly these, nothing else:
    - *Single-binary CLI* (`MAIN = .`): a build of `.` drops `./<tool>` into the
      repository root — the checklist's `go build .`, and `check`'s
@@ -131,14 +144,22 @@ test:
    - *A `go fix` fixer judged wrong:* switched off by name, `-<fixer>=false`, on
      every `go fix` command — `check`'s, and both in `fmt`'s loop — until the
      code no longer trips it ([operations/ci.md](../operations/ci.md)).
-6. **`run` loads `.env` when it is there. Nothing else does.** A binary that
+   - *A variable beside `MAIN`:* for a value two recipes must agree on (a size
+     limit `check` and a build target both test), a pinned tool version (rule
+     4), or a value a person overrides for one run (`make bench HOST=…`). One
+     plain `=` assignment each, with its comment on the line above. No recipe
+     branches on one — conditionals stay banned.
+6. **`run` loads `.env` when it is there. No gate does.** A binary that
    needs a token or a database URL otherwise needs two commands to start, and
    the second one is the one people forget. The recipe above is the whole
    mechanism — `set -a` exports what the file sets, `if [ -f .env ]` makes the
    file optional. Four limits keep it honest, and all four are MUST:
-   - **`run` only.** A `check` or `test` that read `.env` would pass on the
-     developer's machine and fail in `make ci`. `ci` runs the gates against the
-     committed repository and nothing else, and `.env` is not committed.
+   - **No gate reads it.** A `check` or `test` that read `.env` would pass on
+     the developer's machine and fail in `make ci`. `ci` runs the gates against
+     the committed repository and nothing else, and `.env` is not committed.
+     `build`, `clean`, and `fmt` read nothing either. A rule-3 target a person
+     runs by hand to start or measure the program — a second local server, a
+     benchmark against the models `.env` names — MAY load it with `run`'s line.
    - **The file is optional.** A fresh clone must still start, and fail on the
      binary's own missing-configuration message
      ([patterns/go-config.md](../patterns/go-config.md) rule 1) rather than on
