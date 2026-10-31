@@ -92,7 +92,9 @@ test:
    (`GOOS=js GOARCH=wasm go vet …`), or a size limit on a committed artifact
    ([patterns/wasm-client.md](../patterns/wasm-client.md)).
    **A file behind a custom build tag (not a GOOS or GOARCH) MUST be vetted
-   under that tag**, one `go vet -tags <tag> ./...` line per tag set: the
+   under that tag**, one `go vet -tags <tag> ./...` line per tag set (but not
+   `ignore`, which marks generator scripts and fails `go vet -tags ignore ./...`, nor
+   `unix`, which each OS's vet covers): the
    canonical lines read the default build, so a tagged file can stop compiling
    with every gate green.
 2. **Portable subset only.** The file MUST run under GNU Make 3.81: `=`

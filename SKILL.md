@@ -25,7 +25,8 @@ asking.
    require custom JS, redesign the feature ([stack/html.md](stack/html.md); a canvas
    redrawn every frame is [patterns/wasm-client.md](patterns/wasm-client.md)).
 3. **Server is the source of truth.** State lives on the server; the client renders
-   hypermedia.
+   hypermedia (a program page renders the server's state:
+   [patterns/wasm-client.md](patterns/wasm-client.md)).
 4. **Simplicity over cleverness.** Code is read far more often than written.
 5. **Current, not bleeding edge.** Latest *stable* versions, never betas or RCs in
    production.

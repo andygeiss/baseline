@@ -50,7 +50,7 @@ link and form does too.
 | `hx-trigger` | Only when the default event is wrong (e.g. `input changed delay:300ms` for search). Polling (`every 3s`) keeps a page current and has its own rules — [patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md). |
 | `hx-push-url` | `true` on navigation-like GETs so the URL bar and back button stay honest. |
 | `hx-indicator` | Always give requests >100ms a visible indicator (CSS `.htmx-request`) — except a background poll, which shows none ([patterns/htmx-live-updates.md](../patterns/htmx-live-updates.md)). |
-| `hx-boost` | On `<body>`, as `hx-boost:inherited="transition:true"`: upgrades plain links/forms to AJAX with graceful fallback, and cross-fades them. `hx-boost="false"` opts out a link or form whose answer is not a page, or is a page whose `<head>` differs (rule 8). |
+| `hx-boost` | On `<body>`, as `hx-boost:inherited="transition:true"`: upgrades plain links/forms to AJAX with graceful fallback, and cross-fades them. `hx-boost="false"` opts out a link or form whose answer is not a page, or leads to a page whose `<head>` loads a script or stylesheet the current one does not (rule 8). |
 | `hx-confirm` | For destructive actions. |
 
 Attributes not listed here (e.g. `hx-on`, `hx-vals` with JS expressions) SHOULD be
@@ -109,9 +109,9 @@ title, and pushes a URL wherever the element would — boosted, or carrying `hx-
      acts on every htmx attribute in it. A link or form whose answer is not a page — a
      file, an export — carries `hx-boost="false"`, and so does any link whose href a
      user supplied ([patterns/go-file-uploads.md](../patterns/go-file-uploads.md)). So
-     does a link into a page whose `<head>` differs, since a boosted link swaps only
-     the body: a WebAssembly client's program page
-     ([patterns/wasm-client.md](../patterns/wasm-client.md)).
+     does a link into a page whose `<head>` loads a script or stylesheet the current one
+     does not, since a boosted link swaps only the body: a WebAssembly client's program
+     page ([patterns/wasm-client.md](../patterns/wasm-client.md)).
 
 ## Litmus test
 

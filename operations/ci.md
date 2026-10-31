@@ -78,6 +78,8 @@ of it: the Makefile says what runs, and this document says why.
   GOOS: for a `//go:build unix` file, vet each Unix the tool claims, `GOOS=linux` at
   least — `syscall` differs between them. Pair each with a `GOARCH` that
   `go tool dist list` prints for it: `GOOS=solaris go vet` alone fails on an arm64 Mac.
+  `js/wasm` is not `./...`: `check`'s line over
+  [wasm-client.md](../patterns/wasm-client.md) rule 3's package list vets it.
 - **Your shell.** `GOFLAGS` and whatever else the profile exports or `go env -w`
   wrote reach the gates. Read `go env -changed` before you trust a green run: every
   line it prints is a difference between this machine and the one that builds the

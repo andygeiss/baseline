@@ -215,8 +215,8 @@ gate.
 - [ ] No `.github/dependabot.yml`
 - [ ] No `export-ignore` in `.gitattributes`
 - **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
-  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push — for `//go:build unix`, each Unix the tool claims (js/wasm: `GOOS=js GOARCH=wasm`, `patterns/wasm-client.md` rule 3)
-- **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`):**
+  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push — for `//go:build unix`, each Unix the tool claims (js/wasm is not `./...`: `check`'s line over `patterns/wasm-client.md` rule 3's package list is this box)
+- **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`, but not `ignore` or `unix`):**
   - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set
 - **If a recipe runs a tool whose output is committed or flashed (generated code, a module) — not `go build`, not a formatter:**
   - [ ] It names an exact version, never `@latest`

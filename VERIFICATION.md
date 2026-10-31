@@ -295,6 +295,32 @@ be synced, the tag waits.
   now point at `wasm-client.md`;
   `checklists/web-application.md` 5,407 → 5,534, its WebAssembly section 385 of 600. No
   pass has read the fixes.
+- **2026-10-31 — review pass 3.** Three reviewers found 16 distinct defects on
+  `promote-deviations`, all fixed. A socket served inside its handler resurrected a
+  revoked session: scs v2.9.0's `LoadAndSave` commits after the handler returns, `Load`
+  marks every session modified under `IdleTimeout`, and `Hijack` never sets `written`,
+  so the handshake's copy was saved again after a logout deleted it — proven by an
+  executed test (scratchpad `resurrect/main_test.go`, Go 1.27.3). `wasm-client.md` rule 8
+  now returns right after the handshake, tier 1, with a box; rule 6 re-reads the store
+  (`Load` into a fresh context, not `Get`) at most every 10 seconds, fails closed with
+  1011, covers a machine token, a stateless signed cookie, and the idle deadline a socket
+  never refreshes, and is tier 1 whole; rule 7's message-size cap is tier 1, in the
+  header, README's list and the checklist. `go-data-deletion.md` points an open socket at
+  rule 6. Rule 3's list is this module's own packages (`{{with .Module}}{{if .Main}}`),
+  checked on archives of game `442d9dd` and baseline-reference `ef68418` and on a module
+  importing scs, which the old list kept; rule 2's digest lists files with
+  `-tags tinygo`, which changes nothing on either. The three OS-vet boxes and
+  `operations/ci.md` send js/wasm to that `check` line, not `./...`; the custom-tag vet
+  excludes `ignore` (`go vet -tags ignore ./...` fails, Go 1.27.3) and `unix`. Rule 4
+  calls `deps_test.go` a denylist on purpose. `stack/htmx.md` narrows "a `<head>` that
+  differs" to one loading a script or stylesheet the current page does not. The program
+  page's links out are unboosted too, since htmx 4.0.0's Back and Forward restore only
+  the body — read in the vendored `htmx.min.js`, **unverified in a browser**. `SKILL.md`
+  value 3 points at the program page; README's checklist-budget line no longer
+  contradicts the shape-budget entry. `make` exits 0: heads cli-tool 4,062 → 4,087,
+  library 3,917 → 3,942, web-application 3,999 → 4,032; floors 12,623 → 12,665,
+  12,853 → 12,895, 23,719 → 23,854; `checklists/web-application.md` 5,534 → 5,620, its
+  WebAssembly section 385 → 446 of 600. No pass has read the fixes.
 
 ## Why the CSP is what it is
 

@@ -14,8 +14,9 @@ under *Reading a flag…*; the pragmas, the path box, both pools, and parameteri
 under *Storing anything*; the zero-CSP-violations check under *Adding an icon*; every box
 under *Reading or writing a row somebody owns* except the one naming the shared rows; the
 base-URL and the header box under *Sending an email*; every box under *Deleting a person*
-except the one naming where each table's answer is written; the CSP, Origin, and cookie
-boxes under *Shipping a WebAssembly client*. No waiver for any of those; there is a fix.
+except the one naming where each table's answer is written; the CSP, Origin, credential,
+handler-return, and message-size boxes under *Shipping a WebAssembly client*. No waiver
+for any of those; there is a fix.
 
 ## Every web application
 
@@ -319,11 +320,12 @@ not a trigger.
 ## Shipping a WebAssembly client — a game, a canvas redrawn every frame
 
 `patterns/wasm-client.md` — the module, its two scripts, and its socket. Choosing it is a
-shape decision. The CSP, Origin, and cookie boxes are tier 1.
+shape decision. The CSP, Origin, credential, handler-return, and message-size boxes are
+tier 1.
 
 - [ ] Under `web/static/js/`: htmx, an unedited `wasm_exec.js`, one loader, nothing else
 - [ ] Both scripts load deferred in `<head>`, on the module's page only
-- [ ] The link into that page carries `hx-boost="false"`
+- [ ] The links into and out of that page carry `hx-boost="false"`
 - [ ] The module stops, socket and all, once its canvas leaves the document
 - [ ] CSP adds `script-src 'self' 'wasm-unsafe-eval'` and nothing more — `patterns/security-headers.md`
 - [ ] `make wasm` names `VERSIONS.md`'s TinyGo version and refuses another
@@ -333,8 +335,9 @@ shape decision. The CSP, Origin, and cookie boxes are tier 1.
 - [ ] `deps_test.go` keeps `net/http`, `os/signal`, `golang.org/x/sync` out of the browser packages
 - **The socket, `GET /ws`:**
   - [ ] The handshake refuses a missing `Origin` and one whose host is not the request's
-  - [ ] It creates no durable state; it acts only under what the cookie holds, re-resolved at a fixed interval or per message, and closes with 1008 once the session or its user is gone
-  - [ ] Message size, messages a second, and the outbound queue are capped
+  - [ ] It creates no durable state; it acts only under the handshake's credential, re-read from the store at least every 10 seconds, and closes with 1008 once it or its user is gone, 1011 on a store error
+  - [ ] The handler returns after the handshake and the socket runs on a tracked goroutine, so session middleware cannot save a revoked session again
+  - [ ] Message size is capped (1009 past it); messages a second and the outbound queue are capped too
   - [ ] Read and write deadlines set after `Hijack`, before the first read
   - [ ] Shutdown closes every socket with 1001, then waits, before the session store and database close
 
@@ -444,8 +447,8 @@ gate.
 - [ ] No `.github/dependabot.yml`
 - [ ] No `export-ignore` in `.gitattributes`
 - **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
-  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push (js/wasm: `GOOS=js GOARCH=wasm`, `patterns/wasm-client.md` rule 3)
-- **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`):**
+  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push (js/wasm is not `./...`: `check`'s line over `patterns/wasm-client.md` rule 3's package list is this box)
+- **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`, but not `ignore` or `unix`):**
   - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set
 - **If a recipe runs a tool whose output is committed or flashed (generated code, a module) — not `go build`, not a formatter:**
   - [ ] It names an exact version, never `@latest`
