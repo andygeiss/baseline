@@ -4,7 +4,7 @@
 
 **Five rules here are tier 1 and never waived:** the socket's handshake refuses a
 missing `Origin` or one that is not the page's own host (rule 5); the socket creates or
-changes no durable state and acts only under the credential its handshake presented,
+changes no stored record and acts only under the credential its handshake presented,
 re-resolved (rule 6); each message and control frame is size-capped (rule 7); the
 handler returns right after the handshake (rule 8); and the policy gains
 `'wasm-unsafe-eval'` and nothing else ([security-headers.md](security-headers.md) owns
@@ -80,8 +80,8 @@ Under `web/static/js/`, beside htmx, and nothing else:
 
 Both load deferred in `<head>`, before htmx, on the module's page only: a script in
 `<body>` runs again on every boosted swap. A boosted request swaps only the body, so a
-link or form whose answer is that page carries `hx-boost="false"`. A link out needs
-nothing: the canonical `"history":"reload"` makes Back and Forward full loads
+link or form whose answer is that page carries `hx-boost="false"`. For Back and Forward
+a link out needs nothing: the canonical `"history":"reload"` makes them full loads
 ([stack/htmx.md](../stack/htmx.md) rule 6). The module still stops itself, socket and
 all, once its canvas has left the document.
 
@@ -100,16 +100,19 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    the socket still opens for any other origin the cookie reaches — a sibling
    subdomain — or any page in a browser that ignores `SameSite`. An authentication guard
    may refuse first with 401; no refused request is upgraded.
-6. **Everything that creates or changes state is a POST form first — tier 1.** An
-   identity, a room, a session, any record that outlives the socket, is made or changed
-   by a plain form; the socket does neither. It acts only under the credential the
-   handshake presented (cookie session or machine token), re-resolved, not remembered.
-   At a fixed interval of at most 10 seconds, whether or not the client sends anything,
-   the socket re-runs the handshake's checks under a deadline inside that interval:
-   [go-auth-sessions.md](go-auth-sessions.md) rule 6's resolver, which loads the user's
-   row, and [go-authorization.md](go-authorization.md)'s access check. A session's half is
-   scs `Load` of the handshake's token into a context not derived from the request's (the
-   app's own, or `context.Background()`), where a deleted session comes back empty. Never
+6. **Every stored record is made by a POST form first — tier 1.** An identity, a room,
+   a session, any record kept in a store, is made or changed by a plain form; the socket
+   does neither. State held only in memory — a position, a board two sockets share, who
+   is looking — is the socket's to change. It acts only under the credential the
+   handshake presented (cookie session or machine token), which it keeps and
+   re-resolves; it never remembers the user. At a fixed interval of at most 10 seconds,
+   whether or not the client sends anything, it re-runs the handshake's checks with that
+   credential under a deadline inside that interval: the lookup
+   [go-auth-sessions.md](go-auth-sessions.md) rule 6's resolver makes, to the user's row
+   (a token by its hash), and [go-authorization.md](go-authorization.md)'s access check,
+   the store read made as that user (the room re-read as its actor). A session's lookup
+   is scs `Load` of the handshake's token into a context not derived from the request's
+   (the app's own, or `context.Background()`), where a deleted session comes back empty. Never
    `context.WithoutCancel(r.Context())`: it keeps the handshake's session data, and
    `Load` returns that copy, as `Get` on the handshake's context does, always alive. It
    closes with 1008 once the credential, its user, or its access is gone — a logout, a
@@ -123,15 +126,15 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    window — intended unless the project says otherwise. A cookie the server keeps no
    record of, that names no user, and that reaches no record the server keeps has nothing
    to revoke: it is re-checked only for an expiry it carries, if any. Any other is
-   re-resolved like a session. What dies with the connection — a position, who is
-   looking — the socket may keep.
+   re-resolved like a session.
 7. **The socket is capped like a body.** Its sizes are tier 1, since after `Hijack` no
    `MaxBytesReader` guards the connection: a message (1 KiB is plenty for input) counts
-   whole, its fragments together, each checked by its declared length before its payload
-   is read (RFC 6455 section 10.4); a control frame over 125 bytes is malformed
-   (section 5.5). The frames a second and the queue toward a slow client are capped
-   too. Past a cap the server closes the socket, it does not buffer,
-   and the code says which cap: 1009 too big, 1008 too many, 1002 malformed, 1013 a
+   whole, its fragments together, each checked by its declared length — read unsigned,
+   its top bit 0 (RFC 6455 section 5.2) — before its payload is read (section 10.4); a
+   signed read lets a negative length past the cap and into `make`, which panics on the
+   socket's goroutine. A control frame over 125 bytes is malformed (section 5.5). The
+   frames a second and the queue toward a slow client are capped too. Past a cap the
+   server closes the socket, it does not buffer, and the code says which cap: 1009 too big, 1008 too many, 1002 malformed, 1013 a
    reader too slow, which a client may retry.
 8. **Hijack, return, then own the deadlines.** The handler returns right after the
    handshake — tier 1 — and the socket runs on a goroutine the app tracks. Served inside

@@ -19,8 +19,8 @@ work incorrectly. Every target is therefore `.PHONY` and always runs.
 ## The canonical Makefile (copy verbatim)
 
 ```make
-# Copied from the baseline (stack/makefile.md). Adjust per its rule 5; record
-# any other deviation in the README.
+# Copied from the baseline (stack/makefile.md). Adjust per its rules 1, 3 and
+# 5; record any other deviation in the README.
 
 # The main package: ./cmd/server for a web application, . for a single-binary
 # CLI.
@@ -90,16 +90,18 @@ test:
    staticcheck line, as rule 5 allows. An added line checks what the
    canonical eight cannot see, and goes after them: a second target's vet
    (`GOOS=js GOARCH=wasm go vet …`), or a size limit on a committed artifact
-   ([patterns/wasm-client.md](../patterns/wasm-client.md)); an added `go fix -diff`
-   line brings its `go fix` into `fmt` in a bounded loop like the canonical one
-   (`until <that line>; do …`), since one pass can leave a rewrite pending.
+   ([patterns/wasm-client.md](../patterns/wasm-client.md)). An added `go fix -diff`
+   line joins `fmt`'s one bounded loop, which repeats every `go fix` until every
+   `-diff` line is empty (`until <canonical line> && <that line>; do …`): a rewrite
+   in a package both builds compile can expose a fixer in the other.
    **A file behind a custom build tag (not a GOOS or GOARCH) MUST be vetted
    under that tag**, one `go vet -tags <tag> ./...` line per tag set (but not
    `ignore`, which marks generator scripts and fails `go vet -tags ignore ./...`, nor
-   `unix`, which each OS's vet covers, nor TinyGo's tags in a package the `js/wasm`
-   line of [patterns/wasm-client.md](../patterns/wasm-client.md) rule 3 vets): the
-   canonical lines read the default build, so a tagged file can stop compiling with
-   every gate green.
+   `unix`, which each OS's vet covers): the canonical lines read the default build, so
+   a tagged file can stop compiling with every gate green. For TinyGo's tags the line
+   runs over the packages [patterns/wasm-client.md](../patterns/wasm-client.md) rule
+   3's list leaves out, since a browser package's `syscall/js` fails the host vet:
+   `l=$$(<list>) && test -n "$$l" && o=$$(go list -e -tags $(WASM_TAGS) ./... | grep -vxF "$$l") && go vet -tags $(WASM_TAGS) $$o`.
 2. **Portable subset only.** The file MUST run under GNU Make 3.81: `=`
    assignment, `.PHONY`, `.DEFAULT_GOAL` (new in 3.81, so exactly at the floor),
    plain tab-indented recipes. MUST NOT use post-3.81 features (`.ONESHELL` —
@@ -152,8 +154,8 @@ test:
      under a dated README waiver while no staticcheck release reads the pinned
      Go's export data — and restored once the cause clears.
    - *A `go fix` fixer judged wrong:* switched off by name, `-<fixer>=false`, on
-     every `go fix` command — each `-diff` line in `check`, both in each `fmt`
-     loop — until the code no longer trips it ([operations/ci.md](../operations/ci.md)).
+     every `go fix` command in `check` and `fmt` until the code no longer trips it
+     ([operations/ci.md](../operations/ci.md)).
    - *A variable beside `MAIN`:* for a value two places must agree on — recipes,
      lines of one recipe, or a recipe and a test (a size limit `check` and a build
      target both test) — a pinned tool version (rule 4), or a value a person

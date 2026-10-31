@@ -368,8 +368,8 @@ be synced, the tag waits.
   the tagged `js/wasm` `go list -deps` reaches `syscall/js`, the untagged one does not.
   `make` exits 0: `wasm-client.md` 3,604 → 3,656 of 3,800, `stack/makefile.md` 3,110 →
   3,171, floors cli-tool 12,665 → 12,679, library 12,895 → 12,909, web-application
-  23,908 → 23,949, heads unchanged, `checklists/web-application.md` 5,673 → 5,692, the
-  WebAssembly section 498 → 504 of 600. No pass has read the fixes.
+  23,908 → 23,949, heads unchanged, checklists cli-tool 3,096 → 3,110, library 1,472 → 1,486,
+  web-application 5,673 → 5,692, the WebAssembly section 498 → 504 of 600. No pass has read the fixes.
 - **2026-10-31 — review pass 6.** Reviewers found 12 distinct defects in the baseline,
   all fixed; the reference's are fixed there separately. `wasm-client.md` rule 6 re-runs
   the handshake's resolver and access check, not only scs `Load`, which still succeeds
@@ -394,6 +394,27 @@ be synced, the tag waits.
   12,679 → 12,690, library 12,909 → 12,920, web-application 23,949 → 23,992, heads
   unchanged, checklists cli-tool 3,110 → 3,122, library 1,486 → 1,498, web-application
   5,692 → 5,716, the WebAssembly section 504 → 516 of 600. No pass has read the fixes.
+- **2026-10-31 — review pass 7.** Reviewers found 9 distinct defects in the baseline,
+  all fixed, and 2 in the reference, fixed there separately. Rule 7 reads a frame's
+  declared length unsigned, its top bit 0 (RFC 6455 section 5.2): read signed, a
+  negative length passes the cap and panics in `make` on the socket's goroutine, proven
+  by executed code. The tier-1 line is "no stored record" in the header, rule 6, README
+  and box; memory-only state, like a board, is the socket's. Rule 6 keeps the presented
+  credential and re-runs the resolver's lookup (scs `Load`, a token's hash) and the
+  access check as a store read made as that user. "A link out needs nothing" is scoped
+  to Back and Forward; the `hx-boost` row's stylesheet case covers a form too (headless
+  Chrome). `fmt` runs one loop until every `-diff` line is empty; the fixer switch is
+  on every `go fix` command in `check` and `fmt`; `ci.md`'s staticcheck lines are
+  plural; the close codes moved to the tier-2 frames box. The TinyGo-tag vet runs over
+  the packages rule 3's list leaves out: in scratchpad `fix7/m`, GNU Make 3.81, Go
+  1.27.3, `go vet -tags $(WASM_TAGS) ./...` exits 2 on a browser file's `syscall/js`,
+  the scoped line catches a planted error in a server `tinygo` file and exits 0 once
+  it is fixed. `make` exits 0: `wasm-client.md` 3,685 → 3,767 of 3,800,
+  `stack/makefile.md` 3,231 → 3,293, `operations/ci.md` 2,464 → 2,457, `stack/htmx.md`
+  2,096 → 2,094, floors cli-tool 12,690 → 12,692, library 12,920 → 12,922,
+  web-application 23,992 → 24,021, heads unchanged, checklists cli-tool 3,122 → 3,124,
+  library 1,498 → 1,500, web-application 5,716 → 5,747, the WebAssembly section 516 →
+  545 of 600. No pass has read the fixes.
 
 ## Why the CSP is what it is
 

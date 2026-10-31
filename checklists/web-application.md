@@ -335,11 +335,11 @@ tier 1.
 - [ ] `deps_test.go` keeps `net/http`, `os/signal`, `golang.org/x/sync/...` out of the browser packages
 - **The socket, `GET /ws`:**
   - [ ] The handshake refuses a missing `Origin` and one whose host is not the request's
-  - [ ] It creates or changes no durable state; it acts only under the handshake's credential, re-resolved at least every 10 seconds under a deadline, in a context not derived from the request's, and closes with 1008 once it, its user, or its access is gone, 1011 on a store error or missed deadline
+  - [ ] It creates or changes no stored record (memory-only state, like a board, is its own); it acts only under the handshake's credential, re-resolved at least every 10 seconds under a deadline, in a context not derived from the request's, and closes with 1008 once it, its user, or its access is gone, 1011 on a store error or missed deadline
   - [ ] The handler returns after the handshake, so session middleware cannot save a revoked session again
   - [ ] The socket runs on a goroutine the app tracks
-  - [ ] Message size is capped across continuation frames, a control frame at 125 bytes, before a payload is read (1009 past the message cap, 1002 past 125)
-  - [ ] Frames a second and the outbound queue are capped
+  - [ ] Message size is capped across continuation frames, a control frame at 125 bytes, before a payload is read, the declared length read unsigned with its top bit 0
+  - [ ] Frames a second and the outbound queue are capped; past a cap the close code names it (1009, 1008, 1002, 1013)
   - [ ] Read and write deadlines set after `Hijack`, before the first read
   - [ ] Shutdown closes every socket with 1001, then waits, before the session store and database close
 
@@ -450,7 +450,7 @@ gate.
 - [ ] No `export-ignore` in `.gitattributes`
 - **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
   - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push (for a WebAssembly client, js/wasm is not `./...`: `check`'s line over `patterns/wasm-client.md` rule 3's package list is this box)
-- **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`, but not `ignore`, `unix`, or TinyGo's in a package `patterns/wasm-client.md` rule 3's js/wasm line vets):**
+- **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`, but not `ignore` or `unix`; TinyGo's only over the packages `patterns/wasm-client.md` rule 3's list leaves out):**
   - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set
 - **If a recipe runs a tool whose output is committed or flashed (generated code, a module) — not `go build`, not a formatter:**
   - [ ] It names an exact version, never `@latest`

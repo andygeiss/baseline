@@ -21,9 +21,9 @@ of it: the Makefile says what runs, and this document says why.
 - **`go fix -diff`** — fails while a rewrite to current idiom is pending; `make fmt`
   applies it. Read that diff before you commit it: Go says the fixes *should* not
   change behavior, not that they cannot. Switch a fix you judge wrong off by name,
-  `-<fixer>=false`, in the commit that says why. It goes on every `go fix` command:
-  each `-diff` line in `check`, both in each `fmt` loop. Switch it back on once the code
-  no longer trips it; the name is the toolchain's, and a later major may drop it.
+  `-<fixer>=false`, in the commit that says why. It goes on every `go fix` command
+  in `check` and `fmt`. Switch it back on once the code no longer trips it; the name
+  is the toolchain's, and a later major may drop it.
 - **`govulncheck`** — call-graph-aware CVE scanning: it reports a vulnerability in a
   function you never call as exactly that, not as red. A red gate means: bump the
   dependency, don't silence the check.
@@ -36,8 +36,8 @@ of it: the Makefile says what runs, and this document says why.
 - **`@latest` on staticcheck/govulncheck is a deliberate exception** to version
   pinning: both are analysis gates, not build inputs — a new check can redden the run
   but can never change the shipped binary, and for these tools the newest checks *are*
-  the point. If a staticcheck release breaks the gate on an unrelated morning, pin that
-  line to the previous version in the fixing commit and remove the pin once you have
+  the point. If a staticcheck release breaks the gate on an unrelated morning, pin those
+  lines to the previous version in the fixing commit and remove the pins once you have
   fixed the findings.
 - **A Go patch staticcheck cannot read yet** breaks that gate from the other side. The
   toolchain writes export data no staticcheck release reads, so staticcheck checks only
@@ -48,7 +48,7 @@ of it: the Makefile says what runs, and this document says why.
   update, run `go run honnef.co/go/tools/cmd/staticcheck@latest ./...` by hand, under
   the pin. Judge it by that error, not by its exit status: the fixed release exits 1
   too, whenever it finds something. Once the error is gone, fix what it reports first,
-  one commit per commit type, then put the line back and delete the waiver in a commit
+  one commit per commit type, then put the lines back and delete the waiver in a commit
   of its own.
 - **Static build gate** — proves the CGO-free single-binary invariant on every run,
   not at release time.
@@ -116,7 +116,7 @@ moved a major, `make check` may be red on the idioms the new toolchain rewrites:
 `make fmt` first, and commit that rewrite on its own, so the dependency commit stays
 one thing.
 
-While a waiver holds the staticcheck line out, try it by hand after the update as well
+While a waiver holds the staticcheck lines out, try it by hand after the update as well
 (*Why each gate exists*).
 
 A dependency that asks for a newer Go is a VERSIONS.md decision, not a `go get` side
