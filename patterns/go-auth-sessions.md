@@ -241,8 +241,10 @@ what it may do and when it closes. This is tier 1, as that rule is:
    holds, unchanged — the handshake's copy, alive after a logout deleted it.
 4. **A cookie the server keeps no record of**, naming no user and reaching none, has
    nothing to revoke: its lookup checks only an expiry the cookie carries, if any, and the
-   access check runs for whatever the cookie names (a room it was issued for); a cookie
-   naming nothing has nothing to re-check. Any other cookie is re-resolved like a session.
+   access check re-runs whatever the handshake checked — for what the cookie names (a room
+   it was issued for) and what the socket's request named (`GET /ws?room=lobby`); only a
+   socket that passed no access check has nothing to re-check. Any other cookie is
+   re-resolved like a session.
 5. **Only an HTTP request commits the session**, so under `IdleTimeout` a user who only
    uses the socket is closed at the idle window: `Load` finds the row expired.
 
@@ -255,6 +257,7 @@ second, independent layer.
 ## Facts verified (2026-10-31)
 
 - scs v2.9.0: `Load` returns a context that already holds session data unchanged
-  (`data.go` line 55): after `Store.Delete`, `Load(context.WithoutCancel(r.Context()),
-  token)` still found the user and `Load(context.Background(), token)` did not; a session
-  re-`Load`ed but never committed was gone once `IdleTimeout` passed, Go 1.27.3
+  (`data.go` line 55). Executed: a test that deleted the row with `Store.Delete`, then
+  re-`Load`ed, found the user under `Load(context.WithoutCancel(r.Context()), token)` and
+  not under `Load(context.Background(), token)`; one that re-`Load`ed a session every
+  100 ms and never committed it found it gone at the 200 ms `IdleTimeout`, Go 1.27.3

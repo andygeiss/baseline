@@ -2,9 +2,10 @@
 
 **Tier 1** (safety — never waived) · Last verified: 2026-09-05
 
-The actor in the store signature, the predicate in the SQL, the two answers being
-indistinguishable, and a route's protection not being optional where it is registered are
-tier 1. Naming the shared rows and deciding where a role check lives are tier 2.
+The actor in the store signature, the predicate in the SQL (a membership held only in
+memory: rule 6), the two answers being indistinguishable, and a route's protection not
+being optional where it is registered are tier 1. Naming the shared rows and deciding
+where a role check lives are tier 2.
 
 [go-auth-sessions.md](go-auth-sessions.md) answers *who is signed in*. This document
 answers the question after it, and that one is where data leaks: *may this actor touch
@@ -15,7 +16,7 @@ id it is handed.
 
 **Every read and every write of a row somebody owns names the actor in the same SQL
 statement that names the row.** One statement, both predicates — never a check before the
-query, never a comparison after it:
+query, never a comparison after it (a membership held only in memory: rule 6):
 
 ```go
 // Game returns the actor's game. The actor is a parameter, so there is no
@@ -41,8 +42,9 @@ The rules behind it — all MUST:
 1. **The actor is a parameter of every store method that touches an owned row.** Model the
    constraint in Go instead of remembering it, the same move as the single-writer pool in
    [go-sqlite.md](go-sqlite.md).
-2. **The predicate lives in the SQL.** A comparison in Go is a line anyone can delete
-   without reddening a test that only exercises the owner.
+2. **The predicate lives in the SQL** (a membership held only in memory: rule 6). A
+   comparison in Go is a line anyone can delete without reddening a test that only
+   exercises the owner.
 3. **The actor comes from the session, never from the request.** A `user_id` in a form
    field, a query parameter, or a hidden input is user input, and so is the id in the
    path.
@@ -63,9 +65,10 @@ The rules behind it — all MUST:
    `INSERT INTO moves (room_id, user_id, cell) SELECT room_id, user_id, ? FROM members
    WHERE room_id = ? AND user_id = ?`, where zero rows means not a member. `VALUES (?, ?,
    ?)` names the actor and checks nothing, so a removed member's move is stored. A
-   membership held in memory has no row to name: the check and the write run in one
-   step under its lock ([wasm-client.md](wasm-client.md) rule 6). What a
-   delete has to reach past the row it named is [go-data-deletion.md](go-data-deletion.md).
+   membership held only in memory has no row to name: the check and the write run in one
+   step under its lock ([wasm-client.md](wasm-client.md) rule 6). A membership stored
+   and cached in memory is a stored one. What a delete has to reach past the row it
+   named is [go-data-deletion.md](go-data-deletion.md).
 7. **Sentinels stay at the store boundary.** Callers see `domain.ErrNotFound`, never a
    `database/sql` error ([go-errors-logging.md](go-errors-logging.md)).
 
@@ -166,6 +169,10 @@ with worse consequences. There, assert the route's own answer *and* that the row
 move: a refused write and a successful one can share a status code, so the status alone
 proves nothing. `-race` and the rest of the suite are unchanged
 ([go-testing.md](go-testing.md)).
+
+**A socket write under a membership is tested with a non-member and a removed member.**
+Each is refused with 1008, and nothing is stored or changed. A membership held only in
+memory is checked in Go, so this test is the only thing that notices the check is gone.
 
 ## Anti-patterns
 

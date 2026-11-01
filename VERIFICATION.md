@@ -592,7 +592,31 @@ be synced, the tag waits.
   The TinyGo 0.44.0 entry said game-lab's `make ci` needs no TinyGo; corrected in place.
   `make` exits 0: `wasm-client.md` 3,628 → 3,672, `go-auth-sessions.md` 3,533 → 3,560,
   `go-authorization.md` 2,209 → 2,247, checklist web-application 5,812 → 5,853, floor
-  web-application 24,154 → 24,195. No pass has read the fixes.
+  web-application 24,154 → 24,195, the WebAssembly section 570 → 593 of 600. No pass
+  has read the fixes.
+- **2026-11-01 — review pass 16.** Nine defects. The mechanics reviewer's seventh
+  docs-only client, "Tug Room" (in-memory rooms, no database), went green under GNU Make
+  3.81 and in headless Chrome. Fixed: "a membership held in memory" also matched a stored
+  one cached in memory, so a removed member's move could be stored past a stale cache;
+  it is now "held only in memory" in `wasm-client.md` rule 6, `go-authorization.md`
+  rule 6 (which adds that a stored, cached membership is a stored one) and the box —
+  raced 2,000 times, the in-memory one-step check stored 0 moves after removal, the
+  two-step form 3,552. The in-memory case contradicted `go-authorization.md`'s headline,
+  rule 2, tier stamp and box, and README's tier-1 list; each now points to rule 6. That
+  Go check had no test: *Testing* and a box now ask for a non-member and a removed
+  member, refused with 1008, nothing stored. *Re-resolving a long-lived connection* rule
+  4 re-checked only what a stateless cookie names, so a socket admitted by its URL's
+  room was never re-checked (proven executed: an anonymous socket kept a private room's
+  state); it now re-runs whatever the handshake checked. The session-re-read clause left
+  the tier-2 background-work box; the socket's re-resolve box covers it. The custom-tag
+  boxes name `$(WASM_TAGS)`. The scs and U1000 facts say they were executed (re-run on scs v2.9.0,
+  Go 1.27.3, staticcheck 2026.2.2, TinyGo 0.44.0), and a new fact sources the close
+  codes: 1013 is IANA's, not RFC 6455 section 7.4.1's (both fetched). The machine-token
+  box said "32 random bytes" where the code calls `rand.Text()`. `make` exits 0:
+  `wasm-client.md` 3,672 → 3,755, `go-auth-sessions.md` 3,560 → 3,612,
+  `go-authorization.md` 2,247 → 2,362, the WebAssembly section 593 unchanged, checklist
+  web-application 5,853 → 5,896, floor web-application 24,195 → 24,238. No pass has read
+  the fixes.
 
 ## Why the CSP is what it is
 

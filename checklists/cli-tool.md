@@ -217,7 +217,7 @@ gate.
 - **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
   - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push — for `//go:build unix`, each Unix the tool claims (for a WebAssembly client, js/wasm is not `./...`: `check`'s line over `patterns/wasm-client.md` rule 3's package list is this box)
 - **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`, but not `ignore` or `unix`):**
-  - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set
+  - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set (TinyGo's: `$(WASM_TAGS)`, `stack/makefile.md` rule 1)
 - **If a recipe runs a tool whose output is committed or flashed (generated code, a module) — not `go build`, not a formatter:**
   - [ ] It names an exact version, never `@latest`, and every recipe running it as an installed binary checks that version first; a `go run …@$(V)` line is its own check
 

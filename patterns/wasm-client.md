@@ -116,7 +116,8 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    count; a player's seat that moves are checked against is a membership): the socket may
    take or free such a place. A row it writes under a stored membership names it in its
    own statement ([go-authorization.md](go-authorization.md) rule 6); under a membership
-   held in memory, the check and the write run in one step, under its lock.
+   held only in memory, the check and the write run in one step, under its lock, tested
+   as that document's *Testing* says.
    It acts only under the credential the handshake presented, with the access the latest
    check returned, re-resolved read-only at least every 10 seconds, unprompted, under a
    deadline inside the interval ([go-auth-sessions.md](go-auth-sessions.md)
@@ -208,5 +209,9 @@ HTML, so it is not the htmx WebSocket extension
   (otherwise it fetches the page and swaps the body): the vendored `htmx.min.js`, read,
   not run in a browser
 - The `js/wasm` staticcheck line flags an `//export` or `//go:wasmexport` function
-  U1000, and `//lint:ignore U1000` above it clears that: staticcheck 2026.2.2, TinyGo
-  0.44.0
+  U1000, and `//lint:ignore U1000` above it clears that, executed: staticcheck 2026.2.2,
+  TinyGo 0.44.0
+- Close codes 1001, 1002, 1008, 1009 and 1011 are RFC 6455 section 7.4.1's; 1013, Try
+  Again Later, is only in IANA's WebSocket Close Code Number Registry:
+  https://www.rfc-editor.org/rfc/rfc6455#section-7.4.1,
+  https://www.iana.org/assignments/websocket/websocket.xhtml

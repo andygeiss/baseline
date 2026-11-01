@@ -237,7 +237,7 @@ not a trigger.
 
 `patterns/go-auth-sessions.md` §Machine tokens — a bearer token, hashed at rest.
 
-- [ ] 32 random bytes
+- [ ] Made by `rand.Text()`: 26 base32 characters, 130 bits
 - [ ] Only its SHA-256 stored
 - [ ] Shown once
 - [ ] Read from `Authorization: Bearer`, never from the query string
@@ -248,15 +248,16 @@ not a trigger.
 `patterns/go-authorization.md` — the actor in the signature, the predicate in the SQL.
 
 - [ ] Every store method touching an owned row takes the actor as a parameter
-- [ ] Ownership is a predicate in the SQL, never a comparison in Go (a membership held in memory: checked under its lock in the write's step)
+- [ ] Ownership is a predicate in the SQL, never a comparison in Go (a membership held only in memory: checked under its lock in the write's step)
 - [ ] The actor comes from the session, never the request
 - [ ] Somebody else's row and a row that never existed answer identically
 - [ ] No route answers 403 for a row, only for a route the actor may never use
 - [ ] Lists, counts, and aggregates carry the same predicate
-- [ ] Writes prove ownership or membership in their own statement and check `RowsAffected`
+- [ ] Writes prove ownership or membership in their own statement and check `RowsAffected` (a membership held only in memory: rule 6)
 - [ ] A route's protection is not optional where it is registered
 - [ ] The rows nobody owns are named in `README.md` or `DESIGN.md`
 - [ ] The two-user test covers every handler that touches an owned row
+- [ ] A socket write under a membership is tested with a non-member and a removed member: refused (1008), nothing stored or changed
 
 ## Accepting a form POST
 
@@ -352,7 +353,7 @@ the second wait.
 - [ ] A ticker runs under the `errgroup` tied to the signal context, never a bare `go func()`
 - [ ] It runs once before entering its ticker loop
 - [ ] It treats `context.Canceled` at shutdown as normal
-- [ ] Work that outlives its request takes `context.WithoutCancel` and a budget of its own, but work that re-reads a session starts from the app's own context (`patterns/go-auth-sessions.md`)
+- [ ] Work that outlives its request takes `context.WithoutCancel` and a budget of its own
 - [ ] Shutdown cancels it, and `main` waits after `g.Wait()`; `srv.Shutdown` does neither
 - [ ] Losing it mid-flight costs nothing, or it is a durable queue instead
 - [ ] Its registry drops finished entries when the next one starts
@@ -452,7 +453,7 @@ gate.
 - **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
   - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push (for a WebAssembly client, js/wasm is not `./...`: `check`'s line over `patterns/wasm-client.md` rule 3's package list is this box)
 - **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`, but not `ignore` or `unix`):**
-  - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set
+  - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set (TinyGo's: `$(WASM_TAGS)`, `stack/makefile.md` rule 1)
 - **If a recipe runs a tool whose output is committed or flashed (generated code, a module) — not `go build`, not a formatter:**
   - [ ] It names an exact version, never `@latest`, and every recipe running it as an installed binary checks that version first; a `go run …@$(V)` line is its own check
 

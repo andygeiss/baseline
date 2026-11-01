@@ -191,9 +191,9 @@ below is what it currently catches, not the definition.
   `Tx` that pool hands out — a single leak wedges every later write
   ([patterns/go-sqlite.md](patterns/go-sqlite.md)).
 - Whether the signed-in actor may touch the row it asked for: the actor in the store
-  signature, the predicate in the SQL, the two answers being indistinguishable, and a
-  route's protection not being optional where it is registered
-  ([patterns/go-authorization.md](patterns/go-authorization.md)).
+  signature, the predicate in the SQL (a membership held only in memory: its rule 6), the
+  two answers being indistinguishable, and a route's protection not being optional where
+  it is registered ([patterns/go-authorization.md](patterns/go-authorization.md)).
 - Everything about a file a user handed you: the generated stored name, the type decided
   by sniffing the bytes, the download served by a handler rather than a file server, the
   attachment default, and no boost on a link to it
