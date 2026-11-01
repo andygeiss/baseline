@@ -617,6 +617,11 @@ be synced, the tag waits.
   `go-authorization.md` 2,247 → 2,362, the WebAssembly section 593 unchanged, checklist
   web-application 5,853 → 5,896, floor web-application 24,195 → 24,238. No pass has read
   the fixes.
+- **2026-11-01 — v5.2.0 ships on Andy's call.** Sixteen passes found 16, 14, 16, 11, 12,
+  12, 9, 9, 6, 6, 5, 6, 6, 9, 6 and 9 distinct defects, so the gate's first condition is
+  not met; pass 16's fixes, `a5975cb`, enter Owed unread. **The reference** pins
+  `a5975cb` in `51681c3`: `./verify.sh` green over 86 gates and `make ci` green, both
+  under Go 1.27.3 and TinyGo 0.44.0 on the Mac.
 
 ## Why the CSP is what it is
 
