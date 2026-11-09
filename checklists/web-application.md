@@ -248,7 +248,7 @@ not a trigger.
 `patterns/go-authorization.md` — the actor in the signature, the predicate in the SQL.
 
 - [ ] Every store method touching an owned row takes the actor as a parameter
-- [ ] Ownership is a predicate in the SQL, never a comparison in Go (a membership held only in memory: checked under its lock in the write's step)
+- [ ] Ownership is a predicate in the SQL, never a comparison in Go (a membership held only in memory: rule 6)
 - [ ] The actor comes from the session, never the request
 - [ ] Somebody else's row and a row that never existed answer identically
 - [ ] No route answers 403 for a row, only for a route the actor may never use
@@ -334,13 +334,14 @@ boxes are tier 1.
 - [ ] `check` vets the browser packages under `GOOS=js GOARCH=wasm` and TinyGo's tags, failing closed on an empty list
 - [ ] `check` holds each module to its size limit
 - [ ] `deps_test.go` keeps `net/http`, `os/signal`, `golang.org/x/sync/...` out of the browser packages
-- **The socket, `GET /ws`:**
-  - [ ] The handshake refuses a missing `Origin` and one whose host is not the request's
-  - [ ] It makes or changes nothing that decides who passes a credential resolver or access check but its own user's in-memory hold, given up to no one
-  - [ ] It acts only under the handshake's credential with its latest check's access, re-resolved read-only at least every 10 seconds (`patterns/go-auth-sessions.md`), acting on nothing while a check is due, closing 1008 once it, its user, or its access is gone and 1011 on a store error or missed deadline
-  - [ ] The handler returns after the handshake, so session middleware cannot save a revoked session again
+- **The socket, `GET /ws`** — each box is checked against the rule it names:
+  - [ ] Origin: the handshake refuses a missing one and one whose host is not the request's (rule 5)
+  - [ ] Access: the socket makes or changes nothing that decides who passes a credential resolver or access check (rule 6, which names the one hold it may give up)
+  - [ ] Credential: re-resolved as rule 6 says, and the socket acts on nothing while a check is due
+  - [ ] Credential: the socket closes, with rule 6's code, once it, its user, or its access is gone, or a check fails
+  - [ ] Handler return: right after the handshake (rule 8)
   - [ ] The socket runs on a goroutine the app tracks
-  - [ ] Message size is capped across continuation frames, a control frame at 125 bytes, before a payload is read, the declared length read unsigned with its top bit 0 and compared with what the cap has left, never summed
+  - [ ] Message size: rule 7's caps hold for a whole message, each fragment's declared length, and a control frame, before a payload is read
   - [ ] Frames a second and the outbound queue are capped; past a cap the close code names it (1009, 1008, 1002, 1013)
   - [ ] Read and write deadlines set after `Hijack`, before the first read
   - [ ] Shutdown closes every socket with 1001, then waits, before the session store and database close

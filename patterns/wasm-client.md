@@ -2,15 +2,11 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-10-31
 
-**Five rules here are tier 1 and never waived:** the socket's handshake refuses a missing
-`Origin` or one that is not the page's own host (rule 5); the socket makes or changes
-nothing that decides who passes a credential resolver or access check but its own user's
-in-memory hold, given up to no one, and acts only under the credential its handshake
-presented with the latest check's access, re-resolved read-only and closed once it, its
-user, or its access is gone (rule 6); each message and control
-frame is size-capped (rule 7); the handler returns right after the handshake (rule 8);
-and the policy gains `'wasm-unsafe-eval'` and nothing else
-([security-headers.md](security-headers.md) owns it).
+**Rules 5 and 6 are tier 1 and never waived, and so are the parts rules 7 and 8 mark:**
+the `Origin` check at the handshake, what the socket may never make or change and the
+credential it acts under, the message and control-frame size caps, and the handler's
+return. The `'wasm-unsafe-eval'` policy token is tier 1 too;
+[security-headers.md](security-headers.md) owns it.
 
 A web application whose page is a program — a game, a simulation, a canvas redrawn every
 frame — written in Go, compiled to WebAssembly, and talking to the server over one

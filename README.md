@@ -159,7 +159,7 @@ and the answer to "can we skip this one?".
 
 **Every document in [`patterns/`](patterns/) and [`stack/`](stack/) stamps its tier on
 the line under its title** — `**Tier 2** (shape — waived only on the record) · Last
-verified: 2026-08-17` — and names, in its own words, any rule inside it that sits in a
+verified: 2026-08-17` — and names any rule inside it that sits in a
 different tier. That stamp is the local
 answer for an agent that opened one document mid-task; this section is the definition
 behind it. When the two disagree, this section wins and the document is the defect.
@@ -169,19 +169,19 @@ behind it. When the two disagree, this section wins and the document is the defe
 dropping it loses data, leaks it, or hands over an account.** Apply the test; the list
 below is what it currently catches, not the definition.
 
+**A tier-1 rule is stated once, in the document that owns it.** That document's header,
+the list below, and a checklist box each name the rule in a few words and point at it,
+by number where the document numbers its rules. None of them repeats its conditions: a
+condition copied to four places drifts in three of them. A condition found only in a
+header, in this list, or in a box is a defect — move it into the rule.
+
 - The headers and the request surface — CSRF, escaping user input, request body caps, the
   security-header policy, the ops listener never proxied, and no boost on a link or form
   whose answer is not a page ([patterns/security-headers.md](patterns/security-headers.md),
   [patterns/go-http-server.md](patterns/go-http-server.md), [stack/htmx.md](stack/htmx.md)).
-- A WebSocket handshake that refuses a missing `Origin` or one other than the page's own,
-  because no CSRF check sees a GET, and a socket that makes or changes nothing that
-  decides who passes a credential resolver or access check but its own user's in-memory
-  hold, given up to no one, acts only under the credential its handshake presented with
-  the latest check's access, re-resolved read-only and closed once it, its user, or its
-  access is gone, caps each message's and control
-  frame's size without summing lengths, and runs after its handler has returned, so
-  session middleware cannot save a revoked session again
-  ([patterns/wasm-client.md](patterns/wasm-client.md)).
+- A WebAssembly client's socket: the `Origin` check at its handshake, what it may never
+  make or change, the credential it acts under, its size caps, and its handler's return
+  ([patterns/wasm-client.md](patterns/wasm-client.md) rules 5 to 8).
 - Everything about who is signed in: session cookie flags, renewal on login and password
   change, password hashing, auth rate limiting, constant-time login, every machine-token
   rule, and re-resolving a long-lived connection
@@ -523,6 +523,11 @@ lands on this repository rather than on a project built from it.
 **One box, one check.** A box that needs two answers is two boxes: a box holding six
 conditions gets ticked while three of them fail. Where several checks share a narrower
 scope inside a section, the scope is a bold bullet and the checks sit under it.
+
+**A box names the check; its rule carries the conditions.** Where a box cites a rule,
+checking the box means checking the rule: the interval, the status code and the
+exception live there and nowhere else. A box that repeats them is a second copy to keep
+in step, and the copy a reviewer passes while the rule fails.
 
 **One section per topic, and the section is the trigger.** Its heading names the moment
 in gerund form, so it reads as *when you are about to…* on the way in and *if the project
