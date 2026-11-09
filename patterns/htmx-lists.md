@@ -107,14 +107,19 @@ cursor across one is how a reader lands on an empty page two.** Drop it: a chang
 starts at the top. Filters live in the query string beside the cursor, and the control
 that comes back carries them all, or the second page quietly loses them.
 
+**Build the control's URL once, in the handler** — `"/items?" + url.Values{…}.Encode()` —
+and write that one value into both `href` and `hx-get`. `html/template` escapes a value
+as a URL only in an attribute it knows holds one, and `hx-get` is not one: a filter
+interpolated there arrives unescaped, and an `&`, `#` or `+` in it cuts the query short.
+
 ## Anti-patterns
 
 - ❌ `OFFSET`, and page numbers, which are `OFFSET` wearing a hat.
 - ❌ A total count rendered on every page. `COUNT(*)` over a growing table, per request,
   to print a number nobody acts on.
 - ❌ Infinite scroll (`hx-trigger="revealed"`). It takes the footer away from everyone,
-  strands keyboard and screen-reader users in a list with no end, and gives the reader no
-  way back to where they were. A control they press is the whole difference.
+  strands keyboard and screen-reader users in a list with no end, and loads rows nobody
+  asked for. A control they press is the whole difference.
 - ❌ The cursor in a `data-` attribute or the URL hash. That is client-side state, and the
   server is the source of truth.
 - ❌ Rendering everything and filtering in CSS. The row still crossed the wire, and a

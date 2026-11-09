@@ -23,7 +23,7 @@ A browser grants these only on HTTPS, `http://localhost`, or `http://127.0.0.1`:
 | Service workers, and PWA install | [pwa.md](pwa.md) |
 | Geolocation | any "near me" feature |
 | Notifications, Push | — |
-| WebAuthn — passkeys, security keys | [go-auth-sessions.md](go-auth-sessions.md) |
+| WebAuthn — passkeys, security keys | — |
 | `navigator.clipboard.readText` | copy-and-paste helpers |
 
 **A LAN address is not a secure context.** `http://192.168.1.20:8080` is an ordinary
@@ -39,8 +39,8 @@ feature in this corpus that cannot be checked before it ships without this docum
 
 That rule does not bend
 ([project-types/web-application.md](../project-types/web-application.md)). The binary
-stays on `127.0.0.1` and a proxy in front terminates TLS — Caddy on the server, Caddy on
-the developer's machine. Same shape, two places:
+speaks plain HTTP and a proxy in front terminates TLS: the operations repository's on the
+server, this file's on the developer's machine, where the binary stays on `127.0.0.1`:
 
 ```
 phone ──TLS──▶ Caddy ──plain HTTP──▶ binary on 127.0.0.1:8080
@@ -70,11 +70,11 @@ Four decisions in nine lines:
 
 - **`tls internal`** signs with Caddy's own certificate authority. No public issuer signs
   a `.local` name, so no public issuer is asked.
-- **`auto_https disable_redirects`** stops Caddy binding `:80` to redirect to `:443` — a
-  port this file does not serve, so the redirect would land on a closed door.
+- **`auto_https disable_redirects`** stops Caddy binding `:80` as well — a second open
+  port on a developer's machine, for a redirect nobody needs.
 - **`admin off`** because nothing here drives Caddy over its API.
-- **Port 8443, not 443.** A port below 1024 needs root, and testing a change on a phone
-  should not.
+- **Port 8443, not 443.** On Linux a port below 1024 needs root, and testing a change on
+  a phone should not.
 
 ## The Makefile target
 
@@ -110,9 +110,11 @@ in this order:
 **Step 3 is not optional and is the one people miss.** Without it the device installs the
 certificate and still refuses the site, with an error that never mentions trust.
 
-For the developer's own browser, `sudo caddy trust` once. Caddy attempts this the first
-time it starts and logs `failed to install root certificate` when it cannot ask for a
-password. Android's path differs and is not verified here.
+For the developer's own browser there is nothing to run. Caddy installs its root into the
+host's store when `make lan` starts it in a terminal, and asks for the password to do it;
+with nowhere to ask, it logs `failed to install root certificate` and serves anyway.
+`caddy trust` cannot do it afterwards: it reads the root from the admin API, which this
+file turns off. Android's path differs and is not verified here.
 
 ## What this changes on the device, for a year
 
@@ -141,11 +143,11 @@ header, and still worth knowing before it surprises someone.
 
 - ❌ Making the binary terminate TLS for development. It splits the server into two
   shapes, and the one nobody deploys is the one that gets tested.
-- ❌ Copying `baseline-ops/templates/Caddyfile` and editing it down. Copies nothing builds
+- ❌ Copying `baseline-ops/caddy/Caddyfile` and editing it down. Copies nothing builds
   drift; this is a separate file with a separate job.
 - ❌ `--unsafely-treat-insecure-origin-as-secure`, or any flag that switches off the
-  browser's own rule. It is desktop-only, so it cannot test the device the feature is
-  for, and it hides exactly the failure a user would hit.
+  browser's own rule. It is Chromium-only, so it cannot test Safari on iOS, the usual
+  target, and it hides exactly the failure a user would hit.
 - ❌ A bare self-signed certificate with no authority behind it. Trust then attaches to
   that one certificate, so every regeneration is another trip through the device's
   settings — and the server certificate here is replaced twice a day. Trusting a root is
@@ -164,21 +166,22 @@ Checked by running it, not by reading about it:
   `curl --cacert <root>` reports `ssl_verify_result=0` — and proxies to a Go binary on
   `127.0.0.1:8080`. The same request through the machine's LAN address also answers 200,
   which is the path a phone takes.
-- Without `auto_https disable_redirects`, Caddy binds a second listener on `:80`
-  redirecting to `:443`, which this configuration does not serve. With it, `lsof` shows
-  one listener on `:8443`.
+- Without `auto_https disable_redirects`, Caddy binds a second listener on `:80` that
+  answers 308 to `https://<name>.local:8443`. With it, `lsof` shows one listener on
+  `:8443`.
 - The generated root is valid for **ten years**; the certificate it serves is valid for
   **twelve hours** and is renewed while Caddy runs. Only the root is installed on a device.
-- `sudo caddy trust` installs the root into the host's own store. Started without a
-  terminal to prompt on, Caddy logs `failed to install root certificate` and serves
-  correctly anyway.
+- Caddy tries to install the root into the host's own store when it starts — on macOS
+  by `sudo security add-trusted-cert`. Started without a terminal to prompt on, it logs
+  `failed to install root certificate` and serves correctly anyway. `caddy trust` asks
+  the admin API for the root, so under `admin off` it fails with `connection refused`.
 
 Sources:
 
 - Secure contexts, and why `localhost` is exempt:
-  https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts
+  https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Secure_Contexts
 - Features restricted to secure contexts:
-  https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts/features_restricted_to_secure_contexts
+  https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Secure_Contexts/features_restricted_to_secure_contexts
 - Caddy `tls internal`: https://caddyserver.com/docs/caddyfile/directives/tls and
   https://caddyserver.com/docs/automatic-https#local-https
 - `auto_https` options: https://caddyserver.com/docs/caddyfile/options#auto-https

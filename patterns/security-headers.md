@@ -4,7 +4,7 @@
 
 The four headers, every directive in the policy, and the ban on `'unsafe-inline'` and
 `'unsafe-eval'` are tier 1 wherever a checklist files them. The single-owner rule and
-the anti-patterns below are tier 2.
+the first two anti-patterns below are tier 2; the last two restate tier-1 rules.
 
 This document owns every security header the app sends. One middleware sets them, one
 policy string defines the CSP, and no other document restates either — a CSP copied into
@@ -45,7 +45,7 @@ called `WriteHeader` is silently dropped — the status line is already on the w
 
 | Directive | Value | Why |
 |---|---|---|
-| `default-src` | `'self'` | The fallback for every fetch directive that has one — `script-src`, `style-src`, `font-src`, `connect-src`, `manifest-src`. Same-origin only, so htmx, `app.css`, a self-hosted font, and the manifest all load, and nothing third-party does. |
+| `default-src` | `'self'` | The fallback for every fetch directive the policy does not write out — `script-src`, `style-src`, `font-src`, `connect-src`, `manifest-src` among them. Same-origin only, so htmx, `app.css`, a self-hosted font, and the manifest all load, and nothing third-party does. |
 | `img-src` | `'self' data:` | `data:` is **required**: mask icons are `data:image/svg+xml` URLs ([css-icons.md](css-icons.md)), and CSS image loads are checked against `img-src`. Without it every icon in the app disappears. |
 | `frame-ancestors` | `'none'` | Clickjacking. Has no `default-src` fallback, so it MUST be written out. |
 | `base-uri` | `'none'` | No fallback either. An injected `<base href="https://evil.example/">` re-points every root-relative URL on the page, including `/static/js/htmx.min.js`. The app never uses `<base>`. |
@@ -109,10 +109,13 @@ rules are [go-file-uploads.md](go-file-uploads.md).
 
 ## Testing
 
-One table test pins the whole contract, so a future edit cannot quietly drop a header:
+One table test pins the whole contract, so a future edit cannot quietly drop a header.
+It goes through `Routes()`, like every handler test ([go-testing.md](go-testing.md)): a
+test of the bare middleware stays green when the chain stops calling it.
 
 ```go
 func TestSecureHeaders(t *testing.T) {
+	t.Parallel()
 	want := map[string]string{
 		"Content-Security-Policy":   csp,
 		"Strict-Transport-Security": "max-age=31536000",
@@ -120,12 +123,15 @@ func TestSecureHeaders(t *testing.T) {
 		"Referrer-Policy":           "same-origin",
 	}
 
-	rec := httptest.NewRecorder()
-	h := (&App{}).secureHeaders(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
-	h.ServeHTTP(rec, httptest.NewRequest("GET", "/", nil))
+	srv := httptest.NewTestServer(t, newTestApp(t).Routes())
+	res, err := srv.Client().Get(srv.URL + "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
 
 	for name, value := range want {
-		if got := rec.Header().Get(name); got != value {
+		if got := res.Header.Get(name); got != value {
 			t.Errorf("%s = %q, want %q", name, got, value)
 		}
 	}
