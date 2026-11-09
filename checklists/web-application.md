@@ -337,14 +337,17 @@ boxes are tier 1.
 - [ ] `check` vets the browser packages under `GOOS=js GOARCH=wasm` and TinyGo's tags, failing closed on an empty list
 - [ ] `check` holds each module to its size limit
 - [ ] `deps_test.go` keeps `net/http`, `os/signal`, `golang.org/x/sync/...` out of the browser packages
-- **The socket, `GET /ws`** — each box is checked against the rule it names:
-  - [ ] Origin: the handshake refuses a missing one and one whose host is not the request's (rule 5)
+- **The socket, `GET /ws`** — a box that names a rule is checked against that rule:
+  - [ ] Origin: the handshake refuses a missing one and a foreign one (rule 5)
   - [ ] Access: the socket makes or changes nothing that decides who passes a credential resolver or access check (rule 6, which names the one hold it may give up)
-  - [ ] Credential: re-resolved as rule 6 says, and the socket acts on nothing while a check is due
-  - [ ] Credential: the socket closes, with rule 6's code, once it, its user, or its access is gone, or a check fails
+  - [ ] Credential: re-resolved as rule 6 says
+  - [ ] Credential: the socket acts with the access its latest check returned (rule 6)
+  - [ ] Credential: it acts on nothing while a check is due (rule 6)
+  - [ ] Credential: it closes once it, its user, or its access is gone (rule 6)
+  - [ ] Credential: it closes when a check errors or misses its deadline (rule 6)
   - [ ] Handler return: right after the handshake (rule 8)
   - [ ] The socket runs on a goroutine the app tracks
-  - [ ] Message size: rule 7's caps hold for a whole message, each fragment's declared length, and a control frame, before a payload is read
+  - [ ] Message size: rule 7's caps hold for a whole message, each fragment before its payload is read, and a control frame
   - [ ] Frames a second and the outbound queue are capped; past a cap the close code names it (1009, 1008, 1002, 1013)
   - [ ] Read and write deadlines set after `Hijack`, before the first read
   - [ ] Shutdown closes every socket with 1001, then waits, before the session store and database close

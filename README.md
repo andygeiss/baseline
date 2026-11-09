@@ -173,15 +173,19 @@ below is what it currently catches, not the definition.
 the list below, and a checklist box each name the rule in a few words and point at it,
 by number where the document numbers its rules. None of them repeats its conditions: a
 condition copied to four places drifts in three of them. A condition found only in a
-header, in this list, or in a box is a defect — move it into the rule.
+header, in this list, or in a box is a defect — move it into the rule, and only then
+trim the copy. This binds every header, entry and box written or changed since
+2026-11-09. [patterns/wasm-client.md](patterns/wasm-client.md) follows it; the older
+copies that do not are listed in [VERIFICATION.md](VERIFICATION.md) *Owed*.
 
 - The headers and the request surface — CSRF, escaping user input, request body caps, the
   security-header policy, the ops listener never proxied, and no boost on a link or form
   whose answer is not a page ([patterns/security-headers.md](patterns/security-headers.md),
   [patterns/go-http-server.md](patterns/go-http-server.md), [stack/htmx.md](stack/htmx.md)).
-- A WebAssembly client's socket: the `Origin` check at its handshake, what it may never
-  make or change, the credential it acts under, its size caps, and its handler's return
-  ([patterns/wasm-client.md](patterns/wasm-client.md) rules 5 to 8).
+- A WebSocket: the `Origin` check at its handshake, what the socket may never make or
+  change, the credential it acts under, its message and control-frame size caps, and
+  its handler's return ([patterns/wasm-client.md](patterns/wasm-client.md) rules 5 and
+  6, and the parts rules 7 and 8 mark).
 - Everything about who is signed in: session cookie flags, renewal on login and password
   change, password hashing, auth rate limiting, constant-time login, every machine-token
   rule, and re-resolving a long-lived connection
@@ -418,9 +422,11 @@ paragraph that goes stale in one of them.
   next-steps list of the work that found them ([SKILL.md](SKILL.md) *Handing the work
   back*). One project inventing something is not yet a pattern — a second project
   solving it the same way is the signal, and deciding is yours. **No new pattern lands
-  while [VERIFICATION.md](VERIFICATION.md) *Owed* lists anything:** a new document on
-  top of unread ones is how four sets of unread fixes piled up between v4.8.1 and
-  v5.2.0.
+  while [VERIFICATION.md](VERIFICATION.md) *Owed* lists anything unread.** A run clears
+  that list first. Four sets of unread fixes piled up between v4.8.1 and v5.2.0 because
+  each later run read only its own diff, and v5.2.0 put a new pattern on top of them.
+  What *Owed* lists as known and not fixed does not block one: a low may sit there, and
+  so may what only upstream can fix.
 - **A run's narrative goes on its tag's release page, never into a file.** A run log in
   the repository grows by construction — one narrative per release, forever — and costs
   every maintainer the re-reading. The release page is dated, linked to the tag, and

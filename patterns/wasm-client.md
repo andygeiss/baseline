@@ -202,8 +202,8 @@ HTML, so it is not the htmx WebSocket extension
   `{{if not .Standard}}` list keeps, Go 1.27.3
 - htmx 4.0.0 keeps only the `<title>` of a swapped answer's `<head>`, and on Back or
   Forward to an entry it marked calls `location.reload()` when `history` is `"reload"`
-  (otherwise it fetches the page and swaps the body): the vendored `htmx.min.js`, read,
-  not run in a browser
+  (otherwise it fetches the page and swaps the body): the vendored `htmx.min.js`, read;
+  Back after a boosted link out was run in headless Chromium only
 - The `js/wasm` staticcheck line flags an `//export` or `//go:wasmexport` function
   U1000, and `//lint:ignore U1000` above it clears that, executed: staticcheck 2026.2.2,
   TinyGo 0.44.0

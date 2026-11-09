@@ -24,9 +24,10 @@ A run has two halves, and a release needs both.
    canonical `Makefile` runs end to end under GNU Make 3.81, the version macOS's
    Command Line Tools ship, and every measured color claim gets recomputed from its
    oklch values. **One reviewer builds from the documents alone:** a new project
-   that uses what changed, written from this corpus and nothing else — not the
-   reference, not another project. Its `make check` and `make ci` are green, or
-   whatever stopped them is a finding.
+   that uses what changed and what *Owed* lists as unread, written from this corpus
+   and nothing else — not the reference, not another project. Its `make check` and
+   `make ci` are green, or whatever stopped them is a finding. A build that could
+   not run is a pass that did not happen.
 2. **The empirical half.** [baseline-reference](https://github.com/andygeiss/baseline-reference)
    implements the corpus end to end. It is synced to the change, and its
    `./verify.sh` runs every mechanical gate, then boots the real binary and
@@ -40,24 +41,34 @@ that contradicts another one nothing points at.
 ## Grading a finding
 
 One question grades every finding: **what happens to a project whose agent follows
-this text to the letter?**
+this text to the letter?** Read every sentence at its most literal, and treat a box
+as the whole check.
 
 - **High** — it ships something that loses data, leaks it, or hands over an account.
   Or it cannot follow the text at all: a snippet that does not compile, a recipe that
   does not run.
-- **Medium** — it builds something wrong that no gate catches. Two documents that
-  answer one question differently are medium. So is a rule resting on a fact that
-  upstream contradicts.
-- **Low** — it builds the right thing anyway: a loose phrase, a link that moved, a
-  wrong number in a report.
+- **Medium** — it builds something wrong that no gate catches. These are medium too:
+  two documents that answer one question differently; a sentence two careful readers
+  apply differently; a rule resting on a fact that upstream contradicts; a rule that
+  forbids what a correct application must do; a tier-1 rule no box checks, or a box
+  that passes while its rule fails.
+- **Low** — it builds the right thing anyway: a phrase with one sensible reading, a
+  link that moved, a wrong number in a report, anything a gate the project runs
+  catches. A finding in text no project reads — the README, this file — is low,
+  unless it changes what a release may ship; then it is medium.
+
+**When two grades fit, the higher holds.** The reviewer grades, and whoever fixes
+does not regrade. A finding in the reference is the reference's. A claim nobody could
+check is not a finding: it is listed under *Owed* as unchecked.
 
 **Evidence, or it is not a finding.** The command and its output, or the source and
 the sentence that contradicts the claim.
 
 **A low never holds a tag.** It is fixed in the run or listed under *Owed*. The fixes
 to the last pass's lows ship unread: *Owed* names their commit, and the next run reads
-them. A fix that changes what a rule requires is not a low's fix. It is a new change,
-and the count of passes starts again.
+them. Two fixes never ship unread. One that changes what a rule requires is a new
+change, and the count of passes starts again. One that touches a tier-1 rule, its
+header or its box is read by a pass first, or the low stays listed.
 
 ## The tag gate
 
@@ -76,22 +87,23 @@ fifth is.** This is a gate, not a goal, and it has no override.
 5. After the tag, its release page records the run, naming the reference release and
    the `verify.sh` result.
 
-**A change with nothing to build skips the build.** A pin or a wording fix gives a
-reviewer nothing to write, and condition 2 is its build.
+**A change that alters no rule, snippet or recipe skips the build:** a patch pin, a
+typo. Condition 2 is its build.
 
-**One change does not wait for *Owed*: a pin whose note names a security fix.** That
-pin is tier 1, so it ships alone, on a run over its own diff, and *Owed* stays as it
-was.
+**One change does not wait for *Owed*: a patch pin whose note names a security fix.**
+That pin is tier 1, so it ships alone — the `VERSIONS.md` row and the places that pin
+sits, nothing else — on a run over that diff, and *Owed* stays as it was.
 
-**Condition 1 asked for zero defects until 2026-11-09, and five releases in a row
-shipped without it.** v4.8.1, v4.8.2, v5.0.0, v5.1.0 and v5.2.0 each went out on Andy's
-decision, each recorded. The count never reached zero, because every pass's fixes were
-the next pass's text: v5.2.0's sixteen passes found 16, 14, 16, 11, 12, 12, 9, 9, 6, 6,
-5, 6, 6, 9, 6 and 9. The build did converge: all seven clients written from the
-documents alone, in passes 10 to 16, went green, and at pass 15 the mechanics reviewer
-found nothing. So the condition now counts what a project would get wrong, and builds
-what the documents say. A gate overridden every time is a goal; this one can be met.
-Decided by Andy, 2026-11-09.
+**Condition 1 asked for zero defects until 2026-11-09, and six releases in a row
+shipped without it.** v4.8.0 through v5.2.0 each went out on Andy's decision, each
+recorded. The count never reached zero: v5.2.0's sixteen passes found 16, 14, 16, 11,
+12, 12, 9, 9, 6, 6, 5, 6, 6, 9, 6 and 9, and a count that adds a leak to a misplaced
+comma does not say when to stop. The condition now counts only what a project would
+get wrong. **That is not a lower bar.** Graded this way, v5.2.0's last two passes
+still fail it: pass 15 on two documents that answered one question differently, pass
+16 on a socket that kept a private room's state. All seven builds from the documents
+alone, in passes 10 to 16, were green through both, so the build is a floor and not
+the proof. Decided by Andy, 2026-11-09.
 
 **Conditions 2 and 4 were one sentence until 2026-08-18, and it was one no release
 could meet.** It read "`./verify.sh` exits 0 against the exact baseline commit
@@ -120,14 +132,20 @@ a run, and on the release page after the tag. The entries as they stood at v5.2.
 narrative and measurements included, are in this file at that tag; the v5.2.0 run is on
 its release page.
 
-**While anything is listed here, no new pattern lands** ([README.md](README.md)
+**This section says whether the gate is open.** Everything under *Unread* is read by
+the next run. Every entry under *Known, not fixed* carries its grade, and one graded
+high or medium holds the next tag that is not a security pin.
+
+**While anything is listed under *Unread*, no new pattern lands** ([README.md](README.md)
 *Maintenance protocol*).
 
-### Unread: tagged, and no pass has read it
+### Unread, or read and never passed
 
-- **`patterns/go-child-process.md`, whole,** with its section in
-  `checklists/cli-tool.md`. New on 2026-10-04, and in every tag since v5.1.0. Review
-  rewrote its stop path once; round five then found the ten defects listed below.
+- **`patterns/go-child-process.md`, whole,** with its section, its secret box and its
+  vet box in `checklists/cli-tool.md`, the README's tier-1 clause for a child's
+  secret, and the Unix sentences in `operations/ci.md`. New on 2026-10-04, and in
+  every tag since v5.1.0. Five rounds read it and none passed; the fifth found the
+  ten defects listed below.
 - **A CLI may serve the person who started it** — `project-types/cli-tool.md`, widened
   on 2026-10-09, on Andy's call, so that the child-process proxy counts as a CLI.
 - **`aafa39f`, round four's fixes for v4.8.1** — `operations/ci.md`,
@@ -136,48 +154,121 @@ its release page.
 - **`7bd81fa`, round five's fixes for v5.0.0** — `stack/htmx.md`, `stack/html.md`,
   `patterns/go-file-uploads.md`, `patterns/go-http-client.md`,
   `patterns/go-http-server.md`, `patterns/go-background-work.md`,
-  `patterns/htmx-server-rendering.md`, `patterns/htmx-live-updates.md`.
+  `patterns/htmx-server-rendering.md`, `patterns/htmx-live-updates.md`. Its ninth file,
+  `patterns/css-motion.md`, is being read whole by the 2026-11-09 run.
 - **`bcbb2aa`, round six's fixes for v5.1.0, and `ab31e65`,** which dropped
   `StrictPragmas` to tier 2 on Andy's call — `patterns/go-sqlite.md`, the README's
   tier-1 list, and the preambles of two checklists.
 - **`a5975cb`, pass 16's fixes for v5.2.0** — `patterns/wasm-client.md`,
   `patterns/go-auth-sessions.md`, `patterns/go-authorization.md`, the three checklists,
   and the README's tier-1 list.
+- **No `Last verified:` date moved in v5.1.0 or v5.2.0.** `patterns/go-sqlite.md`,
+  `VERSIONS.md` and the documents v5.2.0 promoted rules into were read in part, never
+  whole.
 
 ### Known, not fixed
 
-- **The child-process pattern: ten findings from round five, 2026-10-10.** Three are
-  medium, all in the tests the pattern prescribes: none tells the polling wait from the
-  single probe it replaced, or a deadline counted from the start from one counted from
-  the stop; and the text never says a fake must have its signal handling in before it
-  reports ready. Seven are low. The helper behaviours the tests need are not modes. A
-  checklist box names SIGTERM where the child may document another stop signal. The vet
-  box drops the `GOARCH` that `ci.md` pairs with each Unix, and that pairing is not
-  enough for iOS or Android. One sentence reads as if the fake sleeps on exit when it is
-  not race-built. Three comments say the SIGKILL path waits for the whole group; it
-  waits for the child. And *A CLI terminates* no longer gives a reason that covers its
-  `--watch` ban.
-- **A CLI that listens on a port** gets none of the web application's cross-origin
-  rules, server timeouts, or request-body cap (2026-10-09).
+- **Medium — the child-process pattern: ten findings from round five, 2026-10-09.**
+  Three are medium, all in the tests the pattern prescribes: none tells the polling
+  wait from the single probe it replaced, or a deadline counted from the start from one
+  counted from the stop; and the text never says a fake must have its signal handling
+  in before it reports ready. Seven are low. The helper behaviours the tests need are
+  not modes. A checklist box names SIGTERM where the child may document another stop
+  signal. The vet box drops the `GOARCH` that `ci.md` pairs with each Unix, and that
+  pairing is not enough for iOS or Android. One sentence reads as if the fake sleeps on
+  exit when it is not race-built. Three comments say the SIGKILL path waits for the
+  whole group; it waits for the child. And *A CLI terminates* no longer gives a reason
+  that covers its `--watch` ban.
+- **Medium — a CLI that listens on a port** gets none of the web application's
+  cross-origin rules, server timeouts, or request-body cap (2026-10-09).
+- **Medium — the child's-secret rule has no box in `checklists/web-application.md`**
+  (2026-10-04), and its only statement is the header of `patterns/go-child-process.md`.
+  The budget decision it waited on was made on 2026-10-31.
 - **SQLite, left open by the v5.1.0 run, 2026-10-31:**
-  - `go get -u ./...` in `operations/ci.md` raises `modernc.org/libc` past the version
-    the driver's `go.mod` names (v1.79.0 then, raised to v1.79.1), and nothing in the
-    corpus holds it back.
-  - An empty database path is refused nowhere at the config edge: `-database-url=`
-    overrides `cmp.Or`'s default, and `openDB` fails only at the first query.
-  - A `..` through a symlink opens the file the OS means, but the snapshot is built from
-    `filepath.Dir`, which folds it as text and lands elsewhere.
-  - Windows paths: rule 10 says it reads paths the Unix way and goes no further.
-  - No box checks closing `Rows`, `Stmt` and `Tx` in either checklist, and the CLI's has
-    none for the single-writer pool, though the README lists both as tier 1.
-  - `baseline-ops` was not read: whether a deployed `DATABASE_URL` holds any of rule
-    10's six values is unchecked.
-  - `TestLockWaitEndsAtTheDeadline` was never run against v1.58.0, whose 5 s wait it
-    bounds.
-- **What htmx 4.0.0 does on Back and Forward after a boosted link** was confirmed in
-  Chromium only (`patterns/wasm-client.md`, 2026-10-31).
-- **`govulncheck` reported GO-2026-5932** in `golang.org/x/crypto` v0.58.0 on
+  - Medium — `go get -u ./...` in `operations/ci.md` raises `modernc.org/libc` past the
+    version the driver's `go.mod` names (v1.79.0 then, raised to v1.79.1), and nothing
+    in the corpus holds it back.
+  - Medium — no box checks closing `Rows`, `Stmt` and `Tx` in either checklist, and
+    the CLI's has none for the single-writer pool, though the README lists both as
+    tier 1.
+  - Low — an empty database path is refused nowhere at the config edge:
+    `-database-url=` overrides `cmp.Or`'s default, and `openDB` fails only at the first
+    query.
+  - Low — a `..` through a symlink opens the file the OS means, but the snapshot is
+    built from `filepath.Dir`, which folds it as text and lands elsewhere.
+  - Low — Windows paths: rule 10 says it reads paths the Unix way and goes no further.
+  - Unchecked — `TestLockWaitEndsAtTheDeadline` was never run against v1.58.0, whose
+    5 s wait it bounds.
+  - Closed 2026-11-09: `baseline-ops` sets `DATABASE_URL=/var/lib/app/app.db` in its
+    one template, none of rule 10's six values.
+- **Unchecked — what htmx 4.0.0 does on Back and Forward after a boosted link** was
+  run in Chromium only (2026-10-31).
+- **Low — `govulncheck` reported GO-2026-5932** in `golang.org/x/crypto` v0.58.0 on
   2026-10-31: no fix released, and not called.
+- **Tier-1 copies older than the stated-once rule** ([README.md](README.md) *Which rules
+  can be waived*), found on 2026-11-09. Trim none before its conditions are in its rule:
+  - Medium — never handing user data to `template.HTML` is stated only in the header of
+    `patterns/htmx-server-rendering.md` and in a box. `stack/htmx.md` rule 8, which owns
+    escaping, does not say it.
+  - Medium — the login box and the README check timing. The rule in
+    `patterns/go-auth-sessions.md` asks for the identical message and the same time.
+  - Medium — the logs box checks `Config.LogValue`. `patterns/go-config.md` *Secrets*
+    also makes a secret its own type, and no box checks that.
+  - Medium — the header of `patterns/go-config.md` bans a secret in an environment
+    variable outright. Its own *Secrets* section scopes the ban to services, and
+    `patterns/go-child-process.md` allows the child's own environment.
+  - Medium — the preamble of `checklists/cli-tool.md` makes two rules tier 1 that
+    `patterns/go-cli.md` and the README's list do not: partial work staying safe, and
+    the explicit flag for a destructive action. A decision.
+  - Medium — the tier-1 rule of `patterns/go-testing.md` has no box in any checklist.
+  - Low — "zero CSP violations in the browser console" is defined in no document. The
+    rule for a pin whose note names a security fix has no owning document, and no box
+    checks the patch. The 1 MiB box drops the upload exception. The `.env` boxes fire
+    on another condition than `stack/makefile.md` rule 6. The README's entries for
+    uploads and for boost are wider and narrower than their documents. `FindCtx` and
+    machine-token rule 6 have no box.
+- **From the 2026-11-09 run, in documents it did not read whole:**
+  - Low — `stack/htmx.md`: a boosted request answered 204 pushes its URL and runs a view
+    transition with nothing swapped, and no `hx-status` line covers 204 (Chromium).
+  - Low — `patterns/css-typography.md` calls `text-wrap: balance` Baseline Newly in
+    three places; it turns Widely on 2026-11-13.
+  - Low — `patterns/htmx-live-updates.md` says its `AUTOINCREMENT` column is
+    `go-sqlite.md`'s, which never mentions one.
+  - Low — `patterns/go-sqlite.md` does not say its snapshot ticker prunes;
+    `patterns/go-data-deletion.md` now does.
+  - Low — `patterns/go-config.md`'s canonical config carries no check for the log
+    transport `patterns/go-email.md` now refuses as tier 1.
+- **Decisions the 2026-11-09 run left to Andy:**
+  - Scroll-driven animations are Baseline Newly since 2026-10-27;
+    `patterns/css-motion.md` still keeps them out.
+  - `patterns/time-and-dates.md` bans `time.Local` everywhere; a CLI runs on the
+    reader's machine, and the reference's calls `t.Local()`.
+  - `stack/css.md` now exempts a `font-family` name from the feature rule, to keep
+    `ui-monospace`. Dropping the name is the other fix.
+  - The neumorphic floors in `patterns/css-surfaces.md`, 6.2 and 3.3, hold unrounded;
+    a tool fed the 8-bit colors reads 6.19 and 3.29.
+- **Pins behind upstream on 2026-11-09:** htmx 4.0.1 is npm's `next` since 2026-11-01,
+  and `modernc.org/sqlite` v1.62.0 shipped on 2026-11-07. `VERSIONS.md` pins 4.0.0 and
+  v1.61.0. Go 1.27.3, scs v2.9.0 and TinyGo 0.44.0 are current.
+- **Low — commit subjects.** `STYLE.md` asks for the imperative; 65 of this
+  repository's last 100 subjects are noun phrases.
+
+### The reference, behind this corpus
+
+Found by the 2026-11-09 run. Condition 2 needs each one settled before the next tag:
+
+- `web/static/css/app.css:141` still carries `scroll-behavior: smooth`.
+- `cmd/server/mail.go` logs the recipient on a failed send, and
+  `internal/smtpmail/smtpmail.go` wraps the address into its error.
+- `internal/smtpmail` writes the body with no bare-CR replacement.
+- `internal/app/account.go` checks the password on account deletion with no rate limit.
+- `cmd/server/main.go` removes only today's snapshot; older ones are never pruned.
+- `web/templates/room.html` renders a relative time on every message a list poll appends.
+- `web/static/css/app.css:438` and `:461` use `var(--step--1)`, which nothing defines.
+- `web/static/css/app.css:490` and `:471` use `user-select: all` and `resize: vertical`,
+  both Baseline Limited.
+- Its security-headers test, its mail refusal in production, its `rand.Text()` user ids
+  and its `GLOSSARY.md` already match what this run changed.
 
 ## Why the CSP is what it is
 
