@@ -202,6 +202,18 @@ grade is a decision or a note.
 - **Medium — `patterns/go-errors-logging.md` logs a person's name** in its canonical
   line, and its "Never log" list names neither a name nor an address.
   `patterns/go-email.md` and `patterns/go-ports-adapters.md` keep both out (2026-11-09).
+- **Medium — htmx 4.0.0, the pinned version, empties the focused field on a 422 swap**
+  when Enter submits the form. 4.0.1 does not, and `"defaultSettleDelay":0` avoids it
+  (the 2026-11-09 build, Chromium).
+- **Medium — `patterns/go-auth-sessions.md`, from the 2026-11-09 build:**
+  - "Consider sessions of that user revoked on successful reset" reads as optional or
+    as a duty, and names no mechanism and no box.
+  - The session manager is built without `ErrorFunc`, so a store error goes to stderr
+    unstructured. `operations/web-application.md` asks for structured logs on stdout.
+  - "No user enumeration" covers the login only. The conflict example in
+    `patterns/go-forms-validation.md` tells a stranger which addresses have accounts.
+- **Medium — `stack/htmx.md` asks every request over 100 ms for an indicator,** and its
+  box checks that. No canonical snippet carries one (the 2026-11-09 build).
 - **Medium — `patterns/time-and-dates.md` bans `time.Local` everywhere.** A CLI runs
   on the reader's machine and has no other zone; the reference's calls `t.Local()`.
 - **SQLite, left open by the v5.1.0 run, 2026-10-31:**
@@ -212,9 +224,10 @@ grade is a decision or a note.
   - Low — a `..` through a symlink opens the file the OS means, but the snapshot is
     built from `filepath.Dir`, which folds it as text and lands elsewhere.
   - Low — Windows paths: rule 10 reads paths the Unix way and goes no further.
-  - Low — the snapshot fails on the day's second run: `VACUUM INTO` refuses a file that
-    exists. `patterns/go-sqlite.md` does not say its ticker prunes either;
-    `patterns/go-data-deletion.md` now does (2026-11-09).
+  - Medium — the snapshot fails on every restart after the day's first: `VACUUM INTO`
+    refuses a file that exists, and a ticker runs once at boot. `patterns/go-sqlite.md`
+    does not say its ticker prunes either; `patterns/go-data-deletion.md` now does
+    (2026-11-09).
   - Unchecked — `TestLockWaitEndsAtTheDeadline` was never run against v1.58.0.
 - **Low, in documents the 2026-11-09 run did not read whole:**
   - `stack/htmx.md`: a boosted request answered 204 pushes its URL and runs a view
@@ -245,6 +258,8 @@ grade is a decision or a note.
     `patterns/css-motion.md` still keeps them out.
   - `stack/css.md` now exempts a `font-family` name from the feature rule, to keep
     `ui-monospace`. Dropping the name is the other fix.
+  - `patterns/security-headers.md` is stamped tier 1, and its header places only some
+    of its MUSTs. The ban on extra headers and the HSTS options read as tier 1 too.
   - How many snapshots a binary keeps is the project's number. Whether
     `patterns/go-sqlite.md` should carry a default is open.
   - No poll re-renders a relative time. Whether `patterns/htmx-live-updates.md` should
@@ -260,6 +275,9 @@ grade is a decision or a note.
   v1.61.0. Go 1.27.3, scs v2.9.0 and TinyGo 0.44.0 are current.
 - **Low — commit subjects.** `STYLE.md` asks for the imperative; 65 of this
   repository's last 100 subjects are noun phrases.
+- **Low — fifteen findings from the 2026-11-09 build, and the twenty decisions it had
+  to invent,** in twelve documents this run did not read whole. They are spelled out in
+  the body of the commit that added this line.
 
 ### The reference, behind this corpus
 
