@@ -419,7 +419,9 @@ paragraph that goes stale in one of them.
 - **A run's narrative goes on its tag's release page, never into a file.** A run log in
   the repository grows by construction — one narrative per release, forever — and costs
   every maintainer the re-reading. The release page is dated, linked to the tag, and
-  findable; git history keeps the log that lived in VERIFICATION.md until v4.6.0.
+  findable; git history keeps the log that lived in VERIFICATION.md until v4.6.0, and
+  the one that grew back under *Owed* until v5.2.0. *Owed* takes a line or two per
+  debt, never the story.
 
 ### Size budgets
 
