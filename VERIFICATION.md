@@ -17,12 +17,16 @@ A run has two halves, and a release needs both.
 1. **The adversarial half.** Independent reviewers hunt cross-document
    contradictions, trace every canonical snippet's mechanics end to end, and
    check factual claims against upstream sources (Go, htmx, scs, SQLite). They
-   repeat until **two consecutive passes find zero defects**. Reading is not
+   repeat until **two consecutive passes find nothing high and nothing medium**,
+   as *Grading a finding* below defines the two. Reading is not
    enough on its own: every canonical Go snippet gets compiled and run through
    `gofmt`, `go vet`, `go fix -diff`, `staticcheck`, and `govulncheck`, the
    canonical `Makefile` runs end to end under GNU Make 3.81, the version macOS's
    Command Line Tools ship, and every measured color claim gets recomputed from its
-   oklch values.
+   oklch values. **One reviewer builds from the documents alone:** a new project
+   that uses what changed, written from this corpus and nothing else — not the
+   reference, not another project. Its `make check` and `make ci` are green, or
+   whatever stopped them is a finding.
 2. **The empirical half.** [baseline-reference](https://github.com/andygeiss/baseline-reference)
    implements the corpus end to end. It is synced to the change, and its
    `./verify.sh` runs every mechanical gate, then boots the real binary and
@@ -33,12 +37,36 @@ The two halves catch different bugs. Document review found a stale
 `X-Forwarded-For` fact (v3.0.0); only a running application would have found a rule
 that contradicts another one nothing points at.
 
+## Grading a finding
+
+One question grades every finding: **what happens to a project whose agent follows
+this text to the letter?**
+
+- **High** — it ships something that loses data, leaks it, or hands over an account.
+  Or it cannot follow the text at all: a snippet that does not compile, a recipe that
+  does not run.
+- **Medium** — it builds something wrong that no gate catches. Two documents that
+  answer one question differently are medium. So is a rule resting on a fact that
+  upstream contradicts.
+- **Low** — it builds the right thing anyway: a loose phrase, a link that moved, a
+  wrong number in a report.
+
+**Evidence, or it is not a finding.** The command and its output, or the source and
+the sentence that contradicts the claim.
+
+**A low never holds a tag.** It is fixed in the run or listed under *Owed*. The fixes
+to the last pass's lows ship unread: *Owed* names their commit, and the next run reads
+them. A fix that changes what a rule requires is not a low's fix. It is a new change,
+and the count of passes starts again.
+
 ## The tag gate
 
 **No tag ships until the first four are true, and no release is finished until the
-fifth is.** This is a gate, not a goal.
+fifth is.** This is a gate, not a goal, and it has no override.
 
-1. Two consecutive adversarial passes over the changed documents find zero defects.
+1. Two consecutive adversarial passes find nothing high and nothing medium, and in
+   each of them the build from the documents alone is green. The passes read the
+   changed documents and everything *Owed* lists as unread.
 2. The reference implementation is synced to the change, and `./verify.sh` exits
    0 against the baseline commit its `SPEC.md` pins.
 3. The reference's `SPEC.md` pins that commit and carries the four-field brief, and
@@ -48,12 +76,29 @@ fifth is.** This is a gate, not a goal.
 5. After the tag, its release page records the run, naming the reference release and
    the `verify.sh` result.
 
+**A change with nothing to build skips the build.** A pin or a wording fix gives a
+reviewer nothing to write, and condition 2 is its build.
+
+**One change does not wait for *Owed*: a pin whose note names a security fix.** That
+pin is tier 1, so it ships alone, on a run over its own diff, and *Owed* stays as it
+was.
+
+**Condition 1 asked for zero defects until 2026-11-09, and five releases in a row
+shipped without it.** v4.8.1, v4.8.2, v5.0.0, v5.1.0 and v5.2.0 each went out on Andy's
+decision, each recorded. The count never reached zero, because every pass's fixes were
+the next pass's text: v5.2.0's sixteen passes found 16, 14, 16, 11, 12, 12, 9, 9, 6, 6,
+5, 6, 6, 9, 6 and 9. The build did converge: all seven clients written from the
+documents alone, in passes 10 to 16, went green, and at pass 15 the mechanics reviewer
+found nothing. So the condition now counts what a project would get wrong, and builds
+what the documents say. A gate overridden every time is a goal; this one can be met.
+Decided by Andy, 2026-11-09.
+
 **Conditions 2 and 4 were one sentence until 2026-08-18, and it was one no release
 could meet.** It read "`./verify.sh` exits 0 against the exact baseline commit
 being tagged" — but the run record then lived in this file and named the reference
 commit, so the tagged commit could never be the one the reference pinned. The order
 now: the rules commit, the reference synced and tagged against it, the *Owed* section
-cleared, the tag, then the release page.
+brought up to date, the tag, then the release page.
 
 **Every release met that gate in substance and none met it literally.** v3.6.0
 through v3.9.0 each pinned a commit that is not the tagged one, and the whole

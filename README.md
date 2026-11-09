@@ -349,8 +349,9 @@ task.
 Two mechanisms, and a release needs both.
 
 - **Adversarial review** hunts cross-document contradictions, traces every canonical
-  snippet's mechanics, and checks facts against upstream sources — repeated until
-  two consecutive passes find zero defects.
+  snippet's mechanics, checks facts against upstream sources, and builds a project
+  from the documents alone — repeated until two consecutive passes find nothing high
+  and nothing medium.
 - **The reference implementation is the executable check.**
   [baseline-reference](https://github.com/andygeiss/baseline-reference) implements
   these rules end to end. It MUST be synced to every tagged release, and its
@@ -387,11 +388,12 @@ paragraph that goes stale in one of them.
   When the Go pin moved a major, `make fmt` under the new pin comes first, its rewrite
   as its own commit. No bot updates dependencies and no server scans untouched code
   ([operations/ci.md](operations/ci.md)). This cycle does both jobs.
-- **Before tagging, walk the gate in [VERIFICATION.md](VERIFICATION.md).** Two clean
-  adversarial passes, the reference synced, `./verify.sh` green against the commit it
-  pins, nothing a project reads changed since; after the tag, the run written onto the
-  release page. A release that skips the
-  reference is not a release.
+- **Before tagging, walk the gate in [VERIFICATION.md](VERIFICATION.md).** Two
+  adversarial passes in a row with nothing high or medium and a green build from the
+  documents, the reference synced, `./verify.sh` green against the commit it pins,
+  nothing a project reads changed since; after the tag, the run written onto the
+  release page. The gate has no override, and a release that skips the reference is
+  not a release.
 - When updating a version: update `VERSIONS.md` first, then any stack document that
   references behavior of that version, then bump the `Last verified:` dates. The Go
   pin also sits on [stack/go.md](stack/go.md)'s stamp line and in the
