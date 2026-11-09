@@ -204,8 +204,8 @@ copies that do not are listed in [VERIFICATION.md](VERIFICATION.md) *Owed*.
   ([patterns/go-file-uploads.md](patterns/go-file-uploads.md)).
 - What a delete reaches, and what still authenticates once it has: an `ON DELETE` action on
   every table holding a person's rows, their queued mail and their bytes going with them,
-  and a credential resolving to a row rather than to an id
-  ([patterns/go-data-deletion.md](patterns/go-data-deletion.md)).
+  a credential resolving to a row rather than to an id, and a user id never handed out
+  twice ([patterns/go-data-deletion.md](patterns/go-data-deletion.md)).
 - A link in an outgoing email built from `Config` and never from the request, a
   header value refused when it holds CR or LF, and the log transport refused in production
   ([patterns/go-email.md](patterns/go-email.md)) — the first two resting on the two boot

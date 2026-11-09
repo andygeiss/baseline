@@ -5,7 +5,7 @@
 A language model is somebody else's system reached over HTTP, so
 [go-ports-adapters.md](go-ports-adapters.md) already governs the shape: a small port the
 consumer declares, an adapter that translates, a hand-written fake. This document is that
-shape when the other side is a model, plus the three traps specific to models — each of
+shape when the other side is a model, plus the traps specific to models — each of
 which costs a product bug rather than a compile error. **Assume every service grows one**,
 and read this before the first request.
 
@@ -153,21 +153,29 @@ const SystemPrompt = `...`
    it, and report it without deciding anything about what already went out: the caller is
    the only one that knows whether those words have left the building.
 
+   **An answer the vendor cut short is a failure, not a shorter answer.** The stop reason
+   says when the token ceiling or the context window ended it, and the skill names the
+   values. Returned as a reply, a cut summary or extraction is stored as a whole one.
+
    Where the vendor offers a **server-side fallback** — a declined request answered by
    another model in the same call — prefer it to your own retry: one round trip, no state.
    Take the parameter and its beta header from the skill together; they are a matched pair,
    and mixing one form's header with another's body is a 400.
 
 9. **Everything else is transient.** Wrap it with what you were doing and let the caller
-   decide ([go-errors-logging.md](go-errors-logging.md)). Transport, body caps, and the
-   `statusError` helper are [go-http-client.md](go-http-client.md)'s job and do not
-   change here. **Its two canonical timeouts do.** A model takes seconds to minutes, so
-   set the budget for the model first (its *The timeout ladder*) and both timeouts from
-   it. Without a stream, the status line arrives only when the whole answer is written:
-   `ResponseHeaderTimeout` is the answer's deadline, and 5 s fails most answers. On a
-   stream, `Timeout` covers reading the body, so it is the longest an answer may run.
-   The request is a POST, so that document's `do` gives it one attempt, and a repeat
-   would be a second paid answer.
+   decide ([go-errors-logging.md](go-errors-logging.md)). Transport, the `statusError`
+   helper, and the body cap on an answer that does not stream are
+   [go-http-client.md](go-http-client.md)'s job and do not change here; rule 16 sizes a
+   stream's cap. **Its two canonical timeouts do change.** A model takes seconds to
+   minutes, so set the budget for the model first and every row of its *The timeout
+   ladder* from it, `WriteTimeout` and htmx's timeout included. Without a stream the
+   status line arrives only when the whole answer is written, so `ResponseHeaderTimeout`
+   sits at the budget, not at 5 s, and `Timeout` above it. On a stream `Timeout` covers
+   reading the body, so it sits at or above the budget.
+
+   The request is a POST, so that document's `do` gives it one attempt: after a timeout
+   or a cut stream, a repeat can be a second paid answer. A vendor SDK repeats on its
+   own, and how often is a knob the adapter sets (rule 2).
 
 ## The default adapter ships
 
@@ -204,6 +212,7 @@ const SystemPrompt = `...`
     ```go
     {"a refusal becomes the sentinel", http.StatusOK, refusalBody, domain.ErrRefused},
     {"200 with no text is an error, not an empty reply", http.StatusOK, emptyBody, errTransient},
+    {"an answer cut by the token ceiling is an error", http.StatusOK, cutBody, errTransient},
     {"503 fails without a domain sentinel", http.StatusServiceUnavailable, "", errTransient},
     ```
 

@@ -212,7 +212,7 @@ Re-check https://web.dev/baseline at the next verification.
 - ❌ Scroll hijacking and parallax — the scrollbar belongs to the user.
 - ❌ `scroll-behavior: smooth` on `html`. htmx 4 scrolls to the top after every boosted
   swap with the page's own scroll behavior, so the new page appears at the old offset and
-  glides up for most of a second.
+  glides up, for most of a second from far down.
 - ❌ htmx class-based swap animation (`.htmx-added` fades, `swap:`/`settle:` delays) — that
   machinery predates view transitions, and a `settle:` delay slows the swap to buy what
   `transition:true` gives free.

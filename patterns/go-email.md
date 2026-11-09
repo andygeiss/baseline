@@ -76,11 +76,16 @@ func (s *Sender) message(m domain.Mail) []byte {
 	var b bytes.Buffer
 	fmt.Fprintf(&b, "From: %s\r\n", s.from)
 	fmt.Fprintf(&b, "To: %s\r\n", m.To)
+	// RFC 5322 requires the date, and receivers mark down a message with no id.
+	// s.host is the base URL's host: an id wants a domain the app owns.
+	fmt.Fprintf(&b, "Date: %s\r\n", time.Now().UTC().Format(time.RFC1123Z))
+	fmt.Fprintf(&b, "Message-ID: <%s@%s>\r\n", rand.Text(), s.host)
 	// QEncoding leaves plain ASCII alone and encodes anything else, so a room
 	// name with an umlaut in the subject arrives as one.
 	fmt.Fprintf(&b, "Subject: %s\r\n", mime.QEncoding.Encode("utf-8", m.Subject))
 	b.WriteString("MIME-Version: 1.0\r\n")
-	b.WriteString("Content-Type: text/plain; charset=utf-8\r\n\r\n")
+	b.WriteString("Content-Type: text/plain; charset=utf-8\r\n")
+	b.WriteString("Content-Transfer-Encoding: 8bit\r\n\r\n")
 	// A bare CR is the one thing the dot-writer passes through, and a relay that
 	// reads it as a line end takes "\r.\r" for the end of the message.
 	b.WriteString(strings.NewReplacer("\r\n", "\n", "\r", "\n").Replace(m.Text))
@@ -130,8 +135,8 @@ Pick one, name it in the README, and keep the choice inside the adapter.
 - **The log, in development.** The adapter that needs nothing, so the whole flow runs with
   an empty environment — the same move as the degenerate adapter in
   [go-llm-adapter.md](go-llm-adapter.md). Its delivery target *is* the log, which makes it
-  the one place the body is written out and the reason config MUST refuse it in
-  production. That refusal is tier 1: a production log would hold every reset link. A
+  the one place the body is written out and the reason config MUST refuse it when
+  `ENV=prod`. That refusal is tier 1: a production log would hold every reset link. A
   developer with no relay can still click the link.
 
 Delivery — SPF, DKIM, DMARC, the sending domain, and who owns the relay — belongs to the
@@ -149,7 +154,8 @@ is correct and still lands in spam if that half is missing.
 - **The header test.** A recipient or subject holding `\r\nBcc:` answers
   `domain.ErrBadHeader` and queues nothing.
 - **The transport is pinned like any other adapter** — `httptest` for an API, and for
-  SMTP a test over the rendered bytes: the headers are there, one blank line ends them,
+  SMTP a test over the rendered bytes: the headers are there, a `Date` and a
+  `Message-ID` among them, one blank line ends them,
   the link is below it rather than in them, and a body holding a bare `\r` leaves
   without one. Never a live relay.
 

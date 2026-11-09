@@ -109,7 +109,7 @@ the flow: `<footer>` stays a grid item and collapses to a zero-height row.
     /* Without the inset the phone's home indicator sits on the last row of targets. */
     padding-block-end: calc(var(--space-xs) + env(safe-area-inset-bottom));
     border-block-start: 1px solid var(--color-border);
-    background: var(--color-surface); /* opaque: the page scrolls behind the bar (glass repaints it — css-surfaces.md) */
+    background: var(--color-surface); /* opaque: the page scrolls behind the bar (glass changes this value — css-surfaces.md) */
   }
 
   footer nav a {

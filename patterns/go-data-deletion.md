@@ -2,10 +2,11 @@
 
 **Tier 1** (safety — never waived) · Last verified: 2026-08-18
 
-What a delete reaches, a credential resolving to a row rather than to an id, and the actor
-predicate on the delete itself are tier 1. Which tables anonymize rather than erase, where
-the confirmation lives, and the janitor are tier 2 — they decide how a delete reads, not
-whether the data is gone.
+What a delete reaches, a credential resolving to a row rather than to an id, a user id
+never handed out twice, and the actor predicate on the delete itself are tier 1. Which
+tables anonymize rather than erase, where the confirmation lives, the janitor, and how
+many snapshots the binary keeps are tier 2 — they decide how a delete reads, not whether
+the data is gone.
 
 Every other document here rules data arriving. This one rules data leaving, and it is the
 one that composes: deleting a person touches their rows
@@ -54,6 +55,7 @@ CREATE TABLE messages (
 	body      TEXT NOT NULL
 );
 CREATE INDEX messages_author_id ON messages(author_id);
+CREATE INDEX messages_room_id ON messages(room_id);
 
 -- Refuse. The DELETE errors while one of these exists.
 CREATE TABLE invoices (
@@ -139,8 +141,10 @@ next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), userKey, u)))
   predicate, so a deleted account keeps reading them until its session expires.
 - **A user id is never handed out twice.** Resolving to a row does not survive a reused
   id: the old session then resolves to the next person's row, and that person's account
-  is theirs. `rand.Text()` never repeats. A bare `INTEGER PRIMARY KEY` does, the moment
-  the newest account is deleted; it needs `AUTOINCREMENT`.
+  is theirs. `rand.Text()` never repeats, and every snippet here assumes it. An
+  `INTEGER PRIMARY KEY` repeats: bare, the moment the newest account is deleted; with
+  `AUTOINCREMENT`, the moment `users` is rebuilt (rule 6), because the new table counts
+  on from the highest id still in it. Do not key `users` on one.
 
 ## The bytes are not in the transaction
 
@@ -167,8 +171,9 @@ and carry the account's address — the one delete the schema cannot declare.
 
 **A goodbye message therefore cannot be queued by the transaction that deletes the
 account.** Queued before the delete, the cascade takes it away again; queued after, it is
-one more row holding the address of an account that is gone. Send it in an earlier
-transaction, or do not send it.
+one more row holding the address of an account that is gone. An unsent goodbye goes with
+the account whichever transaction queued it: queue it when the person asks and delete in
+a later request, once the ticker has sent it — or do not send it.
 
 ## Deleting is a write
 
@@ -189,7 +194,8 @@ account answering exactly like one that was never there. Three things it adds:
   retention window is what makes a delete final; that window lives in the operations
   repository, and the README says which one applies. **Snapshots this binary wrote are
   in its hands:** each `VACUUM INTO` file of [go-sqlite.md](go-sqlite.md) holds everyone
-  deleted since, so the ticker that writes one deletes those older than the window.
+  deleted since. The project picks how many it keeps and names that number in its
+  README, and the ticker that writes one deletes the rest.
 
 ## Testing
 

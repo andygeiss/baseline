@@ -83,12 +83,12 @@ not a nil location three weeks later.
 
 ## Relative time is stale the moment it is sent
 
-The server renders "3 minutes ago" and the page may sit open for an hour. Use it only
-on an element the server re-renders on a timer — the region poll in
-[htmx-live-updates.md](htmx-live-updates.md) *When the polled thing is not a list* — and
-always with the exact moment beside it: `title` for a person, `datetime` for a machine.
-A row a list poll appends is rendered once and then left alone, so it gets the absolute
-time, like everything else.
+The server renders "3 minutes ago" and the page may sit open for an hour. No poll in
+this corpus re-renders what has not changed: a list poll appends rows and then leaves
+them alone, and a region poll answers 204 until there is news
+([htmx-live-updates.md](htmx-live-updates.md)). So a relative time goes stale wherever it
+is rendered, and the exact moment always sits beside it: `title` for a person,
+`datetime` for a machine. Where the hour matters, render the absolute time.
 
 Round down, and stop at a day. "2 hours ago" is useful, "just now" is friendly, and
 "4 months ago" is a date the reader has to work out — past a day, show the date.

@@ -43,7 +43,7 @@ wrong.
 
    - **A frontier model with thinking switched off** — where the API still allows that;
      the skill says which models refuse it — may write longer reasoning into the
-     visible response. Leave adaptive thinking **on** and control cost with the effort
+     visible response. Leave thinking **on** and control cost with the effort
      setting instead; on current models a low effort level also costs less than a
      disabled-thinking request that rambles.
    - **A local reasoning model with thinking switched on** writes its scratchpad into the

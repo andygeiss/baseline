@@ -134,7 +134,8 @@ port "http": want a number from 0 to 65535
   the chain reads as one sentence
   ([patterns/go-errors-logging.md](patterns/go-errors-logging.md)).
 - **Quote the value you were given** with `%q`, so a stray space or an invisible
-  character shows up instead of hiding.
+  character shows up instead of hiding. A value that must not reach a log — a
+  secret, somebody's address — stays out of the message: an error ends up in one.
 - **Name the flag, file, or variable the reader has to change**, spelled the way they
   type it — `-tts-ref-text`, not "the reference text setting".
 - **Do not apologise, and do not explain the internals.** "Something went wrong" says

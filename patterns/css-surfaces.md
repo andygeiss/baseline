@@ -64,7 +64,7 @@ Token deltas against the starting set (every token not shown keeps its
       --color-surface: oklch(20% 0.01 260);
       --color-shadow: oklch(12% 0.01 260);
       --color-highlight: oklch(28% 0.01 260);
-      /* border keeps the starting set's 56% — it clears 3:1 on the 20% ground */
+      --color-border: oklch(56% 0.02 260);  /* the starting value, restated: the 60% above is unconditional. It clears 3:1 on the 20% ground */
     }
   }
 }
@@ -140,7 +140,7 @@ Token deltas (every token not shown keeps the starting set):
   @media (prefers-color-scheme: dark) {
     :root {
       --color-surface: oklch(24% 0.01 260 / 80%);
-      /* border keeps the starting set's 56% — it clears 3:1 on every measured ground */
+      --color-border: oklch(56% 0.02 260); /* the starting value, restated: the 60% above is unconditional. It clears 3:1 on every measured ground */
     }
   }
 }
@@ -190,13 +190,13 @@ The panel recipe (`components` layer):
   glass panel — no glass sticky header, no glass toolbar over a feed. The
   measured backdrop is the ground; arbitrary content behind a panel makes
   contrast unmeasurable.
-- **Dialogs and the fixed bottom bar stay opaque:**
-  `dialog { background: var(--color-bg) }`, and
-  `footer nav { background: var(--color-bg) }` where the project has
-  [css-layout.md](css-layout.md)'s bar. That recipe paints with
-  `--color-surface`, which is translucent in this style. A modal sits over the
-  page and the page scrolls behind the bar: both are the arbitrary backdrop the
-  previous rule forbids.
+- **Dialogs and the fixed bottom bar stay opaque.**
+  `dialog { background: var(--color-bg) }` in `base`. Where the project has
+  [css-layout.md](css-layout.md)'s bar, change that recipe's own `background`
+  to `var(--color-bg)`: it paints with `--color-surface`, which is translucent
+  in this style, and a second `footer nav` rule in `base`, or earlier in
+  `layout`, loses to it. A modal sits over the page and the page scrolls
+  behind the bar: both are the arbitrary backdrop the previous rule forbids.
 - **No `prefers-reduced-transparency`** — it is outside the allowed set
   ([stack/css.md](../stack/css.md): not Baseline as of this document's date).
   The 80% alpha floor is the accommodation: panels stay readable for every

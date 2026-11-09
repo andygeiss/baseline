@@ -219,6 +219,7 @@ the tokens layer and dark mode.
 - [ ] Migrations embedded and forward-only
 - [ ] Migrations applied at boot inside a transaction
 - [ ] The off-box question is answered on purpose, with the matching row running
+- [ ] Snapshots the binary writes are pruned to the number the README names (`patterns/go-data-deletion.md`)
 - [ ] **The restore rehearsed once**
 
 ## Adding users, login, or passwords — tier 1, not waivable
@@ -298,6 +299,7 @@ the tokens layer and dark mode.
 - [ ] Each table's answer — erase, anonymize, refuse — is written where the shared rows are
 - [ ] The credential middleware loads the user row, so a deleted account is signed out
 - [ ] A user id is never handed out twice
+- [ ] A password re-check before the delete is rate limited like the login
 - [ ] Outbox rows carrying their address go with the account
 - [ ] Bytes on disk are unlinked after the commit, from names collected inside it
 - [ ] The all-tables test reads the schema at runtime and finds the id in no table
