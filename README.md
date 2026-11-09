@@ -417,7 +417,10 @@ paragraph that goes stale in one of them.
   the whole point is to never solve the same problem twice. Candidates arrive on the
   next-steps list of the work that found them ([SKILL.md](SKILL.md) *Handing the work
   back*). One project inventing something is not yet a pattern — a second project
-  solving it the same way is the signal, and deciding is yours.
+  solving it the same way is the signal, and deciding is yours. **No new pattern lands
+  while [VERIFICATION.md](VERIFICATION.md) *Owed* lists anything:** a new document on
+  top of unread ones is how four sets of unread fixes piled up between v4.8.1 and
+  v5.2.0.
 - **A run's narrative goes on its tag's release page, never into a file.** A run log in
   the repository grows by construction — one narrative per release, forever — and costs
   every maintainer the re-reading. The release page is dated, linked to the tag, and
