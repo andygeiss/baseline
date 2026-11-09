@@ -219,8 +219,8 @@ Every component composes the roles above, and every interactive state
      failure — the tool renders the fallback, shows no error, and every design it produces
      loses the type hierarchy the theme is built on. Point the copy at its own directory
      and check the rendered result, not the upload's exit code.
-   - **Say what is not there.** A baseline web application has no JavaScript and therefore
-     no components to bundle: the upload is the stylesheet, the fonts, this file, and the
+   - **Say what is not there.** A baseline web application has no JavaScript components,
+     so there is nothing to bundle: the upload is the stylesheet, the fonts, this file, and the
      class vocabulary. A tool with a component picker will show an empty one, and an
      unexplained empty picker reads as a broken import.
 

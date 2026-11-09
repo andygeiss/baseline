@@ -88,8 +88,8 @@ set above.
    script. A manual toggle adds a stored preference and a second theming
    mechanism duplicating `prefers-color-scheme` — machinery the OS setting
    already covers. `light-dark()` MAY later collapse the
-   two blocks into one — only inside the `@supports` guard
-   [stack/css.md](../stack/css.md) requires.
+   two blocks into one — inside the `@supports` guard, for as long as
+   [stack/css.md](../stack/css.md) requires one.
 5. **Derive states, don't multiply tokens.** Hover and active shades come from
    `color-mix()` at the use site
    (`color-mix(in oklch, var(--color-accent), var(--color-text) 15%)`), not

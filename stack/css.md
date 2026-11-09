@@ -23,24 +23,29 @@ used to do:
 | `clamp()`, `min()`, `max()` | JS-computed fluid sizing |
 | `prefers-color-scheme`, `prefers-reduced-motion` | JS theme toggles |
 | `<dialog>`, `<details>` styling | JS modal/disclosure libraries |
-| `scroll-behavior`, scroll snap | JS scroll libraries |
+| `scroll-behavior`, scroll snap | JS scroll libraries — never `smooth` on `html` ([patterns/css-motion.md](../patterns/css-motion.md)) |
 | CSS masking (`mask`) — Widely as of 2026-06-07 | Icon fonts, sprite sheets, one `<img>` per icon |
 
-Baseline **Newly available** as of 2026 — usable only with the stated graceful
-fallback, per the rule below:
+Baseline **Newly available** — usable only with the stated graceful fallback, per the
+rule below. A row turns Widely available 30 months after its Newly date. Each row
+carries that date; past it the fallback stays correct and is no longer required:
 
-| Feature | Required fallback |
+| Feature, and when it turns Widely | Required fallback |
 |---|---|
-| `light-dark()` | Dark-mode tokens defined under `@media (prefers-color-scheme: dark)` stay the working mechanism; a `light-dark()` token enhancement MUST sit inside `@supports (color: light-dark(red, red))` — unguarded it wins the cascade even in browsers that can't evaluate it, because custom properties fail at `var()` substitution time (→ `unset`), not at parse time |
-| `@property` | The plain `--token` declaration exists regardless; `@property` adds typing/animation only |
-| View Transitions (same-document) | Inherently graceful — unsupported browsers swap without animating; no extra work |
-| `@starting-style` | Inherently graceful — unsupported browsers show the element fully formed without the entry animation; no extra work |
-| `@scope` | Nesting + component class scoping (rule 2) |
-| `text-wrap: balance` | Inherently graceful — unsupported browsers wrap normally; headings only ([patterns/css-typography.md](../patterns/css-typography.md)) |
-| `backdrop-filter` | The glass surface style's panels stay translucent without the blur — its contrast floors are measured on the unblurred composite, so the fallback is the measured state ([patterns/css-surfaces.md](../patterns/css-surfaces.md)); Safari before 18 needs the `-webkit-` prefix alongside |
+| `light-dark()` — 2026-11-13 | Dark-mode tokens defined under `@media (prefers-color-scheme: dark)` stay the working mechanism; a `light-dark()` token enhancement MUST sit inside `@supports (color: light-dark(red, red))` — unguarded it wins the cascade even in browsers that can't evaluate it, because custom properties fail at `var()` substitution time (→ `unset`), not at parse time |
+| `@property` — 2027-01-09 | The plain `--token` declaration exists regardless; `@property` adds typing/animation only |
+| View Transitions (same-document) — 2028-04-14 | Inherently graceful — unsupported browsers swap without animating; no extra work |
+| `@starting-style` — 2027-02-06 | Inherently graceful — unsupported browsers show the element fully formed without the entry animation; no extra work |
+| `@scope` — 2028-09-24 | Nesting + component class scoping (rule 2) |
+| `text-wrap: balance` — 2026-11-13 | Inherently graceful — unsupported browsers wrap normally; headings only ([patterns/css-typography.md](../patterns/css-typography.md)) |
+| `backdrop-filter` — 2027-03-16 | The glass surface style's panels stay translucent without the blur — its contrast floors are measured on the unblurred composite, so the fallback is the measured state ([patterns/css-surfaces.md](../patterns/css-surfaces.md)); Safari before 18 needs the `-webkit-` prefix alongside |
 
 Check anything newer at https://web.dev/baseline before use: **"Widely available" MAY
 be used; "Newly available" only with a graceful fallback; otherwise MUST NOT.**
+
+A family name in a `font-family` list is outside this rule: a browser skips a name it
+does not know and takes the next, which is what the list is for. So `ui-monospace`
+(Baseline Limited, Safari only) stays in `--font-mono`.
 
 ## File architecture
 
@@ -59,8 +64,8 @@ web/static/css/app.css
   scale, widths, font stacks, radii, motion durations. Dark mode via
   `color-scheme: light dark` + token redefinition under
   `@media (prefers-color-scheme: dark)`; `light-dark()` only
-  inside an `@supports (color: light-dark(red, red))` guard (Baseline Newly —
-  the table above explains why the guard is not optional). The concrete
+  inside an `@supports (color: light-dark(red, red))` guard while its row above
+  is Newly — the row explains why the guard is not optional until then. The concrete
   starting set, with measured contrast:
   [patterns/css-tokens.md](../patterns/css-tokens.md).
 - **base** — element defaults: typography, links, forms.

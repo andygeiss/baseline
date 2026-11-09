@@ -131,7 +131,8 @@ not a trigger.
 
 ## Writing any CSS at all
 
-`patterns/css-tokens.md` — the tokens layer and dark mode.
+`stack/css.md`, then `patterns/css-tokens.md` — the layers and the allowed features, then
+the tokens layer and dark mode.
 
 - [ ] CSS in cascade layers
 - [ ] No `!important` outside `utilities`
@@ -255,7 +256,7 @@ not a trigger.
 - [ ] Lists, counts, and aggregates carry the same predicate
 - [ ] Writes prove ownership or membership in their own statement and check `RowsAffected` (a membership held only in memory: rule 6)
 - [ ] A route's protection is not optional where it is registered
-- [ ] The rows nobody owns are named in `README.md` or `DESIGN.md`
+- [ ] The rows nobody owns are named in `README.md`
 - [ ] The two-user test covers every handler that touches an owned row
 - [ ] A socket write under a membership is tested with a non-member and a removed member: refused (1008), nothing stored or changed
 

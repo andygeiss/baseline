@@ -134,8 +134,8 @@ what: that answer needs the row, and the query that fetches the row already has 
 **A project MUST name the rows nobody owns.** Rooms everyone in the company can read,
 a public price list, an audit log every admin sees — for these there is no actor
 predicate, and that is correct. But a missing predicate and a forgotten one look
-identical in a diff, so the project states the answer where the shape lives: `README.md`
-or `DESIGN.md`, one line per table. A reader who cannot tell "shared by design" from
+identical in a diff, so the project states the answer in `README.md`, one line per
+table. A reader who cannot tell "shared by design" from
 "we forgot" has to re-derive the whole model before touching a query.
 
 ## Roles, when a project grows them

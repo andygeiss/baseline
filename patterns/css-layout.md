@@ -25,8 +25,9 @@ If a layout seems to need measuring or absolute positioning, redesign it with th
 
 1. **Base = narrowest.** Base styles MUST render correctly at 320 px. Width media queries
    use `min-width` only and only *widen* — a bare `max-width` override is the tell that
-   the base styles are the desktop layout. Four `base`-layer declarations keep narrow
-   screens honest:
+   the base styles are the desktop layout. Zoom is the same case: at 200% a 1280 px
+   window is 640 px wide, so the layout MUST hold there too (WCAG 1.4.4). Four
+   `base`-layer declarations keep narrow screens honest:
    - `body { overflow-wrap: anywhere }` breaks long unbreakable strings (a bare URL) that
      otherwise scroll the page sideways at any width.
    - `img { max-inline-size: 100%; block-size: auto }` shrinks images that widen the page.
@@ -108,7 +109,7 @@ the flow: `<footer>` stays a grid item and collapses to a zero-height row.
     /* Without the inset the phone's home indicator sits on the last row of targets. */
     padding-block-end: calc(var(--space-xs) + env(safe-area-inset-bottom));
     border-block-start: 1px solid var(--color-border);
-    background: var(--color-surface); /* opaque: the page scrolls behind the bar */
+    background: var(--color-surface); /* opaque: the page scrolls behind the bar (glass repaints it — css-surfaces.md) */
   }
 
   footer nav a {
