@@ -107,7 +107,9 @@ An outbox table, written in the same transaction as the thing that caused the ma
   never stored is worse.
 - **A ticker sends** — under the errgroup, run before its first tick
   ([go-background-work.md](go-background-work.md)). It reads unsent rows, sends each,
-  marks it sent, and gives up on a row after a bounded number of attempts.
+  marks it sent, and gives up on a row after a bounded number of attempts. **A row that
+  is sent, or given up on, loses its body in the same statement:** the body holds the
+  token, and [go-auth-sessions.md](go-auth-sessions.md) stores only that token's hash.
 - **The handler answers immediately.** SMTP takes seconds and can hang; a handler waiting
   on it holds a request open against `WriteTimeout` and hands the reader a 500 for
   somebody else's outage.
@@ -128,7 +130,10 @@ Pick one, name it in the README, and keep the choice inside the adapter.
   gives you a host, a user, and a password. Two facts about the package: it is **frozen**,
   so it will not grow features, and `smtp.PlainAuth` refuses to send credentials over an
   unencrypted connection unless the host is localhost — a plain-text relay fails at
-  authentication rather than leaking the password.
+  authentication rather than leaking the password. **Never `smtp.SendMail`:** it takes
+  no context and sets no deadline, so a relay that accepts and then says nothing holds
+  the ticker, and the shutdown behind it. Dial with `net.Dialer.DialContext`, set a
+  deadline on the connection, and hand it to `smtp.NewClient`.
 - **A provider's HTTP API.** An ordinary outbound call, so
   [go-http-client.md](go-http-client.md) rules it: injected client, timeout, status
   checked, body capped.

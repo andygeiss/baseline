@@ -54,7 +54,8 @@ sorted, and getting it wrong puts it on top of the poller:
   <li>… newest …</li>
   <li>… </li>
   <li class="more">
-    <a href="/items?before=2026-08-17T09%3A14%3A02Z&amp;id=412"
+    <a id="items-more"
+       href="/items?before=2026-08-17T09%3A14%3A02Z&amp;id=412"
        hx-get="/items?before=2026-08-17T09%3A14%3A02Z&amp;id=412"
        hx-target="closest li"
        hx-swap="outerHTML">Show older</a>
@@ -65,7 +66,10 @@ sorted, and getting it wrong puts it on top of the poller:
 That list is newest-first, so it grows at the top and the control is its **last** item.
 The handler answers with the next rows **followed by a fresh control**, carrying the
 cursor of the last row it sent. `outerHTML` on the enclosing `<li>` puts all of it where
-the control was, so the older rows land at the end of the list in order.
+the control was, so the older rows land at the end of the list in order. **The control
+carries an `id`:** the swap replaces the link that had focus, and htmx puts focus back
+only on an element it finds by id. Without one, a keyboard reader lands at the top of
+the page after every press.
 
 **An oldest-first list is the mirror image, and it is the one that composes with a poll.**
 A chat grows at the bottom, and [htmx-live-updates.md](htmx-live-updates.md) already puts
