@@ -174,9 +174,10 @@ the list below, and a checklist box each name the rule in a few words and point 
 by number where the document numbers its rules. None of them repeats its conditions: a
 condition copied to four places drifts in three of them. A condition found only in a
 header, in this list, or in a box is a defect — move it into the rule, and only then
-trim the copy. This binds every header, entry and box written or changed since
-2026-11-09. [patterns/wasm-client.md](patterns/wasm-client.md) follows it; the older
-copies that do not are listed in [VERIFICATION.md](VERIFICATION.md) *Owed*.
+trim the copy. This binds every header, entry and box written or changed from
+2026-11-09 on. [patterns/wasm-client.md](patterns/wasm-client.md) follows it. The older
+copies that have drifted from their rule are listed in [VERIFICATION.md](VERIFICATION.md)
+*Owed*; the rest are trimmed when their document is next read whole.
 
 - The headers and the request surface — CSRF, escaping user input, request body caps, the
   security-header policy, the ops listener never proxied, and no boost on a link or form
@@ -422,8 +423,9 @@ paragraph that goes stale in one of them.
   next-steps list of the work that found them ([SKILL.md](SKILL.md) *Handing the work
   back*). One project inventing something is not yet a pattern — a second project
   solving it the same way is the signal, and deciding is yours. **No new pattern lands
-  while [VERIFICATION.md](VERIFICATION.md) *Owed* lists anything unread.** A run clears
-  that list first. Four sets of unread fixes piled up between v4.8.1 and v5.2.0 because
+  while [VERIFICATION.md](VERIFICATION.md) *Owed* lists anything unread,** apart from
+  the last run's own wording fixes. A run clears that list first. Four sets of unread
+  fixes piled up between v4.8.1 and v5.2.0 because
   each later run read only its own diff, and v5.2.0 put a new pattern on top of them.
   What *Owed* lists as known and not fixed does not block one: a low may sit there, and
   so may what only upstream can fix.
@@ -585,7 +587,8 @@ only to the pattern that existed solely to cover the gap.
 **A half-removed pattern is worse than a kept one**, because a dangling link is a
 dead end for an agent mid-task. Removing one is therefore a sweep, in this order:
 
-1. **Write down why first**, in [VERIFICATION.md](VERIFICATION.md) *Owed*; it moves
+1. **Write down why first**, as one ungraded line under *Known, not fixed* in
+   [VERIFICATION.md](VERIFICATION.md) *Owed*; it moves
    onto the release page of the version that removes it. That entry is the tombstone —
    dated, and saying what replaced the document. There are no stub files; the release
    page is where a retired name stays findable.
