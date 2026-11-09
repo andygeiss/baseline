@@ -20,9 +20,8 @@ Add both to the `tokens` layer that [css-tokens.md](css-tokens.md) defines:
 - `--motion-fast` answers a pointer or a request. Feedback slower than ~200 ms reads as
   lag, not polish.
 - `--motion-slow` is for anything that moves or appears. No one-shot authored motion runs
-  longer; a motion that seems to need more time is decoration. (The browser, not the
-  stylesheet, times the smooth-scroll glide below. A loading loop is not one-shot — it
-  repeats until the response lands or its ~5 s cap stops it.)
+  longer; a motion that seems to need more time is decoration. (A loading loop is not
+  one-shot — it repeats until the response lands or its ~5 s cap stops it.)
 - **Easing on one-shot motion is always the built-in `ease-out`** — fast start, gentle
   settle, which reads as responsive. A loop runs `linear`. A custom cubic-bezier is a
   brand decision this baseline does not make, so there is no easing token.
@@ -46,14 +45,11 @@ browser's own stylesheet — a stylesheet cannot wrap what it never declared, on
 ## State feedback: interactive elements (base layer)
 
 Interactive elements ease between their states; the states themselves are already
-mandatory per [stack/css.md](../stack/css.md) rule 4. Their transition block also carries
-the smooth-scroll glide:
+mandatory per [stack/css.md](../stack/css.md) rule 4:
 
 ```css
 @layer base {
   @media (prefers-reduced-motion: no-preference) {
-    html { scroll-behavior: smooth } /* same-page anchor jumps glide */
-
     a, button, summary,
     input, select, textarea {
       transition: color var(--motion-fast) ease-out,
@@ -126,7 +122,7 @@ inherently graceful: unsupported browsers swap instantly, and no markup changes 
    API briefly holds rendering while it snapshots the page, and during the fade pointer
    input lands on nothing, because captured content is exempt from hit-testing. That cost is
    why transitions are not on for every swap: with them on, htmx 4 wraps even a swap of
-   nothing — a 204 poll, an error — in one.
+   nothing — a 204 poll — in one.
 2. **The kill switch lives in `utilities`** — the one layer where `!important` is allowed
    ([stack/css.md](../stack/css.md) rule 3). The fade animations come from the browser's
    stylesheet and the API does not read the media query itself; with them cancelled, a
@@ -187,22 +183,23 @@ not know the at-rule shows the dialog fully formed.
 - **Exit is instant, by design.** An exit fade needs the `overlay` property (not Baseline)
   to hold the dialog in the top layer while it fades. Entry animated, exit instant is
   correct: showing guides the eye; dismissing should just obey.
-- **Leave `::backdrop` alone.** Older browsers do not let it inherit custom properties from
-  the dialog, so a token-based backdrop fade silently breaks — and an instant backdrop
-  behind a fading dialog looks fine.
+- **Leave `::backdrop` alone.** An instant backdrop behind a fading dialog looks fine, and
+  a backdrop fade is a second animation to keep in step with the first.
 
-## Not in the allowed set yet
+## Not in the allowed set
 
-These solve real problems but none has reached Baseline as of this document's verification
-date, which lands them in the feature rule's "otherwise" tier
-([stack/css.md](../stack/css.md)): MUST NOT, graceful fallback or not. Re-check
-https://web.dev/baseline at the next verification.
+These solve real problems, and none may be used: MUST NOT, graceful fallback or not.
+Re-check https://web.dev/baseline at the next verification.
 
-- `animation-timeline: scroll()` / `view()` — scroll-driven animations.
-- `interpolate-size` / `calc-size()` — animating `height: auto`. Baseline status alone
-  would not admit it: it animates a layout property, which transition rule 2 forbids.
-- `overlay` — the dialog exit fade. Baseline status alone would not admit it either: exit
-  is instant by design.
+- `animation-timeline: scroll()` / `view()` — scroll-driven animations. Baseline Newly
+  available since 2026-10-27, so Baseline no longer keeps it out. This document does,
+  until a use that is feedback and not decoration earns it a rule here.
+- `interpolate-size` / `calc-size()` — animating `height: auto`. Not Baseline, which lands
+  it in the feature rule's "otherwise" tier ([stack/css.md](../stack/css.md)). Baseline
+  status alone would not admit it: it animates a layout property, which transition rule 2
+  forbids.
+- `overlay` — the dialog exit fade. Not Baseline either, and Baseline status alone would
+  not admit it: exit is instant by design.
 
 ## Anti-patterns
 
@@ -213,6 +210,9 @@ https://web.dev/baseline at the next verification.
   heartbeat. Even the loading loop caps its cycles to go static by ~5 s: motion running
   longer must be stoppable (WCAG 2.2.2), and a frozen indicator still shows the wait.
 - ❌ Scroll hijacking and parallax — the scrollbar belongs to the user.
+- ❌ `scroll-behavior: smooth` on `html`. htmx 4 scrolls to the top after every boosted
+  swap with the page's own scroll behavior, so the new page appears at the old offset and
+  glides up for most of a second.
 - ❌ htmx class-based swap animation (`.htmx-added` fades, `swap:`/`settle:` delays) — that
   machinery predates view transitions, and a `settle:` delay slows the swap to buy what
   `transition:true` gives free.

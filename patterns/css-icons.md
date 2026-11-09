@@ -2,6 +2,9 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15
 
+**One rule here is tier 1 and never waived:** the `img-src 'self' data:` these icons
+depend on. [security-headers.md](security-headers.md) owns that policy.
+
 The one decision this document owns: **how an icon gets onto the page.** Every
 icon is a CSS mask — one shared `.icon` rule plus one custom property per
 shape, all inside the single `web/static/css/app.css`. Nothing is fetched,
@@ -190,7 +193,7 @@ owns that policy; anyone tightening it starts here.
   above needs no fallback: https://webstatus.dev/features/forced-colors
 - Forced colors mode replaces author colors but uses system color keywords
   such as `CanvasText` as written:
-  https://developer.mozilla.org/en-US/docs/Web/CSS/@media/forced-colors
+  https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/forced-colors
 - An image that fails to parse "is rendered as a solid-color transparent
   image", which in a mask means the element disappears:
   https://drafts.csswg.org/css-images-3/#invalid-image

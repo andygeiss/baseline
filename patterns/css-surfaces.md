@@ -132,7 +132,7 @@ Token deltas (every token not shown keeps the starting set):
 ```css
 @layer tokens {
   :root {
-    --color-surface: oklch(96% 0.005 260 / 80%); /* the starting value plus alpha — 80% is a measured floor, not taste */
+    --color-surface: oklch(96% 0.005 260 / 80%); /* the starting value plus alpha — 80% is the style's floor, not taste */
     --color-border: oklch(60% 0.02 260);         /* 62% reads 2.92 against the fully tinted spot; 60% reads 3.17 */
     --radius: 0.75rem;
   }
@@ -190,9 +190,13 @@ The panel recipe (`components` layer):
   glass panel — no glass sticky header, no glass toolbar over a feed. The
   measured backdrop is the ground; arbitrary content behind a panel makes
   contrast unmeasurable.
-- **Dialogs stay opaque:** `dialog { background: var(--color-bg) }`. A modal
-  asks for focus, and the page behind a modal is exactly the arbitrary
-  backdrop the previous rule forbids.
+- **Dialogs and the fixed bottom bar stay opaque:**
+  `dialog { background: var(--color-bg) }`, and
+  `footer nav { background: var(--color-bg) }` where the project has
+  [css-layout.md](css-layout.md)'s bar. That recipe paints with
+  `--color-surface`, which is translucent in this style. A modal sits over the
+  page and the page scrolls behind the bar: both are the arbitrary backdrop the
+  previous rule forbids.
 - **No `prefers-reduced-transparency`** — it is outside the allowed set
   ([stack/css.md](../stack/css.md): not Baseline as of this document's date).
   The 80% alpha floor is the accommodation: panels stay readable for every
@@ -239,7 +243,7 @@ it participates in. The glass grounds are four, not two.
 - ❌ A neumorphic control whose only boundary is its shadows — an unlabeled
   one fails WCAG 1.4.11, and a labeled one hides its hit area.
 - ❌ Thinning the glass to make it "frostier" — that comes from the blur
-  radius, not from paint below the measured floor.
+  radius, not from paint below the 80% floor.
 - ❌ Shadow ladders (`--shadow-sm` … `--shadow-xl`) — minimal has no shadows,
   glass has one decorative edge, neumorphic has exactly two shadow roles.
   An elevation scale is a framework habit, not a role.

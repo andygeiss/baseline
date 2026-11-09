@@ -167,7 +167,7 @@ not a trigger.
 
 - [ ] One surface style, named in `DESIGN.md`
 - [ ] Form controls keep a ≥ 3:1 `--color-border` boundary in every style
-- [ ] Glass panels sit on the page ground only, alpha at the measured 80% floor
+- [ ] Glass panels sit on the page ground only, alpha at the 80% floor
 
 ## Sizing text, or adding a web font
 
