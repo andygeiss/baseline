@@ -80,9 +80,9 @@ func (c *Client) Notify(ctx context.Context, to, subject, body string) error {
 	case http.StatusOK, http.StatusAccepted:
 		return nil
 	case http.StatusUnprocessableEntity:
-		return fmt.Errorf("email: notify %s: %w", to, domain.ErrUnknownRecipient)
+		return fmt.Errorf("email: notify %q: %w", to, domain.ErrUnknownRecipient)
 	default:
-		return fmt.Errorf("email: notify %s: %s", to, resp.Status)
+		return fmt.Errorf("email: notify %q: %s", to, resp.Status)
 	}
 }
 ```
@@ -202,10 +202,11 @@ it tied to reality, and at one adapter it is enough:
 
 Every rule above still holds, and [go-llm-adapter.md](go-llm-adapter.md) adds what a model
 needs on top: the prompt lives in `domain` so two adapters cannot drift, a refusal is a
-sentinel rather than an error, the visible text can leak the model's own reasoning, and the
+sentinel rather than an error, and the
 degenerate adapter that lets the app start with an empty environment is a **product mode**
 in `internal/` — not the fake in `_test.go`, which is rule 6 and a different thing. Read
-that document before the first request.
+that document before the first request. What the visible text can leak is
+[llm-prompting.md](llm-prompting.md).
 
 ## Anti-patterns
 

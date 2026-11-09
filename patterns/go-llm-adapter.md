@@ -27,13 +27,13 @@ That skill wins on every fact it covers. This document owns the shape around it.
 project/
 ├── cmd/server/main.go        ← picks which adapter, the only file naming both sides
 └── internal/
+    ├── anthropic/            ← adapter: the only package that knows Anthropic's API
     ├── app/
     │   ├── reply.go          ← the port, beside the feature that needs it
     │   └── reply_test.go     ← the fake, and the feature's tests
     ├── domain/
     │   ├── message.go        ← the types and the sentinels
     │   └── prompt.go         ← the system prompt: a product rule, not a vendor detail
-    ├── anthropic/            ← adapter: the only package that knows Anthropic's API
     └── openai/               ← adapter: any server speaking the OpenAI chat shape
 ```
 
@@ -142,7 +142,7 @@ const SystemPrompt = `...`
    // with no text at all, and indexing into that is the bug this ordering
    // prevents.
    if out.StopReason == refusalStopReason {
-       return "", domain.ErrRefused
+   	return "", domain.ErrRefused
    }
    ```
 
@@ -159,9 +159,15 @@ const SystemPrompt = `...`
    and mixing one form's header with another's body is a 400.
 
 9. **Everything else is transient.** Wrap it with what you were doing and let the caller
-   decide ([go-errors-logging.md](go-errors-logging.md)). Transport, timeouts, body caps,
-   and the `statusError` helper are [go-http-client.md](go-http-client.md)'s job and do
-   not change here.
+   decide ([go-errors-logging.md](go-errors-logging.md)). Transport, body caps, and the
+   `statusError` helper are [go-http-client.md](go-http-client.md)'s job and do not
+   change here. **Its two canonical timeouts do.** A model takes seconds to minutes, so
+   set the budget for the model first (its *The timeout ladder*) and both timeouts from
+   it. Without a stream, the status line arrives only when the whole answer is written:
+   `ResponseHeaderTimeout` is the answer's deadline, and 5 s fails most answers. On a
+   stream, `Timeout` covers reading the body, so it is the longest an answer may run.
+   The request is a POST, so that document's `do` gives it one attempt, and a repeat
+   would be a second paid answer.
 
 ## The default adapter ships
 
@@ -196,9 +202,9 @@ const SystemPrompt = `...`
     statuses and stop reasons the vendor documents proves the translation:
 
     ```go
-    {"a refusal becomes the sentinel", refusalBody, domain.ErrRefused},
-    {"200 with no text is an error, not an empty reply", emptyBody, errTransient},
-    {"503 fails without a domain sentinel", "", errTransient},
+    {"a refusal becomes the sentinel", http.StatusOK, refusalBody, domain.ErrRefused},
+    {"200 with no text is an error, not an empty reply", http.StatusOK, emptyBody, errTransient},
+    {"503 fails without a domain sentinel", http.StatusServiceUnavailable, "", errTransient},
     ```
 
 13. **Assert the request, not just the response** — the model, the thinking setting, the
@@ -224,7 +230,12 @@ const SystemPrompt = `...`
     hand either way, so the SDK buys one of two while the dependency lands on the whole
     module. A `data:` line reader is about twenty lines, and rule 12 pins it like any
     other body. Read the lines with `bufio.Reader`: `bufio.Scanner` caps a line at 64 KiB,
-    and a loop that never checks `Err()` ends the answer early and silently.
+    and a loop that never checks `Err()` ends the answer early and silently. **End the
+    answer on the vendor's last event, never on `io.EOF`.** A body that runs out first is
+    a failure, with a row in rule 12's table: a connection closed early, an error event
+    sent after the 200, or the body cap, which `io.LimitReader` reports as a plain EOF.
+    That cap counts the stream's framing, many times the text, so size it for the longest
+    answer the token ceiling allows.
 
     Either choice is a departure somebody has to justify in the project README: the SDK is
     not on the approved list in [stack/go.md](../stack/go.md), and calling the API directly

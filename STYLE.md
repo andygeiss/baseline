@@ -126,8 +126,7 @@ Say what is wrong, where, and what to do:
 
 ```
 brain "claude": no key — put it in $CREDENTIALS_DIRECTORY/anthropic-key
-tts-ref-audio "voices/jarvis.opus": no transcript — set -tts-ref-text, or write
-what the recording says into "voices/jarvis.txt"
+tts-ref-audio "voices/jarvis.opus": no transcript — set -tts-ref-text, or write what the recording says into "voices/jarvis.txt"
 port "http": want a number from 0 to 65535
 ```
 

@@ -67,7 +67,7 @@ not a trigger.
 - **If the project keeps a `GLOSSARY.md`:**
   - [ ] The README links it
   - [ ] Every term is the word the code, the UI, and the URLs use
-  - [ ] A `git grep` for each *Avoid* word finds no use for that concept
+  - [ ] A `git grep` for each *Avoid* word finds no use of it for that concept, except where its entry says so
   - [ ] No term restates baseline or general-programming vocabulary
 
 ## Reading a flag, an environment variable, or a secret

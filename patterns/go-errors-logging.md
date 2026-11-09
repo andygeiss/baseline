@@ -5,7 +5,7 @@
 ## Errors
 
 1. **Wrap with context at every boundary crossing:**
-   `fmt.Errorf("loading game %s: %w", id, err)` — lowercase, no "failed to" prefix
+   `fmt.Errorf("loading game %q: %w", id, err)` — lowercase, no "failed to" prefix
    stutter (the caller adds its own context; chains read as a story).
 2. **Sentinel errors** for conditions callers branch on live in `domain`:
 

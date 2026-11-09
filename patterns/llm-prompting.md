@@ -19,8 +19,9 @@ request, every time.
 
    - One instruction per sentence, imperative mood: "Return JSON. Use only these
      fields: …"
-   - Show one example of the desired output — it beats every adjective, because "concise"
-     is vague to a model and an example is exact.
+   - Show examples of the desired output, a few and unlike each other. An example beats
+     every adjective, because "concise" is vague to a model and an example is exact. A
+     single one gets copied, length and tone included.
    - State the audience and the bar inside the prompt: "Write so a smart 10-year-old
      could follow it."
    - Order it top-down: context → task → constraints → output format.
@@ -40,7 +41,8 @@ wrong.
    1. Analyze the user input…" — ships silently. It happens from **both** directions,
    which is why one rule cannot cover it:
 
-   - **A frontier model with thinking switched off** may write longer reasoning into the
+   - **A frontier model with thinking switched off** — where the API still allows that;
+     the skill says which models refuse it — may write longer reasoning into the
      visible response. Leave adaptive thinking **on** and control cost with the effort
      setting instead; on current models a low effort level also costs less than a
      disabled-thinking request that rambles.
