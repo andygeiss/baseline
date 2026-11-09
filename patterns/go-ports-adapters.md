@@ -80,9 +80,9 @@ func (c *Client) Notify(ctx context.Context, to, subject, body string) error {
 	case http.StatusOK, http.StatusAccepted:
 		return nil
 	case http.StatusUnprocessableEntity:
-		return fmt.Errorf("email: notify %q: %w", to, domain.ErrUnknownRecipient)
+		return fmt.Errorf("email: notify: %w", domain.ErrUnknownRecipient)
 	default:
-		return fmt.Errorf("email: notify %q: %s", to, resp.Status)
+		return fmt.Errorf("email: notify: %s", resp.Status) // never the address: an error ends up in a log
 	}
 }
 ```
@@ -142,7 +142,7 @@ it tied to reality, and at one adapter it is enough:
 
 8. **The port's doc comment names every error a caller branches on.** The adapter's test
    proves it produces them and the fake returns the same ones. That test is a table over
-   the statuses the vendor documents, driven by `httptest.Server`
+   the statuses the vendor documents, driven by `httptest.NewServer`
    ([go-http-client.md](go-http-client.md)) — never the live API, which is slow, flaky, and
    somebody's bill:
 

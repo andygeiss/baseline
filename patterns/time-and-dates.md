@@ -84,10 +84,11 @@ not a nil location three weeks later.
 ## Relative time is stale the moment it is sent
 
 The server renders "3 minutes ago" and the page may sit open for an hour. Use it only
-where the page already refreshes on its own
-([htmx-live-updates.md](htmx-live-updates.md)), and always with the exact moment beside
-it: `title` for a person, `datetime` for a machine. Everywhere else, render the absolute
-time.
+on an element the server re-renders on a timer — the region poll in
+[htmx-live-updates.md](htmx-live-updates.md) *When the polled thing is not a list* — and
+always with the exact moment beside it: `title` for a person, `datetime` for a machine.
+A row a list poll appends is rendered once and then left alone, so it gets the absolute
+time, like everything else.
 
 Round down, and stop at a day. "2 hours ago" is useful, "just now" is friendly, and
 "4 months ago" is a date the reader has to work out — past a day, show the date.
@@ -117,8 +118,10 @@ which a fixed offset does not.
   a zone ahead of UTC.
 - **Anything on a timer uses `synctest`**, never `time.Sleep`
   ([go-testing.md](go-testing.md)).
-- **The `TZ` check.** Running the suite once with `TZ=Pacific/Auckland go test ./...`
-  finds every implicit `time.Local` at once, because the process starts in that zone.
+- **The `TZ` check.** Running the suite once with
+  `TZ=Pacific/Auckland go test -count=1 ./...` finds every implicit `time.Local` at once,
+  because the process starts in that zone. `-count=1`, because the test cache does not
+  notice `TZ` and would answer `(cached)`.
   Worth doing when the rule is first adopted, and after any sweep over rendering code.
 
 ## Anti-patterns
@@ -140,7 +143,7 @@ which a fixed offset does not.
   a bare `Format` differs between machines: https://pkg.go.dev/time#Unix
 - `time.Parse` uses the offset in the string, and UTC when the layout carries no zone:
   https://pkg.go.dev/time#Parse
-- Importing `time/tzdata` "will increase the size of a program by about 450KB", and it is
+- Importing `time/tzdata` "will increase the size of a program by about 450 KB", and it is
   what makes `LoadLocation` work where the system database is absent:
   https://pkg.go.dev/time/tzdata
 - SQLite's `localtime` modifier converts to the zone of the *process running SQLite*:

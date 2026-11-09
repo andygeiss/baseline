@@ -53,12 +53,14 @@ CREATE TABLE messages (
 	author_id TEXT     NULL REFERENCES users(id) ON DELETE SET NULL,
 	body      TEXT NOT NULL
 );
+CREATE INDEX messages_author_id ON messages(author_id);
 
 -- Refuse. The DELETE errors while one of these exists.
 CREATE TABLE invoices (
 	id      TEXT PRIMARY KEY,
 	user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT
 );
+CREATE INDEX invoices_user_id ON invoices(user_id);
 ```
 
 The rules behind it — all MUST:
@@ -74,14 +76,15 @@ The rules behind it — all MUST:
    author.
 4. **`RESTRICT`, not `NO ACTION`.** Both refuse; RESTRICT reports it the moment the parent
    row is touched rather than at the end of the statement, which puts the intent in the
-   schema and the error where it happened. The store maps that failure to a sentinel
+   schema and the error where it happened. The store maps that failure — extended code
+   1811, not the 787 a plain foreign-key failure carries — to a sentinel
    like any other ([go-errors-logging.md](go-errors-logging.md)), and the handler tells
    the person what is holding their account open. A 500 says "we broke"; this says "you
    have an unpaid invoice".
 5. **One transaction, on the write pool.** The cascade is part of the statement, so this
    is one `DELETE FROM users WHERE id = ?` and the rest is the schema keeping its promise.
 6. **A rebuild that changes an `ON DELETE` action copies the children out first.** SQLite
-   cannot alter a constraint, so changing one is create-copy-drop-rename — and
+   cannot alter a foreign key, so changing an action is create-copy-drop-rename — and
    `DROP TABLE` with foreign keys on
    runs an implicit `DELETE FROM` that *does* fire foreign key actions, so dropping a
    parent to rebuild it takes its children with it. The usual escape, turning foreign keys
@@ -110,7 +113,9 @@ if id == "" {
 }
 u, err := a.users.User(r.Context(), id)
 if errors.Is(err, domain.ErrNotFound) {
-	a.sessions.Destroy(r.Context()) // the row is gone, so the cookie goes too
+	// The row is gone, so the cookie goes too. A failed destroy is tried again by
+	// the next request, which is why its error is dropped.
+	_ = a.sessions.Destroy(r.Context())
 	a.redirectToLogin(w, r)
 	return
 }
@@ -130,8 +135,12 @@ next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), userKey, u)))
   [go-auth-sessions.md](go-auth-sessions.md) rule 6 already requires.
 - **Without this the reader gets a signed-in shell full of 404s**, because every store
   method answers `domain.ErrNotFound` for an actor who no longer exists. That is the
-  visible half. The half that makes it tier 1 is a schema that ever reuses an id: the next
-  person to be handed it inherits a live session.
+  visible half. The half that makes it tier 1 is the shared rows: they carry no actor
+  predicate, so a deleted account keeps reading them until its session expires.
+- **A user id is never handed out twice.** Resolving to a row does not survive a reused
+  id: the old session then resolves to the next person's row, and that person's account
+  is theirs. `rand.Text()` never repeats. A bare `INTEGER PRIMARY KEY` does, the moment
+  the newest account is deleted; it needs `AUTOINCREMENT`.
 
 ## The bytes are not in the transaction
 
@@ -143,18 +152,23 @@ A blob is a row and needs nothing here. **Bytes in a directory are not**, so:
   that are gone — the same order, for the same reason, as
   [go-file-uploads.md](go-file-uploads.md) *Where the bytes live*.
 - **The janitor is the backstop, not the plan.** Files with no row are already swept
-  ([go-background-work.md](go-background-work.md)); a delete that leans on the sweep leaves
+  ([go-file-uploads.md](go-file-uploads.md) *Where the bytes live*); a delete that leans on the sweep leaves
   a stranger's bytes on disk until it next runs.
 
 ## Queued mail holds an address
 
 An outbox row carries an address, which is the person's data sitting outside `users`. Give
-it a nullable `user_id REFERENCES users(id) ON DELETE CASCADE` — nullable because an
-invitation goes to somebody who is not a user yet — and the delete reaches it.
+it a nullable, indexed `user_id REFERENCES users(id) ON DELETE CASCADE` — nullable because
+an invitation goes to somebody who is not a user yet — and the delete reaches it.
+
+**It does not reach a row queued before the person had an account:** `user_id` is NULL
+there. So the deleting transaction also deletes the outbox rows that have no `user_id`
+and carry the account's address — the one delete the schema cannot declare.
 
 **A goodbye message therefore cannot be queued by the transaction that deletes the
-account.** Queued before the delete, the cascade takes it away again; queued after, it has
-no user to reference. Send it in an earlier transaction, or do not send it.
+account.** Queued before the delete, the cascade takes it away again; queued after, it is
+one more row holding the address of an account that is gone. Send it in an earlier
+transaction, or do not send it.
 
 ## Deleting is a write
 
@@ -168,10 +182,14 @@ account answering exactly like one that was never there. Three things it adds:
   draws, so with htmx switched off there is no confirmation at all, and there was never
   anything on the wire for the server to check either way.
 - **A self-service delete asks for the password again.** A session found unlocked is
-  otherwise enough to erase somebody.
+  otherwise enough to erase somebody. That is a password check, so it is rate limited
+  like the login ([go-auth-sessions.md](go-auth-sessions.md) *Rate limiting auth
+  endpoints*), or the unlocked session is also a way to guess the password.
 - **A restore is out of the binary's hands.** The rows come back with the backup, so the
   retention window is what makes a delete final; that window lives in the operations
-  repository, and the README says which one applies.
+  repository, and the README says which one applies. **Snapshots this binary wrote are
+  in its hands:** each `VACUUM INTO` file of [go-sqlite.md](go-sqlite.md) holds everyone
+  deleted since, so the ticker that writes one deletes those older than the window.
 
 ## Testing
 
@@ -188,7 +206,7 @@ for _, table := range tableNames(t, db) {
 		// Identifiers cannot be bound, so they are quoted from sqlite_master —
 		// never from anything a request touched.
 		q := fmt.Sprintf(`SELECT count(*) FROM %q WHERE %q = ?`, table, col)
-		if err := db.QueryRow(q, deletedID).Scan(&n); err != nil {
+		if err := db.QueryRowContext(t.Context(), q, deletedID).Scan(&n); err != nil {
 			t.Fatal(err)
 		}
 		if n != 0 {
@@ -241,7 +259,7 @@ which is what the next test is for.
   table":
   https://www.sqlite.org/foreignkeys.html#fk_indexes
 - Foreign key actions count as trigger programs against `SQLITE_MAX_TRIGGER_DEPTH`, so
-  cascades are recursive and bounded: https://www.sqlite.org/foreignkeys.html#fk_actions
+  cascades are recursive and bounded: https://www.sqlite.org/foreignkeys.html#fk_unsupported
 - `DROP TABLE` "performs an implicit DELETE FROM command before removing the table", and
   that implicit delete "does cause any configured foreign key actions to take place":
   https://www.sqlite.org/lang_droptable.html

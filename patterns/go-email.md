@@ -2,9 +2,9 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
 
-Building the link from `Config` rather than from the request, and refusing a carriage
-return or newline in any header value, are tier 1. The port, the outbox, and which
-transport a project picks are tier 2.
+Building the link from `Config` rather than from the request, refusing a carriage
+return or newline in any header value, and refusing the log transport in production are
+tier 1. The port, the outbox, and which transport a project picks are tier 2.
 
 [go-auth-sessions.md](go-auth-sessions.md) says the plaintext reset token "goes in the
 emailed link once" and stops there. This document is the rest of that sentence. Mail is an
@@ -81,14 +81,17 @@ func (s *Sender) message(m domain.Mail) []byte {
 	fmt.Fprintf(&b, "Subject: %s\r\n", mime.QEncoding.Encode("utf-8", m.Subject))
 	b.WriteString("MIME-Version: 1.0\r\n")
 	b.WriteString("Content-Type: text/plain; charset=utf-8\r\n\r\n")
-	b.WriteString(m.Text)
+	// A bare CR is the one thing the dot-writer passes through, and a relay that
+	// reads it as a line end takes "\r.\r" for the end of the message.
+	b.WriteString(strings.NewReplacer("\r\n", "\n", "\r", "\n").Replace(m.Text))
 	return b.Bytes()
 }
 ```
 
-The body needs no escaping of its own: `net/smtp` writes it through a `textproto`
-dot-writer, which handles a line that is a single dot and the CRLF endings. Do not
-hand-roll either.
+The body needs that one replacement and no escaping: `net/smtp` writes it through a
+`textproto` dot-writer, which doubles a leading dot and turns a bare LF into CRLF. It
+passes a bare CR through, which RFC 5321 section 2.3.8 forbids a client to send. Do not
+hand-roll the dot-writer's half.
 
 ## The message is queued, not sent, inside the handler
 
@@ -128,10 +131,11 @@ Pick one, name it in the README, and keep the choice inside the adapter.
   an empty environment — the same move as the degenerate adapter in
   [go-llm-adapter.md](go-llm-adapter.md). Its delivery target *is* the log, which makes it
   the one place the body is written out and the reason config MUST refuse it in
-  production. A developer with no relay can still click the link.
+  production. That refusal is tier 1: a production log would hold every reset link. A
+  developer with no relay can still click the link.
 
 Delivery — SPF, DKIM, DMARC, the sending domain, and who owns the relay — belongs to the
-deployment, not to the binary. The operations repository has it. A message this app sends
+deployment, not to the binary. The operations repository owns it. A message this app sends
 is correct and still lands in spam if that half is missing.
 
 ## Testing
@@ -146,7 +150,8 @@ is correct and still lands in spam if that half is missing.
   `domain.ErrBadHeader` and queues nothing.
 - **The transport is pinned like any other adapter** — `httptest` for an API, and for
   SMTP a test over the rendered bytes: the headers are there, one blank line ends them,
-  and the link is below it rather than in them. Never a live relay.
+  the link is below it rather than in them, and a body holding a bare `\r` leaves
+  without one. Never a live relay.
 
 ## Anti-patterns
 

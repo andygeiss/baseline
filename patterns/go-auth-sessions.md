@@ -123,7 +123,8 @@ argon2.IDKey(password, salt, 2, 19*1024, 1, 32)  // t=2, m=19 MiB, p=1, 32-byte 
 
 ## Rate limiting auth endpoints (`golang.org/x/time/rate`)
 
-Login, registration, and password-reset MUST be rate limited per client IP: a
+Login, registration, password-reset, and any other route that checks a password MUST be
+rate limited per client IP: a
 `map[string]*rate.Limiter` guarded by a mutex, e.g. `rate.NewLimiter(rate.Every(3*time.Second), 5)`,
 with a janitor evicting idle entries. Over limit → `429` with `Retry-After`.
 

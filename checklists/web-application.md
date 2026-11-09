@@ -13,7 +13,7 @@ are only partly tier 1: `Config.LogValue` and the gitignore and production `.env
 under *Reading a flag…*; the pragmas, the path box, both pools, and parameterized SQL
 under *Storing anything*; the zero-CSP-violations check under *Adding an icon*; every box
 under *Reading or writing a row somebody owns* except the one naming the shared rows; the
-base-URL and the header box under *Sending an email*; every box under *Deleting a person*
+base-URL, header and log-transport boxes under *Sending an email*; every box under *Deleting a person*
 except the one naming where each table's answer is written; the CSP, Origin, access,
 credential, handler-return, and message-size boxes under *Shipping a WebAssembly client*. No waiver
 for any of those; there is a fix.
@@ -285,6 +285,7 @@ the tokens layer and dark mode.
 
 - [ ] Every link is built from `cfg.BaseURL`, never from `r.Host`
 - [ ] Any header value holding CR or LF is refused
+- [ ] The log transport is refused in production
 - [ ] The message is queued in the causing transaction; a ticker sends it
 - [ ] The response never changes with the send's outcome
 - [ ] The `Host: evil.example` test is green
@@ -296,6 +297,7 @@ the tokens layer and dark mode.
 - [ ] Every table holding the person's rows declares an `ON DELETE` action
 - [ ] Each table's answer — erase, anonymize, refuse — is written where the shared rows are
 - [ ] The credential middleware loads the user row, so a deleted account is signed out
+- [ ] A user id is never handed out twice
 - [ ] Outbox rows carrying their address go with the account
 - [ ] Bytes on disk are unlinked after the commit, from names collected inside it
 - [ ] The all-tables test reads the schema at runtime and finds the id in no table

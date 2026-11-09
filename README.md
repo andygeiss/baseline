@@ -202,10 +202,10 @@ header, in this list, or in a box is a defect — move it into the rule.
   every table holding a person's rows, their queued mail and their bytes going with them,
   and a credential resolving to a row rather than to an id
   ([patterns/go-data-deletion.md](patterns/go-data-deletion.md)).
-- A link in an outgoing email built from `Config` and never from the request, and a
-  header value refused when it holds CR or LF
-  ([patterns/go-email.md](patterns/go-email.md)) — both resting on the two boot checks
-  in [patterns/go-config.md](patterns/go-config.md), `BASE_URL` and the sender address.
+- A link in an outgoing email built from `Config` and never from the request, a
+  header value refused when it holds CR or LF, and the log transport refused in production
+  ([patterns/go-email.md](patterns/go-email.md)) — the first two resting on the two boot
+  checks in [patterns/go-config.md](patterns/go-config.md), `BASE_URL` and the sender address.
 - A test never sending a request off this machine
   ([patterns/go-testing.md](patterns/go-testing.md)): `srv.URL` is `http://example.com`,
   so any client but `srv.Client()` asserts against a stranger's server.
