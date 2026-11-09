@@ -136,10 +136,10 @@ func TestSecureHeaders(t *testing.T) {
 		}
 	}
 
-	// Not a tautology, unlike the line above: this one fails if somebody
-	// "tidies" the policy and takes the mask icons down with it.
-	if !strings.Contains(csp, "img-src 'self' data:") {
-		t.Error("CSP lost img-src 'self' data: — every mask icon is now blocked")
+	// Not a tautology, unlike the line above. It fails if somebody "tidies" the
+	// policy and takes the mask icons down with it, and if somebody widens it.
+	if !slices.Contains(strings.Split(csp, "; "), "img-src 'self' data:") {
+		t.Error("CSP's img-src is not exactly 'self' data: — every mask icon is blocked, or any host is allowed")
 	}
 
 	// Browsers match keywords case-folded, and with both quotes:
@@ -156,15 +156,16 @@ func TestSecureHeaders(t *testing.T) {
 
 Comparing the CSP against the `csp` constant only proves the header is *sent*. The
 explicit `img-src` check has teeth, because that directive is the one a future
-tightening pass would remove without knowing its cost; the keyword checks catch a
-loosening pass. The rest of the policy is
+tightening pass would remove without knowing its cost, and the one a loosening pass
+widens for an avatar host; the keyword checks catch the two banned keywords. The rest of
+the policy is
 reviewed against the feature map above, and the end-to-end proof is the reference
 implementation rendering its icons.
 
 ## Anti-patterns
 
 - ❌ A security-headers middleware package (unrolled/secure, gorilla/handlers) — the
-  whole thing is nine lines of stdlib.
+  whole thing is ten lines of stdlib.
 - ❌ Building the CSP per request from config. A policy that varies is a policy nobody
   can review; if dev genuinely needs a different one, that is a second constant chosen
   at startup, not string concatenation in the request path.

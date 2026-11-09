@@ -54,8 +54,8 @@ sorted, and getting it wrong puts it on top of the poller:
   <li>… newest …</li>
   <li>… </li>
   <li class="more">
-    <a href="/items?before=2026-08-17T09:14:02Z&amp;id=412"
-       hx-get="/items?before=2026-08-17T09:14:02Z&amp;id=412"
+    <a href="/items?before=2026-08-17T09%3A14%3A02Z&amp;id=412"
+       hx-get="/items?before=2026-08-17T09%3A14%3A02Z&amp;id=412"
        hx-target="closest li"
        hx-swap="outerHTML">Show older</a>
   </li>
@@ -109,8 +109,10 @@ that comes back carries them all, or the second page quietly loses them.
 
 **Build the control's URL once, in the handler** — `"/items?" + url.Values{…}.Encode()` —
 and write that one value into both `href` and `hx-get`. `html/template` escapes a value
-as a URL only in an attribute it knows holds one, and `hx-get` is not one: a filter
-interpolated there arrives unescaped, and an `&`, `#` or `+` in it cuts the query short.
+as a URL only in an attribute it knows holds one, and `hx-get` is not one. A filter
+interpolated there arrives unescaped: an `&` cuts its value short, a `#` drops everything
+after it, the cursor included, a `+` arrives as a space, and a `%` can make the pair
+unreadable.
 
 ## Anti-patterns
 

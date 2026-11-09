@@ -103,7 +103,8 @@ in this order:
 
 1. AirDrop the root certificate, at
    `~/Library/Application Support/Caddy/pki/authorities/local/root.crt` on macOS and
-   `$XDG_DATA_HOME/caddy/pki/authorities/local/root.crt` elsewhere.
+   `~/.local/share/caddy/pki/authorities/local/root.crt` on Linux, or under
+   `$XDG_DATA_HOME/caddy/` where that is set.
 2. **Settings → Profile Downloaded → Install**.
 3. **Settings → General → About → Certificate Trust Settings**, and switch the root on.
 
@@ -113,8 +114,9 @@ certificate and still refuses the site, with an error that never mentions trust.
 For the developer's own browser there is nothing to run. Caddy installs its root into the
 host's store when `make lan` starts it in a terminal, and asks for the password to do it;
 with nowhere to ask, it logs `failed to install root certificate` and serves anyway.
-`caddy trust` cannot do it afterwards: it reads the root from the admin API, which this
-file turns off. Android's path differs and is not verified here.
+It tries again on every start, so one `make lan` from a terminal is the fix.
+`caddy trust` is not: it reads the root from the admin API, which this file turns off.
+Android's path differs and is not verified here.
 
 ## What this changes on the device, for a year
 
