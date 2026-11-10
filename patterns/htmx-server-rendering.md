@@ -70,7 +70,8 @@ func (a *App) render(w http.ResponseWriter, r *http.Request, status int, page, b
 		a.serverError(w, r, err)
 		return
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8") // or a fragment rooted at <li> is sniffed as text/plain
+	// Without the type, a fragment rooted at <li> is sniffed as text/plain.
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Add("Vary", "HX-Request-Type") // Add, not Set — sessions.LoadAndSave already added "Vary: Cookie"
 	w.WriteHeader(status)
 	buf.WriteTo(w)

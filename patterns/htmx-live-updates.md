@@ -2,6 +2,9 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-10-27
 
+**Rule 8 is tier 1:** a poll is a read, and
+[go-authorization.md](go-authorization.md) owns the rule.
+
 Keeping a page current while the reader looks at it — a chat room, a queue, a job that
 finishes on its own. **The page asks again on a timer; the server never pushes** (but a
 WebAssembly client's socket, [wasm-client.md](wasm-client.md)). One htmx attribute does

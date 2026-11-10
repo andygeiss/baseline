@@ -88,10 +88,10 @@ title, and pushes a URL wherever the element would — boosted, or carrying `hx-
    focused field comes back from a 422 empty. Nothing here animates on that delay.
 6. **Back and forward reload the page.** htmx 4 keeps no history cache. On back/forward
    it either re-fetches the page itself and swaps the body, or reloads. The canonical
-   `htmx-config` sets `"history":"reload"`, so back/forward onto an entry htmx pushed
-   are real page loads and no handler ever answers a restore request. The server is the
-   source of truth — there is nothing client-side worth restoring. A page reached by a
-   full load is the browser's own to bring back, from its back-forward cache if it likes.
+   `htmx-config` sets `"history":"reload"`, so back/forward inside one document are real
+   page loads and no handler ever answers a restore request. The server is the source of
+   truth — there is nothing client-side worth restoring. A traversal into another
+   document is the browser's own, from its back-forward cache if it likes.
 7. **htmx gives up at 60 s.** htmx 4 aborts any request still running after its
    `defaultTimeout`, 60 s, and an aborted request swaps nothing. The canonical server
    answers inside 30 s (`WriteTimeout`,
@@ -107,12 +107,14 @@ title, and pushes a URL wherever the element would — boosted, or carrying `hx-
    - CSRF: no tokens. [patterns/go-http-server.md](../patterns/go-http-server.md) owns
      the check, and htmx passes it because it sends real same-origin requests.
    - All dynamic HTML goes through `html/template` (contextual auto-escaping). Never
-     concatenate user input into HTML, and never convert it to `template.HTML`.
+     concatenate user input into HTML, and never convert it to `template.HTML` or a
+     sibling type.
    - **Boost only pages.** htmx parses a boosted answer as HTML whatever its type, and
      acts on every htmx attribute in it. A link or form whose answer, once any redirect
-     is followed, is not a page of this application — a file, an export, a redirect to
-     another origin, a 204 — carries `hx-boost="false"`, and so does any link whose href
-     a user supplied ([patterns/go-file-uploads.md](../patterns/go-file-uploads.md)).
+     is followed, is not a page of this application — a file
+     ([patterns/go-file-uploads.md](../patterns/go-file-uploads.md)), an export, a 204 —
+     carries `hx-boost="false"`, and so does a link that redirects to another origin or
+     whose href a user supplied.
 
 ## Litmus test
 
