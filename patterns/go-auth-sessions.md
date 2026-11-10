@@ -30,9 +30,8 @@ sessions.Cookie.SameSite = http.SameSiteLaxMode // and SameSite=Lax — don't "s
 sessions.Store = store.NewSessionStore(readDB, writeDB, sessions.Lifetime)
 ```
 
-`sessions.ErrorFunc` MUST be set where the app is built, to a function that hands
-`serverError` every error but `context.Canceled`, a client that left: scs's default
-writes a store error to the standard logger, unstructured.
+`sessions.ErrorFunc` MUST be set where the app is built, to the app's own `serverError`:
+scs's default writes a store error to the standard logger, unstructured.
 
 **`Secure` follows `ENV`, and that is not a weakened rule.** The binary only ever
 speaks plain HTTP; a proxy adds TLS in front of it
@@ -99,9 +98,9 @@ MUST rules:
    Logout calls `Destroy` (the flow above), which ends the session. **A password change
    asks for the current password** — a route that checks a password, so rate limited
    below — **and it ends the user's other sessions, as a reset ends all of them:** the
-   user row carries a counter, a session stores its value at login, and the middleware
-   that loads the user row (*Machine tokens* rule 6) signs out a session whose value
-   differs. **Every statement that writes a hash moves the counter, and a password
+   user row carries a counter, a session stores its value at login, and *Machine tokens*
+   rule 6's lookup finds no user under a session whose value differs: the middleware
+   signs it out, and a socket's re-check closes it. **Every statement that writes a hash moves the counter, and a password
    change's names the value its request loaded** (`… password_version =
    password_version + 1 WHERE id = ? AND password_version = ?`): no row changed is a
    refusal — a reset or another change landed while this one was open.
@@ -234,8 +233,8 @@ non-browser client. That is no loophole: CSRF is an attack on
 
 ## Re-resolving a long-lived connection
 
-A WebSocket made its one request at the handshake, so a logout, a revoking reset, a
-revoked token or a deleted account never reaches it. It keeps the credential its
+A WebSocket made its one request at the handshake, so a logout, a password change or
+reset, a revoked token or a deleted account never reaches it. It keeps the credential its
 handshake presented and re-resolves it; [wasm-client.md](wasm-client.md) rule 6 says
 what it may do and when it closes. This is tier 1, as that rule is:
 

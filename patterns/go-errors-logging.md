@@ -31,6 +31,8 @@ below).
      (see [htmx-server-rendering.md](htmx-server-rendering.md)).
    - `serverError(w, r, err)` — unexpected. Logs at error level with the full chain,
      renders a generic 500 page. **The internal error text never reaches the browser.**
+     A request whose own context is cancelled is the exception: the client left, so it
+     is logged at debug and answered with nothing.
 5. `panic` only for programmer errors (impossible states); `recoverPanic` middleware
    is the safety net, not a control-flow mechanism.
 

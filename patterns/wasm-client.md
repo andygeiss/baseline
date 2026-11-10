@@ -24,8 +24,9 @@ with scripts off.
    every recipe running `tinygo` checks against `tinygo version` first
    ([stack/makefile.md](../stack/makefile.md) rules 4 and 5). That row also bounds the
    Go row: a Go minor TinyGo cannot build waits. A project moves with the row and
-   rebuilds its module in the same commit. TinyGo runs `wasm-opt` (Binaryen) from
-   `PATH` on every wasm build: its version is named and checked the same way.
+   rebuilds its module in the same commit. TinyGo runs the `wasm-opt` (Binaryen)
+   that `tinygo env WASMOPT` names on every wasm build: its version is named and checked
+   the same way.
 2. **The module is committed and embedded.** `make ci` needs no TinyGo unless `check`
    tests under it; `make wasm`, a makefile rule-3 target, rebuilds it. Beside each
    module it writes a `.build` file (both versions, flags, and rule 3's tags) and a
@@ -83,9 +84,9 @@ Both load deferred in `<head>`, before htmx, on the module's page only: a script
 link or form whose answer is that page carries `hx-boost="false"`. For Back and Forward
 a boosted link out needs nothing: the canonical `"history":"reload"` makes them full
 loads ([stack/htmx.md](../stack/htmx.md) rule 6). The module still stops itself, socket
-and all, once its canvas has left the document. And it reloads the page on a `pageshow`
-event whose `persisted` is set: the unboosted way in makes this page a document of its
-own, and the browser brings one back from its cache with the socket closed.
+and all, once its canvas has left the document. It closes its socket on `pagehide`, and
+reloads the page on a `pageshow` whose `persisted` is set: this page is a document of its
+own, and Chrome caches one with its socket open.
 
 A script for anything else — a browser API with no Go reach, like audio after a gesture —
 is a waiver in the project's README, not this pattern.
@@ -121,7 +122,7 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    deadline inside the interval ([go-auth-sessions.md](go-auth-sessions.md)
    *Re-resolving a long-lived connection* says how); while a check is due it acts on
    nothing. It closes with 1008 once the credential, its user, or its access is gone — a
-   logout, a revoking reset, a revoked token, a deleted account
+   logout, a password change or reset, a revoked token, a deleted account
    ([go-data-deletion.md](go-data-deletion.md)), a lost membership, a write that found
    none — and with 1011, no reason text, on a store error or a missed deadline
    (shutdown's cancel is rule 8's 1001).
@@ -205,8 +206,9 @@ HTML, so it is not the htmx WebSocket extension
 - htmx 4.0.0 keeps only the `<title>` of a swapped answer's `<head>`, and on Back or
   Forward to an entry it marked calls `location.reload()` when `history` is `"reload"`
   (otherwise it fetches the page and swaps the body): the vendored `htmx.min.js`, read;
-  Back after a boosted link out was run in headless Chromium only. Forward onto the
-  program page restored it from the cache, its socket closed with 1006: Chrome 157
+  Back after a boosted link out is a full load: Chrome 157, Firefox 153, WebKit 26.5.
+  Chrome 157 kept a cached page's socket answering pings for 590 s; closed on
+  `pagehide`, gone within 1 s
 - The `js/wasm` staticcheck line flags an `//export` or `//go:wasmexport` function
   U1000, and `//lint:ignore U1000` above it clears that, executed: staticcheck 2026.2.2,
   TinyGo 0.44.0
