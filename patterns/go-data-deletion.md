@@ -230,7 +230,9 @@ it. A row holding somebody's data under another name — an address in an outbox
 name copied at write time — carries no id for the sweep to match, so it stays green while
 the data stays. Name those columns and assert on them by value. The session table is
 invisible for a third reason: its id sits inside an opaque payload rather than a column,
-which is what the next test is for.
+which is what the next test is for. And no query sees what SQLite leaves in the file:
+with `secure_delete` off, the driver's default, a deleted row's bytes stay readable
+there until the page is reused. A snapshot written after the delete holds none of them.
 
 - **The signed-out test.** A request carrying the deleted user's cookie gets the sign-in
   page — not a 500, and not a rendered page.
