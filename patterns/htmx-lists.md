@@ -69,8 +69,8 @@ The handler answers with the next rows **followed by a fresh control**, carrying
 cursor of the last row it sent. `outerHTML` on the enclosing `<li>` puts all of it where
 the control was, so the older rows land at the end of the list in order. **The control
 carries an `id`:** the swap replaces the link that had focus, and htmx puts focus back
-only on an element it finds by id. Without one, a keyboard reader lands at the top of
-the page after every press.
+only on an element it finds by id. Without one, focus falls to `<body>` after every
+press, and the next Tab skips the fresh control.
 
 **An oldest-first list is the mirror image, and it is the one that composes with a poll.**
 A chat grows at the bottom, and [htmx-live-updates.md](htmx-live-updates.md) already puts
@@ -131,5 +131,4 @@ the pair unreadable.
   asked for. A control they press is the whole difference.
 - ❌ The cursor in a `data-` attribute or the URL hash. That is client-side state, and the
   server is the source of truth.
-- ❌ Rendering everything and filtering in CSS. The row still crossed the wire, and a
-  hidden row is still in the accessibility tree.
+- ❌ Rendering everything and filtering in CSS. The row still crossed the wire.

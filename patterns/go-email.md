@@ -69,9 +69,9 @@ one configured value, and the boot check refuses a line break in it once
 ([go-config.md](go-config.md)). The adapter then renders with nothing left to escape:
 
 ```go
-// Nothing here escapes a header value, because nothing here may need to — the
-// two checks above have already run. That order is the rule: they run before
-// anything writes a header, never after.
+// Nothing here escapes a header value, because nothing here may need to —
+// Validate and the two boot checks, the sender and the base URL, have already
+// run. That order is the rule: they run before anything writes a header.
 func (s *Sender) message(m domain.Mail, sent time.Time) []byte {
 	var b bytes.Buffer
 	fmt.Fprintf(&b, "From: %s\r\n", s.from)
@@ -121,9 +121,11 @@ An outbox table, written in the same transaction as the thing that caused the ma
 - **Log the outbox id, never the address or the body.** The body holds the token, and an
   address in a log line is a copy of somebody's data that no account deletion reaches. The
   id resolves to the row for as long as the row exists — and the row goes when the account
-  does ([go-data-deletion.md](go-data-deletion.md)). A relay's refusal can quote the
-  address back (`550 5.1.1 <ada@example.com>: …`), so the SMTP adapter returns the
-  reply's code, never its text.
+  does ([go-data-deletion.md](go-data-deletion.md)). A refusal can quote the address
+  back — a relay's `550 5.1.1 <ada@example.com>: …`, a provider's JSON error — so
+  neither adapter returns what the other side said. The SMTP adapter returns the reply's
+  code; the API adapter returns `resp.Status`, never
+  [go-http-client.md](go-http-client.md)'s `statusError`, which carries the body.
 
 ## Which transport
 

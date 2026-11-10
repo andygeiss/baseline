@@ -5,8 +5,8 @@
 What a delete reaches, a credential resolving to a row rather than to an id, a user id
 never handed out twice, and the actor predicate on the delete itself are tier 1. Which
 tables anonymize rather than erase, where the confirmation lives, the janitor, and how
-many snapshots the binary keeps are tier 2: the first three decide how a delete reads,
-the last how long a copy outlives it.
+many snapshots the binary keeps are tier 2: the first two decide how a delete reads,
+the last two how long a copy can outlive it.
 
 Every other document here rules data arriving. This one rules data leaving, and it is the
 one that composes: deleting a person touches their rows
