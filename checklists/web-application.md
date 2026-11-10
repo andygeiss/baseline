@@ -49,7 +49,7 @@ required reading, not a trigger.
 - [ ] CSP carries `img-src 'self' data:`
 - [ ] No page, used once, prints a CSP violation in the console
 - [ ] `http.CrossOriginProtection` wraps the mux (CSRF)
-- [ ] No GET route changes anything
+- [ ] No mutation is a GET route
 - [ ] Request bodies capped at 1 MiB; an upload route sets its own cap
 - [ ] All user input escaped via `html/template`
 - [ ] No link or form is boosted unless its answer is a page
@@ -79,7 +79,7 @@ required reading, not a trigger.
 - [ ] `.env` is gitignored, from the commit that added `run`'s recipe (`stack/makefile.md` rule 6) — tier 1
 - **If the repo has a `.env`:**
   - [ ] No gate reads it — `check`, `ci`, `test`
-  - [ ] Production takes its secrets from credential files instead — tier 1
+  - [ ] Production never uses it — tier 1
 
 ## Returning an error, or logging anything
 
@@ -231,8 +231,8 @@ the tokens layer and dark mode.
   - [ ] `Secure` tied to `ENV`, so production sets it and dev does not
   - [ ] `RenewToken` on login and on password change
   - [ ] `Destroy` on logout
-- [ ] The session store hashes the token and keeps its two MUSTs
-- [ ] A password change asks for the current one, and ends and writes as rule 1 says
+- [ ] The token is hashed in the store, which keeps its two MUSTs
+- [ ] A password change asks for the current one, and ends and writes as *Login / logout flow* rule 1 says
 - [ ] The reset token keeps every condition of *Password reset*
 - [ ] Auth endpoints rate limited per client IP, IPv6 by its /64
 - [ ] No enumeration: login, reset, and registration by email
@@ -463,7 +463,7 @@ gate.
 - [ ] Targets alphabetical
 - [ ] `check` named as `.DEFAULT_GOAL`
 - [ ] `make check` is green
-- [ ] `make ci` is green on the commit being pushed — nothing runs it for you
+- [ ] `make ci` is green on the commit being pushed, its `go version` line at the pin or later — tier 1
 - [ ] Nothing under `.github/workflows/`
 - [ ] No `.github/dependabot.yml`
 - [ ] No `export-ignore` in `.gitattributes`
@@ -487,11 +487,11 @@ gate.
 `operations/web-application.md` — the deployment contract.
 
 - **The binary satisfies every line of the contract:**
-  - [ ] Two listeners — tier 1
+  - [ ] Two listeners
   - [ ] stdout logs
   - [ ] SIGTERM shutdown
   - [ ] State under `DATABASE_URL`
-  - [ ] Secrets from `CREDENTIALS_DIRECTORY` — tier 1
+  - [ ] Secrets from `CREDENTIALS_DIRECTORY`
 - [ ] It starts with an empty environment on `127.0.0.1:8080`
 - **The version is visible in `/healthz` and the boot log** (`debug.ReadBuildInfo`):
   - [ ] It appears in both places

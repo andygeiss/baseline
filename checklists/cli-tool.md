@@ -114,7 +114,7 @@ reads.
 - **`run()` is table-tested:**
   - [ ] Happy path per subcommand (or the single command)
   - [ ] Unknown command and top-level `-h` where dispatch exists
-  - [ ] Bad flag (→ `errUsage`)
+  - [ ] Bad flag, and a stray argument before a flag (→ `errUsage`)
   - [ ] `-json` output parses back line by line with `encoding/json/v2`, where the flag exists
 
 ## Depending on someone else's system
@@ -145,7 +145,7 @@ differently.
 
 - [ ] The `claude-api` skill was loaded before the request was written
 - [ ] The prompt and conversation shape live in `domain`
-- [ ] A refusal is a domain sentinel, checked **before** the response text is read
+- [ ] A refusal is a domain sentinel — read **before** the text, or watched beside it on a stream
 - [ ] The request is pinned by an `httptest` test rather than the live API
 
 ## Writing or tuning a prompt, or reading what a model wrote back
@@ -179,7 +179,7 @@ gate.
 - [ ] Targets alphabetical
 - [ ] `check` named as `.DEFAULT_GOAL`
 - [ ] `make check` is green
-- [ ] `make ci` is green on the commit being pushed — nothing runs it for you
+- [ ] `make ci` is green on the commit being pushed, its `go version` line at the pin or later — tier 1
 - [ ] Nothing under `.github/workflows/`
 - [ ] No `.github/dependabot.yml`
 - [ ] No `export-ignore` in `.gitattributes`

@@ -169,8 +169,8 @@ dropping it loses data, leaks it, or hands over an account.** Apply the test; th
 below is what it currently catches, not the definition.
 
 **A tier-1 rule is stated once, in the document that owns it.** That document's header,
-the list below, and a checklist box each name the rule in a few words and point at it,
-by number where the document numbers its rules. None of them repeats its conditions: a
+the list below, and a checklist box each name the rule in a few words and point at it.
+None of them repeats its conditions: a
 condition copied to four places drifts in three of them. A condition found only in a
 header, in this list, or in a box is a defect — move it into the rule, and only then
 trim the copy. The 2026-11-10 run brought the documents it read to this form; what it
@@ -201,7 +201,7 @@ left is in [VERIFICATION.md](VERIFICATION.md) *Owed*.
   default, no boost on a link to it, and the janitor's two limits
   ([patterns/go-file-uploads.md](patterns/go-file-uploads.md)).
 - What a delete reaches, and what still authenticates once it has: an `ON DELETE` action
-  on the tables holding a person's rows, their queued mail and their bytes going with
+  on every table with a column naming the person, their queued mail and their bytes going with
   them, a credential resolving to a row rather than to an id, a user id never handed out
   twice, and no migration dropping a table a foreign key names
   ([patterns/go-data-deletion.md](patterns/go-data-deletion.md)).
@@ -222,9 +222,9 @@ left is in [VERIFICATION.md](VERIFICATION.md) *Owed*.
   that of a program it runs ([patterns/go-cli.md](patterns/go-cli.md)), and `.env` is
   gitignored and never used in production ([stack/makefile.md](stack/makefile.md) rule 6).
 
-**The checklists mark this, they do not imply it.** A trigger section that is wholly
-tier 1 says so in its heading; anywhere else the box, or the line that introduces its
-group, says so. Nothing is
+**The checklists mark this, they do not imply it.** A trigger section that is
+tier 1 says so in its heading, and a box in it that is not says tier 2; anywhere else
+the box, or the lead line of its section or group, says so. Nothing is
 tier 1 because of the section it landed in —
 that positional definition died when routing and the definition of done became one file
 and the security boxes scattered across the topics that fire them.

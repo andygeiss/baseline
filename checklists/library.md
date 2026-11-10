@@ -109,7 +109,7 @@ gate.
 - [ ] Targets alphabetical
 - [ ] `check` named as `.DEFAULT_GOAL`
 - [ ] `make check` is green
-- [ ] `make ci` is green on the commit being pushed — nothing runs it for you
+- [ ] `make ci` is green on the commit being pushed, its `go version` line at the pin or later — tier 1
 - [ ] Nothing under `.github/workflows/`
 - [ ] No `.github/dependabot.yml`
 - [ ] No `export-ignore` in `.gitattributes`
