@@ -294,7 +294,8 @@ look at the fixes ran; it is a check, and counts for nothing here.
   - Windows paths: rule 10 reads paths the Unix way and goes no further.
   - The prune matches `app-*.db`, which a database named that way also is.
   - Two snapshot runs at once can leave a half-written file under the day's name.
-  - The first open of a new file answered `database is locked` in 8 boots of 480.
+  - The first open of a new file answered `database is locked` in 8 boots of 480, and
+    in 29 when three reads raced the migration.
   - `openDB` is unexported, and three packages need it (the 2026-11-09 build).
 - **Low, in the server documents:** an error from `net/http` or the JSON decoder can
   still quote a broken peer's header line, or a member name of its body, into
@@ -445,7 +446,7 @@ one settled before the tag that carries them:
   `tinygo env WASMOPT` names; the counter in the socket's re-check.
 - `gochat` against the CLI rules that changed.
 - Registration, against the sentence on registering by email; no `hx-trigger` filter; no
-  migration that drops a table others reference.
+  migration that drops a table a foreign key names; no `INSERT OR REPLACE` on one.
 
 The twelve entries the 2026-11-09 run listed here are settled on `sync-owed-run`.
 

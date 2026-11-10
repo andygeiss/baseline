@@ -5,8 +5,8 @@
 Refusing the client's filename and the client's content type, deciding the type by
 sniffing the bytes, serving every file through a handler rather than a file server, the
 `Content-Disposition` default, keeping the boost off every link to a file, and the janitor's two limits are tier 1.
-Rule 1 below, where the bytes live, and the delete order are tier 2: getting any of those
-wrong loses a field or leaves garbage, and neither hands anything over.
+Rule 1 below and where the bytes live are tier 2: getting either wrong loses a field or
+leaves garbage, and neither hands anything over.
 
 [go-authorization.md](go-authorization.md) rules rows. **A file is a row and a URL, and
 the URL is where those rules stop applying.** A static file server has no actor to name,
@@ -78,8 +78,8 @@ a.post(w, r, form, att, bs)
 
 ⚠️ **Reading it all is why there is no seek here.** Sniff off a stream and store what is
 left, and every file bigger than 512 bytes arrives missing its head. It also holds an upload
-in memory several times over — the parsed form, this read, the write — so size the cap,
-times the uploads that arrive at once, against `GOMEMLIMIT`
+in memory several times over — the parsed form, this read, the write: one of 32 MiB
+peaked the process at 143 MiB, and `GOMEMLIMIT` does not cap that
 ([go-performance.md](go-performance.md)).
 
 The rules behind it — all MUST:
@@ -120,7 +120,7 @@ difference that bites:
 |---|---|---|
 | **Backups** | The backup you already have covers them. | A second thing to copy off the box; `VACUUM INTO` cannot see them. |
 | **Atomicity** | The row and the bytes commit together. | Two writes that can disagree — hence the delete order below. |
-| **Good for** | Avatars, attachments, anything small. | Files too big for a row. |
+| **Good for** | What fits the blanket 1 MiB cap. | Any route that raised its cap. |
 
 Bytes on disk go through one `*os.Root` the store holds, on a directory of its own beside
 the database — `Create`, `Rename`, `Open`, `Remove`, never a joined path. `os.Root` opens each path element against a held directory
@@ -139,7 +139,7 @@ broken download the reader sees; bytes whose row is gone are garbage nobody sees
 of those is safe to have, so a janitor sweeps files that have no row
 ([go-background-work.md](go-background-work.md)). **Its two limits are tier 1:** that
 directory and no other — beside the database it unlinks the database — and no file
-younger than an upload takes.
+younger than an hour: a file waits for its row's commit behind the single writer.
 
 **Deleting the person who uploaded them keeps that order and adds a step**, because the
 cascade takes the row away before you can ask it which files were theirs: the names are

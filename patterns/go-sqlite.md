@@ -109,7 +109,7 @@ Forward-only, embedded, applied at boot. No migration framework:
   each `.sql` file with a number greater than it (sorted via `fs.Glob`), set
   `user_version` to the last applied number. Fail the boot on any error.
 - No down migrations. Roll forward; restore from backup for disasters.
-- **No migration drops a table other tables reference:**
+- **No migration drops a table a foreign key names:**
   [go-data-deletion.md](go-data-deletion.md) rule 6 says what the drop takes with it,
   and what to do instead.
 
@@ -177,7 +177,8 @@ pool and silently diverge from WAL behavior. `t.TempDir()` cleans up automatical
 mechanically catches rule 8 — `go vet` and `staticcheck` report none of it. Call it in
 the test or subtest that uses the database, never above a loop of subtests: a leak made
 under a subtest's `t.Context()` is released soon after that subtest ends, and an outer
-cleanup mostly finds the pool idle. A handler's leak is never seen, for the same reason.
+cleanup sees only the last subtest's. A handler's leak is seen rarely, for the same
+reason.
 
 ```go
 // Registered after the Close cleanup, so LIFO runs this one first.

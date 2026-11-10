@@ -216,7 +216,7 @@ the tokens layer and dark mode.
   - [ ] Writes on a single connection: `SetMaxOpenConns(1)` + `_txlock=immediate` — tier 1
 - [ ] Migrations embedded and forward-only
 - [ ] Migrations applied at boot inside a transaction
-- [ ] No migration drops a table others reference (`patterns/go-data-deletion.md` rule 6) — tier 1
+- [ ] No migration drops a table a foreign key names (`patterns/go-data-deletion.md` rule 6) — tier 1
 - [ ] `newTestDB` fails a test that leaves a pool in use (rule 8) — tier 1
 - [ ] The off-box question is answered on purpose, with the matching row running
 - [ ] Snapshots the binary writes are pruned to the number the README names (`patterns/go-data-deletion.md`)
@@ -301,7 +301,7 @@ the tokens layer and dark mode.
 
 `patterns/go-data-deletion.md` — what the delete reaches, and what stops authenticating.
 
-- [ ] Every table holding the person's rows declares an `ON DELETE` action
+- [ ] Every table with a column naming the person declares an `ON DELETE` action
 - [ ] Each table's answer — erase, anonymize, refuse — is written where the shared rows are — tier 2
 - [ ] The credential middleware loads the user row, so a deleted account is signed out
 - [ ] A user id is never handed out twice

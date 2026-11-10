@@ -4,7 +4,7 @@
 
 What a delete reaches, a credential resolving to a row rather than to an id, a user id
 never handed out twice, the actor predicate on the delete itself, and no migration
-dropping a table others reference are tier 1. Which
+dropping a table a foreign key names are tier 1. Which
 tables anonymize rather than erase, where the confirmation lives, the janitor, and how
 many snapshots the binary keeps are tier 2: the first two decide how a delete reads,
 the last two how long a copy can outlive it.
@@ -86,14 +86,15 @@ The rules behind it — all MUST:
    have an unpaid invoice".
 5. **One transaction, on the write pool.** The cascade is part of the statement, so this
    is one `DELETE FROM users WHERE id = ?` and the rest is the schema keeping its promise.
-6. **A migration never drops a table that others reference.** `DROP TABLE` with foreign
-   keys on runs an implicit `DELETE FROM` that fires every foreign key action, at every
-   level: the children go, their children with them, each `SET NULL` reference is lost,
-   and the boot is green. The usual escape, turning foreign keys off around the rebuild,
+6. **A migration never drops a table a foreign key names,** its own included. `DROP
+   TABLE` with foreign keys on runs an implicit `DELETE FROM` that fires every foreign key
+   action, at every level: the children go, their children with them, each `SET NULL`
+   reference is lost, and the boot is green. `INSERT OR REPLACE` does the same to each
+   row it replaces: write `ON CONFLICT … DO UPDATE`. The usual escape, turning foreign keys off around the rebuild,
    is closed to a migration that runs inside one transaction: `PRAGMA foreign_keys` is a
    no-op there, and a table renamed away takes its references with it. Change such a
-   table in place: `ADD COLUMN`, `RENAME COLUMN`, `DROP COLUMN` and a unique index touch
-   no row. A change those cannot make is not this runner's to run — stop and say so.
+   table in place, with `ALTER TABLE` and indexes: those lose no row and fire no action.
+   A change they cannot make is not this runner's to run — stop and say so.
 
 ## A credential resolves to a row, not to an id
 

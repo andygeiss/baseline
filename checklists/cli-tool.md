@@ -218,7 +218,7 @@ the reasoning that leaks into the visible answer.
 - [ ] Writes on a single connection: `SetMaxOpenConns(1)` + `_txlock=immediate` — tier 1
 - [ ] `newTestDB` fails a test that leaves a pool in use (rule 8) — tier 1
 - [ ] Migrations embedded and forward-only
-- [ ] No migration drops a table others reference (`patterns/go-data-deletion.md` rule 6) — tier 1
+- [ ] No migration drops a table a foreign key names (`patterns/go-data-deletion.md` rule 6) — tier 1
 
 ## Setting up the repo's commands or CI
 

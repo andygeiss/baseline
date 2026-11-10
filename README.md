@@ -204,7 +204,7 @@ left is in [VERIFICATION.md](VERIFICATION.md) *Owed*.
 - What a delete reaches, and what still authenticates once it has: an `ON DELETE` action
   on the tables holding a person's rows, their queued mail and their bytes going with
   them, a credential resolving to a row rather than to an id, a user id never handed out
-  twice, and no migration dropping a table others reference
+  twice, and no migration dropping a table a foreign key names
   ([patterns/go-data-deletion.md](patterns/go-data-deletion.md)).
 - A link in an outgoing email built from `Config` and never from the request, a
   header value refused when it holds CR or LF, the log transport refused in production,
