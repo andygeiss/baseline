@@ -83,13 +83,13 @@ protection classes the app has.
 
 ```go
 pub := http.NewServeMux() // the public routes are registered on this one
-app := http.NewServeMux() // everything registered here is behind requireLogin
-app.HandleFunc("GET /games", a.games)
-app.HandleFunc("GET /games/{id}", a.game)
-app.HandleFunc("POST /games/{id}/move", a.move)
+app := http.NewServeMux() // everything registered here is behind requireAuth
+app.HandleFunc("GET /games", a.handleGameList)
+app.HandleFunc("GET /games/{id}", a.handleGameShow)
+app.HandleFunc("POST /games/{id}/moves", a.handleMoveCreate)
 
-pub.Handle("/games", a.requireLogin(app))  // the collection path
-pub.Handle("/games/", a.requireLogin(app)) // and everything under it
+pub.Handle("/games", a.requireAuth(app))  // the collection path
+pub.Handle("/games/", a.requireAuth(app)) // and everything under it
 ```
 
 The inner mux matches the full request path, so its patterns are written out in full.
@@ -126,7 +126,7 @@ the one wrong answer. Boot is the right time to find out. Routing still lives in
 ([go-http-server.md](go-http-server.md)), and a test walks the table to prove every
 non-public row turns an anonymous request away.
 
-`requireLogin` decides only whether somebody is signed in. It MUST NOT decide who owns
+`requireAuth` decides only whether somebody is signed in. It MUST NOT decide who owns
 what: that answer needs the row, and the query that fetches the row already has it.
 
 ## Say which rows are shared
@@ -145,8 +145,8 @@ every question — `can(actor, action, resource) bool`, table-tested — and no 
 an `if actor.IsAdmin`. An admin who may read every row still goes through a store method
 that takes an actor; the actor is the admin, and the predicate widens in one place.
 
-A machine token acts as the user who created it and never wider
-([go-auth-sessions.md](go-auth-sessions.md) *Machine tokens*).
+A machine token acts as the user who created it and never wider — tier 1, like every
+machine-token rule ([go-auth-sessions.md](go-auth-sessions.md) *Machine tokens*).
 
 ## Testing
 
@@ -154,12 +154,12 @@ A machine token acts as the user who created it and never wider
 user asks for the first user's id and gets 404:
 
 ```go
-// The second user is the point. An anonymous request tests requireLogin and
+// The second user is the point. An anonymous request tests requireAuth and
 // passes while every ownership bug in the handler survives.
 alice, bob := signIn(t, srv), signIn(t, srv)
 game := createGame(t, srv, alice)
 
-if res := bob.get(t, "/games/"+game.ID); res.StatusCode != http.StatusNotFound {
+if res := bob.get(t, "/games/"+string(game.ID)); res.StatusCode != http.StatusNotFound {
 	t.Errorf("bob reading alice's game = %d, want 404", res.StatusCode)
 }
 ```
@@ -171,8 +171,9 @@ proves nothing. `-race` and the rest of the suite are unchanged
 ([go-testing.md](go-testing.md)).
 
 **A socket write under a membership is tested with a non-member and a removed member.**
-Each is refused with 1008, and nothing is stored or changed. A membership held only in
-memory is checked in Go, so this test is the only thing that notices the check is gone.
+Neither stores or changes anything, and a socket that is open is closed with 1008. A
+membership held only in memory is checked in Go, so this test is the only thing that
+notices the check is gone.
 
 ## Anti-patterns
 

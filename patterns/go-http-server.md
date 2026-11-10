@@ -60,7 +60,8 @@ Handlers are methods on the app struct (dependencies via struct fields, not glob
 
 ```go
 func (a *App) handleGameShow(w http.ResponseWriter, r *http.Request) {
-	game, err := a.games.Get(r.Context(), r.PathValue("id"))
+	actor := userFrom(r.Context()).ID // the row requireAuth put there
+	game, err := a.games.Game(r.Context(), actor, domain.GameID(r.PathValue("id")))
 	if errors.Is(err, domain.ErrNotFound) {
 		a.clientError(w, r, http.StatusNotFound)
 		return

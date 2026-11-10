@@ -2,6 +2,9 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05
 
+**One rule here is tier 1 and never waived:** what never reaches a log (*Never log*,
+below).
+
 ## Errors
 
 1. **Wrap with context at every boundary crossing:**
@@ -92,14 +95,15 @@ logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
   (humans read it). The switch is `cfg.Env`, which `main` already parsed
   ([go-config.md](go-config.md)) — not a fresh `os.Getenv` here.
 - **Always key-value attrs, never Sprintf into the message:**
-  `logger.Info("game created", "game_id", g.ID, "player", p.Name)` — the message is a
+  `logger.Info("game created", "game_id", g.ID, "player_id", p.ID)` — the message is a
   constant, the variables are attrs.
 - **Levels:** `Debug` = development noise; `Info` = state changes worth an audit trail;
   `Warn` = degraded but self-healing; `Error` = a human should eventually look.
   If everything is Info, nothing is.
 - **Request logging** in middleware only — handlers don't log successes.
-- **Never log:** passwords, tokens, session IDs, full request bodies, or anything
-  covered by "would I paste this in a public gist?"
+- **Never log** — tier 1: passwords, tokens, session IDs, full request bodies, a URL's
+  query string (a reset token rides there), or a person's name or address: a log is a
+  copy no account deletion reaches, so it names people by id.
 - Log to stdout only (server processes; a CLI logs to stderr because its stdout
   carries data — see [go-cli.md](go-cli.md)). Whatever runs the binary owns
   shipping and rotation — the app does not open log files, and does not rotate

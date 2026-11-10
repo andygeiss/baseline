@@ -75,7 +75,7 @@ func (a *App) handleGameCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	game, err := a.games.Create(r.Context(), form.Name)
+	game, err := a.games.Create(r.Context(), userFrom(r.Context()).ID, form.Name)
 	if errors.Is(err, domain.ErrNameTaken) {
 		form.Check(false, "name", "That name is already taken.")
 		a.renderForm(w, r, "game_new.html", "game-form", form)
@@ -90,10 +90,10 @@ func (a *App) handleGameCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Vary", "HX-Request-Type") // this response differs by it and bypasses a.render
 	if isFragment(r) {
 		// fetch would follow a 303 and swap whatever answers it into the fragment target.
-		w.Header().Set("HX-Redirect", "/games/"+game.ID)
+		w.Header().Set("HX-Redirect", "/games/"+string(game.ID))
 		return // 200, empty body
 	}
-	http.Redirect(w, r, "/games/"+game.ID, http.StatusSeeOther)
+	http.Redirect(w, r, "/games/"+string(game.ID), http.StatusSeeOther)
 }
 
 // renderForm re-renders a form with its errors and values at 422. It sets no

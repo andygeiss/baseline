@@ -2,12 +2,11 @@
 
 **Tier 1** (safety — never waived) · Last verified: 2026-09-08 · Sessions: `alexedwards/scs/v2` (v2.9.0) · Hashing: argon2id
 
-The cookie flags, `RenewToken` and `Destroy`, the argon2id parameters, the
-no-enumeration rule, the rate limits, `FindCtx` treating expired rows as not found,
-every machine-token rule, and re-resolving a long-lived connection are tier 1 wherever a
-checklist files them. The scs wiring,
-the store implementation, and the redirect mechanics are tier 2 — shape, waived only on
-the record.
+Tier 1: the cookie flags, the token hashed in the store, what the store's `FindCtx` and
+`DeleteCtx` must do, `RenewToken` and `Destroy`, ending a user's other sessions when the
+password changes, the no-enumeration rule, the argon2id parameters, the rate limits, the
+reset token, every machine-token rule, and re-resolving a long-lived connection. The
+rest of the scs wiring and the redirect mechanics are tier 2.
 
 Server-side sessions: the cookie carries only a random token; all session data lives in
 SQLite. Nothing is decrypted client-side, nothing to key-rotate, revocation is a DELETE.
@@ -24,30 +23,29 @@ Constructed in `main.go`, injected like every other dependency:
 sessions := scs.New()
 sessions.Lifetime = 12 * time.Hour
 sessions.IdleTimeout = 2 * time.Hour
-sessions.Cookie.Secure = cfg.Env == "prod" // TLS is in front only in production — see below
-sessions.Cookie.HttpOnly = true            // set both explicitly: scs defaults HttpOnly=true
+sessions.HashTokenInStore = true                // the database holds a SHA-256, never a usable token
+sessions.Cookie.Secure = cfg.Env == "prod"      // TLS is in front only in production — see below
+sessions.Cookie.HttpOnly = true                 // set both explicitly: scs defaults HttpOnly=true
 sessions.Cookie.SameSite = http.SameSiteLaxMode // and SameSite=Lax — don't "simplify" these away
-sessions.Store = store.NewSessionStore(readDB, writeDB) // see below
+sessions.Store = store.NewSessionStore(readDB, writeDB, sessions.Lifetime)
 ```
+
+`sessions.ErrorFunc` MUST be set, to the app's own `serverError`: scs's default writes a
+store error to the standard logger, unstructured.
 
 **`Secure` follows `ENV`, and that is not a weakened rule.** The binary only ever
 speaks plain HTTP; a proxy adds TLS in front of it
 ([project-types/web-application.md](../project-types/web-application.md)). A
 client returns a `Secure` cookie only over a connection it counts as secure, and
-clients make exactly one exception for plain HTTP: **loopback**. `curl` returns
-the cookie over `http://localhost` and `http://127.0.0.1`, and so does any
-browser following the secure-contexts rule, where loopback counts as trustworthy
-by definition. A flat `Secure = true` therefore survives on a laptop and hides
-the problem.
+clients make exactly one exception for plain HTTP: **loopback**, in `curl` and in
+any browser following the secure-contexts rule. A flat `Secure = true` therefore
+survives on a laptop and hides the problem.
 
-Nothing past loopback gets that exception. Point a phone at the LAN address to
-check the mobile-first layout this baseline mandates
-([css-layout.md](css-layout.md)), reach the app in a container by its
-hostname, or put a staging box on plain HTTP, and the cookie is not even stored
-— nobody signs in, and no page behind the sign-in form can be reached at all.
-`ENV` is the one setting that knows whether TLS is in front, because the
-deployment sets it ([go-config.md](go-config.md)) — so `Secure` in production,
-off in dev. `HttpOnly` and `SameSite=Lax` never fork: they cost nothing anywhere.
+Nothing past loopback gets that exception. Point a phone at the LAN address, or
+reach the app in a container by its hostname, and the cookie is not even stored:
+nobody signs in. `ENV` is the one setting that knows whether TLS is in front, because
+the deployment sets it ([go-config.md](go-config.md)) — so `Secure` in production,
+off in dev. `HttpOnly` and `SameSite=Lax` never fork.
 
 `sessions.LoadAndSave` wraps the mux (see [go-http-server.md](go-http-server.md)
 middleware chain).
@@ -71,12 +69,23 @@ multi-connection read pool (reintroducing `SQLITE_BUSY`). Implement `scs.CtxStor
 (`CtxStore` embeds `Store`, so both sets are required). scs passes the request
 context through to the `Ctx` variants automatically, so the per-request session
 queries honor cancellation — the context rule in [go-sqlite.md](go-sqlite.md).
-**`FindCtx` MUST treat expired rows as not found** (`WHERE token = ? AND expiry > ?`) —
-scs performs no expiry check of its own, so a store that returns expired rows keeps
-those sessions alive and every request refreshes their idle deadline, silently
-disabling `IdleTimeout`. The janitor only reclaims disk; `Find` enforces expiry. A ticker goroutine deletes
-expired rows every few minutes (owned lifecycle: stopped on shutdown — see
-[go-background-work.md](go-background-work.md)).
+Two MUSTs make it a session store:
+
+- **`FindCtx` treats expired rows as not found** (`WHERE token = ? AND expiry > ?`) —
+  scs performs no expiry check of its own, so a store that returns expired rows keeps
+  those sessions alive and every request refreshes their idle deadline, silently
+  disabling `IdleTimeout`. `expiry` is an INTEGER holding Unix time on both sides of that
+  comparison: a bound `time.Time` is stored as text in the local zone, and compares
+  wrong everywhere but UTC.
+- **`DeleteCtx` empties the row and keeps it; `CommitCtx` changes no emptied row, and
+  `FindCtx` finds none.** A request still in flight when a logout or `RenewToken` lands
+  commits the session it loaded — scs commits every loaded session under `IdleTimeout` —
+  and against a row that is gone that commit is an insert: the logged-out cookie is
+  signed in again, for whoever kept one slow request open. The emptied row's `expiry` is
+  now plus `Lifetime`; nothing loaded under the token is valid after that.
+
+The janitor only reclaims disk: a ticker goroutine deletes expired rows every few
+minutes ([go-background-work.md](go-background-work.md)).
 
 ## Login / logout flow
 
@@ -89,10 +98,15 @@ POST /logout         → sessions.Destroy(ctx) → 303 to /login
 MUST rules:
 
 1. **`RenewToken` on login and password change** — prevents session fixation.
-   Logout calls `Destroy` (the flow above), which removes the session entirely.
+   Logout calls `Destroy` (the flow above), which ends the session. **A password change
+   asks for the current password** — a route that checks a password, so rate limited
+   below — **and it ends the user's other sessions, as a reset ends all of them:** the
+   user row carries when the password last changed, a session stores that value at
+   login, and the middleware that loads the user row (*Machine tokens* rule 6) signs out
+   a session whose value differs.
 2. **No user enumeration.** Unknown email and wrong password return the identical
    message and take the same time: on unknown user, verify against a precomputed dummy
-   hash anyway.
+   hash anyway. Registration cannot hide a taken name; its rate limit bounds the probing.
 3. **Redirects are `303 See Other`.** For htmx-initiated logins from a fragment, send
    `HX-Redirect` instead (full page must change after auth transitions — never swap a
    logged-in fragment into a logged-out page).
@@ -102,7 +116,7 @@ MUST rules:
    follow a 303 transparently and swap the login page *into* the fragment target
    (rule 3). Every other request gets the 303: a boosted one swaps the whole
    `<body>`, so the login page lands whole, under its own URL.
-   Handlers read the user from the request context, placed there by the middleware.
+   Handlers read the user with `userFrom(r.Context())`; the middleware put it there.
    The rule-3 and rule-4 responses differ by `HX-Request-Type` but bypass the render
    helper, so they MUST `Add` the same `Vary: HX-Request-Type` header themselves —
    an un-`Vary`'d variant is cacheable against the wrong mode.
@@ -112,14 +126,13 @@ MUST rules:
 OWASP-recommended parameters (re-check when re-verifying this document):
 
 ```go
-argon2.IDKey(password, salt, 2, 19*1024, 1, 32)  // t=2, m=19 MiB, p=1, 32-byte key
+argon2.IDKey(password, salt, 2, 19*1024, 1, 32) // t=2, m=19 MiB, p=1, 32-byte key
 ```
 
 - 16-byte random salt from `crypto/rand` per password.
 - Store as a PHC string (`$argon2id$v=19$m=19456,t=2,p=1$<salt>$<hash>`) so parameters
   can be upgraded later; rehash-on-login when stored params are below current baseline.
 - Compare with `subtle.ConstantTimeCompare`.
-- bcrypt (cost ≥ 12) is the acceptable fallback; nothing weaker, ever.
 
 ## Rate limiting auth endpoints (`golang.org/x/time/rate`)
 
@@ -128,7 +141,9 @@ rate limited per client IP: a
 `map[string]*rate.Limiter` guarded by a mutex, e.g. `rate.NewLimiter(rate.Every(3*time.Second), 5)`,
 with a janitor evicting idle entries. Over limit → `429` with `Retry-After`.
 
-The map key is the client IP, and getting it is one short function because the
+The map key is the client IP — an IPv6 address cut to its /64
+(`netip.PrefixFrom(addr, 64).Masked()`), because one subscriber holds all of it and is
+otherwise a new client on every guess. Getting the IP is one short function, because the
 deployment contract already did the hard part:
 
 ```go
@@ -154,14 +169,13 @@ and a limiter keyed on `""` throttles every visitor as if they were one.
 ## Password reset (when needed)
 
 Single-use token from `rand.Text()`, **store only its SHA-256 hash**, 1-hour expiry,
-deleted on use; the plaintext token goes in the emailed link once. A used or expired
-token and an unknown email produce the same response (no enumeration). Consider
-sessions of that user revoked on successful reset.
+deleted on use; the plaintext token goes in the emailed link once. A known and an
+unknown address get the same answer to the request, and a used, an expired and a
+never-issued link the same answer to the link (no enumeration). A successful reset ends
+that user's sessions (rule 1).
 
-**How that link leaves the building is [go-email.md](go-email.md)** — the base URL it is
-built from, the outbox it waits in, and why nothing is sent inside the handler. Read it
-when the project grows its first outgoing message; the rules above are complete without
-it until then.
+**How that link leaves the building is [go-email.md](go-email.md)**: the base URL it is
+built from, the outbox it waits in, and why nothing is sent inside the handler.
 
 **Deleting the account is the case no session store can answer**, because the session row
 names no user: [go-data-deletion.md](go-data-deletion.md) puts the check in the middleware
@@ -169,10 +183,8 @@ that resolves the credential.
 
 ## Machine tokens (when a program is the user)
 
-A CLI or a script cannot hold a session cookie. Sessions are built for a browser:
-they idle out in two hours, they renew on login, and the cookie is ambient
-authority the browser attaches by itself. Give a program its own credential
-instead.
+A CLI or a script cannot hold a session cookie: sessions idle out, renew on login, and
+ride on a cookie the browser attaches by itself. Give a program its own credential.
 
 ```go
 // NewToken returns the secret to show the caller once, and the hash to store.
@@ -187,15 +199,12 @@ func NewToken() (secret, hash string) {
 
 MUST rules:
 
-1. **Store the SHA-256, never the token** — the same rule as a reset token
-   above, for the same reason: a leaked database then leaks nothing usable.
-2. **SHA-256 is the right hash here, and argon2id is not.** A password is short
-   and guessable, so the slow hash buys the time to notice a breach. This token
-   is 130 bits of randomness; nothing brute-forces that, and argon2id would spend 19 MiB
-   of memory on every single API request to protect a secret that needs no
-   protecting.
-3. **Show the secret once,** at creation, and never again. There is nothing to
-   show later — the server kept only the hash. Replacing a lost token is
+1. **The token is `rand.Text()`, and only its SHA-256 is stored** — the same rule as a
+   reset token above, for the same reason: a leaked database then leaks nothing usable.
+2. **SHA-256 is the right hash here, and argon2id is not.** This token is 130 bits of
+   randomness; nothing brute-forces that, and argon2id would spend 19 MiB of memory on
+   every API request.
+3. **Show the secret once,** at creation, and never again. Replacing a lost token is
    creating a new one and deleting the old.
 4. **The token travels in `Authorization: Bearer <secret>`.** MUST NOT accept it
    in a query string: URLs land in access logs, in `Referer` headers, and in
@@ -220,9 +229,8 @@ MUST rules:
 
 **A machine token needs no CSRF defense, and gets none.** `http.CrossOriginProtection`
 allows requests that carry no `Sec-Fetch-Site` and no `Origin`, which is every
-non-browser client, so the CLI is not blocked. That is correct rather than a
-loophole: CSRF is an attack on *ambient* authority, and a browser never attaches
-a bearer token by itself. The cookie half of the app is still covered.
+non-browser client, so the CLI is not blocked. That is no loophole: CSRF is an attack on
+*ambient* authority, and a browser never attaches a bearer token by itself.
 
 ## Re-resolving a long-lived connection
 
@@ -232,28 +240,26 @@ handshake presented and re-resolves it; [wasm-client.md](wasm-client.md) rule 6 
 what it may do and when it closes. This is tier 1, as that rule is:
 
 1. **At least every 10 seconds, unprompted, under a deadline inside the interval,** it
-   re-runs the handshake's checks: *Machine tokens* rule 6's lookup, to the user's row
-   (a token by its hash), and [go-authorization.md](go-authorization.md)'s access check,
-   the read made as that user, wherever the membership is held.
+   re-runs every check the socket has passed, at the handshake or since: *Machine tokens*
+   rule 6's lookup, to the user's row (a token by its hash), and
+   [go-authorization.md](go-authorization.md)'s access check for everything the socket
+   was admitted to, the read made as that user, wherever the membership is held.
 2. **It only reads.** No `last_used_at` touch, no `Destroy`.
 3. **A session's lookup is scs `Load` of the kept token into the app's own context**,
    where a deleted session comes back empty. Never `context.WithoutCancel(r.Context())`:
    it keeps the request's values, and `Load` returns the session data a context already
    holds, unchanged — the handshake's copy, alive after a logout deleted it.
 4. **A cookie the server keeps no record of**, naming no user and reaching none, has
-   nothing to revoke: its lookup checks only an expiry the cookie carries, if any, and the
-   access check re-runs whatever the handshake checked — for what the cookie names (a room
-   it was issued for) and what the socket's request named (`GET /ws?room=lobby`); only a
-   socket that passed no access check has nothing to re-check. Any other cookie is
-   re-resolved like a session.
+   nothing to revoke: its lookup checks only an expiry the cookie carries, if any. Its
+   access check is rule 1's all the same: everything the socket was admitted to. Any
+   other cookie is re-resolved like a session.
 5. **Only an HTTP request commits the session**, so under `IdleTimeout` a user who only
    uses the socket is closed at the idle window: `Load` finds the row expired.
 
 ## CSRF
 
-Handled globally by `http.CrossOriginProtection`, not per-form tokens — see
-[go-http-server.md](go-http-server.md). Session cookies with `SameSite=Lax` are the
-second, independent layer.
+[go-http-server.md](go-http-server.md) owns it: `http.CrossOriginProtection`, no per-form
+tokens. `SameSite=Lax` on the session cookie is the second, independent layer.
 
 ## Facts verified (2026-10-31)
 

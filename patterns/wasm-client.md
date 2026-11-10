@@ -24,11 +24,11 @@ with scripts off.
    every recipe running `tinygo` checks against `tinygo version` first
    ([stack/makefile.md](../stack/makefile.md) rules 4 and 5). That row also bounds the
    Go row: a Go minor TinyGo cannot build waits. A project moves with the row and
-   rebuilds its module in the same commit. A second optimizer, such as `wasm-opt`, is
-   named and checked the same way.
+   rebuilds its module in the same commit. TinyGo runs `wasm-opt` (Binaryen) from
+   `PATH` on every wasm build: its version is named and checked the same way.
 2. **The module is committed and embedded.** `make ci` needs no TinyGo unless `check`
    tests under it; `make wasm`, a makefile rule-3 target, rebuilds it. Beside each
-   module it writes a `.build` file (compiler version, flags, and rule 3's tags) and a
+   module it writes a `.build` file (both versions, flags, and rule 3's tags) and a
    `.sum` of its inputs — the Go and embedded files of the packages rule 3's `go list`
    reaches, `go.mod`, and the `.build`.
    **A server test recomputes the digest** with the tags the `.build` records, so a
@@ -81,9 +81,11 @@ Under `web/static/js/`, beside htmx, and nothing else:
 Both load deferred in `<head>`, before htmx, on the module's page only: a script in
 `<body>` runs again on every boosted swap. A boosted request swaps only the body, so a
 link or form whose answer is that page carries `hx-boost="false"`. For Back and Forward
-a link out needs nothing: the canonical `"history":"reload"` makes them full loads
-([stack/htmx.md](../stack/htmx.md) rule 6). The module still stops itself, socket and
-all, once its canvas has left the document.
+a boosted link out needs nothing: the canonical `"history":"reload"` makes them full
+loads ([stack/htmx.md](../stack/htmx.md) rule 6). The module still stops itself, socket
+and all, once its canvas has left the document. And it reloads the page on a `pageshow`
+event whose `persisted` is set: the unboosted way in makes this page a document of its
+own, and the browser brings one back from its cache with the socket closed.
 
 A script for anything else — a browser API with no Go reach, like audio after a gesture —
 is a waiver in the project's README, not this pattern.
@@ -138,7 +140,9 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    handshake — tier 1 — and the socket runs on a goroutine the app tracks. Inside its
    handler, the socket lets scs's `LoadAndSave`, which commits once the handler returns
    (under `IdleTimeout` every load is a change; `Hijack` marks nothing written), save
-   the handshake's session again after a logout deleted it. `http.ResponseController`
+   the handshake's session again after a logout deleted it — a commit the store also
+   refuses, for any request ([go-auth-sessions.md](go-auth-sessions.md)).
+   `http.ResponseController`
    calls a wrapper's own `Hijack` method if it has one (scs's does), else follows its
    `Unwrap`; a wrapper with neither fails with `ErrNotSupported`. `Hijack` leaves the
    connection with no deadline (Go clears the server's; the `Hijacker` doc allows that
@@ -203,7 +207,8 @@ HTML, so it is not the htmx WebSocket extension
 - htmx 4.0.0 keeps only the `<title>` of a swapped answer's `<head>`, and on Back or
   Forward to an entry it marked calls `location.reload()` when `history` is `"reload"`
   (otherwise it fetches the page and swaps the body): the vendored `htmx.min.js`, read;
-  Back after a boosted link out was run in headless Chromium only
+  Back after a boosted link out was run in headless Chromium only. Forward onto the
+  program page restored it from the cache, its socket closed with 1006: Chrome 157
 - The `js/wasm` staticcheck line flags an `//export` or `//go:wasmexport` function
   U1000, and `//lint:ignore U1000` above it clears that, executed: staticcheck 2026.2.2,
   TinyGo 0.44.0
