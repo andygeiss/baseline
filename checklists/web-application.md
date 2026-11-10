@@ -87,7 +87,7 @@ required reading, not a trigger.
 - [ ] Errors wrapped with `%w`
 - [ ] Internal error text never rendered to the browser
 - [ ] `log/slog` structured logging
-- [ ] No password, token, session id, query string, or person's name or address in a log — tier 1
+- [ ] Nothing *Never log* names reaches a log — tier 1
 - **Each step of a multi-dependency operation is marked required or enhancement:**
   - [ ] Every step carries one label or the other
   - [ ] The irreplaceable result is persisted before any enhancement runs
