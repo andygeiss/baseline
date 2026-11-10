@@ -82,7 +82,7 @@ func (c *Client) Notify(ctx context.Context, to, subject, body string) error {
 	case http.StatusUnprocessableEntity:
 		return fmt.Errorf("email: notify: %w", domain.ErrUnknownRecipient)
 	default:
-		return fmt.Errorf("email: notify: %s", resp.Status) // never the address: an error ends up in a log
+		return fmt.Errorf("email: notify: status %d", resp.StatusCode) // never what the server wrote: an error ends up in a log
 	}
 }
 ```
@@ -173,7 +173,7 @@ it tied to reality, and at one adapter it is enough:
 
    ```go
    // The key is a secret, so it arrives as a credential file (go-config.md).
-   n := email.NewClient(cfg.EmailURL, cfg.EmailKey)
+   n := email.NewClient(cfg.EmailURL, string(cfg.EmailKey))
    sent, err := app.RemindDue(ctx, n, due)
    ```
 

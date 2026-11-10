@@ -96,8 +96,8 @@ trade, not an oversight. `Timeout` bounds one attempt, so once it reaches the bu
 first attempt can use all of it and the context ends the work before a second starts.
 
 **A handler that inherits only `r.Context()` has no deadline of its own** — it runs until
-the client disconnects or `WriteTimeout` kills the socket. Fine for a millisecond query,
-wrong for anything that waits on another system.
+the client disconnects. Fine for a millisecond query, wrong for anything that waits on
+another system.
 
 Widening `WriteTimeout` past its canonical 30 s is a tier-2 waiver — record it, and name
 the budget that contains it. "The work takes longer than 30 s" is the reason to add a
@@ -118,12 +118,12 @@ func (c *Client) Forecast(ctx context.Context, city string) (domain.Forecast, er
 
 	resp, err := c.do(req)
 	if err != nil {
-		return domain.Forecast{}, fmt.Errorf("weather: forecast %q: %w", city, err)
+		return domain.Forecast{}, fmt.Errorf("weather: forecast: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return domain.Forecast{}, fmt.Errorf("weather: forecast %q: %w", city, statusError(resp))
+		return domain.Forecast{}, fmt.Errorf("weather: forecast: %w", statusError(resp))
 	}
 
 	var out domain.Forecast
@@ -148,19 +148,18 @@ func (c *Client) Forecast(ctx context.Context, city string) (domain.Forecast, er
    `http.MaxBytesHandler` ([go-http-server.md](go-http-server.md)): a broken or
    hostile server can stream until you run out of memory. 1 MiB, or a larger cap
    the API documents.
-5. **Wrap errors with what you were doing** (`%w`, per
+5. **Wrap errors with what you were doing, never with what you sent** (`%w`, per
    [go-errors-logging.md](go-errors-logging.md)). "connection refused" alone
-   names no dependency and no operation.
+   names no dependency and no operation; an argument in an error is in the log next.
 
 The helper:
 
 ```go
-// statusError reports the status and a short prefix of the body — an API's
-// error message is the fastest route to the cause, and the cap keeps a
-// 10 MB HTML error page out of the logs.
+// statusError reports the code and nothing the other side wrote. Its reason
+// phrase and its body can quote the request back, and an error ends up in a
+// log (go-errors-logging.md, Never log).
 func statusError(resp *http.Response) error {
-	snippet, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
-	return fmt.Errorf("%s: %s", resp.Status, bytes.TrimSpace(snippet))
+	return fmt.Errorf("status %d", resp.StatusCode)
 }
 ```
 
@@ -181,16 +180,17 @@ func (c *Client) do(req *http.Request) (*http.Response, error) {
 	delay := jitter(base) // the exact wait before the next attempt
 
 	// Do consumes and closes req.Body, so a second attempt needs GetBody to
-	// rebuild it. NewRequestWithContext fills GetBody in for *bytes.Buffer,
-	// *bytes.Reader and *strings.Reader — for any other reader it is nil, and
-	// replaying without it would send an empty body that the server accepts as
-	// a valid, wrong PUT. No replay available means no retry.
+	// rebuild it. NewRequestWithContext fills it in for *bytes.Buffer,
+	// *bytes.Reader and *strings.Reader only. No replay means no retry.
 	replayable := req.Body == nil || req.GetBody != nil
 
 	for attempt := 1; ; attempt++ {
 		resp, err := c.http.Do(req)
 		switch {
 		case err != nil:
+			if ue, ok := errors.AsType[*url.Error](err); ok {
+				err = ue.Err // drop the URL: its query string would reach the log
+			}
 			if req.Context().Err() != nil {
 				return nil, err // the context died, not the server
 			}

@@ -211,8 +211,8 @@ func (c Config) LogValue() slog.Value {
 redaction blocklist forgets the field somebody adds next year.
 
 **`LogValue` alone protects one shape, so a secret is also its own type.** It fires only
-when the `Config` *is* the value logged: nested in a struct, in a slice, in a map, or under
-a `fmt` verb, slog and fmt print the fields themselves. The type holds in all four:
+when the `Config` *is* the value logged: nested in a struct, in a slice, as a map's value, or
+under one of `fmt`'s string verbs, slog and fmt print the fields themselves. The type holds in all four:
 
 ```go
 // Secret is a value that must never reach a log line. The four methods are the
@@ -225,8 +225,8 @@ func (Secret) GoString() string             { return "REDACTED" }
 func (Secret) MarshalText() ([]byte, error) { return []byte("REDACTED"), nil }
 ```
 
-**It holds in an exported field only:** fmt cannot call a method on an unexported one,
-and prints the secret. And it stops at `main`, where the type lives: `internal/` is
+**It holds only where every field down to it is exported:** fmt cannot call a method
+through an unexported one, and prints the secret. And it stops at `main`, where the type lives: `internal/` is
 handed `string(cfg.SMTPKey)`. So a struct that holds a secret in an unexported field or
 as a plain string — an adapter and its key — is never logged or formatted whole.
 

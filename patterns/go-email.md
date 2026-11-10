@@ -3,8 +3,9 @@
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
 
 Building the link from `Config` rather than from the request, refusing a carriage
-return or newline in any header value, and refusing the log transport in production are
-tier 1. The port, the outbox, and which transport a project picks are tier 2.
+return or newline in any header value, refusing the log transport in production, and an
+answer that never changes with the send's outcome are tier 1. The port, the outbox, and
+which transport a project picks are tier 2.
 
 [go-auth-sessions.md](go-auth-sessions.md) says the plaintext reset token "goes in the
 emailed link once" and stops there. This document is the rest of that sentence. Mail is an
@@ -101,7 +102,8 @@ hand-roll the dot-writer's half.
 
 **This renders short text the app wrote, to a bare address.** Nothing here folds a long
 header or wraps a line past 998 octets, so a subject or a body line a user can lengthen is
-capped before it is queued, and `To` is an address alone, never `Ada <ada@example.com>`.
+capped before it is queued, short enough that its encoded line stays under 998 octets,
+and `To` is an address alone, never `Ada <ada@example.com>`.
 
 ## The message is queued, not sent, inside the handler
 
@@ -116,7 +118,8 @@ An outbox table, written in the same transaction as the thing that caused the ma
   is sent, or given up on, loses its body in the same statement:** the body holds the
   token, and [go-auth-sessions.md](go-auth-sessions.md) stores only that token's hash.
   **A message may be sent twice:** a crash between the relay's answer and the mark sends
-  it again. An orderly stop must not, so the mark runs under `context.WithoutCancel`.
+  it again, and so does a stop that cancels a call the other side had already taken.
+  The mark runs under `context.WithoutCancel`, so a stop after the answer does not.
 - **The handler answers immediately.** SMTP takes seconds and can hang; a handler waiting
   on it holds a request open against `WriteTimeout` and hands the reader a 500 for
   somebody else's outage.
@@ -131,8 +134,8 @@ An outbox table, written in the same transaction as the thing that caused the ma
   back — a relay's `550 5.1.1 <ada@example.com>: …`, a provider's JSON error — so
   neither adapter returns what the other side said. The SMTP adapter returns the reply's
   code, and a fixed string for a reply it cannot parse; the API adapter returns
-  `resp.StatusCode`, never `resp.Status`, whose reason phrase is the server's to write,
-  and never [go-http-client.md](go-http-client.md)'s `statusError`, which carries the body.
+  the status code, as [go-http-client.md](go-http-client.md)'s `statusError` does, never
+  `resp.Status`, whose reason phrase is the server's to write.
 
 ## Which transport
 
@@ -148,7 +151,8 @@ Pick one, name it in the README, and keep the choice inside the adapter.
   deadline on the connection inside the stop grace
   ([go-background-work.md](go-background-work.md)) — the context stops mattering once the
   dial returns — and hand it to `smtp.NewClient`. Then `StartTLS` before `Auth`:
-  `SendMail` did that for you.
+  `SendMail` did that for you. Drop `Quit`'s error: the relay took the message when the
+  data writer closed, and an error returned after that sends it again.
 - **A provider's HTTP API.** An ordinary outbound call, so
   [go-http-client.md](go-http-client.md) rules it: injected client, timeout, status
   checked, body capped.
@@ -167,7 +171,7 @@ is correct and still lands in spam if that half is missing.
 
 - **A fake mailer beside the consumer's tests** collects messages. Assert the outcome: a
   message to this address whose body holds a link under the configured base URL. Never
-  assert call counts ([go-ports-adapters.md](go-ports-adapters.md) rule 6).
+  assert call counts ([go-ports-adapters.md](go-ports-adapters.md)).
 - **The `Host` test is the regression test for the tier-1 rule.** Post a password-reset
   request carrying `Host: evil.example` and assert the queued link still points at
   `cfg.BaseURL`.
