@@ -185,8 +185,9 @@ look at the fixes ran; it is a check, and counts for nothing here.
   `03bb4c3`).
 - **`patterns/go-email.md`, whole.** Six reads, a medium in each. Its date did not move.
 - **`patterns/go-sqlite.md`, `patterns/go-file-uploads.md`, and in
-  `patterns/go-data-deletion.md` rule 6,** a prohibition since `2a21420`, its header, and
-  the two sentences `bd65def` added to *Testing*.
+  `patterns/go-data-deletion.md` rule 6,** a prohibition since `2a21420`, its header, the
+  two sentences `bd65def` added to *Testing*, and the password counter in its lookup
+  snippet and in the account's `DELETE`, added after the narrow look.
 - **`patterns/go-http-client.md`, `patterns/go-config.md`,
   `patterns/go-errors-logging.md` and `patterns/go-forms-validation.md`** (`09561c4`,
   `7793d93`, `eb27c42`).
@@ -244,10 +245,6 @@ look at the fixes ran; it is a check, and counts for nothing here.
 - **Medium — `patterns/time-and-dates.md` bans `time.Local` everywhere.** A CLI runs on
   the reader's machine and has no other zone, and `checklists/cli-tool.md` has no
   section that sends a tool that prints a time to that document.
-- **Medium — the only printed body of the credential lookup compares no password
-  counter.** `patterns/go-auth-sessions.md` rule 1 puts the comparison in *Machine tokens*
-  rule 6's lookup; rule 6 does not mention it, and the snippet in
-  `patterns/go-data-deletion.md` loads the user by id (2026-11-10).
 - **Medium — rules that meet the README's tier-1 test and that no document calls
   tier 1:** no `InsecureSkipVerify`; internal error text never reaching the browser;
   work that must not be lost being a table; the sent outbox row losing its body; the

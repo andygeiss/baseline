@@ -109,13 +109,14 @@ the credential loads the row:
 ```go
 // "Signed in" means a user that exists, not an id written into a session twelve
 // hours ago. One indexed read, and a deleted account is signed out everywhere it
-// was signed in — with no session rows to hunt and no second place to remember.
+// was signed in, with no session rows to hunt.
 id := domain.UserID(a.sessions.GetString(r.Context(), "userID"))
 if id == "" {
 	a.redirectToLogin(w, r)
 	return
 }
-u, err := a.users.User(r.Context(), id)
+// With the session's password counter: a row whose counter differs is not found.
+u, err := a.users.User(r.Context(), id, a.sessions.GetInt(r.Context(), "passwordVersion"))
 if errors.Is(err, domain.ErrNotFound) {
 	// The row is gone, so the cookie goes too. A failed destroy is tried again by
 	// the next request, which is why its error is dropped.
@@ -145,8 +146,7 @@ next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), userKey, u)))
   id: the old session then resolves to the next person's row, and that person's account
   is theirs. `rand.Text()` never repeats, and every snippet here assumes it. An
   `INTEGER PRIMARY KEY` repeats: bare, the moment the newest account is deleted; with
-  `AUTOINCREMENT`, the moment `users` is rebuilt, because the new table counts
-  on from the highest id still in it. Do not key `users` on one.
+  `AUTOINCREMENT`, the moment the table is rebuilt. Do not key `users` on one.
 
 ## The bytes are not in the transaction
 
@@ -188,9 +188,10 @@ account answering exactly like one that was never there. Three things it adds:
   draws, so with htmx switched off there is no confirmation at all, and there was never
   anything on the wire for the server to check either way.
 - **Deleting your own account asks for the password again.** A session found unlocked is
-  otherwise enough to erase somebody. That is a password check, so it is rate limited
-  like the login ([go-auth-sessions.md](go-auth-sessions.md) *Rate limiting auth
-  endpoints*), or the unlocked session is also a way to guess the password.
+  otherwise enough to erase somebody. That is a password check: its `DELETE` names the counter
+  its request loaded, and it is rate limited like the login
+  ([go-auth-sessions.md](go-auth-sessions.md) rule 1, *Rate limiting auth endpoints*),
+  or the unlocked session is also a way to guess the password.
 - **A restore is out of the binary's hands.** The rows come back with the backup, so the
   retention window is what makes a delete final; that window lives in the operations
   repository, and the README says which one applies. **Snapshots this binary wrote are

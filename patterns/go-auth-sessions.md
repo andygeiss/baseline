@@ -79,10 +79,9 @@ store:
   logged-out cookie is signed in again, for whoever kept one slow request open. A check
   in a statement of its own loses the same race, and a logout that finds its row expired
   empties nothing. The emptied row's `expiry` is now plus `Lifetime`; nothing loaded
-  under the token is valid after that.
-
-The janitor only reclaims disk: a ticker deletes rows an hour past their expiry
-([go-background-work.md](go-background-work.md)). Sooner, and a late commit inserts.
+  under the token is valid after that. And the janitor deletes a row an hour past its
+  expiry, never sooner ([go-background-work.md](go-background-work.md)): before that a
+  late commit would insert it again.
 
 ## Login / logout flow
 
@@ -98,16 +97,16 @@ MUST rules:
    Logout calls `Destroy` (the flow above), which ends the session. **A password change
    asks for the current password** — a route that checks a password, so rate limited
    below — **and it ends the user's other sessions, as a reset ends all of them:** the
-   user row carries a counter, a session stores its value at login, and *Machine tokens*
-   rule 6's lookup finds no user under a session whose value differs: the middleware
-   signs it out, and a socket's re-check closes it. **Every statement that writes a hash moves the counter, and a password
-   change's names the value its request loaded** (`… password_version =
-   password_version + 1 WHERE id = ? AND password_version = ?`): no row changed is a
-   refusal — a reset or another change landed while this one was open.
+   user row carries a counter, a session stores its value at login and at its own password
+   change, and *Machine tokens* rule 6's lookup finds no user under a session whose value
+   differs: the middleware signs it out, and a socket's re-check closes it. **Every
+   statement that sets a password moves the counter, and every statement a password or a
+   reset link allowed names the value its request loaded** (`… WHERE id = ? AND
+   password_version = ?`): no row changed is a refusal.
 2. **No user enumeration.** Unknown email and wrong password return the identical
    message and take the same time: on unknown user, verify against a precomputed dummy
    hash anyway. Registration by email address answers a taken and a free address the
-   same, and the mail says which; a public name cannot be hidden, and the rate limit
+   same, in the same time, and the mail says which; a public name cannot be hidden, and the rate limit
    bounds the probing.
 3. **Redirects are `303 See Other`.** For htmx-initiated logins from a fragment, send
    `HX-Redirect` instead (full page must change after auth transitions — never swap a
@@ -203,8 +202,7 @@ MUST rules:
 2. **SHA-256 is the right hash here, and argon2id is not.** This token is 130 bits of
    randomness; nothing brute-forces that, and argon2id would spend 19 MiB of memory on
    every API request.
-3. **Creating one asks for the password, as a password change does, and shows the
-   secret once,** never again. Replacing a lost token is creating a new one and deleting
+3. **Creating one asks for the password and shows the secret once,** never again. Replacing a lost token is creating a new one and deleting
    the old.
 4. **The token travels in `Authorization: Bearer <secret>`.** MUST NOT accept it
    in a query string: URLs land in access logs, in `Referer` headers, and in
