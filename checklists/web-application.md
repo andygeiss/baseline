@@ -299,7 +299,8 @@ the tokens layer and dark mode.
 - [ ] Each table's answer — erase, anonymize, refuse — is written where the shared rows are
 - [ ] The credential middleware loads the user row, so a deleted account is signed out
 - [ ] A user id is never handed out twice
-- [ ] A password re-check before the delete is rate limited like the login
+- [ ] A self-service delete asks for the password again
+- [ ] That check is rate limited like the login
 - [ ] Outbox rows carrying their address go with the account
 - [ ] Bytes on disk are unlinked after the commit, from names collected inside it
 - [ ] The all-tables test reads the schema at runtime and finds the id in no table

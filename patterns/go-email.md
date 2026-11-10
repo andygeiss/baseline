@@ -72,13 +72,14 @@ one configured value, and the boot check refuses a line break in it once
 // Nothing here escapes a header value, because nothing here may need to — the
 // two checks above have already run. That order is the rule: they run before
 // anything writes a header, never after.
-func (s *Sender) message(m domain.Mail) []byte {
+func (s *Sender) message(m domain.Mail, sent time.Time) []byte {
 	var b bytes.Buffer
 	fmt.Fprintf(&b, "From: %s\r\n", s.from)
 	fmt.Fprintf(&b, "To: %s\r\n", m.To)
 	// RFC 5322 requires the date, and receivers mark down a message with no id.
-	// s.host is the base URL's host: an id wants a domain the app owns.
-	fmt.Fprintf(&b, "Date: %s\r\n", time.Now().UTC().Format(time.RFC1123Z))
+	// s.host is the base URL's Hostname(), so no port: an id wants a domain the
+	// app owns, and url.Parse refused a line break in it at boot.
+	fmt.Fprintf(&b, "Date: %s\r\n", sent.UTC().Format(time.RFC1123Z))
 	fmt.Fprintf(&b, "Message-ID: <%s@%s>\r\n", rand.Text(), s.host)
 	// QEncoding leaves plain ASCII alone and encodes anything else, so a room
 	// name with an umlaut in the subject arrives as one.
@@ -120,7 +121,9 @@ An outbox table, written in the same transaction as the thing that caused the ma
 - **Log the outbox id, never the address or the body.** The body holds the token, and an
   address in a log line is a copy of somebody's data that no account deletion reaches. The
   id resolves to the row for as long as the row exists — and the row goes when the account
-  does ([go-data-deletion.md](go-data-deletion.md)).
+  does ([go-data-deletion.md](go-data-deletion.md)). A relay's refusal can quote the
+  address back (`550 5.1.1 <ada@example.com>: …`), so the SMTP adapter returns the
+  reply's code, never its text.
 
 ## Which transport
 
@@ -133,7 +136,10 @@ Pick one, name it in the README, and keep the choice inside the adapter.
   authentication rather than leaking the password. **Never `smtp.SendMail`:** it takes
   no context and sets no deadline, so a relay that accepts and then says nothing holds
   the ticker, and the shutdown behind it. Dial with `net.Dialer.DialContext`, set a
-  deadline on the connection, and hand it to `smtp.NewClient`.
+  deadline on the connection inside the stop grace
+  ([go-background-work.md](go-background-work.md)) — the context stops mattering once the
+  dial returns — and hand it to `smtp.NewClient`. Then `StartTLS` before `Auth`:
+  `SendMail` did that for you.
 - **A provider's HTTP API.** An ordinary outbound call, so
   [go-http-client.md](go-http-client.md) rules it: injected client, timeout, status
   checked, body capped.

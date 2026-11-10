@@ -5,8 +5,8 @@
 What a delete reaches, a credential resolving to a row rather than to an id, a user id
 never handed out twice, and the actor predicate on the delete itself are tier 1. Which
 tables anonymize rather than erase, where the confirmation lives, the janitor, and how
-many snapshots the binary keeps are tier 2 — they decide how a delete reads, not whether
-the data is gone.
+many snapshots the binary keeps are tier 2: the first three decide how a delete reads,
+the last how long a copy outlives it.
 
 Every other document here rules data arriving. This one rules data leaving, and it is the
 one that composes: deleting a person touches their rows
@@ -169,11 +169,10 @@ an invitation goes to somebody who is not a user yet — and the delete reaches 
 there. So the deleting transaction also deletes the outbox rows that have no `user_id`
 and carry the account's address — the one delete the schema cannot declare.
 
-**A goodbye message therefore cannot be queued by the transaction that deletes the
-account.** Queued before the delete, the cascade takes it away again; queued after, it is
-one more row holding the address of an account that is gone. An unsent goodbye goes with
-the account whichever transaction queued it: queue it when the person asks and delete in
-a later request, once the ticker has sent it — or do not send it.
+**So there is no goodbye message.** Queued before the delete, an unsent one goes with
+the account, whichever transaction queued it; queued after, it is one more row holding
+the address of an account that is gone. And a delete that waits for the send waits on a
+relay. The page that confirms the delete is the goodbye.
 
 ## Deleting is a write
 

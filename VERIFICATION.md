@@ -260,6 +260,8 @@ grade is a decision or a note.
     `ui-monospace`. Dropping the name is the other fix.
   - `patterns/security-headers.md` is stamped tier 1, and its header places only some
     of its MUSTs. The ban on extra headers and the HSTS options read as tier 1 too.
+  - `patterns/go-data-deletion.md` is stamped tier 1 as well, and its header does not
+    place asking for the password again.
   - How many snapshots a binary keeps is the project's number. Whether
     `patterns/go-sqlite.md` should carry a default is open.
   - No poll re-renders a relative time. Whether `patterns/htmx-live-updates.md` should
@@ -290,8 +292,10 @@ carries that run's changes:
 - `internal/smtpmail` writes the body with no bare-CR replacement, and the message
   with no `Date`, `Message-ID` or `Content-Transfer-Encoding`.
 - `internal/app/account.go` checks the password on account deletion with no rate limit.
+- `internal/store/users.go` deletes the account in one statement, with no delete of
+  outbox rows by address.
+- `internal/store/outbox.go` keeps the body of a row it has sent or given up on.
 - `cmd/server/main.go` removes only today's snapshot; older ones are never pruned.
-- `web/templates/room.html` renders a relative time on every message a list poll appends.
 - `web/static/css/app.css:438` and `:461` use `var(--step--1)`, which nothing defines.
 - `web/static/css/app.css:490` and `:471` use `user-select: all` and `resize: vertical`,
   both Baseline Limited.

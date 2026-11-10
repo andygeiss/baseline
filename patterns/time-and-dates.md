@@ -87,8 +87,9 @@ The server renders "3 minutes ago" and the page may sit open for an hour. No pol
 this corpus re-renders what has not changed: a list poll appends rows and then leaves
 them alone, and a region poll answers 204 until there is news
 ([htmx-live-updates.md](htmx-live-updates.md)). So a relative time goes stale wherever it
-is rendered, and the exact moment always sits beside it: `title` for a person,
-`datetime` for a machine. Where the hour matters, render the absolute time.
+is rendered, and the exact moment always sits beside it: `datetime` for a machine, and
+`title` for a person wherever the zone answer prints clock times. Where the hour matters,
+render the absolute time.
 
 Round down, and stop at a day. "2 hours ago" is useful, "just now" is friendly, and
 "4 months ago" is a date the reader has to work out — past a day, show the date.
