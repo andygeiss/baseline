@@ -3,7 +3,7 @@
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05
 
 **Two rules here are tier 1 and never waived:** a secret never arrives on the command
-line (*Flags and subcommands*), and a tool that listens answers only the person who
+line (*Config precedence*), and a tool that listens answers only the person who
 started it (*A tool that listens*). Whether the tool grows a `-json` flag is tier 3,
 chosen per project.
 
@@ -47,11 +47,14 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
   shutdown can take more than a heartbeat, restore the force-kill escape hatch by
   adding `go func() { <-ctx.Done(); stop() }()` right after creating the context
   (unregistering returns the signal to what it was: terminate, unless the tool was
-  started with it ignored).
+  started with it ignored). Never in a tool that owns a child
+  ([go-child-process.md](go-child-process.md)).
 - **`run` maps the parser's three outcomes itself** when it uses
   [go-config.md](go-config.md)'s `parseConfig`: `flag.ErrHelp` returns `nil`, a
   `FlagSet` error returns `errUsage`, and any other one is printed and returns
   `errUsage` too — or `-h` and a bad value both exit 1 through the `default` above.
+  A command that takes no arguments refuses `fs.NArg() != 0` the same way: `flag` stops
+  at the first argument, and every flag after it is ignored in silence.
 - **Exit codes:** `0` success, `1` failure, `2` usage error (the `flag` package's
   own convention). Scripts branch on these; don't invent more without documenting
   them in `-h`.
@@ -156,7 +159,8 @@ func token(path string) (Secret, error) {
 MUST NOT take a secret on the command line, as a flag's value or as an argument: it
 shows up in `ps` and in shell history. A missing token file is an error, never a
 silent fall-through to no token — that answers "not signed in" and sends the reader
-looking in the wrong place.
+looking in the wrong place. So is a secret that holds a control character: a second
+line in the file makes `net/http` refuse the header on every request.
 
 ## Streams
 
@@ -241,15 +245,22 @@ and a browser on the same machine can reach a loopback port from any page it has
 With no rule the listener forwards a stranger's form post, the user's token added. It
 MUST:
 
-1. **Bind `127.0.0.1`,** never every interface, and print the address it bound.
+1. **Bind `127.0.0.1`,** never every interface, with `net.Listen`, before anything slow
+   starts, and print the address that listener holds.
 2. **Refuse a request whose `Host` is not that address.** A name that resolves to
    loopback makes a page on another site same-origin with the port.
 3. **Carry [go-http-server.md](go-http-server.md)'s cross-origin wrap and body cap**
-   (*Middleware* items 4 and 6), **its four timeouts, its `ErrorLog` and its `serve`**
-   (*Server lifecycle*).
-4. **Refuse a request whose `Sec-Fetch-Site` is `cross-site` or `same-site`,** whatever
-   its method. The wrap lets every GET through, and a tool that forwards cannot promise
-   that a GET changes nothing behind it.
+   (*Middleware* items 4 and 6), **its four timeouts, its `ErrorLog`** — over a `slog`
+   text handler on stderr — **and its `serve`** (*Server lifecycle*), with `srv.Serve(ln)`
+   where that has `ListenAndServe`.
+4. **Refuse a request whose `Sec-Fetch-Site` is `cross-site` or `same-site`, or whose
+   `Origin` is not its own,** whatever its method. The wrap lets every GET through, and a
+   tool that forwards cannot promise that a GET changes nothing behind it. A WebSocket
+   handshake is a GET that carries no `Sec-Fetch-Site` at all; its `Origin` is what
+   refuses it.
+5. **Never forward a request whose `Sec-Fetch-Site` is `none`.** That is a navigation
+   somebody typed, or a link that redirected here with a path of its choosing: the tool
+   answers it from its own pages.
 
 ```go
 // local wraps the tool's own listener; addr is the address it bound.
@@ -257,8 +268,8 @@ func local(addr string, next http.Handler) http.Handler {
 	csrf := http.NewCrossOriginProtection()
 	h := csrf.Handler(http.MaxBytesHandler(next, 1<<20))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s := r.Header.Get("Sec-Fetch-Site")
-		if r.Host != addr || s == "cross-site" || s == "same-site" {
+		s, o := r.Header.Get("Sec-Fetch-Site"), r.Header.Get("Origin")
+		if r.Host != addr || s == "cross-site" || s == "same-site" || o != "" && o != "http://"+addr {
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
@@ -291,3 +302,9 @@ command), unknown command and top-level `-h` where dispatch exists, bad flag
 (expect `errUsage`), and — where `-json` exists — that each line of the output
 parses back with `encoding/json/v2`. Strategy and coverage bar per
 [go-testing.md](go-testing.md).
+
+A tool that listens tests `local` with the bound address as `Host` in every case but
+one — a request `httptest.NewRequest` builds is refused on its `Host` alone, and proves
+nothing else. A cross-site request, a same-site one and a handshake with a foreign
+`Origin` are refused; a foreign `Host` with nothing else is refused; a plain request is
+answered.
