@@ -100,7 +100,7 @@ Outermost → innermost:
 4. **CSRF: `http.NewCrossOriginProtection()`** (stdlib, Go 1.25+) — rejects unsafe
    cross-origin requests via `Sec-Fetch-Site`, falling back to Origin-vs-Host. The chain
    MUST carry it. It never checks GET, HEAD or OPTIONS. No tokens, no per-form wiring.
-   Only pre-2020 browsers lack these headers. Do not add a token library on top.
+   Only pre-2023 browsers lack these headers. Do not add a token library on top.
 5. `sessions.LoadAndSave` ([go-auth-sessions.md](go-auth-sessions.md)), then
    `requireAuth` on the private routes — never one route at a time, which fails open
    ([go-authorization.md](go-authorization.md)). Static assets never reach it.

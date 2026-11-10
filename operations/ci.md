@@ -105,7 +105,8 @@ Two things nobody does for you:
 By hand, under the pin, on the same 90-day cycle or when
 [VERSIONS.md](../VERSIONS.md) moves. The first line sets the pin for this shell; the
 second updates the dependencies the module's packages import — not those only its
-tests import — and runs the gates. Read the `go` line (below) before you commit what it
+tests import — and runs the gates; a module with a row in `VERSIONS.md` adds the holds
+below the block to that line. Read the `go` line (below) before you commit what it
 leaves as one `chore(deps)` commit:
 
 ```sh
