@@ -50,7 +50,7 @@ check:
 # make it green. Run before every push. go version runs first, inside the
 # copy, so the run records which toolchain ran. The archive goes through a
 # file so git's exit status stops the run; one shell line so the trap cleans
-# up however check ends.
+# up when check ends, green or red.
 ci:
 	t=$$(mktemp); d=$$(mktemp -d); trap 'rm -rf "$$t" "$$d"' EXIT; git archive -o "$$t" HEAD && tar -xf "$$t" -C "$$d" && go -C "$$d" version && $(MAKE) -C "$$d" check
 
@@ -155,7 +155,8 @@ test:
      `go build ./...` too when it matches only the main package, since one main
      package is not "multiple packages". Extend `clean` to `rm -rf bin/ <tool>`
      and add `/<tool>` to `.gitignore`; the leading slash keeps an
-     `internal/<tool>/` package tracked.
+     `internal/<tool>/` package tracked. A tool that does nothing without
+     arguments deletes `run`, which could only print its usage and fail.
    - *Multi-binary module* (the sanctioned `cmd/<name>/` layout): set
      `MAIN = ./cmd/<name>` for the binary `run` serves, and in `build` replace
      `$(MAIN)` with `./cmd/...` so every binary lands in `bin/`; reword the

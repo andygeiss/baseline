@@ -87,11 +87,13 @@ of it: the Makefile says what runs, and this document says why.
 
 Two things nobody does for you:
 
-- **The Go version.** `GOTOOLCHAIN=auto`, the default, runs whatever Go on the machine
+- **The Go version — tier 1 when the pin's note names a security fix.** The gates run
+  under the pinned patch or a later patch of the same minor, never below it and never
+  under a newer major. `GOTOOLCHAIN=auto`, the default, runs whatever Go on the machine
   satisfies `go.mod`'s `go 1.27` line — a newer major [VERSIONS.md](../VERSIONS.md)
   has not adopted, or a patch below the floor it names, both included. When the run's
-  `go version` line is not the pin, put `GOTOOLCHAIN=go1.27.3` in front of every `go`
-  and `make` command — never a `toolchain` line in `go.mod`. The `go fix -diff` gate
+  `go version` line is below the pin, or a newer major, put `GOTOOLCHAIN=go1.27.3` in
+  front of every `go` and `make` command — never a `toolchain` line in `go.mod`. The `go fix -diff` gate
   can make a newer major red rather than silent: the fixers ship with the toolchain,
   and a newer Go demands idioms the pin never asked for.
 - **The scan.** `govulncheck` runs only when somebody runs the gates. Re-scan untouched
@@ -110,6 +112,12 @@ leaves as one `chore(deps)` commit:
 export GOTOOLCHAIN=go1.27.3
 go get -u ./... && go mod tidy && make check
 ```
+
+**A module that requires a [VERSIONS.md](../VERSIONS.md) row is held at that row in the
+same command,** or `-u` moves it to a release the baseline has not adopted with every
+gate green. The SQLite driver takes its libc with it, at the version that driver
+release's own `go.mod` names:
+`go get -u ./... modernc.org/sqlite@<the row> modernc.org/libc@<the driver's>`.
 
 Anything that breaks on a routine update is a candidate for removal. When the Go pin
 moved a major, `make check` may be red on the idioms the new toolchain rewrites:

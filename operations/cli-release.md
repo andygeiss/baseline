@@ -6,7 +6,9 @@ How a [CLI tool](../project-types/cli-tool.md) reaches its users. For a CLI the
 release *is* the deployment — and the release is a tag. There is no build server and
 no artifact: `go install` builds the tool on the machine that will run it, from the
 tag. `make check` proves it builds with cgo off; `go install` uses the user's own cgo
-setting, and the result only has to run on that user's machine.
+setting, and the result only has to run on that user's machine. It uses the user's own
+Go as well: the pin in [VERSIONS.md](../VERSIONS.md) binds the author's gates, not that
+build, so the README's install line names the Go patch the pin sets as the floor.
 
 ## `go install` is the one channel
 
@@ -89,7 +91,7 @@ subcommands answers `<tool> version` in place of `<tool> -version`:
 
 ## Rollback
 
-Fix a bad release by tagging `vX.Y.Z+1`, never by moving or deleting a published
+Fix a bad release by tagging the next patch version, never by moving or deleting a published
 tag. proxy.golang.org keeps a version it has served after the origin changes, and
 sum.golang.org records its hash for good, so a moved tag ships two binaries under one
 version or fails verification. If a release is actively harmful, retract it in

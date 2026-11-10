@@ -2,9 +2,10 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05
 
-**One rule here is tier 1 and never waived:** a secret never arrives as a flag *value*,
-because `ps` and shell history both keep it. Whether the tool grows a `-json` flag is
-tier 3, chosen per project.
+**Two rules here are tier 1 and never waived:** a secret never arrives on the command
+line (*Flags and subcommands*), and a tool that listens answers only the person who
+started it (*A tool that listens*). Whether the tool grows a `-json` flag is tier 3,
+chosen per project.
 
 The mechanics behind [project-types/cli-tool.md](../project-types/cli-tool.md):
 process skeleton, flags, streams, exit codes, version reporting, testing.
@@ -45,7 +46,12 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
   until `stop()` runs, so further Ctrl-Cs are swallowed — in a tool whose
   shutdown can take more than a heartbeat, restore the force-kill escape hatch by
   adding `go func() { <-ctx.Done(); stop() }()` right after creating the context
-  (unregistering returns the signal to its default disposition: terminate).
+  (unregistering returns the signal to what it was: terminate, unless the tool was
+  started with it ignored).
+- **`run` maps the parser's three outcomes itself** when it uses
+  [go-config.md](go-config.md)'s `parseConfig`: `flag.ErrHelp` returns `nil`, a
+  `FlagSet` error returns `errUsage`, and any other one is printed and returns
+  `errUsage` too — or `-h` and a bad value both exit 1 through the `default` above.
 - **Exit codes:** `0` success, `1` failure, `2` usage error (the `flag` package's
   own convention). Scripts branch on these; don't invent more without documenting
   them in `-h`.
@@ -134,22 +140,23 @@ precedence:
 
 ```go
 // token prefers the file, because $MYTOOL_TOKEN leaks into every child process.
-func token(path string) (string, error) {
+// Secret is go-config.md's type: a -v line that prints the config prints REDACTED.
+func token(path string) (Secret, error) {
 	if path == "" {
-		return os.Getenv("MYTOOL_TOKEN"), nil
+		return Secret(os.Getenv("MYTOOL_TOKEN")), nil
 	}
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return "", fmt.Errorf("read token file: %w", err)
 	}
-	return strings.TrimSpace(string(b)), nil // the file usually ends in a newline
+	return Secret(strings.TrimSpace(string(b))), nil // the file usually ends in a newline
 }
 ```
 
-MUST NOT take a secret from a flag *value*: it shows up in `ps` and in shell
-history. A missing token file is an error, never a silent fall-through to no
-token — that answers "not signed in" and sends the reader looking in the wrong
-place.
+MUST NOT take a secret on the command line, as a flag's value or as an argument: it
+shows up in `ps` and in shell history. A missing token file is an error, never a
+silent fall-through to no token — that answers "not signed in" and sends the reader
+looking in the wrong place.
 
 ## Streams
 
@@ -225,6 +232,44 @@ are in [operations/web-application.md](../operations/web-application.md)
 - Partial work must be safe: either each unit of work is atomic (temp file +
   rename, SQLite transaction) or the tool is idempotent so rerunning repairs the
   interruption.
+
+## A tool that listens
+
+**Tier 1.** A tool that serves the person who started it
+([project-types/cli-tool.md](../project-types/cli-tool.md)) is a server while it runs,
+and a browser on the same machine can reach a loopback port from any page it has open.
+With no rule the listener forwards a stranger's form post, the user's token added. It
+MUST:
+
+1. **Bind `127.0.0.1`,** never every interface, and print the address it bound.
+2. **Refuse a request whose `Host` is not that address.** A name that resolves to
+   loopback makes a page on another site same-origin with the port.
+3. **Carry [go-http-server.md](go-http-server.md)'s cross-origin wrap and body cap**
+   (*Middleware* items 4 and 6), **its four timeouts, its `ErrorLog` and its `serve`**
+   (*Server lifecycle*).
+4. **Refuse a request whose `Sec-Fetch-Site` is `cross-site` or `same-site`,** whatever
+   its method. The wrap lets every GET through, and a tool that forwards cannot promise
+   that a GET changes nothing behind it.
+
+```go
+// local wraps the tool's own listener; addr is the address it bound.
+func local(addr string, next http.Handler) http.Handler {
+	csrf := http.NewCrossOriginProtection()
+	h := csrf.Handler(http.MaxBytesHandler(next, 1<<20))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s := r.Header.Get("Sec-Fetch-Site")
+		if r.Host != addr || s == "cross-site" || s == "same-site" {
+			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+```
+
+A tool that forwards is bound by [go-http-client.md](go-http-client.md)'s ladder too:
+nothing streams past its budget, and a forwarded body that reaches the cap is an error,
+never a shorter answer.
 
 ## Testing
 

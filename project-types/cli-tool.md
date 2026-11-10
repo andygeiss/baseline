@@ -3,7 +3,8 @@
 **Last verified: 2026-09-05**
 
 Command-line tool: starts, does one job, exits — or, in the foreground, serves the person
-who started it until Ctrl-C, like a local proxy. If the process is meant to stay up
+who started it until Ctrl-C, like a local proxy, under
+[patterns/go-cli.md](../patterns/go-cli.md) *A tool that listens*. If the process is meant to stay up
 unattended, or to serve other people, it is not a CLI — build a
 [web application](web-application.md).
 

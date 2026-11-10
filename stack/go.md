@@ -4,7 +4,7 @@
 Go 1.27.3 ([VERSIONS.md](../VERSIONS.md))
 
 The Go pin itself is tier 1: its note in [VERSIONS.md](../VERSIONS.md) names a security
-fix.
+fix. [operations/ci.md](../operations/ci.md) *The Go version* is the rule.
 
 ## Toolchain
 
