@@ -16,14 +16,12 @@ A run has two halves, and a release needs both.
 
 1. **The adversarial half.** Independent reviewers hunt cross-document
    contradictions, trace every canonical snippet's mechanics end to end, and
-   check factual claims against upstream sources (Go, htmx, scs, SQLite). They
-   repeat until **two consecutive passes find nothing high and nothing medium**,
-   as *Grading a finding* below defines the two. **A pass reads whole, as it stands
-   after the last fix, every document changed since the last tag and everything
-   *Owed* lists under *Unread, or read and never passed*.** A read of less — a diff,
-   or only the documents the last pass failed — is a check: it can find a defect,
-   and it counts for nothing here. Two reviewers on one text at one time are one
-   pass. Reading is not
+   check factual claims against upstream sources (Go, htmx, scs, SQLite). **The
+   unit is one document.** A read is one reviewer taking one document whole, as it
+   stands. A read that finds nothing high and nothing medium, as *Grading a finding*
+   below defines the two, moves that document's `Last verified` date; nothing else
+   does. A read of less — a diff, a section, two reviewers with half each — is a
+   check: it can find a defect, and it moves no date. Reading is not
    enough on its own: every canonical Go snippet gets compiled and run through
    `gofmt`, `go vet`, `go fix -diff`, `staticcheck`, and `govulncheck`, the
    canonical `Makefile` runs end to end under GNU Make 3.81, the version macOS's
@@ -32,8 +30,8 @@ A run has two halves, and a release needs both.
    for each project type the change reaches, written from this corpus and nothing
    else — not the reference, not another project — and using every changed rule a
    build can exercise. Its `make check` and `make ci` are green, or what stopped
-   them is a high finding. What no build can exercise, the pass reads. A build that
-   could not run is a pass that did not happen.
+   them is a high finding. What no build can exercise, a read covers. A build that
+   could not run did not happen.
 2. **The empirical half.** [baseline-reference](https://github.com/andygeiss/baseline-reference)
    implements the corpus end to end. It is synced to the change, and its
    `./verify.sh` runs every mechanical gate, then boots the real binary and
@@ -76,22 +74,25 @@ ships the same thing.
 **Evidence, or it is not a finding.** The command and its output, or the source and
 the sentence that contradicts the claim.
 
-**A low never holds a tag.** It is fixed in the run or listed under *Owed*. A fix made
-after the last pass is unread: *Owed* names its commit, and the next run reads it.
-Such a fix changes wording and nothing else. One that changes what a rule requires, a
-snippet, a recipe, or any statement of a tier-1 rule — the rule, its header, its
-README entry, its box — is a new change: the count of passes starts again, or the low
-stays listed.
+**A high holds a tag. A medium does not, once *Owed* lists it with its document; a low
+never does.** A document a fix touches is unread from that commit on: *Owed* names the
+commit, and the document's date certifies the text before it and no more.
+
+**A fix removes, tightens or corrects.** It takes out a sentence or an option, narrows
+a sentence, or puts a snippet or a fact right. A fix that would add a rule or a
+mechanism is a change of its own: it is listed as a decision, and lands when the owner
+takes it. On 2026-11-10 three rounds of fixes that added rules each gave the next read
+its highs.
 
 ## The tag gate
 
 **No tag ships until the first four are true, and no release is finished until the
 fifth is.** This is a gate, not a goal, and it has no override.
 
-1. Two consecutive adversarial passes find nothing high and nothing medium, and in
-   each of them the build from the documents alone is green. The passes read the
-   changed documents and everything *Owed* lists as unread. `make structure` and
-   `make tokens` exit 0, or the budget's waiver is on the record.
+1. No high is known and unfixed, in any document. Every medium that is known is listed
+   under *Owed* with its document. A build from the documents alone is green for each
+   project type the release's changes reach. `make structure` and `make tokens` exit 0,
+   or the budget's waiver is on the record.
 2. The reference implementation is synced to the change, *The reference, behind this
    corpus* below is empty, and `./verify.sh` exits 0 against the baseline commit its
    `SPEC.md` pins.
@@ -105,11 +106,10 @@ fifth is.** This is a gate, not a goal, and it has no override.
 **A change that alters no rule, snippet or recipe skips the build:** a typo, a link
 that moved, a pin. Condition 2 is its build.
 
-**One change does not wait for *Owed*: a pin whose note names a security fix.** That
-pin is tier 1, so it ships alone — the `VERSIONS.md` row and the places that pin sits,
-nothing else — on a run over that diff. That run neither reads nor clears *Owed*. A
-pin that cannot go green without changing a rule ships with that rule and nothing else,
-on a run over that diff.
+**A pin whose note names a security fix ships alone.** That pin is tier 1: the
+`VERSIONS.md` row and the places that pin sits, nothing else. One that cannot go green
+without changing a rule ships with that rule and nothing else, and the document that
+rule sits in is read whole first.
 
 **Condition 1 asked for zero defects until 2026-11-09, and six releases in a row
 shipped without it.** v4.8.0 through v5.2.0 each went out on Andy's decision, each
@@ -124,6 +124,14 @@ builds from the documents alone, in passes 10 to 16, every one a web application
 green through both, so the build is a floor and not the proof. Andy decided the bar on
 2026-11-09: high and medium, and a build. The sentences are Claude's; the ones that
 changed what ships after that day are listed under *Decisions left to Andy*.
+
+**It asked for two clean passes over everything until 2026-11-10, and one day showed it
+would not get them.** Four passes over one set of documents each found highs, most of
+them in the fixes of the pass before, and a stronger reviewer found more, not fewer.
+Andy decided the present bar that evening: no known high, every known medium listed, the
+reference's `verify.sh` as the hard gate, and a date for each document that comes back
+clean. The same evening he took out the two areas that had never passed a read and
+that one project used: the entry *Retired* under *Owed*.
 
 **Conditions 2 and 4 were one sentence until 2026-08-18, and it was one no release
 could meet.** It read "`./verify.sh` exits 0 against the exact baseline commit
@@ -152,14 +160,14 @@ a run, and on the release page after the tag. The entries as they stood at v5.2.
 narrative and measurements included, are in this file at that tag; the v5.2.0 run is on
 its release page.
 
-**This section says what the next run faces.** Its first pass checks this section
+**This section says what the next run faces.** Its first reader checks this section
 against the last run's commit bodies and the last release page before it reads anything
-else: the section is written after a run's last pass, so nobody has read it. Then it
-reads everything under *Unread, or read and never passed*. An entry leaves that list
-when a whole read of it, as it stands, finds nothing high or medium. Listing a finding
-under *Known, not fixed* does not waive it: a pass that reads its document finds it
-again, and a high or a medium then holds the tag. An entry with no grade is a decision
-or a note.
+else: the section is written at the end of a run, so nobody has read it. Then it
+reads what is under *Unread, or read and never passed*, one document at a time. An entry
+leaves that list when a whole read of it, as it stands, finds nothing high or medium,
+and its date moves in the same commit. **A high under *Known, not fixed* holds the tag
+until it is fixed or the owner decides it. A medium listed there does not.** An entry
+with no grade is a decision or a note.
 
 **While anything is listed under *Unread, or read and never passed*, no new pattern
 lands** ([README.md](README.md) *Maintenance protocol*). A wording fix listed there does

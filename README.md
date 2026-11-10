@@ -356,8 +356,9 @@ Two mechanisms, and a release needs both.
 
 - **Adversarial review** hunts cross-document contradictions, traces every canonical
   snippet's mechanics, checks facts against upstream sources, and builds from the
-  documents alone — repeated until two consecutive passes find nothing high and
-  nothing medium.
+  documents alone. It works one document at a time: a whole read that finds nothing
+  high or medium moves that document's date, and a tag needs no known high and every
+  known medium listed.
 - **The reference implementation is the executable check.**
   [baseline-reference](https://github.com/andygeiss/baseline-reference) implements
   these rules end to end. It MUST be synced to every tagged release, and its
@@ -425,8 +426,8 @@ paragraph in two files is a status paragraph that goes stale in one of them.
   first. Four sets of unread fixes piled up between v4.8.1 and v5.2.0 because
   each later run read only its own diff, and v5.1.0 and v5.2.0 each put a new pattern on
   top of them.
-  What *Owed* lists as known and not fixed does not block one: a low may sit there, and
-  so may what only upstream can fix.
+  What *Owed* lists as known and not fixed does not block one: a medium or a low may sit
+  there, and so may what only upstream can fix.
 - **A run's narrative goes on its tag's release page, never into a file.** A run log in
   the repository grows by construction — one narrative per release, forever — and costs
   every maintainer the re-reading. The release page is dated, linked to the tag, and
