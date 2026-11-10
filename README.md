@@ -354,32 +354,32 @@ task.
 Two mechanisms, and a release needs both.
 
 - **Adversarial review** hunts cross-document contradictions, traces every canonical
-  snippet's mechanics, checks facts against upstream sources, and builds a project
-  from the documents alone — repeated until two consecutive passes find nothing high
-  and nothing medium.
+  snippet's mechanics, checks facts against upstream sources, and builds from the
+  documents alone — repeated until two consecutive passes find nothing high and
+  nothing medium.
 - **The reference implementation is the executable check.**
   [baseline-reference](https://github.com/andygeiss/baseline-reference) implements
   these rules end to end. It MUST be synced to every tagged release, and its
   `./verify.sh` MUST pass against the rules that release tags — the gate in
   [VERIFICATION.md](VERIFICATION.md) is the exact condition, and it is one
-  `git diff` away from being checked rather than assumed. When a rule is ambiguous,
-  the reference resolves it.
+  `git diff` away from being checked rather than assumed.
 
 The standard and the tag gate live in [VERIFICATION.md](VERIFICATION.md); what every
 run found is on its tag's
-[release page](https://github.com/andygeiss/baseline/releases). VERIFICATION.md also
-carries the running list of changes
-that have not been through a run yet. **Read its *Owed* section before tagging:** it is
-the one place that says whether the gate is currently open. Keeping the current state
-there and not here is deliberate — a status paragraph in two files is a status
-paragraph that goes stale in one of them.
+[release page](https://github.com/andygeiss/baseline/releases). **Read its *Owed*
+section before tagging:** it lists what the next run must read, and what is known and
+not fixed. Keeping the current state there and not here is deliberate — a status
+paragraph in two files is a status paragraph that goes stale in one of them.
 
 ## Maintenance protocol (humans)
 
 - Every document carries a `Last verified:` date. Re-verify at least **every 3 months**,
-  and always after a major release of Go (Feb/Aug) or htmx. Past 90 days an agent stops
-  treating the document as authoritative and says so — that warning is the reminder,
-  and the only way to clear it is a real re-verification.
+  and always after a major release of Go (Feb/Aug) or htmx. Past 90 days an agent says
+  so before it follows the document ([SKILL.md](SKILL.md) *First, check the date*) —
+  that warning is the reminder. **A date moves when an independent reviewer has read the
+  whole document as it stands and found nothing high or medium**
+  ([VERIFICATION.md](VERIFICATION.md) *Grading a finding*). Nothing else moves it: not an
+  edit, not a version update, not a read of a diff.
 - **Run `make structure` and `make tokens` on any change to the corpus.** The first
   checks the two claims this repository makes about its own shape — the tree above
   against the real directory, and the tier stamp on every [`patterns/`](patterns/) and
@@ -393,19 +393,14 @@ paragraph that goes stale in one of them.
   When the Go pin moved a major, `make fmt` under the new pin comes first, its rewrite
   as its own commit. No bot updates dependencies and no server scans untouched code
   ([operations/ci.md](operations/ci.md)). This cycle does both jobs.
-- **Before tagging, walk the gate in [VERIFICATION.md](VERIFICATION.md).** Two
-  adversarial passes in a row with nothing high or medium and a green build from the
-  documents, the reference synced, `./verify.sh` green against the commit it pins,
-  nothing a project reads changed since; after the tag, the run written onto the
-  release page. The gate has no override, and a release that skips the reference is
-  not a release.
+- **Before tagging, walk the gate in [VERIFICATION.md](VERIFICATION.md),** all five
+  conditions, as written there. The gate has no override, and a release that skips the
+  reference is not a release.
 - When updating a version: update `VERSIONS.md` first, then any stack document that
-  references behavior of that version, then bump the `Last verified:` dates. The Go
+  references behavior of that version. The Go
   pin also sits on [stack/go.md](stack/go.md)'s stamp line and in the
   `GOTOOLCHAIN=go<pin>` commands in [operations/ci.md](operations/ci.md);
-  `git grep -n '1\.27'` lists every place the major sits. A
-  `Last verified:` date moves when a run reviewed the document's rules, not when an
-  edit touched its wording.
+  `git grep -n '1\.27'` lists every place the major sits. No date moves with a pin.
 - **Ask what the release absorbed.** Every Go major (Feb/Aug) can take a rule's job into
   the standard library. Read the release notes with that question too, not only for
   behavior changes: a capability that lands in stdlib usually means a row leaves
@@ -423,10 +418,11 @@ paragraph that goes stale in one of them.
   next-steps list of the work that found them ([SKILL.md](SKILL.md) *Handing the work
   back*). One project inventing something is not yet a pattern — a second project
   solving it the same way is the signal, and deciding is yours. **No new pattern lands
-  while [VERIFICATION.md](VERIFICATION.md) *Owed* lists anything unread,** apart from
-  the last run's own wording fixes. A run clears that list first. Four sets of unread
-  fixes piled up between v4.8.1 and v5.2.0 because
-  each later run read only its own diff, and v5.2.0 put a new pattern on top of them.
+  while [VERIFICATION.md](VERIFICATION.md) *Owed* lists anything under *Unread, or read
+  and never passed*,** apart from a wording fix listed there. A run clears that list
+  first. Four sets of unread fixes piled up between v4.8.1 and v5.2.0 because
+  each later run read only its own diff, and v5.1.0 and v5.2.0 each put a new pattern on
+  top of them.
   What *Owed* lists as known and not fixed does not block one: a low may sit there, and
   so may what only upstream can fix.
 - **A run's narrative goes on its tag's release page, never into a file.** A run log in
