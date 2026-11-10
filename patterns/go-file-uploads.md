@@ -34,8 +34,6 @@ before the server's ([stack/htmx.md](../stack/htmx.md) rule 7).
 // ParseMultipartForm, not ParseForm — see rule 1 below. Its argument is how
 // much to keep in memory before the rest spills into os.TempDir(); passing the
 // cap itself means nothing ever spills, so there is no temp file to get wrong.
-// (net/http removes those files when the handler returns, which is why nothing
-// may keep the form past this request.)
 if err := r.ParseMultipartForm(maxUpload); err != nil && !errors.Is(err, http.ErrNotMultipart) {
 	status := http.StatusBadRequest
 	if _, ok := errors.AsType[*http.MaxBytesError](err); ok {
@@ -63,7 +61,7 @@ defer f.Close()
 // is its claim about a file somebody picked on their own machine; fh.Filename
 // is their text, kept for the download header and nothing else. The bytes
 // decide, and the stored name is generated.
-bs, err := io.ReadAll(io.LimitReader(f, maxUpload+1)) // +1: over the cap is a rule, not a silent truncation
+bs, err := io.ReadAll(f) // bounded by the route's cap, which already answered 413 above
 if err != nil {
 	a.serverError(w, r, err)
 	return
@@ -90,14 +88,16 @@ The rules behind it — all MUST:
    the field is on the wire and gone in Go, with no error anywhere. Call
    `ParseMultipartForm`, and read its `http.ErrNotMultipart` as "a plain form post".
    `FormFile` answers the same way, so `ErrMissingFile` and `ErrNotMultipart` both mean
-   nothing was attached.
+   nothing was attached. **The form says `enctype="multipart/form-data"`:** without it
+   the browser posts urlencoded, and the message posts without its file and no error.
 2. **The stored name is generated, never derived from the client's.** A generated id, or
    the row's own id. `filepath.Base` is not a fix: it knows the separator this process
    runs on, and a browser on Windows sends the other one. Keep the original in a column,
    cleaned of control characters, for the download header and nothing else.
 3. **The type is what the bytes say.** `http.DetectContentType` reads at most 512 bytes,
    always answers, and falls back to `application/octet-stream`. Store its answer; that
-   stored string is what the download sends back.
+   stored string is what the download sends back. For text the answer carries the
+   charset — `text/plain; charset=utf-8` — and that whole string is the allowlist's entry.
 4. **The allowlist is an exact set of types the app accepts.** A prefix test on `image/`
    admits every type a future sniffer learns. **SVG is never on it** — an SVG is a
    document that can carry script, and Go's sniffer does not classify it as an image, so
@@ -135,8 +135,8 @@ cannot disagree. That is most of why the blob answer wins for small files.
 
 **On disk, delete the row first and the bytes second.** A row whose bytes are gone is a
 broken download the reader sees; bytes whose row is gone are garbage nobody sees. Only one
-of those is safe to have, so a janitor sweeps files with no row
-([go-background-work.md](go-background-work.md)).
+of those is safe to have, so a janitor sweeps files that have no row and are older than
+an upload takes ([go-background-work.md](go-background-work.md)).
 
 **Deleting the person who uploaded them keeps that order and adds a step**, because the
 cascade takes the row away before you can ask it which files were theirs: the names are
@@ -163,6 +163,7 @@ if err != nil {
 defer content.Close()
 
 w.Header().Set("Content-Type", file.Kind) // sniffed at upload, never the extension
+w.Header().Set("Cache-Control", "private, no-cache") // asked for again each time, so the actor query runs again
 if !inlineOK[file.Kind] {
 	// FormatMediaType quotes the name and RFC 2231-encodes a non-ASCII one. A
 	// raw filename here is header injection, and it breaks the first download
@@ -178,7 +179,8 @@ http.ServeContent(w, r, "", file.UploadedAt, content)
 - **`inlineOK` is shorter than the upload allowlist.** Only the types the app renders in
   its own pages — the images in an `<img>` — are served inline. Everything else is an
   attachment, so a browser that would have rendered it downloads it instead.
-- **A link to a file carries `hx-boost="false"`.** Boosted, htmx fetches the file, parses
+- **A link to a file carries `hx-boost="false"`** ([stack/htmx.md](../stack/htmx.md)
+  rule 8). Boosted, htmx fetches the file, parses
   its bytes as HTML whatever their type, and acts on every htmx attribute in them: a
   stranger's upload holding `<form hx-post="/…" hx-trigger="load">` posts as whoever
   clicks, from the same origin, and neither the CSP nor `nosniff` stops it. Opted out, the
@@ -190,13 +192,9 @@ http.ServeContent(w, r, "", file.UploadedAt, content)
   `secureHeaders` already sends it on every response
   ([security-headers.md](security-headers.md)). Without it a browser may sniff its way
   past the type you chose.
-- **The policy needs no change**, and [security-headers.md](security-headers.md) owns
-  saying so: uploads load nothing from anywhere new. Add a row to the record it points at
-  when that stops being true.
 - **`http.ServeContent` gives range requests and conditional GETs for free.** The store
   returns the row and a `ReadSeekCloser` beside it — a `*os.File`, or a blob wrapped in a
-  `bytes.Reader`. Which one the caller gets is the storage choice, and the handler above
-  does not know which it made.
+  `bytes.Reader`.
 
 **When the file is not owned, say so — and keep the rest.** An attachment in a room
 everyone may read has no actor predicate, and that is correct:
@@ -221,7 +219,7 @@ parser written in C, run on a stranger's file.
   a file that was never there, and the file is still there afterwards.
 - **An upload that lies.** Post a file named `avatar.png`, declared `image/png`, whose
   bytes are `<svg onload=…>`. **Assert what it is never served as**, not that it is
-  refused: an app whose allowlist has `text/plain` on it stores that file as text and
+  refused: an app whose allowlist has `text/plain; charset=utf-8` on it stores that file as text and
   hands it back as an attachment, which is safe, and an app without stores nothing.
   Both pass; "refused" only passes one of them. This is the test that proves the sniff
   is load-bearing, and it fails the day somebody trusts `fh.Header`.

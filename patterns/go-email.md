@@ -99,6 +99,10 @@ The body needs that one replacement and no escaping: `net/smtp` writes it throug
 passes a bare CR through, which RFC 5321 section 2.3.8 forbids a client to send. Do not
 hand-roll the dot-writer's half.
 
+**This renders short text the app wrote, to a bare address.** Nothing here folds a long
+header or wraps a line past 998 octets, so a subject or a body line a user can lengthen is
+capped before it is queued, and `To` is an address alone, never `Ada <ada@example.com>`.
+
 ## The message is queued, not sent, inside the handler
 
 An outbox table, written in the same transaction as the thing that caused the mail:
@@ -111,6 +115,8 @@ An outbox table, written in the same transaction as the thing that caused the ma
   marks it sent, and gives up on a row after a bounded number of attempts. **A row that
   is sent, or given up on, loses its body in the same statement:** the body holds the
   token, and [go-auth-sessions.md](go-auth-sessions.md) stores only that token's hash.
+  **A message may be sent twice:** a crash between the relay's answer and the mark sends
+  it again. An orderly stop must not, so the mark runs under `context.WithoutCancel`.
 - **The handler answers immediately.** SMTP takes seconds and can hang; a handler waiting
   on it holds a request open against `WriteTimeout` and hands the reader a 500 for
   somebody else's outage.
@@ -124,8 +130,9 @@ An outbox table, written in the same transaction as the thing that caused the ma
   does ([go-data-deletion.md](go-data-deletion.md)). A refusal can quote the address
   back — a relay's `550 5.1.1 <ada@example.com>: …`, a provider's JSON error — so
   neither adapter returns what the other side said. The SMTP adapter returns the reply's
-  code; the API adapter returns `resp.Status`, never
-  [go-http-client.md](go-http-client.md)'s `statusError`, which carries the body.
+  code, and a fixed string for a reply it cannot parse; the API adapter returns
+  `resp.StatusCode`, never `resp.Status`, whose reason phrase is the server's to write,
+  and never [go-http-client.md](go-http-client.md)'s `statusError`, which carries the body.
 
 ## Which transport
 

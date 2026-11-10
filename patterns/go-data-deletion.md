@@ -85,7 +85,7 @@ The rules behind it — all MUST:
    have an unpaid invoice".
 5. **One transaction, on the write pool.** The cascade is part of the statement, so this
    is one `DELETE FROM users WHERE id = ?` and the rest is the schema keeping its promise.
-6. **A rebuild that changes an `ON DELETE` action copies the children out first.** SQLite
+6. **A rebuild of a table that others reference copies the children out first.** SQLite
    cannot alter a foreign key, so changing an action is create-copy-drop-rename — and
    `DROP TABLE` with foreign keys on
    runs an implicit `DELETE FROM` that *does* fire foreign key actions, so dropping a

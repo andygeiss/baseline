@@ -77,10 +77,11 @@ The rules behind it — all MUST:
    number bounds them.
 8. **Every `Rows`, `Stmt` and `Tx` is closed on every path** — `defer rows.Close()`, and
    `defer tx.Rollback()` after a successful `BeginTx`. On a one-connection write pool a
-   single leak is not a slow leak: it wedges every later write forever, and `busy_timeout`
-   never fires, because the wait is in Go's pool rather than in SQLite. Draining a `Rows`
-   to the end releases it, so the happy path hides this and only `break`, an early
-   `return`, and the error path wedge.
+   leaked `Rows` or `Tx` is not a slow leak: it holds the connection until its context
+   ends — forever, under a ticker's or `context.Background()` — and every later write
+   waits behind it. `busy_timeout` never fires, because the wait is in Go's pool rather
+   than in SQLite. Draining a `Rows` to the end releases it, so the happy path hides this
+   and only `break`, an early `return`, and the error path wedge.
 9. **`rows.Err()` after the loop.** `rows.Next()` returns false for "done" and for
    "failed"; without the check a truncated result set reads as an empty one.
 10. **The path is made a file name; `StrictPragmas` backs it up.** The configured path
@@ -108,6 +109,10 @@ Forward-only, embedded, applied at boot. No migration framework:
   each `.sql` file with a number greater than it (sorted via `fs.Glob`), set
   `user_version` to the last applied number. Fail the boot on any error.
 - No down migrations. Roll forward; restore from backup for disasters.
+- **A migration that rebuilds a table other tables reference follows
+  [go-data-deletion.md](go-data-deletion.md) rule 6.** That transaction runs with foreign
+  keys on, and `PRAGMA foreign_keys = OFF` does nothing inside one, so `DROP TABLE` runs
+  the children's `ON DELETE` actions: the boot succeeds and their rows are gone.
 
 ## Backups
 
@@ -133,11 +138,23 @@ dst := filepath.Join(filepath.Dir(cfg.DatabaseURL), "app-"+day+".db")
 if !filepath.IsAbs(dst) {
 	dst = "./" + dst // a leading "file:" would make it a URI (rule 10)
 }
-
+// Never straight to dst: VACUUM INTO refuses a file that exists, which is every
+// run after the day's first, and a stop mid-copy would leave half a database
+// under the name a restore reads.
+tmp := dst + ".tmp"
+if err := os.Remove(tmp); err != nil && !errors.Is(err, fs.ErrNotExist) {
+	return err
+}
 // The read pool, never the write pool: this statement only reads, so running
 // it on the single write connection would starve writes for its whole duration.
-_, err := readDB.ExecContext(ctx, "VACUUM INTO ?", dst)
+if _, err := readDB.ExecContext(ctx, "VACUUM INTO ?", tmp); err != nil {
+	return err
+}
+return os.Rename(tmp, dst)
 ```
+
+The ticker that writes a snapshot then deletes the older ones:
+[go-data-deletion.md](go-data-deletion.md) says why, and how many stay.
 
 That placement is also its limit — the snapshot is on the same disk as the thing
 it protects, so *getting it off the box is a separate job with its own
@@ -158,7 +175,9 @@ Use a temp file, not `:memory:` — in-memory databases vanish per-connection un
 pool and silently diverge from WAL behavior. `t.TempDir()` cleans up automatically.
 
 **`newTestDB` also asserts both pools are idle at the end**, which is the only thing that
-mechanically catches rule 8 — `go vet` and `staticcheck` report none of it:
+mechanically catches rule 8 — `go vet` and `staticcheck` report none of it. It catches a
+leak a store test makes, not one in a handler: that connection comes back when the
+request's context ends.
 
 ```go
 // Registered after the Close cleanup, so LIFO runs this one first.
@@ -172,7 +191,9 @@ t.Cleanup(func() {
 ## Query conventions
 
 - Plain SQL strings next to the store methods. No ORM, no query builder.
-- Parameterized queries only (`?` placeholders) — string-built SQL is banned.
+- Parameterized queries only (`?` placeholders) — string-built SQL is banned. SQLite
+  binds values only, so a table name or a pragma's value (`PRAGMA user_version = 3`) is
+  formatted in, from a value the program made itself and never from a request.
 - `errors.Is(err, sql.ErrNoRows)` → translate to `domain.ErrNotFound` at the store
   boundary (sentinels live in `domain` — see
   [go-errors-logging.md](go-errors-logging.md)); callers never see `database/sql` errors.
