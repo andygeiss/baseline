@@ -128,7 +128,7 @@ func (c *Client) Forecast(ctx context.Context, city string) (domain.Forecast, er
 
 	var out domain.Forecast
 	if err := json.UnmarshalRead(io.LimitReader(resp.Body, 1<<20), &out); err != nil {
-		return domain.Forecast{}, fmt.Errorf("weather: decode forecast: %w", err)
+		return domain.Forecast{}, errors.New("weather: decode forecast") // the decoder's text quotes the answer
 	}
 	return out, nil
 }
@@ -165,8 +165,7 @@ func statusError(resp *http.Response) error {
 
 ## Retries
 
-Retry only what is safe to repeat, only for failures a repeat can fix, and
-never without a bound.
+Retry only what is safe to repeat, and never without a bound.
 
 ```go
 const maxAttempts = 3
@@ -188,13 +187,11 @@ func (c *Client) do(req *http.Request) (*http.Response, error) {
 		resp, err := c.http.Do(req)
 		switch {
 		case err != nil:
-			if ue, ok := errors.AsType[*url.Error](err); ok {
-				err = ue.Err // drop the URL: its query string would reach the log
+			if cerr := req.Context().Err(); cerr != nil {
+				return nil, cerr // the context died, not the server
 			}
-			if req.Context().Err() != nil {
-				return nil, err // the context died, not the server
-			}
-			lastErr = err
+			// The type, never the text: net/http's text can quote the URL and the peer's bytes.
+			lastErr = fmt.Errorf("no usable answer (%T)", errors.Unwrap(err))
 		case !retryableStatus(resp.StatusCode) || !idempotent(req.Method) || !replayable:
 			return resp, nil // no repeat can fix it, or none is allowed: the caller reads the status
 		default:
@@ -306,12 +303,12 @@ at `srv.URL`, and let the handler decide what to fail on.
 
 ## Libraries do not build clients
 
-A library MUST accept the client instead of constructing one — either `*http.Client` or a
-one-method interface it defines ([library.md](../project-types/library.md)). A library that
-builds its own has chosen a timeout and retry policy for every consumer with no way to
-reverse it. Watch the nil case: treating a nil client as `http.DefaultClient` is exactly how
-the missing timeout comes back. Either document nil as a programmer error, or substitute a
-client that has one.
+A library MUST accept a `*http.Client` instead of constructing one
+([library.md](../project-types/library.md)), and sends each request once: `do`'s retries
+are the program's. A library that builds its own client, or retries, has chosen a timeout
+and retry policy for every consumer with no way to reverse it. Watch the nil case:
+treating a nil client as `http.DefaultClient` is exactly how the missing timeout comes
+back. Document nil as a programmer error.
 
 ## Anti-patterns
 

@@ -101,7 +101,7 @@ MUST rules:
    user row carries a counter, a session stores its value at login and at its own password
    change, and *Machine tokens* rule 6's lookup finds no user under a session whose value
    differs: the middleware signs it out, and a socket's re-check closes it. **Every
-   statement that sets a password moves the counter, and every statement a password or a
+   statement that sets a new password moves the counter, and every statement a password or a
    reset link allowed names the value its request loaded** (`… WHERE id = ? AND
    password_version = ?`): no row changed is a refusal.
 2. **No user enumeration.** Unknown email and wrong password return the identical
@@ -203,8 +203,8 @@ MUST rules:
 2. **SHA-256 is the right hash here, and argon2id is not.** This token is 130 bits of
    randomness; nothing brute-forces that, and argon2id would spend 19 MiB of memory on
    every API request.
-3. **Creating one asks for the password and shows the secret once,** never again. Replacing a lost token is creating a new one and deleting
-   the old.
+3. **Creating one asks for the password, on a rate-limited route, and shows the secret
+   once,** in the answer to that request: a flash would store it.
 4. **The token travels in `Authorization: Bearer <secret>`.** MUST NOT accept it
    in a query string: URLs land in access logs, in `Referer` headers, and in
    shell history.
@@ -238,10 +238,10 @@ handshake presented and re-resolves it; [wasm-client.md](wasm-client.md) rule 6 
 what it may do and when it closes. This is tier 1, as that rule is:
 
 1. **At least every 10 seconds, unprompted, under a deadline inside the interval,** it
-   re-runs every check the socket has passed, at the handshake or since: *Machine tokens*
-   rule 6's lookup, to the user's row (a token by its hash), and
+   re-runs *Machine tokens* rule 6's lookup, to the user's row (a token by its hash), and
    [go-authorization.md](go-authorization.md)'s access check for everything the socket
-   was admitted to, the read made as that user, wherever the membership is held.
+   still holds, admitted at the handshake or since, the read made as that user, wherever
+   the membership is held.
 2. **It only reads.** No `last_used_at` touch, no `Destroy`.
 3. **A session's lookup is scs `Load` of the kept token into the app's own context**,
    where a deleted session comes back empty. Never `context.WithoutCancel(r.Context())`:
@@ -249,7 +249,7 @@ what it may do and when it closes. This is tier 1, as that rule is:
    holds, unchanged — the handshake's copy, alive after a logout deleted it.
 4. **A cookie the server keeps no record of**, naming no user and reaching none, has
    nothing to revoke: its lookup checks only an expiry the cookie carries, if any. Its
-   access check is rule 1's all the same: everything the socket was admitted to. Any
+   access check is rule 1's all the same: everything the socket still holds. Any
    other cookie is re-resolved like a session.
 5. **Only an HTTP request commits the session**, so under `IdleTimeout` a user who only
    uses the socket is closed at the idle window: `Load` finds the row expired.

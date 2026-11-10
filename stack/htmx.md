@@ -89,8 +89,8 @@ title, and pushes a URL wherever the element would — boosted, or carrying `hx-
    focused field comes back from a 422 empty. Nothing here animates on that delay.
 6. **Back and forward reload the page.** htmx 4 keeps no history cache. On back/forward
    it either re-fetches the page itself and swaps the body, or reloads. The canonical
-   `htmx-config` sets `"history":"reload"`, so back/forward inside one document are real
-   page loads and no handler ever answers a restore request. The server is the source of
+   `htmx-config` sets `"history":"reload"`, so back/forward inside one document, onto an entry
+   htmx wrote, are real page loads and no handler ever answers a restore request. The server is the source of
    truth — there is nothing client-side worth restoring. A traversal into another
    document is the browser's own, from its back-forward cache if it likes.
 7. **htmx gives up at 60 s.** htmx 4 aborts any request still running after its

@@ -41,16 +41,17 @@ are required reading.
 - [ ] No functional options without justification
 - [ ] No panics across the API boundary except documented programmer error
 - [ ] No `init()` side effects
-- [ ] No package-level mutable state
+- [ ] No package-level mutable state but its sentinel errors
 - [ ] No unowned goroutines — lifecycles have `ctx` or `Close`
 
 ### Compatibility
 
 - [ ] v0 until proven by ≥2 consumers
-- [ ] v1.0.0 tagged deliberately
-- [ ] Since v1: no exported symbol renamed, removed, or behavior-changed
 - [ ] No `replace` directives on main
-- [ ] The module path would be `/v2` for any post-v1 break — and that was fought hard
+- **Once v1.0.0 is tagged:**
+  - [ ] It was tagged deliberately
+  - [ ] No exported symbol renamed, removed, or behavior-changed since
+  - [ ] The module path would be `/v2` for any post-v1 break — and that was fought hard
 
 ### Documentation
 

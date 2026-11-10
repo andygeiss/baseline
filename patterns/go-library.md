@@ -23,7 +23,7 @@ mylib/
 ├── README.md
 ├── SPEC.md           ← the library's brief: job, why, guardrails, done means
 └── testdata/
-    └── fuzz/         ← committed seed corpus (see Fuzzing below)
+    └── fuzz/         ← appears when the fuzzer finds a failure (see Fuzzing below)
 ```
 
 Once the module genuinely grows more packages, detail moves under `internal/`
@@ -113,8 +113,8 @@ func FuzzParse(f *testing.F) {
 ## Release mechanics
 
 Semver tags `vX.Y.Z`, under the tag discipline of
-[operations/cli-release.md](../operations/cli-release.md), with the library's
-contract in place of the CLI's. Major = any of:
+[operations/cli-release.md](../operations/cli-release.md) — bar its `go install` check,
+which cannot run on a library — with the library's contract in place of the CLI's. Major = any of:
 
 - Renaming or removing an exported symbol, changing a signature, or removing
   a struct field.

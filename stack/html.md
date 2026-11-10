@@ -85,7 +85,7 @@ is a template function from build info, not a data field (see
 422 — and nothing else ([patterns/css-motion.md](../patterns/css-motion.md)). The three
 `hx-status` lines let a 422 swap and keep every other error off the page —
 [patterns/htmx-server-rendering.md](../patterns/htmx-server-rendering.md). The meta keeps
-htmx's indicator CSS out of the cascade and makes back/forward inside one document real
+htmx's indicator CSS out of the cascade and makes back/forward onto an entry htmx wrote real
 page loads ([htmx.md](htmx.md)).)
 
 An installable project adds four head lines between the favicon link and the htmx script;

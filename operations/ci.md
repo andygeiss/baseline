@@ -153,8 +153,8 @@ silence. Once `go mod tidy` stops refusing,
 `go list -m -e -f '{{.Path}} {{.GoVersion}}' all` shows every module's `go` line, your
 own first. Give each dependency it shows above `1.27` — `1.27.0` too, since the go
 command ranks that above `1.27` — its own `-require` at the version
-`git show HEAD:go.mod` names. One that file does not name came in with the update: hold
-the ones it does name first, and `go mod tidy` drops it. If the `go` line still rises,
+`git show HEAD:go.mod` names. One that file does not name came in with the update: give it
+`-droprequire=<module>` in the same `go mod edit`. If the `go` line still rises,
 also hold whatever `go mod graph` names as requiring a version that asked: a dependency
 whose own `go.mod` was never tidied can say `go 1.27` and still pull it back up.
 `-toolchain=none` removes any `toolchain` line, which would pick the Go for every

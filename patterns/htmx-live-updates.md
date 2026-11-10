@@ -103,8 +103,9 @@ over the sentinel, and the poll is gone for good.
    [go-auth-sessions.md](go-auth-sessions.md) guards login and registration; pointing it at
    a route every open tab hits on a timer locks out real readers.
 8. **Authorize every poll like any other read.** It is a normal request with a session
-   cookie, so `requireAuth` covers it — and a cursor is not a capability, so the handler
-   still checks that this reader may read this room.
+   cookie, so `requireAuth` covers it — and a cursor is not a capability: where a room is
+   not every reader's, the read names the reader, as
+   [go-authorization.md](go-authorization.md) rules.
 
 ## When the reader adds something themselves
 
@@ -177,8 +178,8 @@ func (a *App) roomMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Rule 8: a normal read, authorized like any other. requireAuth put the
-	// reader in the context; a room only some people may see is checked here,
-	// because a cursor is not a capability.
+	// reader in the context, and this room is every signed-in reader's: for one
+	// that is not, Since takes the reader too.
 	room, ok := a.room(w, r)
 	if !ok {
 		return

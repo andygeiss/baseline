@@ -34,7 +34,7 @@ with scripts off.
    reaches, `go.mod`, and the `.build`.
    **A server test recomputes the digest** with the tags the `.build` records, so a
    source change cannot ship with an old module, and holds each `.build` line equal to
-   the Makefile's version, flags and tags variables. Both are served from
+   the Makefile's versions, flags and tags variables. Both are served from
    `web/static/`; they hold nothing secret.
 3. **Two gate lines in `check`** ([stack/makefile.md](../stack/makefile.md) rule 1):
    `GOOS=js GOARCH=wasm go vet` over every package the module is made of, because the

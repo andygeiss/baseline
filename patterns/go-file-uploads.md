@@ -31,10 +31,11 @@ Raise `ReadTimeout` with the cap, and `WriteTimeout` by the same amount
 before the server's ([stack/htmx.md](../stack/htmx.md) rule 7).
 
 ```go
-// ParseMultipartForm, not ParseForm — see rule 1 below. Its argument is how
+// ParseForm first: for a urlencoded body ParseMultipartForm drops the error its
+// own ParseForm hit. Then ParseMultipartForm — see rule 1 below. Its argument is how
 // much to keep in memory before the rest spills into os.TempDir(); passing the
 // cap itself means nothing ever spills, so there is no temp file to get wrong.
-if err := r.ParseMultipartForm(maxUpload); err != nil && !errors.Is(err, http.ErrNotMultipart) {
+if err := cmp.Or(r.ParseForm(), r.ParseMultipartForm(maxUpload)); err != nil && !errors.Is(err, http.ErrNotMultipart) {
 	status := http.StatusBadRequest
 	if _, ok := errors.AsType[*http.MaxBytesError](err); ok {
 		status = http.StatusRequestEntityTooLarge // the route's own cap
@@ -112,9 +113,7 @@ The rules behind it — all MUST:
 
 ## Where the bytes live
 
-Two answers, and the project picks one and writes it in the README. **Pick by the backup
-answer [go-sqlite.md](go-sqlite.md) already forced you to give**, because that is the
-difference that bites:
+Two answers, decided per route by the table's last row and written in the README:
 
 | | Bytes in a SQLite `BLOB` | Bytes in a directory |
 |---|---|---|

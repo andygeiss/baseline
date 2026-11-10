@@ -61,7 +61,7 @@ Working on a library that already follows this document? That file and the libra
 - **`context.Context` first parameter** on anything that does I/O or can block.
 - **Take the HTTP client, never build one.** A library that constructs its own
   `*http.Client` has chosen a timeout and retry policy for every consumer, with
-  no way to override it. Accept `*http.Client` or a one-method interface —
+  no way to override it. Accept `*http.Client` —
   [patterns/go-http-client.md](../patterns/go-http-client.md).
 - **Usable zero values.** `var b thing.Builder` should work; where construction
   genuinely needs input, one `New(...)` with a config struct. Functional options

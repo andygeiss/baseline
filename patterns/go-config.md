@@ -66,6 +66,10 @@ func parseConfig(args []string, stderr io.Writer) (Config, error) {
 		}
 		return Config{}, errUsage // fs already printed the message and the usage
 	}
+	if fs.NArg() != 0 { // flag stops at the first argument: every flag after it was ignored
+		fmt.Fprintf(stderr, "unexpected argument %q\n", fs.Arg(0))
+		return Config{}, errUsage
+	}
 
 	c.Env = cmp.Or(os.Getenv("ENV"), "dev") // not a flag: the deployment sets it, never a command line
 
@@ -182,7 +186,7 @@ contract is in [operations/web-application.md](../operations/web-application.md)
 
 `readCredential(name)` is the whole mechanism: an unset `$CREDENTIALS_DIRECTORY` returns
 `"", nil` — the normal case in dev, and **the caller decides whether an empty secret is
-fatal**, because that depends on the feature rather than on config. Otherwise it reads the
+fatal**. Otherwise it reads the
 named file in that directory and `strings.TrimSpace`s the result, since the file usually
 ends in a newline.
 
@@ -215,8 +219,7 @@ when the `Config` *is* the value logged: nested in a struct, in a slice, as a ma
 under `%v`, slog and fmt print the fields themselves. The type holds in all four:
 
 ```go
-// Secret is a value that must never reach a log line. The four methods are the
-// four ways a value gets printed: slog, fmt, %#v, and anything writing text.
+// Secret is a value that must never reach a log line.
 type Secret string
 
 func (Secret) LogValue() slog.Value         { return slog.StringValue("REDACTED") }
