@@ -8,15 +8,8 @@ you call the work complete. Paths are from the repository root.
 
 Every unchecked box is either fixed or waived on the record — the format is in `README.md`
 *Which rules can be waived*. **Tier 1 is decided by what a rule protects, not by which
-section it landed in**, so a wholly tier-1 section says so in its heading. Seven sections
-are only partly tier 1: `Config.LogValue` and the gitignore and production `.env` boxes
-under *Reading a flag…*; the pragmas, the path box, both pools, and parameterized SQL
-under *Storing anything*; the zero-CSP-violations check under *Adding an icon*; every box
-under *Reading or writing a row somebody owns* except the one naming the shared rows; the
-base-URL, header and log-transport boxes under *Sending an email*; every box under *Deleting a person*
-except the one naming where each table's answer is written; the CSP, Origin, access,
-credential, handler-return, and message-size boxes under *Shipping a WebAssembly client*. No waiver
-for any of those; there is a fix.
+section it landed in**: a wholly tier-1 section says so in its heading, and anywhere else
+a tier-1 box says so itself. No waiver for any of those; there is a fix.
 
 ## Every web application
 
@@ -30,8 +23,8 @@ for any of those; there is a fix.
 - [ ] Single static binary builds: `CGO_ENABLED=0 go build ./cmd/server`
 - [ ] The binary never serves TLS (`patterns/local-https.md`)
 - [ ] Routes registered in one file
-- [ ] Every mutation is a POST route — never GET, and no PUT/DELETE — but a WebAssembly client's socket
-- [ ] Server sets read, write, and idle timeouts
+- [ ] Every mutation is a POST route, never PUT or DELETE, but a WebAssembly client's socket
+- [ ] Server sets its four timeouts
 - [ ] Server shuts down gracefully
 - [ ] Valid HTML, spot-checked with the Nu validator
 - [ ] Landmarks + heading hierarchy correct
@@ -48,15 +41,17 @@ for any of those; there is a fix.
 
 ### Security — tier 1, not waivable
 
-`patterns/security-headers.md` owns the CSP and every other header — required reading,
-not a trigger.
+`patterns/security-headers.md`, `patterns/go-http-server.md` and `stack/htmx.md` rule 8 —
+required reading, not a trigger.
 
 - [ ] `secureHeaders` sends the full policy — CSP, HSTS, nosniff, referrer
 - [ ] The test pinning all four is green
 - [ ] CSP carries `img-src 'self' data:`
 - [ ] `http.CrossOriginProtection` wraps the mux (CSRF)
-- [ ] Request bodies capped at 1 MiB by `http.MaxBytesHandler` (`patterns/go-http-server.md`)
-- [ ] All user input escaped via `html/template` (no `template.HTML` on user data)
+- [ ] No GET route changes anything
+- [ ] Request bodies capped at 1 MiB; an upload route sets its own cap
+- [ ] All user input escaped via `html/template`
+- [ ] No link or form is boosted unless its answer is a page
 - [ ] `/debug/pprof` and `/healthz` on the localhost-only ops listener
 - [ ] The ops listener is never proxied
 
@@ -77,11 +72,13 @@ not a trigger.
 - [ ] Parsed and validated in `main` before the DB opens or the listener binds
 - [ ] `internal/` never calls `os.Getenv`
 - [ ] Settings that are only valid together are checked as a pair (rule 7)
-- [ ] No secrets in logs — `Config.LogValue` allowlists the safe fields
-- **If the repo has a `.env`** — `stack/makefile.md` rule 6:
-  - [ ] It is gitignored
+- [ ] A secret arrives as a file, never as a flag value or an environment variable — tier 1
+- [ ] A secret is its own type, and `Config.LogValue` allowlists the safe fields — tier 1
+- [ ] `BASE_URL` and the sender address are checked at boot (rules 8 and 9) — tier 1
+- [ ] `.env` is gitignored, from the commit that added `run`'s recipe (`stack/makefile.md` rule 6) — tier 1
+- **If the repo has a `.env`:**
   - [ ] No gate reads it — `check`, `ci`, `test`
-  - [ ] Production takes its secrets from credential files instead
+  - [ ] Production takes its secrets from credential files instead — tier 1
 
 ## Returning an error, or logging anything
 
@@ -90,7 +87,7 @@ not a trigger.
 - [ ] Errors wrapped with `%w`
 - [ ] Internal error text never rendered to the browser
 - [ ] `log/slog` structured logging
-- [ ] Every startup and config error names the fix
+- [ ] No password, token, session id, query string, or person's name or address in a log — tier 1
 - **Each step of a multi-dependency operation is marked required or enhancement:**
   - [ ] Every step carries one label or the other
   - [ ] The irreplaceable result is persisted before any enhancement runs
@@ -102,6 +99,7 @@ not a trigger.
 `STYLE.md` — point first, short sentences, plain words.
 
 - [ ] Comments say *why*, not what
+- [ ] Every startup and config error names the fix
 - [ ] The README leads with the point
 - [ ] Commits are semantic (`type(scope): subject`)
 - [ ] Any LLM prompts follow `patterns/llm-prompting.md`
@@ -192,7 +190,7 @@ the tokens layer and dark mode.
 - [ ] `aria-hidden` on every icon
 - [ ] Accessible name on the control
 - [ ] No icon font, and no meaning carried by icon alone
-- [ ] A page with icons loads with **zero** CSP violations in the browser console
+- [ ] The console of a page with icons shows no CSP violation (`patterns/security-headers.md`) — tier 1
 
 ## Animating or transitioning anything
 
@@ -209,15 +207,17 @@ the tokens layer and dark mode.
 
 `patterns/go-sqlite.md` — pragmas, pools, migrations, backups.
 
-- [ ] Pragmas: WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)`
-- [ ] Path made a file name
+- [ ] Pragmas: WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)` — tier 1
+- [ ] Path made a file name — tier 1
 - [ ] `sqlite.StrictPragmas(true)`
-- [ ] SQL only via parameterized queries
+- [ ] SQL only via parameterized queries — tier 1
 - **Two pools:**
   - [ ] Reads pooled
-  - [ ] Writes on a single connection: `SetMaxOpenConns(1)` + `_txlock=immediate`
+  - [ ] Writes on a single connection: `SetMaxOpenConns(1)` + `_txlock=immediate` — tier 1
 - [ ] Migrations embedded and forward-only
 - [ ] Migrations applied at boot inside a transaction
+- [ ] A migration that rebuilds a referenced table follows `patterns/go-data-deletion.md` rule 6 — tier 1
+- [ ] `newTestDB` fails a test that leaves a pool in use (rule 8) — tier 1
 - [ ] The off-box question is answered on purpose, with the matching row running
 - [ ] Snapshots the binary writes are pruned to the number the README names (`patterns/go-data-deletion.md`)
 - [ ] **The restore rehearsed once**
@@ -231,21 +231,26 @@ the tokens layer and dark mode.
   - [ ] `Secure` tied to `ENV`, so production sets it and dev does not
   - [ ] `RenewToken` on login and on password change
   - [ ] `Destroy` on logout
-- [ ] Auth endpoints rate limited
-- [ ] Login timing identical for unknown user vs wrong password
+- [ ] The session store: token hashed, expired rows not found, a deleted row kept empty
+- [ ] A password change asks for the current password and ends the user's other sessions
+- [ ] Reset tokens: only the SHA-256 stored, one hour, deleted on use; a reset ends all sessions
+- [ ] Auth endpoints rate limited per client IP, IPv6 by its /64
+- [ ] Unknown user and wrong password: same message, same time
 - [ ] Passwords (if any) hashed with argon2id (OWASP params, PHC-encoded)
 
 ## Letting a program sign in — a CLI, a script — tier 1, not waivable
 
 `patterns/go-auth-sessions.md` §Machine tokens — a bearer token, hashed at rest.
 
-- [ ] Made by `rand.Text()`: 26 base32 characters, 130 bits
+- [ ] Made by `rand.Text()`
 - [ ] Only its SHA-256 stored
 - [ ] Shown once
 - [ ] Read from `Authorization: Bearer`, never from the query string
-- [ ] Revoked by DELETE
+- [ ] Revoked by deleting its row
+- [ ] One function resolves either credential to the user row; a refused token answers 401
+- [ ] A token acts as its user, never wider (`patterns/go-authorization.md`)
 
-## Reading or writing a row somebody owns
+## Reading or writing a row somebody owns — tier 1, not waivable
 
 `patterns/go-authorization.md` — the actor in the signature, the predicate in the SQL.
 
@@ -257,9 +262,9 @@ the tokens layer and dark mode.
 - [ ] Lists, counts, and aggregates carry the same predicate
 - [ ] Writes prove ownership or membership in their own statement and check `RowsAffected` (a membership held only in memory: rule 6)
 - [ ] A route's protection is not optional where it is registered
-- [ ] The rows nobody owns are named in `README.md`
+- [ ] The rows nobody owns are named in `README.md` — tier 2
 - [ ] The two-user test covers every handler that touches an owned row
-- [ ] A socket write under a membership is tested with a non-member and a removed member: refused (1008), nothing stored or changed
+- [ ] A socket write under a membership is tested with a non-member and a removed member (*Testing*)
 
 ## Accepting a form POST
 
@@ -284,19 +289,19 @@ the tokens layer and dark mode.
 
 `patterns/go-email.md` — the port, the outbox, and the link that comes from `Config`.
 
-- [ ] Every link is built from `cfg.BaseURL`, never from `r.Host`
-- [ ] Any header value holding CR or LF is refused
-- [ ] The log transport is refused in production
+- [ ] Every link is built from `cfg.BaseURL`, never from the request — tier 1
+- [ ] Any header value holding CR or LF is refused — tier 1
+- [ ] The log transport is refused in production — tier 1
 - [ ] The message is queued in the causing transaction; a ticker sends it
-- [ ] The response never changes with the send's outcome
-- [ ] The `Host: evil.example` test is green
+- [ ] The response never changes with the send's outcome — tier 1
+- [ ] The `Host: evil.example` test is green — tier 1
 
-## Deleting a person, or anything they own
+## Deleting a person, or anything they own — tier 1, not waivable
 
 `patterns/go-data-deletion.md` — what the delete reaches, and what stops authenticating.
 
-- [ ] Every table holding the person's rows declares an `ON DELETE` action
-- [ ] Each table's answer — erase, anonymize, refuse — is written where the shared rows are
+- [ ] Every table holding the person's rows declares an `ON DELETE` action, bar the rule's two
+- [ ] Each table's answer — erase, anonymize, refuse — is written where the shared rows are — tier 2
 - [ ] The credential middleware loads the user row, so a deleted account is signed out
 - [ ] A user id is never handed out twice
 - [ ] A self-service delete asks for the password again
@@ -333,16 +338,16 @@ boxes are tier 1.
 - [ ] Under `web/static/js/`: htmx, an unedited `wasm_exec.js`, one loader, nothing else
 - [ ] Both scripts load deferred in `<head>`, on the module's page only
 - [ ] A link or form whose answer is that page carries `hx-boost="false"`
-- [ ] The module stops, socket and all, once its canvas leaves the document
+- [ ] The module stops once its canvas leaves the document, and reloads on a persisted `pageshow`
 - [ ] CSP adds `script-src 'self' 'wasm-unsafe-eval'` and nothing more — `patterns/security-headers.md`
-- [ ] Every recipe that runs `tinygo` names `VERSIONS.md`'s TinyGo version and refuses another
-- [ ] A test recomputes each committed module's input digest
+- [ ] Every recipe that runs `tinygo` names its version and `wasm-opt`'s, and refuses another
+- [ ] A test recomputes each module's input digest and holds its `.build` to the Makefile
 - [ ] `check` vets the browser packages under `GOOS=js GOARCH=wasm` and TinyGo's tags, failing closed on an empty list
 - [ ] `check` holds each module to its size limit
 - [ ] `deps_test.go` keeps `net/http`, `os/signal`, `golang.org/x/sync/...` out of the browser packages
 - **The socket, `GET /ws`** — a box that names a rule is checked against that rule:
   - [ ] Origin: the handshake refuses a missing one and a foreign one (rule 5)
-  - [ ] Access: the socket makes or changes nothing that decides who passes a credential resolver or access check (rule 6, which names the one hold it may give up)
+  - [ ] Access: the socket makes or changes nothing that decides who passes a check (rule 6)
   - [ ] Credential: re-resolved as rule 6 says
   - [ ] Credential: the socket acts only under the handshake's credential, with the access its latest check returned (rule 6)
   - [ ] Credential: it acts on nothing while a check is due (rule 6)
@@ -366,7 +371,7 @@ the second wait.
 - [ ] Work that outlives its request takes `context.WithoutCancel` and a budget of its own
 - [ ] Shutdown cancels it, and `main` waits after `g.Wait()`; `srv.Shutdown` does neither
 - [ ] Losing it mid-flight costs nothing, or it is a durable queue instead
-- [ ] Its registry drops finished entries when the next one starts
+- [ ] Its registry drops finished entries when the next one starts, a few minutes after they end
 - [ ] A reader gets a snapshot taken under the mutex, never the live state
 
 ## Depending on someone else's system
@@ -390,7 +395,7 @@ the second wait.
 - [ ] Nothing calls a remote system at boot
 - **The timeout ladder holds:**
   - [ ] Any handler that waits on another system sets its own `context.WithTimeout` — the budget
-  - [ ] `WriteTimeout` sits above the budget
+  - [ ] `WriteTimeout` sits above `ReadTimeout` plus the budget
   - [ ] Every outbound client timeout sits at or above the budget
 
 ## Adding an AI capability — a model that answers, summarises, extracts, or classifies
@@ -428,6 +433,7 @@ wire.
 - [ ] Domain logic covered exhaustively (all rules/edge cases)
 - [ ] Each handler: happy path + error paths, via `httptest` against real routes
 - [ ] Detached work is waited on, never slept on, and a `synctest` test proves the counter
+- [ ] No test sends a request off this machine — tier 1
 
 ## Making the app installable
 
@@ -461,11 +467,11 @@ gate.
 - [ ] No `.github/dependabot.yml`
 - [ ] No `export-ignore` in `.gitattributes`
 - **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
-  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push (for a WebAssembly client, js/wasm is not `./...`: `check`'s line over `patterns/wasm-client.md` rule 3's package list is this box)
+  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push (js/wasm: `patterns/wasm-client.md` rule 3's `check` line)
 - **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`, but not `ignore` or `unix`):**
   - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set (TinyGo's: `$(WASM_TAGS)`, `stack/makefile.md` rule 1)
 - **If a recipe runs a tool whose output is committed or flashed (generated code, a module) — not `go build`, not a formatter:**
-  - [ ] It names an exact version, never `@latest`, and every recipe running it as an installed binary checks that version first; a `go run …@$(V)` line is its own check
+  - [ ] It names an exact version, never `@latest`, and checks it first (`stack/makefile.md` rule 4)
 
 ## Configuring the build, or serving a static asset
 
@@ -480,11 +486,11 @@ gate.
 `operations/web-application.md` — the deployment contract.
 
 - **The binary satisfies every line of the contract:**
-  - [ ] Two listeners
+  - [ ] Two listeners — tier 1
   - [ ] stdout logs
   - [ ] SIGTERM shutdown
   - [ ] State under `DATABASE_URL`
-  - [ ] Secrets from `CREDENTIALS_DIRECTORY`
+  - [ ] Secrets from `CREDENTIALS_DIRECTORY` — tier 1
 - [ ] It starts with an empty environment on `127.0.0.1:8080`
 - **The version is visible in `/healthz` and the boot log** (`debug.ReadBuildInfo`):
   - [ ] It appears in both places

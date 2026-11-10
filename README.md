@@ -174,57 +174,60 @@ the list below, and a checklist box each name the rule in a few words and point 
 by number where the document numbers its rules. None of them repeats its conditions: a
 condition copied to four places drifts in three of them. A condition found only in a
 header, in this list, or in a box is a defect — move it into the rule, and only then
-trim the copy. This binds every header, entry and box written or changed from
-2026-11-09 on. [patterns/wasm-client.md](patterns/wasm-client.md) follows it. The older
-copies that have drifted from their rule are listed in [VERIFICATION.md](VERIFICATION.md)
-*Owed*; the rest are trimmed when their document is next read whole.
+trim the copy. The 2026-11-10 run brought the documents it read to this form; what it
+left is in [VERIFICATION.md](VERIFICATION.md) *Owed*.
 
-- The headers and the request surface — CSRF, escaping user input, request body caps, the
-  security-header policy, the ops listener never proxied, and no boost on a link or form
-  whose answer is not a page ([patterns/security-headers.md](patterns/security-headers.md),
-  [patterns/go-http-server.md](patterns/go-http-server.md), [stack/htmx.md](stack/htmx.md)).
+- The request surface: the cross-origin check and no mutation on a GET, the request
+  body cap, and the ops listener never proxied
+  ([patterns/go-http-server.md](patterns/go-http-server.md)); the security-header policy
+  ([patterns/security-headers.md](patterns/security-headers.md)); escaping, and no boost
+  on a link or form whose answer is not a page ([stack/htmx.md](stack/htmx.md) rule 8).
 - A WebSocket: the `Origin` check at its handshake, what the socket may never make or
   change, the credential it acts under, its message and control-frame size caps, and
   its handler's return ([patterns/wasm-client.md](patterns/wasm-client.md) rules 5 and
   6, and the parts rules 7 and 8 mark).
-- Everything about who is signed in: session cookie flags, renewal on login and password
-  change, password hashing, auth rate limiting, constant-time login, every machine-token
-  rule, and re-resolving a long-lived connection
-  ([patterns/go-auth-sessions.md](patterns/go-auth-sessions.md)).
-- Parameterized SQL, the SQLite pragmas and the guard on the DSN that carries them (the
-  path made a file name), the single-writer pool, and closing every `Rows`, `Stmt` and
-  `Tx` that pool hands out — a single leak wedges every later write
+- Who is signed in: the session cookie and what its store must do, renewal and logout,
+  ending a user's other sessions when the password changes, no enumeration, password
+  hashing, the rate limits, the reset token, every machine-token rule, and re-resolving
+  a long-lived connection ([patterns/go-auth-sessions.md](patterns/go-auth-sessions.md)).
+- Parameterized SQL, the SQLite pragmas and the guard on the DSN that carries them
+  (rule 10), the single-writer pool, and closing what that pool hands out (rule 8)
   ([patterns/go-sqlite.md](patterns/go-sqlite.md)).
 - Whether the signed-in actor may touch the row it asked for: the actor in the store
   signature, the predicate in the SQL (a membership held only in memory: its rule 6), the
   two answers being indistinguishable, and a route's protection not being optional where
   it is registered ([patterns/go-authorization.md](patterns/go-authorization.md)).
-- Everything about a file a user handed you: the generated stored name, the type decided
-  by sniffing the bytes, the download served by a handler rather than a file server, the
-  attachment default, and no boost on a link to it
+- A file a user handed you: the generated stored name, the type decided by sniffing the
+  bytes, the download served by a handler rather than a file server, the attachment
+  default, and no boost on a link to it
   ([patterns/go-file-uploads.md](patterns/go-file-uploads.md)).
-- What a delete reaches, and what still authenticates once it has: an `ON DELETE` action on
-  every table holding a person's rows, their queued mail and their bytes going with them,
-  a credential resolving to a row rather than to an id, and a user id never handed out
-  twice ([patterns/go-data-deletion.md](patterns/go-data-deletion.md)).
+- What a delete reaches, and what still authenticates once it has: an `ON DELETE` action
+  on the tables holding a person's rows, their queued mail and their bytes going with
+  them, a credential resolving to a row rather than to an id, a user id never handed out
+  twice, and a table rebuild that keeps its children
+  ([patterns/go-data-deletion.md](patterns/go-data-deletion.md)).
 - A link in an outgoing email built from `Config` and never from the request, a
   header value refused when it holds CR or LF, and the log transport refused in production
-  ([patterns/go-email.md](patterns/go-email.md)) — the first two resting on the two boot
-  checks in [patterns/go-config.md](patterns/go-config.md), `BASE_URL` and the sender address.
+  ([patterns/go-email.md](patterns/go-email.md)) — the first two resting on the boot
+  checks of [patterns/go-config.md](patterns/go-config.md) rules 8 and 9.
+- What never reaches a log ([patterns/go-errors-logging.md](patterns/go-errors-logging.md)
+  *Never log*).
 - A test never sending a request off this machine
-  ([patterns/go-testing.md](patterns/go-testing.md)): `srv.URL` is `http://example.com`,
-  so any client but `srv.Client()` asserts against a stranger's server.
-- Any version pin whose note names a security fix.
-- Every rule about how a secret is handled: a secret arrives as a file and its own type
-  keeps it out of the logs ([patterns/go-config.md](patterns/go-config.md) *Secrets*), a
-  secret never arrives as a flag *value* ([patterns/go-cli.md](patterns/go-cli.md)), a
-  child's secret never travels on its command line
+  ([patterns/go-testing.md](patterns/go-testing.md) *Idioms*).
+- Any version pin whose note names a security fix
+  ([operations/ci.md](operations/ci.md) *The Go version*).
+- Every rule about how a secret is handled: a service's secret arrives as a file and its
+  own type keeps it out of the logs ([patterns/go-config.md](patterns/go-config.md)
+  *Secrets*), a CLI's never arrives on the command line
+  ([patterns/go-cli.md](patterns/go-cli.md)), a child's never travels on its command line
   ([patterns/go-child-process.md](patterns/go-child-process.md)), and `.env` is
   gitignored and never used in production ([stack/makefile.md](stack/makefile.md) rule 6).
+- A tool that listens answering only the person who started it
+  ([patterns/go-cli.md](patterns/go-cli.md) *A tool that listens*).
 
 **The checklists mark this, they do not imply it.** A trigger section that is wholly
-tier 1 says so under its heading; where only some of a section's boxes are, the
-checklist's preamble names them. Nothing is tier 1 because of the section it landed in —
+tier 1 says so under its heading; anywhere else a tier-1 box says so itself. Nothing is
+tier 1 because of the section it landed in —
 that positional definition died when routing and the definition of done became one file
 and the security boxes scattered across the topics that fire them.
 

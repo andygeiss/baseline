@@ -47,7 +47,7 @@ are required reading.
 
 - [ ] v0 until proven by ≥2 consumers
 - [ ] v1.0.0 tagged deliberately
-- [ ] Since v1: no exported symbol renamed, removed, or behavior-changed (additive = minor, fixes = patch)
+- [ ] Since v1: no exported symbol renamed, removed, or behavior-changed
 - [ ] No `replace` directives on main
 - [ ] The module path would be `/v2` for any post-v1 break — and that was fought hard
 
@@ -94,6 +94,7 @@ reads.
 - [ ] `go test -race -shuffle=on ./...` passes
 - [ ] Exported API tested from `package foo_test` (consumer's view)
 - [ ] Edge cases and error paths covered exhaustively
+- [ ] No test sends a request off this machine — tier 1
 - [ ] Fuzz test + seed corpus for any parser of untrusted input
 
 ## Setting up the repo's commands or CI

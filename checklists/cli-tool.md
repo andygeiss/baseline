@@ -9,12 +9,9 @@ rules something no milestone can verify. Paths are from the repository root.
 
 Every unchecked box is either fixed or waived on the record — the waiver format lives in
 `README.md` under *Which rules can be waived*. **Tier 1 is decided by what a rule
-protects, not by which section it landed in**, and these are the boxes: partial work
-staying safe, a destructive action needing an explicit flag, every box about how a secret
-is handled — a secret never arrives as a flag *value* — the gitignore and production
-`.env` boxes, and the pragmas, the path box, and parameterized SQL under *Storing
-anything between runs*.
-There is no waiver for any of them; there is a fix.
+protects, not by which section it landed in**: a wholly tier-1 section says so in its
+heading, and anywhere else a tier-1 box says so itself. There is no waiver for any of
+them; there is a fix.
 
 ## Every CLI tool
 
@@ -31,11 +28,11 @@ are ruled by `patterns/go-cli.md`, which is required reading.
 - [ ] The binary's name is free: `command -v <name>` finds nothing on a stock macOS and Linux box — a collision means the tool that runs is not the tool that was installed (`project-types/cli-tool.md`)
 - [ ] `run(ctx, args, stdout, stderr)` pattern, plus a `stdin io.Reader` where the tool reads stdin
 - [ ] `os.Exit` in `main` only
-- [ ] Every failure surfaces as `tool: <cause>` on stderr, exit 1
+- [ ] Every failure surfaces as `tool: <cause>` on stderr
 - [ ] Ctrl-C/SIGTERM cancels the context
 - [ ] In-flight work finishes or rolls back
 - [ ] Interrupted runs exit non-zero
-- [ ] Partial work is safe: units of work atomic (temp file + rename, transaction) or reruns idempotent
+- [ ] Partial work is safe: units of work atomic (temp file + rename, transaction) or reruns idempotent — tier 1
 - [ ] README links to this baseline
 - [ ] README shows the `go install` line + a 30-second usage example
 - [ ] Any waived rule recorded in the format `README.md` *Which rules can be waived* defines
@@ -53,7 +50,7 @@ are ruled by `patterns/go-cli.md`, which is required reading.
 - [ ] README shows the same
 - [ ] `version` subcommand or `-version` flag reports via `debug.ReadBuildInfo` (correct under both `go install @tag` and checkout builds)
 - [ ] No prompts, no colors, no ANSI sequences
-- [ ] Destructive actions require an explicit `-force`-style flag
+- [ ] Destructive actions require an explicit `-force`-style flag — tier 1
 - **If `-json` exists:**
   - [ ] One object per line
   - [ ] Field names treated as API
@@ -77,17 +74,18 @@ runners-up under *Avoid*.
 - [ ] Config precedence is flags > env > defaults
 - [ ] Config parsed and validated before any work starts
 - [ ] A bad value exits 2 with one line, never a half-done run
-- **Any secret (API token, key)** — §A CLI holds its secret differently:
-  - [ ] It is read from a file named by `-token-file`/`$MYTOOL_TOKEN_FILE`
-  - [ ] `$MYTOOL_TOKEN` is documented as the leaky fallback
-  - [ ] It is **never** taken from a flag value
+- **Any secret (API token, key)** — §A CLI holds its secret differently, all tier 1:
+  - [ ] It is read from a file named by a `-<secret>-file` flag or its `$MYTOOL_…_FILE`
+  - [ ] Its environment variable is documented as the leaky fallback
+  - [ ] It is **never** taken from the command line
+  - [ ] It is `patterns/go-config.md`'s `Secret` from the line that reads it
   - [ ] Handed to a program the tool starts, it never travels on that program's command line — `patterns/go-child-process.md`
 - **If the tool reads no environment variable:**
   - [ ] `-h` names every input — it is the whole contract
-- **If the repo has a `.env`** — `stack/makefile.md` rule 6:
-  - [ ] It is gitignored
+- [ ] `.env` is gitignored, from the commit that added `run`'s recipe (`stack/makefile.md` rule 6) — tier 1
+- **If the repo has a `.env`:**
   - [ ] No gate reads it — `check`, `ci`, `test`
-  - [ ] Production takes its secrets from credential files instead
+  - [ ] Nothing a user installs reads it — tier 1
 
 ## Returning an error, or logging anything
 
@@ -111,6 +109,7 @@ reads.
 
 - [ ] `go test -race -shuffle=on ./...` passes
 - [ ] Core logic in `internal/` covered exhaustively (all rules/edge cases)
+- [ ] No test sends a request off this machine — tier 1
 - **`run()` is table-tested:**
   - [ ] Happy path per subcommand (or the single command)
   - [ ] Unknown command and top-level `-h` where dispatch exists
@@ -137,21 +136,33 @@ the API is integrated.
 - [ ] Checks `resp.StatusCode`
 - [ ] Caps the body it reads
 
+## Listening on a port — a local proxy, a status endpoint — tier 1, not waivable
+
+`patterns/go-cli.md` *A tool that listens* — a browser on this machine reaches a loopback
+port from every page it has open.
+
+- [ ] The listener binds `127.0.0.1`, and the tool prints the address it bound
+- [ ] A request whose `Host` is not that address is refused
+- [ ] A request whose `Sec-Fetch-Site` is `cross-site` or `same-site` is refused, whatever its method
+- [ ] `http.CrossOriginProtection` wraps the handler, and bodies are capped at 1 MiB
+- [ ] The server sets its four timeouts and shuts down through `serve`
+- [ ] A test sends a cross-site POST, a cross-site GET and a foreign `Host`, and each is refused
+
 ## Starting a program the tool keeps running — a server it fronts, an engine, a database
 
 `patterns/go-child-process.md` — its own process group, one stop sent first, the wait.
 
 - [ ] The child runs in a process group of its own (`Setpgid`)
 - [ ] That code sits behind `//go:build unix`
-- [ ] SIGTTOU is ignored before the child starts
-- [ ] SIGTSTP is ignored before the child starts
+- [ ] SIGTTOU, SIGTSTP and SIGPIPE are ignored before the child starts
 - [ ] It is not started with `exec.CommandContext`, whose cancel kills it
 - [ ] Its output goes to the tool's stderr
 - [ ] Its `Stdout` and `Stderr` are `*os.File`s, never another writer
 - [ ] Everything that can fail fast is checked before it starts
+- [ ] Ready means a 2xx, and the first other status is printed once
 - [ ] The readiness wait ends when the child exits, too
 - [ ] The stop signal goes to the child's whole process group
-- [ ] The tool sends it once, never a second SIGTERM
+- [ ] The tool sends it once, never a second time
 - [ ] It goes out before the tool's own shutdown
 - [ ] The tool waits for the child to exit before it returns, on every path
 - [ ] What is left of the group `grace` after the stop signal gets SIGKILL
@@ -160,16 +171,18 @@ the API is integrated.
 - [ ] That stop's error names the child's exit
 - [ ] SIGHUP stops the tool, unless it was started ignored
 - [ ] The force-kill hatch ignores SIGHUP before it unregisters the rest
-- [ ] Its secret reaches it through a file, or its own environment when it reads nothing else — never its command line
+- [ ] Its secret never travels on its command line (*The child's secret*) — tier 1
 - [ ] Tests run the test binary as the fake child
-- [ ] Tests assert the fake child caught SIGTERM before `run` returned
+- [ ] The fake registers for its signals before it logs its PID
+- [ ] Tests assert the fake child caught the stop signal before `run` returned
 - [ ] The fake child starts a helper, run as a mode of its own
 - [ ] The fake logs `complete` only after that helper has gone
-- [ ] A test asserts the fake that outlasts SIGTERM is gone when `run` returns
-- [ ] A test asserts the deadline counts from the stop, not from the tool's own shutdown
+- [ ] A test asserts the fake that outlasts the stop is gone when `run` returns
+- [ ] Two tests pin the deadline to the stop: not the start, not the end of the tool's own shutdown
 - [ ] A test lets the fake leave its helper behind, and asserts the helper is gone
+- [ ] A test kills the ready fake and asserts `run` names its exit
 - [ ] Every wait in a test is bounded
-- [ ] `t.Cleanup` kills the fake's group
+- [ ] `t.Cleanup` kills the fake's group and every PID it logged
 
 ## Adding an AI capability — a model that answers, summarises, extracts, or classifies
 
@@ -195,10 +208,12 @@ the reasoning that leaks into the visible answer.
 
 `patterns/go-sqlite.md` — pragmas, pools, migrations. Prefer staying stateless.
 
-- [ ] Pragmas: WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)`
-- [ ] Path made a file name
+- [ ] Pragmas: WAL, `busy_timeout`, `synchronous(NORMAL)`, `foreign_keys(1)` — tier 1
+- [ ] Path made a file name — tier 1
 - [ ] `sqlite.StrictPragmas(true)`
-- [ ] SQL only via parameterized queries
+- [ ] SQL only via parameterized queries — tier 1
+- [ ] Writes on a single connection: `SetMaxOpenConns(1)` + `_txlock=immediate` — tier 1
+- [ ] `newTestDB` fails a test that leaves a pool in use (rule 8) — tier 1
 - [ ] Migrations embedded and forward-only
 
 ## Setting up the repo's commands or CI
@@ -215,7 +230,7 @@ gate.
 - [ ] No `.github/dependabot.yml`
 - [ ] No `export-ignore` in `.gitattributes`
 - **If the project has OS-specific files (`//go:build <os>`, or a `_<os>.go` file name):**
-  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push — for `//go:build unix`, each Unix the tool claims (for a WebAssembly client, js/wasm is not `./...`: `check`'s line over `patterns/wasm-client.md` rule 3's package list is this box)
+  - [ ] `GOOS=<os> go vet ./...` passed for each such OS before the push — for `//go:build unix`, each Unix the tool claims, Linux at least, each with a `GOARCH` (`operations/ci.md`) (for a WebAssembly client, js/wasm is not `./...`: `check`'s line over `patterns/wasm-client.md` rule 3's package list is this box)
 - **If a file carries a custom build tag, not a GOOS/GOARCH (`//go:build <tag>`, but not `ignore` or `unix`):**
   - [ ] `check` has a `go vet -tags <tag> ./...` line for each tag set (TinyGo's: `$(WASM_TAGS)`, `stack/makefile.md` rule 1)
 - **If a recipe runs a tool whose output is committed or flashed (generated code, a module) — not `go build`, not a formatter:**

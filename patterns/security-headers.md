@@ -124,7 +124,8 @@ func TestSecureHeaders(t *testing.T) {
 	}
 
 	srv := httptest.NewTestServer(t, newTestApp(t).Routes())
-	res, err := srv.Client().Get(srv.URL + "/")
+	c := srv.Client() // first: this call sets srv.URL
+	res, err := c.Get(srv.URL + "/")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -158,9 +159,8 @@ Comparing the CSP against the `csp` constant only proves the header is *sent*. T
 explicit `img-src` check has teeth, because that directive is the one a future
 tightening pass would remove without knowing its cost, and the one a loosening pass
 widens for an avatar host; the keyword checks catch the two banned keywords. The rest of
-the policy is
-reviewed against the feature map above, and the end-to-end proof is the reference
-implementation rendering its icons.
+the policy is reviewed against the feature map above, and by eye: a page of each kind,
+opened once with the browser's console showing, prints no CSP violation.
 
 ## Anti-patterns
 

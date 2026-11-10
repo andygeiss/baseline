@@ -46,13 +46,11 @@ func (a *App) Routes() http.Handler {
 - Wildcard `{$}` for exact root; avoid trailing-slash subtree matches unless serving files.
 - **`/static/` sits outside the middleware chain.** `sessions.LoadAndSave` would query
   the session store on every asset request and add `Vary: Cookie`, breaking the
-  `immutable` cache ([go-performance.md](go-performance.md)) on every login and logout;
-  CSRF and the body cap have nothing to check on a bodiless GET. The trade — no request
+  `immutable` cache ([go-performance.md](go-performance.md)); the trade — no request
   log, no security headers on assets — is covered in
   [security-headers.md](security-headers.md). `FileServerFS` sets `Content-Type` from
-  Go's mime table, which is small enough that two extensions register themselves at boot:
-  `.webmanifest` ([pwa.md](pwa.md)) and `.woff2`
-  ([css-typography.md](css-typography.md)).
+  Go's mime table, so two extensions register themselves at boot: `.webmanifest`
+  ([pwa.md](pwa.md)) and `.woff2` ([css-typography.md](css-typography.md)).
 
 ## Handlers
 
@@ -74,9 +72,9 @@ func (a *App) handleGameShow(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Early returns, no `else` ladders. One `serverError`/`clientError` pair centralizes error
-responses ([go-errors-logging.md](go-errors-logging.md)), and `a.render` handles the
-full-page vs fragment split ([htmx-server-rendering.md](htmx-server-rendering.md)).
+Early returns, no `else` ladders. `serverError` and `clientError` are
+[go-errors-logging.md](go-errors-logging.md)'s, `a.render`
+[htmx-server-rendering.md](htmx-server-rendering.md)'s.
 
 ## Middleware
 
@@ -210,10 +208,8 @@ func OpsHandler(readDB *sql.DB, version string) http.Handler {
 }
 ```
 
-**With no database, `/healthz` answers 200 `ok` and the version** once the process
-answers at all — there is nothing to ping. State kept in a file is not a database
-either: the probe stays the version check a deploy reads, and a failed write is logged
-where it happens.
+**With no database, `/healthz` answers 200 `ok` and the version** — there is nothing to
+ping, and state kept in a file is not a database either.
 
 `main.go` wires it as a second `http.Server` under the same `errgroup` as the app server:
 
@@ -222,19 +218,15 @@ ops := &http.Server{
 	Addr:    "127.0.0.1:6060", // fixed, not a flag: never public, never proxied
 	Handler: app.OpsHandler(readDB, version),
 	// The same four timeouts and ErrorLog as the app server. They do not cap a
-	// long profile: profile?seconds=30 writes nothing until profiling ends, but
-	// net/http/pprof extends its own write deadline to WriteTimeout + seconds on
-	// every seconds-based handler.
+	// long profile: net/http/pprof extends its own write deadline for one.
 }
 g.Go(func() error { return serve(ctx, ops) })
 ```
 
 - The pprof handlers are registered **explicitly** — the blank `_ "net/http/pprof"`
-  import registers on `http.DefaultServeMux`, which this pattern never serves.
-  `pprof.Index` dispatches the named runtime profiles itself; `Cmdline`, `Profile`,
-  `Symbol`, and `Trace` are the only ones needing their own routes. Their patterns break
-  the app mux's routing rules on purpose: method-less because `Symbol` answers GET and
-  POST, and a subtree match because that is how `Index` dispatches.
+  import registers on `http.DefaultServeMux`, which this pattern never serves. Their
+  patterns break the app mux's routing rules on purpose: method-less because `Symbol`
+  answers GET and POST, and a subtree match because `Index` dispatches the named profiles.
 - The ops mux takes **none** of the app middleware: no request log (a health poll every
   few seconds is log noise), no sessions, no CSRF, no body cap.
 - `version` is read once at boot via `debug.ReadBuildInfo` — the same string the asset
