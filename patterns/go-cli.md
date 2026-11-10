@@ -2,10 +2,9 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-09-05
 
-**Two rules here are tier 1 and never waived:** a secret never arrives on the command
-line (*Config precedence*), and a tool that listens answers only the person who
-started it (*A tool that listens*). Whether the tool grows a `-json` flag is tier 3,
-chosen per project.
+**One rule here is tier 1 and never waived:** a secret never arrives on a command line,
+the tool's own or that of a program it runs (*Config precedence*). Whether the tool
+grows a `-json` flag is tier 3, chosen per project.
 
 The mechanics behind [project-types/cli-tool.md](../project-types/cli-tool.md):
 process skeleton, flags, streams, exit codes, version reporting, testing.
@@ -47,8 +46,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
   shutdown can take more than a heartbeat, restore the force-kill escape hatch by
   adding `go func() { <-ctx.Done(); stop() }()` right after creating the context
   (unregistering returns the signal to what it was: terminate, unless the tool was
-  started with it ignored). Never in a tool that owns a child
-  ([go-child-process.md](go-child-process.md)).
+  started with it ignored).
 - **`run` maps the parser's three outcomes itself** when it uses
   [go-config.md](go-config.md)'s `parseConfig`: `flag.ErrHelp` returns `nil`, a
   `FlagSet` error returns `errUsage`, and any other one is printed and returns
@@ -147,16 +145,17 @@ precedence:
 // token prefers the file, because $MYTOOL_TOKEN leaks into every child process.
 // Secret is go-config.md's type: a -v line that prints the config prints REDACTED.
 func token(path string) (Secret, error) {
-	if path == "" {
-		return Secret(os.Getenv("MYTOOL_TOKEN")), nil
+	s := os.Getenv("MYTOOL_TOKEN")
+	if path != "" {
+		b, err := os.ReadFile(path)
+		if err != nil {
+			return "", fmt.Errorf("read token file: %w", err)
+		}
+		s = string(b)
 	}
-	b, err := os.ReadFile(path)
-	if err != nil {
-		return "", fmt.Errorf("read token file: %w", err)
-	}
-	s := strings.TrimSpace(string(b)) // the file usually ends in a newline
+	s = strings.TrimSpace(s) // a file usually ends in a newline
 	if strings.ContainsFunc(s, unicode.IsControl) {
-		return "", errors.New("token file: the token holds a control character")
+		return "", errors.New("the token holds a control character")
 	}
 	return Secret(s), nil
 }
@@ -167,6 +166,11 @@ shows up in `ps` and in shell history. A missing token file is an error, never a
 silent fall-through to no token — that answers "not signed in" and sends the reader
 looking in the wrong place. So is a secret that holds a control character: a second
 line in the file would make `net/http` refuse the header on every request.
+
+**The same holds for a program the tool runs:** a secret never travels on its command
+line. It goes into that command's own environment — `cmd.Env`, never `os.Setenv`, which
+every later child would inherit — or into a file only the user can read, where the
+program can be told to read one.
 
 ## Streams
 
@@ -243,56 +247,6 @@ are in [operations/web-application.md](../operations/web-application.md)
   rename, SQLite transaction) or the tool is idempotent so rerunning repairs the
   interruption.
 
-## A tool that listens
-
-**Tier 1.** A tool that serves the person who started it
-([project-types/cli-tool.md](../project-types/cli-tool.md)) is a server while it runs,
-and a browser on the same machine can reach a loopback port from any page it has open.
-With no rule the listener forwards a stranger's form post, the user's token added. It
-MUST:
-
-1. **Bind `127.0.0.1`,** never every interface, with `net.Listen`, before anything slow
-   starts, and print the address that listener holds.
-2. **Refuse a request whose `Host` is not that address.** A name that resolves to
-   loopback makes a page on another site same-origin with the port.
-3. **Carry [go-http-server.md](go-http-server.md)'s cross-origin wrap and body cap**
-   (*Middleware* items 4 and 6), **its four timeouts, its `ErrorLog`** — over a `slog`
-   text handler on stderr — **and its `serve`** (*Server lifecycle*), with `srv.Serve(ln)`
-   where that has `ListenAndServe`.
-4. **Refuse a request whose `Sec-Fetch-Site` is `cross-site` or `same-site`, or which
-   carries none and an `Origin` that is not its own,** whatever its method. The wrap lets
-   every GET through, and a tool that forwards cannot promise that a GET changes nothing
-   behind it. A WebSocket handshake is a GET that carries no `Sec-Fetch-Site` at all; its
-   `Origin` is what refuses it.
-5. **Never forward a request whose `Sec-Fetch-Site` is `none`.** That is a navigation
-   somebody typed, a prefetch a page on any site asked for, or a link that redirected
-   here with a path of its choosing. The tool's own handler answers it: a page of the
-   tool's, or one line saying what listens here.
-
-```go
-// local wraps the tool's own listener. addr is the address it bound, own answers
-// a none request, and next, the forwarder or anything else, gets the rest.
-func local(addr string, own, next http.Handler) http.Handler {
-	csrf := http.NewCrossOriginProtection()
-	h := csrf.Handler(http.MaxBytesHandler(next, 1<<20))
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s, o := r.Header.Get("Sec-Fetch-Site"), r.Header.Get("Origin")
-		switch {
-		case r.Host != addr || s == "cross-site" || s == "same-site" || s == "" && o != "" && o != "http://"+addr:
-			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-		case s == "none":
-			own.ServeHTTP(w, r)
-		default:
-			h.ServeHTTP(w, r)
-		}
-	})
-}
-```
-
-A tool that forwards is bound by [go-http-client.md](go-http-client.md)'s ladder too:
-nothing streams past its budget, and a forwarded body that reaches the cap is an error,
-never a shorter answer.
-
 ## Testing
 
 `run` takes its streams and args, so tests need no process machinery:
@@ -313,9 +267,3 @@ command), unknown command and top-level `-h` where dispatch exists, bad flag
 and a stray argument before a flag (expect `errUsage`), and — where `-json` exists — that each line of the output
 parses back with `encoding/json/v2`. Strategy and coverage bar per
 [go-testing.md](go-testing.md).
-
-A tool that listens tests `local` with the bound address as `Host` in every case but
-one — a request `httptest.NewRequest` builds is refused on its `Host` alone, and proves
-nothing else. A cross-site GET, a same-site GET and a handshake with a foreign `Origin`
-are refused; a foreign `Host` with nothing else is refused; a plain request is answered;
-and a request marked `none` reaches `own` and never `next`.

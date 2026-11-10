@@ -100,7 +100,6 @@ baseline/
 │   ├── go-auth-sessions.md
 │   ├── go-authorization.md
 │   ├── go-background-work.md
-│   ├── go-child-process.md
 │   ├── go-cli.md
 │   ├── go-config.md
 │   ├── go-data-deletion.md
@@ -219,12 +218,9 @@ left is in [VERIFICATION.md](VERIFICATION.md) *Owed*.
   ([operations/ci.md](operations/ci.md) *The Go version*).
 - Every rule about how a secret is handled: a service's secret arrives as a file and its
   own type keeps it out of the logs ([patterns/go-config.md](patterns/go-config.md)
-  *Secrets*), a CLI's never arrives on the command line
-  ([patterns/go-cli.md](patterns/go-cli.md)), a child's never travels on its command line
-  ([patterns/go-child-process.md](patterns/go-child-process.md)), and `.env` is
+  *Secrets*), a CLI's never arrives on a command line, its own or
+  that of a program it runs ([patterns/go-cli.md](patterns/go-cli.md)), and `.env` is
   gitignored and never used in production ([stack/makefile.md](stack/makefile.md) rule 6).
-- A tool that listens answering only the person who started it
-  ([patterns/go-cli.md](patterns/go-cli.md) *A tool that listens*).
 
 **The checklists mark this, they do not imply it.** A trigger section that is wholly
 tier 1 says so in its heading; anywhere else the box, or the line that introduces its

@@ -181,11 +181,6 @@ nobody has read at all.
 - **`patterns/wasm-client.md`, whole,** with *Re-resolving a long-lived connection*. New
   in v5.2.0; eighteen reads, none passed. `patterns/go-authorization.md` rule 6 came
   back clean.
-- **`patterns/go-child-process.md`, whole,** with its checklist section. New on
-  2026-10-04; seven reads, none passed (`596fd9c`).
-- **`patterns/go-cli.md`, whole,** above all *A tool that listens*, new on 2026-11-10
-  after the 2026-10-09 widening, and the checklist's *Listening on a port* (`596fd9c`,
-  `03bb4c3`).
 - **`patterns/go-email.md`, whole.** Six reads, a medium in each. Its date did not move.
 - **`patterns/go-sqlite.md`, `patterns/go-file-uploads.md`, and in
   `patterns/go-data-deletion.md` rule 6,** a prohibition since `2a21420`, its header, the
@@ -214,6 +209,13 @@ nobody has read at all.
 
 ### Known, not fixed
 
+- **Retired on 2026-11-10, on Andy's call:** `patterns/go-child-process.md`, and
+  `patterns/go-cli.md` *A tool that listens* with the clause of 2026-10-09 that let a CLI
+  serve the person who started it. Neither ever passed a read: eight for the first, four
+  in one day for the second. Their one live user is baton, which keeps its code and
+  records both as its own deviations. The rule that a secret never travels on a child's
+  command line moved to `patterns/go-cli.md` *Config precedence*. The text as it last
+  stood is at `39ad142`.
 - **Medium — two boxes of `checklists/cli-tool.md` are marked tier 1 with no rule behind
   the mark:** partial work being safe, and `-force` for a destructive action.
   `patterns/go-cli.md` and the README's list name neither. A decision, below.
@@ -267,9 +269,6 @@ nobody has read at all.
 - **Medium — `patterns/go-config.md` makes `DATABASE_URL` a flag, an environment
   variable and a logged field.** A Postgres URL, which `project-types/web-application.md`
   allows, holds a password (2026-11-10).
-- **Medium — `patterns/go-child-process.md`: the fake's mode "ready after a few asks"
-  has no assertion,** so a tool that calls any status ready passes (round five,
-  2026-10-09; still true on 2026-11-10).
 - **Medium — the gates check none of the tier structure.** `make structure` and
   `make tokens` pass with a box pointing at a rule that does not exist, a mark on a
   tier-2 box, and a tier-1 section deleted (34 breaks tried, 2026-11-10).
@@ -281,8 +280,6 @@ nobody has read at all.
 - **Low — `patterns/go-authorization.md`: in the second-mux shape, a route registered
   on the public mux under the mounted prefix is public, and nothing says so.** A
   decision, below.
-- **Low, in `patterns/go-child-process.md`:** `go vet` for iOS and Android needs cgo,
-  which the vet box does not say.
 - **Low, in `patterns/go-cli.md`:** *Logging* says a tool does not log, and a tool that
   listens must build a logger; the box "Nothing a user installs reads it" states a
   condition `stack/makefile.md` rule 6 does not.
