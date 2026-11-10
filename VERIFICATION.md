@@ -167,6 +167,15 @@ grade is a decision or a note.
 - **`bcbb2aa`, round six's fixes for v5.1.0, and `ab31e65`,** which dropped
   `StrictPragmas` to tier 2 on Andy's call — `patterns/go-sqlite.md`, the README's
   tier-1 list, and the preambles of two checklists.
+- **`patterns/go-email.md`, whole.** The 2026-11-09 run read it four times and found a
+  medium each time. `cbf0fcd` fixes the fourth, and no pass has read that. Its date did
+  not move.
+- **This file's *Grading a finding*, *The tag gate* and *Owed*, and the README
+  paragraphs that go with them,** as rewritten from `24f5bcc` on. Two reviews read
+  earlier versions and found 14 and 16 mediums. None has read this one.
+- **Wording the 2026-11-09 run fixed after its last pass:** `cbf0fcd` in
+  `patterns/go-data-deletion.md` and `patterns/htmx-lists.md`, and one sentence of
+  `23bd353` in `patterns/time-and-dates.md`.
 
 ### Known, not fixed
 
@@ -291,7 +300,8 @@ carries that run's changes:
 
 - `web/static/css/app.css:141` still carries `scroll-behavior: smooth`.
 - `cmd/server/mail.go` logs the recipient on a failed send, and
-  `internal/smtpmail/smtpmail.go` wraps the address into its error.
+  `internal/smtpmail/smtpmail.go` wraps the address, and the relay's reply text, into
+  its error.
 - `internal/smtpmail` writes the body with no bare-CR replacement, and the message
   with no `Date`, `Message-ID` or `Content-Transfer-Encoding`.
 - `internal/app/account.go` checks the password on account deletion with no rate limit.
