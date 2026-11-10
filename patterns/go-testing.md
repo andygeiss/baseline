@@ -2,7 +2,7 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08
 
-**One rule here is tier 1: a test never sends a request off this machine.**
+**One rule here is tier 1: a test never sends a request off this machine** (*Idioms*).
 
 Stdlib `testing` only. No assertion libraries (no testify) — a failed comparison is
 `t.Errorf("got %v, want %v", got, want)` and that's enough. No mocking frameworks —
@@ -47,8 +47,13 @@ caught it.
 - `t.Parallel()` in every test that doesn't share state; `t.TempDir()`, `t.Setenv`,
   `t.Cleanup` over hand-rolled setup/teardown. Use `t.Context()` (Go 1.24+) for
   context plumbing in tests.
+- **A test never sends a request off this machine** — tier 1. Not to a vendor's API, not
+  to a mail relay, not to any real host: an outbound dependency is a hand-written fake or
+  a server the test starts. A request that leaves hands whatever it carries to a
+  stranger's server, and the test asserts on what that stranger answered.
 - **Handler tests** run against the app's `Routes()` (the real mux + middleware), not bare
-  handler funcs — routing patterns and middleware are part of the behavior:
+  handler funcs — routing patterns and middleware are part of the behavior.
+  `newTestApp(t)` is the project's own helper: the `App` on `newTestDB(t)` and its fakes.
 
   ```go
   srv := httptest.NewTestServer(t, newTestApp(t).Routes()) // Go 1.27+: in-memory, closed by t.Cleanup
@@ -76,8 +81,9 @@ caught it.
 - **Concurrency:** `testing/synctest` (`synctest.Test`) for anything with timers or
   goroutine coordination — never `time.Sleep`. Inside the bubble, advance time with
   `synctest.Sleep` (Go 1.27+): it moves the clock and then waits until every other
-  goroutine is durably blocked. The in-memory server above can sit inside the bubble; a
-  real socket must stay outside: a goroutine blocked on it is never durably blocked, so the
+  goroutine is durably blocked. The in-memory server above can sit inside the bubble,
+  around an app built before it ([go-background-work.md](go-background-work.md) says what
+  stays out); a real socket must stay outside: a goroutine blocked on it is never durably blocked, so the
   bubble's clock never advances and `synctest.Wait` never returns. A bubble is not a test:
   `t.Run`, `t.Parallel` and `t.Deadline` panic inside one, and the panic takes the rest of
   the package's tests with it. The bubble goes *inside* the subtest, and `t.Parallel()` is

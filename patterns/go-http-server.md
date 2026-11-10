@@ -2,9 +2,10 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08
 
-**Three rules here are tier 1 and never waived:** the `http.CrossOriginProtection` wrap,
-the 1 MiB request-body cap, and the ops listener staying localhost-only and never
-proxied. Widening `WriteTimeout` is the tier-2 waiver this document spells out below.
+**Four rules here are tier 1 and never waived:** the `http.CrossOriginProtection` wrap,
+no mutation on a GET, the 1 MiB request-body cap, and the ops listener staying
+localhost-only and never proxied. Widening `WriteTimeout` is a tier-2 waiver;
+[go-http-client.md](go-http-client.md) *The timeout ladder* spells it out.
 
 Stdlib only. `net/http.ServeMux` (Go 1.22+ pattern routing) covers everything a router
 package used to do.
@@ -39,7 +40,9 @@ func (a *App) Routes() http.Handler {
 - Mutations are POST — never GET (but a WebAssembly client's socket,
   [wasm-client.md](wasm-client.md)), and not PUT/DELETE either: plain forms can't send
   those, so they'd break the no-JS fallback. Name the action in the path
-  (`"POST /items/{id}/delete"`) — see [stack/htmx.md](../stack/htmx.md).
+  (`"POST /items/{id}/delete"`) — see [stack/htmx.md](../stack/htmx.md). **Never GET is
+  tier 1:** the cross-origin check below lets every GET through, so a GET that changes
+  something has no CSRF defence at all.
 - Wildcard `{$}` for exact root; avoid trailing-slash subtree matches unless serving files.
 - **`/static/` sits outside the middleware chain.** `sessions.LoadAndSave` would query
   the session store on every asset request and add `Vary: Cookie`, breaking the
@@ -96,9 +99,9 @@ Outermost → innermost:
 3. `secureHeaders` — CSP, HSTS, nosniff, Referrer-Policy. The policy string and the
    middleware live in [security-headers.md](security-headers.md).
 4. **CSRF: `http.NewCrossOriginProtection()`** (stdlib, Go 1.25+) — rejects unsafe
-   cross-origin requests via `Sec-Fetch-Site`, falling back to Origin-vs-Host. No tokens,
-   no per-form wiring. Only pre-2020 browsers lack these headers. Do not add a token
-   library on top.
+   cross-origin requests via `Sec-Fetch-Site`, falling back to Origin-vs-Host. The chain
+   MUST carry it. It never checks GET, HEAD or OPTIONS. No tokens, no per-form wiring.
+   Only pre-2020 browsers lack these headers. Do not add a token library on top.
 5. `sessions.LoadAndSave` ([go-auth-sessions.md](go-auth-sessions.md)), then
    `requireAuth` on the private routes — never one route at a time, which fails open
    ([go-authorization.md](go-authorization.md)). Static assets never reach it.
@@ -131,6 +134,25 @@ srv := &http.Server{
   `context.WithTimeout(context.Background(), 10*time.Second)`. The signal context only
   *triggers* shutdown — it is already canceled at that moment, so passing it (or anything
   derived from it) makes `Shutdown` return immediately and kill in-flight requests.
+  Both listeners run through one function, and what it waits for is the rule:
+
+  ```go
+  // serve returns when Shutdown has, never when ListenAndServe does: that
+  // returns the moment Shutdown is called, with requests still in flight.
+  func serve(ctx context.Context, srv *http.Server) error {
+  	drained := make(chan error, 1)
+  	stop := context.AfterFunc(ctx, func() {
+  		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+  		defer cancel()
+  		drained <- srv.Shutdown(shutdownCtx)
+  	})
+  	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+  		stop()
+  		return fmt.Errorf("serving %s: %w", srv.Addr, err)
+  	}
+  	return <-drained
+  }
+  ```
 - Request-scoped work uses `r.Context()` all the way down, so client disconnects cancel
   a running query. Work that outlives the request is the exception, and
   [go-background-work.md](go-background-work.md) rules it.
@@ -155,10 +177,11 @@ job outside a request.
 
 ## The ops listener
 
-`/healthz` and `/debug/pprof` run on a second, localhost-only server — never on the app
-listener, so they are never proxied and being localhost-only *is* the access control
-([operations/web-application.md](../operations/web-application.md) owns that contract).
-The handler lives in `internal/app/ops.go`:
+`/healthz` and `/debug/pprof` MUST run on a second, localhost-only server — never on the
+app listener, so they are never proxied and being localhost-only *is* the access control.
+What a deployment does with that listener is
+[operations/web-application.md](../operations/web-application.md). The handler lives in
+`internal/app/ops.go`:
 
 ```go
 // OpsHandler serves /healthz and /debug/pprof on the localhost ops listener.

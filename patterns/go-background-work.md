@@ -18,7 +18,7 @@ ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SI
 defer stop()
 
 g, ctx := errgroup.WithContext(ctx)
-g.Go(func() error { return serve(ctx, srv) })  // ListenAndServe; Shutdown when ctx is done
+g.Go(func() error { return serve(ctx, srv) })                          // go-http-server.md: returns once Shutdown has drained
 g.Go(func() error { return janitor(ctx, store, logger, 6*time.Hour) }) // ticker loop; returns when ctx is done
 err := g.Wait()
 ```
@@ -183,9 +183,11 @@ goroutine still finishes first on an idle machine. In a bubble
 is durably blocked — so a `Wait` that has already returned is visible to a plain `select`
 with a `default`, and no clock or deadlock is involved. Two things have to stay outside
 the bubble: a real listener ([go-testing.md](go-testing.md) says why), and anything
-holding a ticker that never exits, because the bubble waits for it. A handler still gets
-inside: on [go-testing.md](go-testing.md)'s in-memory server, the request, the counter,
-and the clock all sit in the bubble.
+holding a ticker that never exits, because the bubble waits for it — the session
+manager's is one, so the app is built before the bubble starts. Its `a.stopping` is then
+`context.Background()`, never `t.Context()`: the bubble may not touch a channel that is
+closed from outside it. A handler still gets inside: on [go-testing.md](go-testing.md)'s
+in-memory server, the request, the counter, and the clock all sit in the bubble.
 
 **A test outside the process has no counter to reach.** A shell driving the real binary
 retries until the work shows up — bounded, so work that never comes fails the gate rather

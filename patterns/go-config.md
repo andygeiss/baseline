@@ -2,11 +2,8 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08
 
-**The rules in *Secrets* are tier 1 and never waived:** a secret arrives as a file, never
-as a flag value or an environment variable, and its own type keeps it out of the logs.
-Either one leaks an account if dropped, which is the README's own test for tier 1.
-**So are the two boot checks [go-email.md](go-email.md) rests its tier-1 rules on:**
-`BaseURL`, and a sender address refused when it holds CR or LF.
+**The rules in *Secrets* are tier 1 and never waived.** So are the two boot checks
+[go-email.md](go-email.md) rests its tier-1 rules on: rules 8 and 9.
 
 Every knob the binary has, in one struct, parsed once at startup, validated before
 anything opens a socket or a file. This document owns the precedence rule that
@@ -86,7 +83,7 @@ func parseConfig(args []string, stderr io.Writer) (Config, error) {
 	// "javascript:alert(1)" all parse. The scheme and the host are the check.
 	raw := cmp.Or(*base, "http://"+net.JoinHostPort(c.Host, c.Port)) // -host/-port are parsed by now
 	u, err := url.Parse(raw)
-	if err != nil || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https") {
+	if err != nil || u.Hostname() == "" || (u.Scheme != "http" && u.Scheme != "https") {
 		return Config{}, fmt.Errorf("base-url %q: want an absolute http or https URL", raw)
 	}
 	c.BaseURL = u
@@ -129,8 +126,7 @@ after the arguments parsed. Printing happens in exactly one place per failure ki
 2. **Validate at the edge, store the parsed type.** `LogLevel` is a `slog.Level`, not a
    string that some later code re-parses and re-fails on.
 3. **Every value has a default that works.** `go run ./cmd/server` with an empty
-   environment MUST start a working app on `127.0.0.1:8080`. A binary that needs six
-   variables before it does anything is a binary nobody can try.
+   environment MUST start a working app on `127.0.0.1:8080`.
 4. **`internal/` never reads the environment.** Pass the fields a package needs, not the
    struct: `app.New(templates, store, cfg.Env == "dev")`. The dependency direction forces
    it — `internal/app` cannot import the `main` package's `Config` — and that is the rule
@@ -160,20 +156,20 @@ after the arguments parsed. Printing happens in exactly one place per failure ki
    }
    ```
 
-   Without it the half-configured pair starts fine and fails on the first request that
-   needs it, which is the worst place to find out.
+   Without it the half-configured pair fails on the first request that needs it.
 
    **A value too long for an environment variable is read from a file**, named after the
    artefact it belongs to (`voices/jarvis.opus` → `voices/jarvis.txt`). Pointing at the
-   one file is then the whole setting, and the flag still overrides it. A paragraph in an
-   environment variable is a paragraph nobody can read back: every tool that prints a
-   process's environment prints it as one unbroken line.
+   one file is then the whole setting, and the flag still overrides it.
 
 8. **A value the app cannot work out at request time is a flag with an environment
    default, validated at boot.** `BASE_URL` is the one this baseline names: no request
    carries a trustworthy answer for where the app lives, so
    [go-email.md](go-email.md)'s tier-1 rule has nothing to build a link from without it.
    The fallback is the listener's own address, so a deployment behind anything MUST set it.
+9. **The sender address is refused at boot when it holds a carriage return or newline.**
+   It is written into every mail header unchecked after that
+   ([go-email.md](go-email.md)).
 
 ## Secrets
 
@@ -198,7 +194,7 @@ so moving the app elsewhere changes the deployment and no Go.
 until it prints a key:
 
 ```go
-// LogValue is what slog logs for a Config: everything except the secrets.
+// LogValue is what slog logs for a Config: the fields listed here and no other.
 // Adding a secret field to the struct does not add it here.
 func (c Config) LogValue() slog.Value {
 	return slog.GroupValue(
@@ -216,19 +212,23 @@ redaction blocklist forgets the field somebody adds next year.
 
 **`LogValue` alone protects one shape, so a secret is also its own type.** It fires only
 when the `Config` *is* the value logged: nested in a struct, in a slice, in a map, or under
-any `fmt` verb, slog and fmt print the fields themselves. The type holds in all four:
+a `fmt` verb, slog and fmt print the fields themselves. The type holds in all four:
 
 ```go
-// Secret is a value that must never reach a log line. The three methods are the
-// three ways a value gets printed: slog, fmt, and anything writing text.
+// Secret is a value that must never reach a log line. The four methods are the
+// four ways a value gets printed: slog, fmt, %#v, and anything writing text.
 type Secret string
 
 func (Secret) LogValue() slog.Value         { return slog.StringValue("REDACTED") }
 func (Secret) String() string               { return "REDACTED" }
+func (Secret) GoString() string             { return "REDACTED" }
 func (Secret) MarshalText() ([]byte, error) { return []byte("REDACTED"), nil }
 ```
 
-None of the three survives `%#v` or an explicit `string(s)`, and nothing in the type system can.
+**It holds in an exported field only:** fmt cannot call a method on an unexported one,
+and prints the secret. And it stops at `main`, where the type lives: `internal/` is
+handed `string(cfg.SMTPKey)`. So a struct that holds a secret in an unexported field or
+as a plain string — an adapter and its key — is never logged or formatted whole.
 
 ### A CLI holds its secret differently
 
@@ -255,8 +255,8 @@ and the **empty environment** case from rule 3. Precedence regresses most silent
 because a wrong answer still starts. One more test earns its place the moment the struct
 holds a secret: set one, render the config through a `slog` handler, and assert the value
 does not appear — that is what catches the field somebody adds to `Config` and forgets to
-leave out of `LogValue`. Log a struct that *contains* the config too, because the first
-case passes on `LogValue` alone and only the second one proves the field's type.
+leave out of `LogValue`. Log a struct that holds the config in an exported field too: the
+first case passes on `LogValue` alone and only the second one proves the field's type.
 
 ## Anti-patterns
 
@@ -272,8 +272,7 @@ case passes on `LogValue` alone and only the second one proves the field's type.
   return the error and let `main` own the exit code.
 - ❌ Defaulting a secret (`cmp.Or(os.Getenv("SMTP_KEY"), "dev-secret")`). The default
   ships to production the day somebody forgets to configure the real one.
-- ❌ A secret in an environment variable or a **committed** `.env` file. An
-  *uncommitted* `.env` that `make run` sources
-  ([stack/makefile.md](../stack/makefile.md) rule 6) is a different thing: a developer's
-  own machine, gitignored, and never how a deployment gets a secret. The word doing the
-  work in this bullet is *committed*.
+- ❌ A secret in a **committed** `.env` file. An *uncommitted* one that `make run`
+  sources ([stack/makefile.md](../stack/makefile.md) rule 6) is a developer's own
+  machine, gitignored, and never how a deployment gets a secret. A service's names
+  `CREDENTIALS_DIRECTORY`, never the secret: the server reads none from its environment.

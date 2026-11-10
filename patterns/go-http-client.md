@@ -141,8 +141,7 @@ func (c *Client) Forecast(ctx context.Context, city string) (domain.Forecast, er
    it ignores both.
 2. **A non-2xx status is not an error from `Do`.** `Do` returns `err == nil`
    for a 500 — it completed the exchange, which is all it promises. Check
-   `resp.StatusCode` yourself, every time. This is the most common outbound
-   bug after the missing timeout.
+   `resp.StatusCode` yourself, every time.
 3. **`defer resp.Body.Close()` on every response with `err == nil`,** including
    the error paths below it. A leaked body is a leaked connection.
 4. **Cap the body you read.** `io.LimitReader` is the outbound twin of
@@ -196,8 +195,8 @@ func (c *Client) do(req *http.Request) (*http.Response, error) {
 				return nil, err // the context died, not the server
 			}
 			lastErr = err
-		case !retryableStatus(resp.StatusCode):
-			return resp, nil // including 4xx: retrying a bad request just repeats it
+		case !retryableStatus(resp.StatusCode) || !idempotent(req.Method) || !replayable:
+			return resp, nil // no repeat can fix it, or none is allowed: the caller reads the status
 		default:
 			if after, ok := retryAfter(resp); ok {
 				delay = after // the server named a wait; it outranks the formula
