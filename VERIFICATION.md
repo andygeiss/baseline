@@ -137,6 +137,14 @@ that one project used: the entry *Retired* under *Owed*.
 known, the first entry under *Known*, and *The reference, behind this corpus* held
 three entries. It is the seventh release in a row to ship that way.
 
+**v6.0.1 followed the same night and closed that high** with one rule Andy lifted the
+freeze for: a reset's new-hash transaction deletes the user's machine tokens
+(`c7d45c6`, `c18771c`). One reviewer then tried to keep a token alive across a reset in
+the reference's binary and could not. The same check found the high now first under
+*Known*, in the address a reset link is mailed to. Andy chose to ship with it listed.
+No build from the documents alone ran for the rule, and the reference's list held two
+entries: the eighth release to go out with the gate not met.
+
 **Conditions 2 and 4 were one sentence until 2026-08-18, and it was one no release
 could meet.** It read "`./verify.sh` exits 0 against the exact baseline commit
 being tagged" — but the run record then lived in this file and named the reference
@@ -194,8 +202,10 @@ body says, and the reference carries them.
 
 - **`patterns/go-auth-sessions.md`, whole. Frozen on Andy's call, 2026-11-10:** it takes
   no further rule, and the reference is its test. Its fourth read that day found one
-  high, the first entry under *Known*, and four mediums. Three were tightened in
-  `26f8f08`; the fourth is under *Known*.
+  high and four mediums. Three mediums were tightened in `26f8f08`; the fourth is under
+  *Known*. The high is closed: Andy lifted the freeze for one rule, *Machine tokens*
+  rule 5, in `c7d45c6` and `c18771c`. One check read that rule and ran it; no whole
+  read has seen it.
 - **`patterns/wasm-client.md`, whole.** Nineteen reads, none passed; the last is the
   first with no high. Of its three mediums one was a sentence of
   `patterns/go-auth-sessions.md`, tightened in `26f8f08`, and two are under *Known*.
@@ -216,7 +226,8 @@ body says, and the reference carries them.
   The first library built from them, on 2026-11-10, found seven lows around them; six
   are fixed in `26f8f08` and `c512e31`. No reviewer has read the three whole.
 - **`operations/ci.md`** (`26f8f08`): one medium, a wrong recipe beside `go mod edit`.
-- **The three checklists and the README's tier-1 list** (`c512e31`, `b2f040a`). Their
+- **The three checklists and the README's tier-1 list** (`c512e31`, `b2f040a`, and two
+  boxes of the web checklist in `c7d45c6`). Their
   fourth read found six mediums, five of them entries under *Known*.
 - **This file's *What a review run is*, *Grading a finding*, *The tag gate* and *Owed*,
   and the README paragraphs that go with them,** rewritten in `cc760ef` for the bar
@@ -229,15 +240,15 @@ body says, and the reference carries them.
 
 ### Known, not fixed
 
-- **High — `patterns/go-auth-sessions.md`: a machine token outlives a password reset.**
-  A reset ends the user's sessions and leaves their tokens. An outsider has to steal
-  nothing: they register an address they do not hold, sign in, create a token under
-  their own password, and wait. When the address's owner resets the password, the
-  outsider's session and password stop working, and the token still reads and writes
-  the owner's rows (run twice on 2026-11-10, in the reviewer's rig and in the web
-  build). Closing it takes a rule, and the document is frozen. **v6.0.0 shipped with
-  it, on Andy's decision. It holds the next tag** until the first decision below is
-  taken.
+- **High — no rule covers the address a reset link is mailed to.** A session or a token
+  alone may set it, so rule 1 of `patterns/go-auth-sessions.md` does not reach the
+  write. A stolen session sets the address and resets the password. And a reset does
+  not lock the other party out: a request to set the address, signed in when its
+  headers arrived and held open across the reset, re-pointed it after the reset had
+  ended that credential, and the next link went to them (run against the reference,
+  2026-11-10). Listed as a medium until the check of v6.0.1 ran it; the higher grade
+  holds. The reference's write names the counter since then. Closing it here takes a
+  rule: the first decision below. **It holds the next tag.**
 - **Retired on 2026-11-10, on Andy's call:** `patterns/go-child-process.md`, and
   `patterns/go-cli.md` *A tool that listens* with the clause of 2026-10-09 that let a CLI
   serve the person who started it. Neither ever passed a read: nine for the first, four
@@ -249,7 +260,7 @@ body says, and the reference carries them.
   proved.** Registration answers a taken address like a free one, and the next sign-in
   tells the two apart. The free address then belongs to whoever registered it, and what
   is sent to that address inside the application reaches them: in the web build, a
-  shelf shared by address (2026-11-10). The first decision below covers it.
+  shelf shared by address (2026-11-10). A decision, below.
 - **Medium — two rules do not compose on the request that makes a machine token.**
   `patterns/go-auth-sessions.md` shows the secret in the answer to that request, since
   `26f8f08`. `patterns/htmx-server-rendering.md` and `patterns/go-forms-validation.md`
@@ -284,9 +295,9 @@ body says, and the reference carries them.
   its secret, and its "delivered" was an oracle for what the machine can reach (the
   2026-11-10 build). Nor does one rule a redirect: Go's client carried `Authorization`
   to another port of the same host (the library's build). A decision, below.
-- **Medium — no rule covers changing the address a reset link is mailed to.** In the
-  reference a session alone sets it, and the reset then hands over the password: a
-  stolen session becomes the account (the reference's sync, 2026-11-10).
+- **Medium — a password change leaves the user's machine tokens.** A reset deletes
+  them since v6.0.1; a change ends the other sessions and no token. One made by someone
+  who knew the old password outlives it (2026-11-10). A decision, below.
 - **Medium — a secret a user typed, which the application must send later, is stored as
   typed.** No document says how it is held; a snapshot holds it in the clear.
 - **Medium — a deleted row's bytes stay in the database file,** and a sent outbox row's
@@ -338,6 +349,10 @@ body says, and the reference carries them.
     `GetInt` answers 0 for an `int64`.
   - That a token acts as its user and never wider is stated in
     `patterns/go-authorization.md` alone, under *Roles*.
+  - A request already admitted finishes after a reset has ended its credential: one
+    write for each connection held open, inside the read timeout (run, 2026-11-10).
+  - The box "Deleted on revoke or password reset" no longer says "its row": only rule
+    5's "Revocation is a DELETE" keeps a soft delete out.
 - **Low — `patterns/go-authorization.md`: in the second-mux shape, a route registered
   on the public mux under the mounted prefix is public, and nothing says so.** A
   decision, below.
@@ -439,11 +454,13 @@ body says, and the reference carries them.
   snapshot held 200, `integrity_check` ok (run, 2026-11-10). Its `runbooks/restore.md`
   empties the volume on the archive path; the replica path says "move it into place".
 - **Decisions left to Andy:**
-  - **The high: what ends a machine token.** Either a password reset deletes the
-    user's tokens in its transaction, which is one sentence and one statement. Or an
-    account does nothing until a mailed link is followed, which also closes the medium
-    about an unproved address, and changes how registration works.
-    `patterns/go-auth-sessions.md` is frozen, and 10 tokens under its budget.
+  - **The high: the address a reset link is mailed to.** One sentence would do: changing
+    it asks for the password. Its statement is then one a password allowed, and rule 1
+    makes it name the counter. `patterns/go-auth-sessions.md` stands at 3,800 of 3,800,
+    so the sentence needs a cut there or a number moved.
+  - Whether a password change deletes the user's machine tokens, as a reset does.
+  - Whether an account does nothing until a mailed link is followed. It closes the
+    medium about an unproved address, and changes how registration works.
   - **The freeze, under the gate of 2026-11-10.** The README bars a new pattern while
     *Unread* lists anything, and a tag no longer needs *Unread* empty. Whether the
     freeze follows the gate, or stays as it is.
@@ -517,9 +534,12 @@ body says, and the reference carries them.
     the migration; a machine token is shown in the answer to the request that made it,
     on a rate-limited route; the `make ci` box asks for the pinned `go version` line
     and is tier 1.
-  - The budgets. The web floor stands at 24,999 of 25,000, and `wasm-client.md`,
-    `go-data-deletion.md`, `go-http-client.md`, `go-file-uploads.md`, `go-config.md` and
-    `go-auth-sessions.md` within 10 of 3,800. The next rule on any of them needs a
+  - What v6.0.1 changed beside its rule, each open to a veto: one sentence of
+    commentary left rule 6 of *Machine tokens* to make room, and two boxes of the web
+    checklist were reworded to cover the rule, because no new box fits the floor.
+  - The budgets. The web floor stands at 24,999 of 25,000, `go-auth-sessions.md` at
+    3,800 of 3,800, and `wasm-client.md`, `go-data-deletion.md`, `go-http-client.md`,
+    `go-file-uploads.md` and `go-config.md` within 10 of it. The next rule on any of them needs a
     number moved or text cut.
   - Scroll-driven animations are Baseline Newly since 2026-10-27;
     `patterns/css-motion.md` still keeps them out.
@@ -541,14 +561,10 @@ body says, and the reference carries them.
 
 ### The reference, behind this corpus
 
-The reference follows `b2f040a`, the last commit of the 2026-11-10 run that changes
-anything a project reads: its `SPEC.md` pins that commit, and `make check`, `make ci`
-and `./verify.sh` exit 0 against it (96 steps). Three things are behind. v6.0.0
-shipped with them, on Andy's decision; condition 2 needs each settled before the next
-tag:
+The reference follows `c18771c`, the last commit that changes anything a project reads:
+its `SPEC.md` pins that commit, and `make check`, `make ci` and `./verify.sh` exit 0
+against it (97 steps). Two things are behind, and condition 2 needs each settled:
 
-- **The high above.** The reference follows the rule as written: its reset leaves the
-  tokens table alone (read, not run there).
 - **Attachments are blobs under a 3 MiB cap.** `patterns/go-file-uploads.md` keeps a
   blob for what fits the blanket 1 MiB cap since `768e460`. The reference's README lists
   it as not followed and not waived: lowering the cap, moving the bytes to a directory,
@@ -556,13 +572,15 @@ tag:
 - **Making a token answers its POST at 200,** the medium above. Its README lists that
   too, as not waived.
 
+Ahead of this corpus: its address write names the password counter, which no rule here
+asks for. It still asks for no password, so the high above stands there as well.
+
 Found in the reference beside the rules it was held against, and not fixed there:
 `gochat` validates its `-addr` at the first request, not when it parses, so a bad one
 exits 1 where the checklist asks for 2, and it reads `os.Stdin` inside `run`, where
 `patterns/go-cli.md` hands it in; its chat client retries a 500, waits without jitter
-and ignores `Retry-After`, against `patterns/go-http-client.md`; its request log keeps
-the last status written, which is the medium above; and its recovery address is the
-entry under *Known*.
+and ignores `Retry-After`, against `patterns/go-http-client.md`; and its request log
+keeps the last status written, which is the medium above.
 
 The twelve entries the 2026-11-09 run listed here are settled.
 
