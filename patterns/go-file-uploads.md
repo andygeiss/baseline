@@ -4,9 +4,9 @@
 
 Refusing the client's filename and the client's content type, deciding the type by
 sniffing the bytes, serving every file through a handler rather than a file server, the
-`Content-Disposition` default, and keeping the boost off every link to a file are tier 1.
-Rule 1 below, where the bytes live, and how orphans are swept are tier 2: getting any of
-those wrong loses a field or leaves garbage, and neither hands anything over.
+`Content-Disposition` default, keeping the boost off every link to a file, and the janitor's two limits are tier 1.
+Rule 1 below, where the bytes live, and the delete order are tier 2: getting any of those
+wrong loses a field or leaves garbage, and neither hands anything over.
 
 [go-authorization.md](go-authorization.md) rules rows. **A file is a row and a URL, and
 the URL is where those rules stop applying.** A static file server has no actor to name,
@@ -22,7 +22,7 @@ middleware, before delegating to the mux:
 
 **`ReadTimeout` is the other half of the cap.** The whole body must arrive inside the
 server's 10 s ([go-http-server.md](go-http-server.md)), and 32 MiB in 10 s is ~27 Mbit/s
-of sustained *uplink* — more than a phone has. The read then fails mid-body, the handler
+of sustained *uplink*. The read then fails mid-body, the handler
 gets a plain `i/o timeout` instead of `*http.MaxBytesError`, and the 413 below never runs.
 Raise `ReadTimeout` with the cap, and `WriteTimeout` by the same amount
 ([go-http-client.md](go-http-client.md): the body is spending that one too). Once
@@ -77,9 +77,10 @@ a.post(w, r, form, att, bs)
 ```
 
 ⚠️ **Reading it all is why there is no seek here.** Sniff off a stream and store what is
-left, and every file bigger than 512 bytes arrives missing its head — only the small ones
-survive to prove it. If the file is too big to hold, seek back before storing:
-`multipart.File` is a `ReadSeeker`, so `f.Seek(0, io.SeekStart)` always works.
+left, and every file bigger than 512 bytes arrives missing its head. It also holds an upload
+in memory several times over — the parsed form, this read, the write — so size the cap,
+times the uploads that arrive at once, against `GOMEMLIMIT`
+([go-performance.md](go-performance.md)).
 
 The rules behind it — all MUST:
 
@@ -101,7 +102,7 @@ The rules behind it — all MUST:
 4. **The allowlist is an exact set of types the app accepts.** A prefix test on `image/`
    admits every type a future sniffer learns. **SVG is never on it** — an SVG is a
    document that can carry script, and Go's sniffer does not classify it as an image, so
-   an exact image allowlist already excludes it. Keep it that way on purpose.
+   an exact image allowlist already excludes it.
 5. **A refused upload re-renders the form** with the error, like any other invalid POST
    ([go-forms-validation.md](go-forms-validation.md)). Over the cap answers 413.
 6. **The row records who uploaded it, the stored name, the original name, the sniffed
@@ -119,24 +120,26 @@ difference that bites:
 |---|---|---|
 | **Backups** | The backup you already have covers them. | A second thing to copy off the box; `VACUUM INTO` cannot see them. |
 | **Atomicity** | The row and the bytes commit together. | Two writes that can disagree — hence the delete order below. |
-| **Good for** | Avatars, attachments, anything small. | Files big enough that holding one in memory is a problem. |
+| **Good for** | Avatars, attachments, anything small. | Files too big for a row. |
 
-Bytes on disk go through one `*os.Root` the store holds — `Create`, `Rename`, `Open`,
-`Remove`, never a joined path. `os.Root` opens each path element against a held directory
+Bytes on disk go through one `*os.Root` the store holds, on a directory of its own beside
+the database — `Create`, `Rename`, `Open`, `Remove`, never a joined path. `os.Root` opens each path element against a held directory
 descriptor, so a name that climbs out with `..` or through a symlink is refused by the
-`openat` itself instead of by a check somebody has to remember. That matters least at
-upload, where the stored name is generated (rule 2), and most afterwards: the janitor
-below and the deletion path both join a database string to a directory. Writes still go to
+`openat` itself instead of by a check somebody has to remember. That matters most after
+upload: the janitor below and the deletion path both join a database string to a
+directory. Writes still go to
 a temp file in the **same directory** and are renamed into place — `os.Rename` is atomic
 within a filesystem and fails across one.
 
 **A blob has no delete order and needs no sweeper** — the row *is* the bytes, so they
-cannot disagree. That is most of why the blob answer wins for small files.
+cannot disagree.
 
 **On disk, delete the row first and the bytes second.** A row whose bytes are gone is a
 broken download the reader sees; bytes whose row is gone are garbage nobody sees. Only one
-of those is safe to have, so a janitor sweeps files that have no row and are older than
-an upload takes ([go-background-work.md](go-background-work.md)).
+of those is safe to have, so a janitor sweeps files that have no row
+([go-background-work.md](go-background-work.md)). **Its two limits are tier 1:** that
+directory and no other — beside the database it unlinks the database — and no file
+younger than an upload takes.
 
 **Deleting the person who uploaded them keeps that order and adds a step**, because the
 cascade takes the row away before you can ask it which files were theirs: the names are
@@ -163,7 +166,8 @@ if err != nil {
 defer content.Close()
 
 w.Header().Set("Content-Type", file.Kind) // sniffed at upload, never the extension
-w.Header().Set("Cache-Control", "private, no-cache") // asked for again each time, so the actor query runs again
+// Never stored: or Back shows an owned file after sign-out, with no request made.
+w.Header().Set("Cache-Control", "no-store")
 if !inlineOK[file.Kind] {
 	// FormatMediaType quotes the name and RFC 2231-encodes a non-ASCII one. A
 	// raw filename here is header injection, and it breaks the first download
@@ -192,9 +196,8 @@ http.ServeContent(w, r, "", file.UploadedAt, content)
   `secureHeaders` already sends it on every response
   ([security-headers.md](security-headers.md)). Without it a browser may sniff its way
   past the type you chose.
-- **`http.ServeContent` gives range requests and conditional GETs for free.** The store
-  returns the row and a `ReadSeekCloser` beside it — a `*os.File`, or a blob wrapped in a
-  `bytes.Reader`.
+- **`http.ServeContent` gives range requests for free.** The store returns the row and a
+  `ReadSeekCloser` beside it.
 
 **When the file is not owned, say so — and keep the rest.** An attachment in a room
 everyone may read has no actor predicate, and that is correct:
@@ -218,8 +221,8 @@ parser written in C, run on a stranger's file.
   the test moves to the delete: the second user's delete answers exactly like a delete of
   a file that was never there, and the file is still there afterwards.
 - **An upload that lies.** Post a file named `avatar.png`, declared `image/png`, whose
-  bytes are `<svg onload=…>`. **Assert what it is never served as**, not that it is
-  refused: an app whose allowlist has `text/plain; charset=utf-8` on it stores that file as text and
+  bytes are `<svg onload=…>`. **Assert that it is never served as an image and never inline**,
+  not that it is refused: an app whose allowlist has `text/plain; charset=utf-8` on it stores that file as text and
   hands it back as an attachment, which is safe, and an app without stores nothing.
   Both pass; "refused" only passes one of them. This is the test that proves the sniff
   is load-bearing, and it fails the day somebody trusts `fh.Header`.

@@ -3,7 +3,8 @@
 **Tier 1** (safety — never waived) · Last verified: 2026-11-10
 
 What a delete reaches, a credential resolving to a row rather than to an id, a user id
-never handed out twice, and the actor predicate on the delete itself are tier 1. Which
+never handed out twice, the actor predicate on the delete itself, and no migration
+dropping a table others reference are tier 1. Which
 tables anonymize rather than erase, where the confirmation lives, the janitor, and how
 many snapshots the binary keeps are tier 2: the first two decide how a delete reads,
 the last two how long a copy can outlive it.
@@ -85,14 +86,14 @@ The rules behind it — all MUST:
    have an unpaid invoice".
 5. **One transaction, on the write pool.** The cascade is part of the statement, so this
    is one `DELETE FROM users WHERE id = ?` and the rest is the schema keeping its promise.
-6. **A rebuild of a table that others reference copies the children out first.** SQLite
-   cannot alter a foreign key, so changing an action is create-copy-drop-rename — and
-   `DROP TABLE` with foreign keys on
-   runs an implicit `DELETE FROM` that *does* fire foreign key actions, so dropping a
-   parent to rebuild it takes its children with it. The usual escape, turning foreign keys
-   off around the rebuild, is closed to a migration that runs inside one transaction:
-   `PRAGMA foreign_keys` is a no-op there. Decide the action before the table ships and
-   none of this comes up.
+6. **A migration never drops a table that others reference.** `DROP TABLE` with foreign
+   keys on runs an implicit `DELETE FROM` that fires every foreign key action, at every
+   level: the children go, their children with them, each `SET NULL` reference is lost,
+   and the boot is green. The usual escape, turning foreign keys off around the rebuild,
+   is closed to a migration that runs inside one transaction: `PRAGMA foreign_keys` is a
+   no-op there, and a table renamed away takes its references with it. Change such a
+   table in place: `ADD COLUMN`, `RENAME COLUMN`, `DROP COLUMN` and a unique index touch
+   no row. A change those cannot make is not this runner's to run — stop and say so.
 
 ## A credential resolves to a row, not to an id
 
@@ -143,7 +144,7 @@ next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), userKey, u)))
   id: the old session then resolves to the next person's row, and that person's account
   is theirs. `rand.Text()` never repeats, and every snippet here assumes it. An
   `INTEGER PRIMARY KEY` repeats: bare, the moment the newest account is deleted; with
-  `AUTOINCREMENT`, the moment `users` is rebuilt (rule 6), because the new table counts
+  `AUTOINCREMENT`, the moment `users` is rebuilt, because the new table counts
   on from the highest id still in it. Do not key `users` on one.
 
 ## The bytes are not in the transaction

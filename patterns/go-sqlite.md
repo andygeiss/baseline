@@ -109,10 +109,9 @@ Forward-only, embedded, applied at boot. No migration framework:
   each `.sql` file with a number greater than it (sorted via `fs.Glob`), set
   `user_version` to the last applied number. Fail the boot on any error.
 - No down migrations. Roll forward; restore from backup for disasters.
-- **A migration that rebuilds a table other tables reference follows
-  [go-data-deletion.md](go-data-deletion.md) rule 6.** That transaction runs with foreign
-  keys on, and `PRAGMA foreign_keys = OFF` does nothing inside one, so `DROP TABLE` runs
-  the children's `ON DELETE` actions: the boot succeeds and their rows are gone.
+- **No migration drops a table other tables reference:**
+  [go-data-deletion.md](go-data-deletion.md) rule 6 says what the drop takes with it,
+  and what to do instead.
 
 ## Backups
 
@@ -175,15 +174,18 @@ Use a temp file, not `:memory:` — in-memory databases vanish per-connection un
 pool and silently diverge from WAL behavior. `t.TempDir()` cleans up automatically.
 
 **`newTestDB` also asserts both pools are idle at the end**, which is the only thing that
-mechanically catches rule 8 — `go vet` and `staticcheck` report none of it. It catches a
-leak a store test makes, not one in a handler: that connection comes back when the
-request's context ends.
+mechanically catches rule 8 — `go vet` and `staticcheck` report none of it. Call it in
+the test or subtest that uses the database, never above a loop of subtests: a leak made
+under a subtest's `t.Context()` is released soon after that subtest ends, and an outer
+cleanup mostly finds the pool idle. A handler's leak is never seen, for the same reason.
 
 ```go
 // Registered after the Close cleanup, so LIFO runs this one first.
 t.Cleanup(func() {
-	if n := writeDB.Stats().InUse; n != 0 {
-		t.Errorf("write pool: %d connection(s) still in use — a Rows, Stmt or Tx was not closed", n)
+	for name, db := range map[string]*sql.DB{"read": readDB, "write": writeDB} {
+		if n := db.Stats().InUse; n != 0 {
+			t.Errorf("%s pool: %d connection(s) still in use — a Rows or Tx was not closed", name, n)
+		}
 	}
 })
 ```
