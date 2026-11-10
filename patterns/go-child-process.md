@@ -3,24 +3,32 @@
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-10-09
 
 **One rule here is tier 1 and never waived:** a secret never travels on the child's
-command line, because `ps` shows every argument to every user. The child reads it from a
-file, or, when it reads nothing but its environment, from its own environment alone.
+command line (*The child's secret*).
 
 A program the tool starts and keeps running beside itself — a server it fronts, an
 inference engine, a database for a test run — and stops again. A program it runs to
 completion (`git`, `make`) needs none of the rest — `exec.CommandContext` and the exit
-status are its whole contract — but the secret rule above binds it too. **The tool owns the child: it decides when the child stops, asks
-it once, and does not exit before the child has.**
+status are its whole contract — but the secret rule binds it too. **The tool owns the
+child: it decides when the child stops, asks it once, and does not exit before the child
+has.**
+
+## The child's secret
+
+**Tier 1: a secret never travels on the child's command line.** `ps` shows every
+argument to every user. It goes into the child's own environment, as the snippet below
+does — `cmd.Env`, never `os.Setenv`, which every later child would inherit — or into a
+file only the user can read, where the child can be told to read one.
 
 ## Start it in a process group of its own
 
 ```go
 cmd := exec.Command(path, args...)
-cmd.Env = append(os.Environ(), "ENGINE_KEY="+key) // the child's alone, never os.Setenv
-cmd.Stdout, cmd.Stderr = os.Stderr, os.Stderr     // the tool's stdout is data
+cmd.Env = append(env, "ENGINE_KEY="+key)      // env is os.Environ(), read in main; the key is the child's alone
+cmd.Stdout, cmd.Stderr = os.Stderr, os.Stderr // the tool's stdout is data
 cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 signal.Ignore(syscall.SIGTTOU) // inherited: under stty tostop, a write would stop the child
 signal.Ignore(syscall.SIGTSTP) // Ctrl-Z must not stop the one process that can stop the child
+signal.Ignore(syscall.SIGPIPE) // a reader that left must not end the tool before its child
 if err := cmd.Start(); err != nil {
 	return fmt.Errorf("start the engine: %w", err)
 }
@@ -35,7 +43,7 @@ stopChild := func() {
 		deadline = time.After(grace)
 	})
 }
-defer func() { // every return waits for the whole group, early ones too
+defer func() { // every return waits for the child, and for its group until grace is up
 	stopChild()
 	tick := time.NewTicker(poll)
 	defer tick.Stop()
@@ -63,6 +71,11 @@ defer func() { // every return waits for the whole group, early ones too
   Go program that leaves SIGCONT at its default misses the `kill %1` meant to end it, and
   under zsh the hangup too. The child inherits both: an ignored signal stays ignored
   across `exec`.
+- **SIGPIPE ignored too.** Go ends a program that writes to a closed pipe on stdout or
+  stderr, so `tool | head`, or a `tee` that dies on the same Ctrl-C, would end the tool
+  before it has stopped its child. Ignored, the write fails and the stop path runs. Not
+  in `NotifyContext` instead: there the descriptor does not matter, and a client that
+  hangs up on a tool that serves would stop it.
 - **Unix only.** `Setpgid` and `syscall.Kill` do not exist on Windows: keep this code
   behind `//go:build unix`. A tool that must also run there gives Windows a file of its
   own, which `GOOS=windows go vet` then checks ([operations/ci.md](../operations/ci.md)).
@@ -70,14 +83,18 @@ defer func() { // every return waits for the whole group, early ones too
   cleanup survives.
 - **The tool's own `*os.File` for the child's output.** Any other writer puts a pipe in
   between, and `Wait` then waits until every process holding that pipe is gone — a helper
-  the child left running in the background included.
+  the child left running in the background included. So the child gets `os.Stderr`
+  itself, not the `io.Writer` [go-cli.md](go-cli.md) hands `run` for its own messages.
 - **`Wait` runs once, in that goroutine.** Everything else selects on `done`, and reads
   `cmd.ProcessState` only after it.
 
 ## Wait until it is ready
 
 Ask the child's readiness endpoint on a ticker, through a client with a timeout
-([go-http-client.md](go-http-client.md)), until it answers. The wait ends three ways:
+([go-http-client.md](go-http-client.md)), until it answers 2xx. Print the first other
+status once: a wrong path or a refused key must not wait in silence. This is the tool's
+own child, so that document's ban on asking another system at boot does not reach it.
+The wait ends three ways:
 ready, `done` — the child's own output already says why — or `ctx.Done()`. A start with
 no known bound, a model loading or a first download, gets no deadline; Ctrl-C is the
 deadline.
@@ -98,7 +115,7 @@ case <-done:
 }
 stopChild() // before the tool's own shutdown, not after it
 // … the tool's own shutdown …
-return failed // the deferred wait holds this until the group is gone
+return failed // the deferred wait holds this until the child is gone, and its group or grace
 ```
 
 - **Stop it before the tool's own shutdown.** That shutdown can take seconds, and a
@@ -140,23 +157,34 @@ func TestMain(m *testing.M) {
 ```
 
 Start it as `os.Executable()` with `FAKE_ENGINE` and `GORACE=atexit_sleep_ms=0` in its
-`Env` — under `-race` the fake is race-built, and otherwise sleeps a second as it exits.
+`Env` — under `-race` the fake is race-built, and a race-built program sleeps a second
+as it exits unless told not to.
 One mode per behavior: ready after a few asks, never ready, failing at once, outlasting
 SIGTERM, leaving its helper behind. Every mode but `helper` starts a helper — the test
 binary once more, as `FAKE_ENGINE=helper` — and, unless it leaves it behind, waits for it
-before it logs `complete`. Each process appends its PID and every signal it catches to a
-file its `Env` names. Once `run` has returned, the test reads that file:
+before it logs `complete`. The fake that leaves its helper behind says in the helper's
+`Env` what it does on SIGTERM: stop a little late, or stay. Each process appends its PID
+and every signal it catches to a file its `Env` names. **A fake calls `signal.Notify`
+before it logs its PID, and listens, or fails, only once its helper has logged its
+own:** a stop that reaches a process with no handler yet kills it in silence, and the
+test then blames the tool. Once `run` has returned, the test reads that file:
 
 - SIGTERM, then `complete`: the stop reached the whole group, and `run` waited.
-- For the fake that outlasts SIGTERM, with the tool's own shutdown set to several times
-  `grace`: its PID is gone, and `run` returned less than `grace` after that shutdown
-  ended, because the deadline counts from the stop.
+- For the fake that outlasts SIGTERM: its PID is gone, and its file holds one SIGTERM.
+  Two runs pin where the deadline counts from. In one the tool's own shutdown lasts
+  several times `grace` — a function the test passes in, and checks did last — and `run`
+  returns less than `grace` after it ended: not from the shutdown's end. In the other
+  the tool is stopped only once `grace` has passed since the start, and the fake still
+  logs SIGTERM: not from the start.
 - For the fake that leaves its helper behind: a helper that stops a little late still
-  logs `complete`, and one that outlasts SIGTERM is gone, polled for by its PID.
+  logs `complete`, and `run` returns less than `grace` after the stop; one that stays is
+  gone, polled for by its PID.
+- A ready fake whose group the test kills makes `run` return an error naming that exit.
 
 Every wait in a test is bounded at a hundred times `grace`, so a missing SIGKILL fails at
-once rather than at the test timeout, and `t.Cleanup` sends SIGKILL to the fake's group,
-so a failing test leaves nothing running. The file cannot count sends — two signals close
+once rather than at the test timeout, and `t.Cleanup` sends SIGKILL to the fake's group
+and to every PID in the file — never to group 0, the test's own — so a failing test
+leaves nothing running. Elsewhere the file cannot count sends — two signals close
 together can arrive as one — so `sync.Once` keeps that count, not the test. `grace`,
 `poll` and the tool's own shutdown are parameters, so the tests take milliseconds. None
 sleeps, and none runs inside `synctest`: a goroutine waiting on a process, like one on a
