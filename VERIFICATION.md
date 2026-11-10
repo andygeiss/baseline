@@ -171,7 +171,10 @@ The 2026-11-10 run read whole, twice, the documents its first pass changed. Neit
 was a pass as this file defines one: no library was built, and what the run changed in
 other documents was read where it changed. The first nine entries each had a high or a
 medium in the second read. Each is fixed, and no pass has read the fix. A third, narrow
-look at the fixes ran; it is a check, and counts for nothing here.
+look at the fixes ran; it is a check, and counts for nothing here. It found two highs and
+eighteen mediums in them. Those are fixed in `52fc2e4`, `643225f`, `768e460`, `563a9b1`
+and `cfa7bf6`, which reach every entry below but the WebAssembly client's, and which
+nobody has read at all.
 
 - **`patterns/go-auth-sessions.md`, whole,** with its boxes. Rewritten on 2026-11-10,
   and the second read found four highs in the rewrite (`a04de9c`, `eb27c42`).
@@ -321,6 +324,13 @@ look at the fixes ran; it is a check, and counts for nothing here.
   outside it; `patterns/css-icons.md` asks for the Lucide notice and does not print it;
   `stack/go.md` asks for interfaces of one to three methods, and a store has more;
   `no-store` on authenticated pages (`patterns/go-performance.md`) has no box.
+- **Low, left by the narrow look and the reference's sync:** "no row changed is a
+  refusal" does not say what a rehash at sign-in refuses; the forms and server documents
+  do not say which of `recoverPanic` and `serverError` renders the 500 page; an
+  abandoned request is "answered with nothing", and its access-log line then shows a
+  status nobody sent; Chrome keeps a `no-store` document in its back/forward cache until
+  the session cookie changes, so a session ended on the server alone still shows an owned
+  file on Back (2026-11-10).
 - **Low — a serving tool's exit code after Ctrl-C.** `checklists/cli-tool.md` asks an
   interrupted run for non-zero; the canonical `serve` returns nil. A decision, below.
 - **Low — dates older than the text under them.** `patterns/go-data-deletion.md` says
@@ -395,15 +405,21 @@ look at the fixes ran; it is a check, and counts for nothing here.
     the client's `do` returning the response of a one-attempt request; a secret type
     that stops at `main`.
   - The pass-2 rule changes, each open to a veto: an adapter's error carries no body
-    and no URL; a password write is guarded by a counter; registration by email answers
+    and no URL, so a CLI cannot say why a server refused (the reference's prints
+    `refused: status 422`); a password write is guarded by a counter; registration by email answers
     a taken address like a free one; a machine token is created after the password is
     asked for; no migration drops a referenced table; the upload janitor's limits are
     tier 1 and an owned file is `no-store`; a tool that listens refuses a foreign
     `Origin` and forwards no `none` request; a tool that owns a child has no force-kill
     hatch.
-  - The budgets. The web floor stands at 24,998 of 25,000, and `go-auth-sessions.md`,
-    `wasm-client.md`, `go-config.md` and `go-file-uploads.md` within 12 of 3,800. The next rule on any
-    of them needs a number moved or text cut.
+  - The narrow look's rule changes, each open to a veto: every statement a password or
+    a reset link allowed names the counter; a blob only for what fits the blanket 1 MiB
+    cap; the upload janitor waits an hour; `INSERT OR REPLACE` is barred on a table a
+    foreign key names; a `none` request goes to the tool's own handler.
+  - The budgets. The web floor stands at 24,986 of 25,000, and `wasm-client.md`,
+    `go-auth-sessions.md`, `go-data-deletion.md`, `go-file-uploads.md`, `go-http-client.md`
+    and `go-config.md` within 11 of 3,800. The next rule on any of them needs a number
+    moved or text cut.
   - Scroll-driven animations are Baseline Newly since 2026-10-27;
     `patterns/css-motion.md` still keeps them out.
   - `stack/css.md` exempts a `font-family` name from the feature rule, to keep
@@ -421,10 +437,13 @@ look at the fixes ran; it is a check, and counts for nothing here.
 - **Pins behind upstream on 2026-11-10:** htmx 4.0.1 is npm's `next` since 2026-11-01,
   and `modernc.org/sqlite` v1.62.0 shipped on 2026-11-07. `VERSIONS.md` pins 4.0.0 and
   v1.61.0. Go 1.27.3, scs v2.9.0 and TinyGo 0.44.0 are current.
-- **Low — no `Last verified:` date moved in v5.1.0, v5.2.0 or this run** for
-  `patterns/go-project-layout.md`, `project-types/web-application.md`,
-  `operations/web-application.md`, `SKILL.md` and `VERSIONS.md`, which were read only
-  where they changed, and for every document under *Unread* above.
+- **Low — dates that did not move on 2026-11-10.** `32d4dd5` moved five. Five more were
+  clean in the second read and kept theirs: `stack/html.md`, `stack/go.md`,
+  `patterns/go-http-server.md` and `operations/ci.md` took a sentence afterwards, and
+  `patterns/go-authorization.md` was read in two halves by two reviewers. No date has
+  moved since v5.1.0 for `patterns/go-project-layout.md`,
+  `project-types/web-application.md`, `operations/web-application.md`, `SKILL.md` and
+  `VERSIONS.md`, read only where they changed, or for any document under *Unread*.
 
 ### The reference, behind this corpus
 
