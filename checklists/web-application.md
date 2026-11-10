@@ -39,7 +39,7 @@ so. No waiver for any of those; there is a fix.
   - [ ] Every *done means* line is true
   - [ ] Nothing outside *guardrails* changed
 
-### Security — tier 1, not waivable
+### Security — tier 1
 
 `patterns/security-headers.md`, `patterns/go-http-server.md` and `stack/htmx.md` rule 8 —
 required reading, not a trigger.
@@ -222,7 +222,7 @@ the tokens layer and dark mode.
 - [ ] Snapshots the binary writes are pruned to the number the README names (`patterns/go-data-deletion.md`)
 - [ ] **The restore rehearsed once**
 
-## Adding users, login, or passwords — tier 1, not waivable
+## Adding users, login, or passwords — tier 1
 
 `patterns/go-auth-sessions.md` — sessions, hashing, renewal.
 
@@ -235,10 +235,10 @@ the tokens layer and dark mode.
 - [ ] A password change asks for the current one, and ends and writes as rule 1 says
 - [ ] The reset token keeps every condition of *Password reset*
 - [ ] Auth endpoints rate limited per client IP, IPv6 by its /64
-- [ ] No enumeration: login, reset, and registration by email (rule 2)
+- [ ] No enumeration: login, reset, and registration by email
 - [ ] Passwords (if any) hashed with argon2id (OWASP params, PHC-encoded)
 
-## Letting a program sign in — a CLI, a script — tier 1, not waivable
+## Letting a program sign in — a CLI, a script — tier 1
 
 `patterns/go-auth-sessions.md` §Machine tokens — a bearer token, hashed at rest.
 
@@ -250,7 +250,7 @@ the tokens layer and dark mode.
 - [ ] One function resolves either credential to the user row; a refused token answers 401
 - [ ] A token acts as its user, never wider (`patterns/go-authorization.md`)
 
-## Reading or writing a row behind a sign-in — tier 1, not waivable
+## Reading or writing a row somebody owns, or any row behind a sign-in — tier 1
 
 `patterns/go-authorization.md` — the actor in the signature, the predicate in the SQL.
 
@@ -273,7 +273,7 @@ the tokens layer and dark mode.
 - [ ] Invalid form POSTs return 422 with values + errors re-rendered
 - [ ] Each field error tied to its control (`aria-describedby` + `aria-invalid`)
 
-## Taking a file from a user — an upload, an attachment, an avatar — tier 1, not waivable
+## Taking a file from a user — an upload, an attachment, an avatar — tier 1
 
 `patterns/go-file-uploads.md` — the generated name, the sniffed type, and serving it back.
 
@@ -297,7 +297,7 @@ the tokens layer and dark mode.
 - [ ] The response never changes with the send's outcome — tier 1
 - [ ] The `Host: evil.example` test is green — tier 1
 
-## Deleting a person, or anything they own — tier 1, not waivable
+## Deleting a person, or anything they own — tier 1
 
 `patterns/go-data-deletion.md` — what the delete reaches, and what stops authenticating.
 

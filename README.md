@@ -187,7 +187,7 @@ left is in [VERIFICATION.md](VERIFICATION.md) *Owed*.
   its handler's return ([patterns/wasm-client.md](patterns/wasm-client.md) rules 5 and
   6, and the parts rules 7 and 8 mark).
 - Who is signed in: the session cookie and what its store must do, renewal and logout,
-  what a password change asks for and ends, no enumeration, password
+  what a password change asks for, ends and writes, no enumeration, password
   hashing, the rate limits, the reset token, every machine-token rule, and re-resolving
   a long-lived connection ([patterns/go-auth-sessions.md](patterns/go-auth-sessions.md)).
 - Parameterized SQL, the SQLite pragmas and the guard on the DSN that carries them

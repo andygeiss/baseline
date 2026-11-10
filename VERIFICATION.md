@@ -214,8 +214,9 @@ look at the fixes ran; it is a check, and counts for nothing here.
   `patterns/go-cli.md` and the README's list name neither. A decision, below.
 - **Medium — tier-1 rules that no box checks:** a child's secret, in
   `checklists/web-application.md` (2026-10-04); and the patch a security pin sets, in
-  any checklist. `operations/ci.md` owns that rule now, and `govulncheck` fails below
-  the current pin.
+  any checklist. `operations/ci.md` owns that rule now. `govulncheck` fails below
+  the current pin only where the code reaches the fixed symbol: a server with no
+  outbound client passes under Go 1.27.2 (run, 2026-11-10).
 - **Medium — no document rules a URL a user supplies.** A webhook sent through the
   canonical client reached the ops listener and its profiles, followed a redirect with
   its secret, and its "delivered" was an oracle for what the machine can reach (the
@@ -250,7 +251,10 @@ look at the fixes ran; it is a check, and counts for nothing here.
 - **Medium — rules that meet the README's tier-1 test and that no document calls
   tier 1:** no `InsecureSkipVerify`; internal error text never reaching the browser;
   work that must not be lost being a table; the sent outbox row losing its body; the
-  proxy's `X-Forwarded-For`, which the rate limit keys on; the rehearsed restore. And
+  proxy's `X-Forwarded-For`, which the rate limit keys on; the rehearsed restore; and
+  three written on 2026-11-10: the session janitor's hour, `no-store` on an owned file,
+  which only a snippet's comment states, and the child's port being free before `Start`.
+  And
   the headers of four tier-1 documents place only some of their rules:
   `go-authorization.md`, `go-file-uploads.md`, `go-data-deletion.md`,
   `security-headers.md` (2026-11-10).
@@ -360,7 +364,8 @@ look at the fixes ran; it is a check, and counts for nothing here.
     release page; "wording" and "alters no rule" are two tests for one class, both
     applied by whoever fixes; `SKILL.md` and the README answer differently what an agent
     does with a rule that does not work, and `VERSIONS.md` and `SKILL.md` what it does
-    past 90 days.
+    past 90 days; this file calls any pin with a security note tier 1 where the README now
+    says the Go pin.
   - A CLI may serve the person who started it (2026-10-09). The run answered the
     listener's defects with rules; taking the clause back out of the definition is the
     other fix.

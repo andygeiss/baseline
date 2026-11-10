@@ -186,7 +186,7 @@ account answering exactly like one that was never there. Three things it adds:
   `hx-confirm` is enough for a revoke somebody can redo; for this it is a dialog htmx
   draws, so with htmx switched off there is no confirmation at all, and there was never
   anything on the wire for the server to check either way.
-- **A self-service delete asks for the password again.** A session found unlocked is
+- **Deleting your own account asks for the password again.** A session found unlocked is
   otherwise enough to erase somebody. That is a password check, so it is rate limited
   like the login ([go-auth-sessions.md](go-auth-sessions.md) *Rate limiting auth
   endpoints*), or the unlocked session is also a way to guess the password.

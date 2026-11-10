@@ -305,6 +305,6 @@ parses back with `encoding/json/v2`. Strategy and coverage bar per
 
 A tool that listens tests `local` with the bound address as `Host` in every case but
 one — a request `httptest.NewRequest` builds is refused on its `Host` alone, and proves
-nothing else. A cross-site request, a same-site one and a handshake with a foreign
-`Origin` are refused; a foreign `Host` with nothing else is refused; a plain request is
-answered.
+nothing else. A cross-site GET, a same-site GET and a handshake with a foreign `Origin`
+are refused; a foreign `Host` with nothing else is refused; a plain request is answered;
+and a tool that forwards answers a request marked `none` without forwarding it.

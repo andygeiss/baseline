@@ -8,8 +8,8 @@ you call the work complete. A section with no box is the honest answer where the
 rules something no milestone can verify. Paths are from the repository root.
 
 Every unchecked box is either fixed or waived on the record — the waiver format lives in
-`README.md` under *Which rules can be waived*. A box marked tier 1 has no waiver; there
-is a fix. After v1.0.0 the compatibility promises are a promise to every consumer, not a
+`README.md` under *Which rules can be waived*. A tier-1 box says so itself, and has
+no waiver; there is a fix. After v1.0.0 the compatibility promises are a promise to every consumer, not a
 preference.
 
 ## Every library
@@ -71,10 +71,11 @@ are required reading.
 
 ## Returning an error across the API boundary
 
-`patterns/go-errors-logging.md` — wrapping and sentinel errors. The logging half does not
-apply: libraries return, consumers log.
+`patterns/go-errors-logging.md` — wrapping and sentinel errors. Libraries return and
+consumers log, so *Never log* binds what an error holds.
 
 - [ ] Branchable failures exported as sentinel errors
+- [ ] No returned error holds what *Never log* names — tier 1
 
 ## Writing a comment, a doc comment, a README, or a commit message
 

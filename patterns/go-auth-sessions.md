@@ -3,7 +3,7 @@
 **Tier 1** (safety — never waived) · Last verified: 2026-09-08 · Sessions: `alexedwards/scs/v2` (v2.9.0) · Hashing: argon2id
 
 Tier 1: the cookie flags, the token hashed in the store, the store's two MUSTs,
-`RenewToken` and `Destroy`, what a password change asks for and ends, the
+`RenewToken` and `Destroy`, what a password change asks for, ends and writes, the
 no-enumeration rule, the argon2id parameters, the rate limits, the
 reset token, every machine-token rule, and re-resolving a long-lived connection. The
 rest of the scs wiring and the redirect mechanics are tier 2.

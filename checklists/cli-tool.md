@@ -77,8 +77,9 @@ runners-up under *Avoid*.
   - [ ] It is read from a file a flag names, or its `$MYTOOL_…_FILE`
   - [ ] Its environment variable is documented as the leaky fallback
   - [ ] It is **never** taken from the command line
-  - [ ] It is `patterns/go-config.md`'s `Secret`, and one that holds a control character is refused
+  - [ ] It is `patterns/go-config.md`'s `Secret`
   - [ ] Handed to a program the tool starts, it never travels on that program's command line — `patterns/go-child-process.md`
+- [ ] A secret that holds a control character is refused where it is read (`patterns/go-cli.md` *Config precedence*)
 - **If the tool reads no environment variable:**
   - [ ] `-h` names every input — it is the whole contract
 - [ ] `.env` is gitignored, from the commit that added `run`'s recipe (`stack/makefile.md` rule 6) — tier 1
@@ -91,7 +92,7 @@ runners-up under *Avoid*.
 `patterns/go-errors-logging.md` — wrapping, sentinels, and slog.
 
 - [ ] Errors wrapped with `%w`
-- [ ] Nothing *Never log* names reaches stderr or a log — tier 1
+- [ ] Nothing *Never log* names reaches a log — tier 1
 
 ## Writing a comment, a README, a commit message, an error message, or a prompt
 
@@ -136,7 +137,7 @@ the API is integrated.
 - [ ] Checks `resp.StatusCode`
 - [ ] Caps the body it reads
 
-## Listening on a port — a local proxy, a status endpoint — tier 1, not waivable
+## Listening on a port — a local proxy, a status endpoint — tier 1
 
 `patterns/go-cli.md` *A tool that listens* — a browser on this machine reaches a loopback
 port from every page it has open.
