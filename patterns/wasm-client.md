@@ -136,21 +136,23 @@ that mutates, and the reason is the browser's: a WebSocket opens with a GET.
    too. Past a cap the server closes the socket, it does not buffer, and the code says
    which cap: 1009 too big, 1008 too many, 1002 malformed, 1013 a reader too slow, which
    a client may retry.
-8. **Hijack, return, then own the deadlines.** The handler returns right after the
-   handshake — tier 1 — and the socket runs on a goroutine the app tracks. Inside its
-   handler, the socket lets scs's `LoadAndSave`, which commits once the handler returns
-   (under `IdleTimeout` every load is a change; `Hijack` marks nothing written), save
-   the handshake's session again after a logout deleted it — a commit the store also
-   refuses, for any request ([go-auth-sessions.md](go-auth-sessions.md)).
+8. **Count, hijack, return, then own the deadlines.** The handler returns right after
+   the handshake — tier 1 — and the socket runs on a goroutine the app tracks, counted
+   before `Hijack`: `srv.Shutdown` forgets a connection the moment it is hijacked, so a
+   goroutine counted later can start after both of shutdown's waits have returned. Inside
+   its handler, the socket lets scs's `LoadAndSave`, which commits once the handler
+   returns (under `IdleTimeout` every load is a change; `Hijack` marks nothing written),
+   save the handshake's session again after a logout deleted it — a commit the store also
+   refuses, for any request ([go-auth-sessions.md](go-auth-sessions.md)). The socket
+   reads the connection itself, after what `Hijack`'s reader had buffered: a read error
+   on that reader cancels the handshake's context, and the session commit under it.
    `http.ResponseController`
    calls a wrapper's own `Hijack` method if it has one (scs's does), else follows its
    `Unwrap`; a wrapper with neither fails with `ErrNotSupported`. `Hijack` leaves the
-   connection with no deadline (Go clears the server's; the `Hijacker` doc allows that
-   it may not), so set the socket's own read and write deadlines before the first read.
-   `srv.Shutdown` does not track a hijacked connection, so shutdown closes every socket
-   with 1001 and then waits for its goroutines
-   ([go-background-work.md](go-background-work.md)) — before the session store and the
-   database close, since rule 6's re-check reads them.
+   connection with no deadline, so set the socket's own read and write deadlines before
+   the first read. Shutdown closes every socket with 1001 and then waits for its
+   goroutines ([go-background-work.md](go-background-work.md)) — before the session
+   store and the database close, since rule 6's re-check reads them.
 
 The standard library has no WebSocket: write the server half by hand (RFC 6455's
 framing, binary messages only), or justify a dependency in the README like any outside
@@ -162,8 +164,7 @@ HTML, so it is not the htmx WebSocket extension
 
 - ❌ `'unsafe-eval'` to make the module load. It allows JavaScript `eval` too;
   `'wasm-unsafe-eval'` allows WebAssembly and nothing else.
-- ❌ An edited `wasm_exec.js`. The next `make wasm` overwrites it, and a copy that no
-  longer matches its compiler fails at run time, not at build time.
+- ❌ An edited `wasm_exec.js`. The next `make wasm` overwrites it.
 - ❌ A module built by CI or at boot. The committed bytes are the release.
 
 ## Facts verified (2026-10-31)
@@ -175,14 +176,11 @@ HTML, so it is not the htmx WebSocket extension
   in `(*conn).hijackLocked`, `net/http/server.go` line 326); the `Hijacker` doc says they
   may remain: Go 1.27.3
 - Without `'wasm-unsafe-eval'` (or `'unsafe-eval'`) in `script-src`, a page under a CSP
-  cannot compile WebAssembly; `'unsafe-eval'` also allows `eval`:
-  https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src
+  cannot compile WebAssembly; `'unsafe-eval'` also allows `eval`: MDN, `script-src`
 - `CrossOriginProtection` always allows GET, HEAD and OPTIONS: `go doc
   net/http.CrossOriginProtection`, Go 1.27.3
 - A browser client's handshake MUST include `Origin` (section 4.1, client requirement 8),
-  and the server is to check it (section 10.2):
-  https://www.rfc-editor.org/rfc/rfc6455#section-4.1,
-  https://www.rfc-editor.org/rfc/rfc6455#section-10.2
+  and the server is to check it (section 10.2): RFC 6455
 - `GOOS=js GOARCH=wasm go build -trimpath` of `func main() { println("hi") }` in
   `module x` with `go 1.27`: 1,889,724 bytes, about 1.9 MB; without `-trimpath` the size
   moves with the build directory, Go 1.27.3
