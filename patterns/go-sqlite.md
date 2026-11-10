@@ -134,14 +134,14 @@ Three answers are legitimate — "I don't know" is not:
 // The snapshot goes beside the database, built from that file's own directory:
 // every other path may be read-only, and VACUUM INTO resolves a relative path
 // against the process's working directory, not the database's.
-dst := filepath.Join(filepath.Dir(cfg.DatabaseURL), "app-"+day+".db")
-if !filepath.IsAbs(dst) {
-	dst = "./" + dst // a leading "file:" would make it a URI (rule 10)
+dir := filepath.Dir(cfg.DatabaseURL)
+// One fixed temporary name, never the day's own: VACUUM INTO refuses a file that
+// exists, which is every run after the day's first, and a stop mid-copy would
+// leave half a database under the name a restore reads.
+tmp := filepath.Join(dir, "snapshot.tmp")
+if !filepath.IsAbs(tmp) {
+	tmp = "./" + tmp // a leading "file:" would make it a URI (rule 10)
 }
-// Never straight to dst: VACUUM INTO refuses a file that exists, which is every
-// run after the day's first, and a stop mid-copy would leave half a database
-// under the name a restore reads.
-tmp := dst + ".tmp"
 if err := os.Remove(tmp); err != nil && !errors.Is(err, fs.ErrNotExist) {
 	return err
 }
@@ -150,7 +150,7 @@ if err := os.Remove(tmp); err != nil && !errors.Is(err, fs.ErrNotExist) {
 if _, err := readDB.ExecContext(ctx, "VACUUM INTO ?", tmp); err != nil {
 	return err
 }
-return os.Rename(tmp, dst)
+return os.Rename(tmp, filepath.Join(dir, "app-"+day+".db"))
 ```
 
 The ticker that writes a snapshot then deletes the older ones:
