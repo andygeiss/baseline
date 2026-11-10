@@ -133,6 +133,10 @@ reference's `verify.sh` as the hard gate, and a date for each document that come
 clean. The same evening he took out the two areas that had never passed a read and
 that one project used: the entry *Retired* under *Owed*.
 
+**v6.0.0 went out that night on Andy's decision, with the gate not met:** one high was
+known, the first entry under *Known*, and *The reference, behind this corpus* held
+three entries. It is the seventh release in a row to ship that way.
+
 **Conditions 2 and 4 were one sentence until 2026-08-18, and it was one no release
 could meet.** It read "`./verify.sh` exits 0 against the exact baseline commit
 being tagged" — but the run record then lived in this file and named the reference
@@ -231,8 +235,9 @@ body says, and the reference carries them.
   their own password, and wait. When the address's owner resets the password, the
   outsider's session and password stop working, and the token still reads and writes
   the owner's rows (run twice on 2026-11-10, in the reviewer's rig and in the web
-  build). Closing it takes a rule, and the document is frozen. **It holds the tag**
-  until the first decision below is taken.
+  build). Closing it takes a rule, and the document is frozen. **v6.0.0 shipped with
+  it, on Andy's decision. It holds the next tag** until the first decision below is
+  taken.
 - **Retired on 2026-11-10, on Andy's call:** `patterns/go-child-process.md`, and
   `patterns/go-cli.md` *A tool that listens* with the clause of 2026-10-09 that let a CLI
   serve the person who started it. Neither ever passed a read: nine for the first, four
@@ -537,9 +542,10 @@ body says, and the reference carries them.
 ### The reference, behind this corpus
 
 The reference follows `b2f040a`, the last commit of the 2026-11-10 run that changes
-anything a project reads: its `SPEC.md` pins that commit on the branch `sync-owed-run`,
-and `make check`, `make ci` and `./verify.sh` exit 0 against it (96 steps). Three things
-are behind, and condition 2 needs each settled before the tag that carries this run:
+anything a project reads: its `SPEC.md` pins that commit, and `make check`, `make ci`
+and `./verify.sh` exit 0 against it (96 steps). Three things are behind. v6.0.0
+shipped with them, on Andy's decision; condition 2 needs each settled before the next
+tag:
 
 - **The high above.** The reference follows the rule as written: its reset leaves the
   tokens table alone (read, not run there).
@@ -558,7 +564,7 @@ and ignores `Retry-After`, against `patterns/go-http-client.md`; its request log
 the last status written, which is the medium above; and its recovery address is the
 entry under *Known*.
 
-The twelve entries the 2026-11-09 run listed here are settled on `sync-owed-run`.
+The twelve entries the 2026-11-09 run listed here are settled.
 
 ## Why the CSP is what it is
 
