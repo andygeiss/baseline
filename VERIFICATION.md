@@ -167,10 +167,11 @@ not count.
 
 ### Unread, or read and never passed
 
-The 2026-11-10 run read every document it changed whole, twice. Each entry here had a
-high or a medium in its second read, on that day's count below. It is fixed, and no pass
-has read the fix. A third, narrow look at the fixes ran; it is a check, and counts for
-nothing here.
+The 2026-11-10 run read whole, twice, the documents its first pass changed. Neither read
+was a pass as this file defines one: no library was built, and what the run changed in
+other documents was read where it changed. The first nine entries each had a high or a
+medium in the second read. Each is fixed, and no pass has read the fix. A third, narrow
+look at the fixes ran; it is a check, and counts for nothing here.
 
 - **`patterns/go-auth-sessions.md`, whole,** with its boxes. Rewritten on 2026-11-10,
   and the second read found four highs in the rewrite (`a04de9c`, `eb27c42`).
@@ -180,24 +181,28 @@ nothing here.
 - **`patterns/go-child-process.md`, whole,** with its checklist section. New on
   2026-10-04; seven reads, none passed (`596fd9c`).
 - **`patterns/go-cli.md`, whole,** above all *A tool that listens*, new on 2026-11-10
-  after the 2026-10-09 widening, and the checklist's *Listening on a port* (`596fd9c`).
+  after the 2026-10-09 widening, and the checklist's *Listening on a port* (`596fd9c`,
+  `03bb4c3`).
 - **`patterns/go-email.md`, whole.** Six reads, a medium in each. Its date did not move.
-- **`patterns/go-sqlite.md`, `patterns/go-file-uploads.md`, and rule 6 of
-  `patterns/go-data-deletion.md`,** which is a prohibition since `2a21420`.
+- **`patterns/go-sqlite.md`, `patterns/go-file-uploads.md`, and in
+  `patterns/go-data-deletion.md` rule 6,** a prohibition since `2a21420`, its header, and
+  the two sentences `bd65def` added to *Testing*.
 - **`patterns/go-http-client.md`, `patterns/go-config.md`,
   `patterns/go-errors-logging.md` and `patterns/go-forms-validation.md`** (`09561c4`,
   `7793d93`, `eb27c42`).
 - **`stack/htmx.md` and `patterns/htmx-server-rendering.md`** (`9db3dcc`, `7793d93`).
 - **The three checklists and the README's tier-1 list,** as `a2abc66` restructured them
   and `03bb4c3` corrected them.
-- **Two changes made after a whole read that found nothing high or medium:** the test in
-  `patterns/security-headers.md` (`7793d93`), and the header of
-  `patterns/htmx-live-updates.md`, which names a tier-1 rule since `9db3dcc`.
+- **Changes made after a whole read that found nothing high or medium:** in
+  `patterns/security-headers.md` the test, the paragraph under it and the `form-action`
+  row (`7793d93`, `03bb4c3`); and the header of `patterns/htmx-live-updates.md`, which
+  names a tier-1 rule since `9db3dcc`.
 - **Two snippet lines of `patterns/go-ports-adapters.md`** (`09561c4`). The run did not
   read that document whole.
 - **This file's *What a review run is*, *Grading a finding*, *The tag gate* and *Owed*,
-  and the README paragraphs that go with them.** Three reviews read earlier versions and
-  found 14, 16 and 9 mediums. None has read this one.
+  and the README paragraphs that go with them.** Four reviews read earlier versions and
+  found 14, 16, 9 and 8 mediums. What the fourth found in the gate itself is under
+  *Decisions left to Andy*, and nobody has read the text since.
 - **Wording fixed after a whole read that found nothing high or medium:** `stack/html.md`
   and `stack/go.md` in `03bb4c3`, `patterns/go-http-server.md` and `operations/ci.md` in
   `0f20f36`.
@@ -238,12 +243,29 @@ nothing here.
 - **Medium — `patterns/time-and-dates.md` bans `time.Local` everywhere.** A CLI runs on
   the reader's machine and has no other zone, and `checklists/cli-tool.md` has no
   section that sends a tool that prints a time to that document.
+- **Medium — the only printed body of the credential lookup compares no password
+  counter.** `patterns/go-auth-sessions.md` rule 1 puts the comparison in *Machine tokens*
+  rule 6's lookup; rule 6 does not mention it, and the snippet in
+  `patterns/go-data-deletion.md` loads the user by id (2026-11-10).
+- **Medium — rules that meet the README's tier-1 test and that no document calls
+  tier 1:** no `InsecureSkipVerify`; internal error text never reaching the browser;
+  work that must not be lost being a table; the sent outbox row losing its body; the
+  proxy's `X-Forwarded-For`, which the rate limit keys on; the rehearsed restore. And
+  the headers of four tier-1 documents place only some of their rules:
+  `go-authorization.md`, `go-file-uploads.md`, `go-data-deletion.md`,
+  `security-headers.md` (2026-11-10).
+- **Medium — a password reset leaves the user's machine tokens,** and a token minted
+  from a stolen session outlives it (2026-11-10). A decision, below.
+- **Medium — `patterns/go-config.md` makes `DATABASE_URL` a flag, an environment
+  variable and a logged field.** A Postgres URL, which `project-types/web-application.md`
+  allows, holds a password (2026-11-10).
+- **Medium — `patterns/go-child-process.md`: the fake's mode "ready after a few asks"
+  has no assertion,** so a tool that calls any status ready passes (round five,
+  2026-10-09; still true on 2026-11-10).
 - **Medium — the gates check none of the tier structure.** `make structure` and
   `make tokens` pass with a box pointing at a rule that does not exist, a mark on a
   tier-2 box, and a tier-1 section deleted (34 breaks tried, 2026-11-10).
-- **Low, in `patterns/go-auth-sessions.md` and beside it:**
-  - The middleware snippet in `patterns/go-data-deletion.md` loads the user by id and
-    shows no comparison of the password counter.
+- **Low, in `patterns/go-auth-sessions.md`:**
   - No schema for the sessions table is printed; `data IS NULL` is the only statement
     of what an emptied row is.
   - One rate-limit budget or one per route, and where password hashing sits, are
@@ -251,17 +273,15 @@ nothing here.
 - **Low — `patterns/go-authorization.md`: in the second-mux shape, a route registered
   on the public mux under the mounted prefix is public, and nothing says so.** A
   decision, below.
-- **Low, in `patterns/go-child-process.md`:** the fake's mode "ready after a few asks"
-  has no assertion, so a tool that calls any status ready passes; `go vet` for iOS and
-  Android needs cgo, which the vet box does not say; a recycled PID could put the
-  deferred wait's signal on a stranger's group, and that was not forced.
+- **Low, in `patterns/go-child-process.md`:** `go vet` for iOS and Android needs cgo,
+  which the vet box does not say.
 - **Low, in `patterns/go-cli.md`:** *Logging* says a tool does not log, and a tool that
   listens must build a logger; the box "Nothing a user installs reads it" states a
   condition `stack/makefile.md` rule 6 does not.
 - **Low, in `patterns/go-config.md`:** the canonical parser has no check for the log
   transport, which `patterns/go-email.md` makes tier 1, and describes `ENV` as the log
-  format only; `DATABASE_URL` is a flag, an environment variable and a logged field, and
-  a Postgres URL holds a password; `readCredential` says nothing about a missing file; a
+  format only;
+  `readCredential` says nothing about a missing file; a
   non-string verb (`%d`) prints a `Secret`, which `go vet` catches only for a constant
   format.
 - **Low, in `patterns/go-sqlite.md`:**
@@ -271,6 +291,7 @@ nothing here.
   - The prune matches `app-*.db`, which a database named that way also is.
   - Two snapshot runs at once can leave a half-written file under the day's name.
   - The first open of a new file answered `database is locked` in 8 boots of 480.
+  - `openDB` is unexported, and three packages need it (the 2026-11-09 build).
 - **Low, in the server documents:** "above `ReadTimeout` + the budget" and "ceiling the
   budget at 20 s" do not say the same thing; `make run` leaves `app.db` unignored;
   `main.go` under about 100 lines does not fit two servers; a panic in a background job
@@ -289,6 +310,17 @@ nothing here.
   differently; the validator warns on `role="list"`; the `hx-confirm` box and
   `patterns/go-data-deletion.md` disagree; `patterns/css-typography.md` calls
   `text-wrap: balance` Baseline Newly, and it turns Widely on 2026-11-13.
+- **Low, from the 2026-11-09 build and still standing:** `operations/web-application.md`
+  says the binary is configured by exactly its list, and four patterns each need a knob
+  outside it; `patterns/css-icons.md` asks for the Lucide notice and does not print it;
+  `stack/go.md` asks for interfaces of one to three methods, and a store has more;
+  `no-store` on authenticated pages (`patterns/go-performance.md`) has no box.
+- **Low — a serving tool's exit code after Ctrl-C.** `checklists/cli-tool.md` asks an
+  interrupted run for non-zero; the canonical `serve` returns nil. A decision, below.
+- **Low — dates older than the text under them.** `patterns/go-data-deletion.md` says
+  2026-11-10 and its rule 6 was rewritten that afternoon; `patterns/security-headers.md`
+  and `patterns/go-ports-adapters.md` say 2026-11-09 over the changes listed above. The
+  README has no answer for a document changed after its date.
 - **Low — checklist boxes that hold several checks,** against the README's *Writing a
   checklist*; and a tier-1 box whose subject a project lacks has no answer but
   `SKILL.md`'s full protocol.
@@ -299,19 +331,41 @@ nothing here.
 - **Low — what the builds from the documents had to invent:** twenty decisions on
   2026-11-09, twenty-nine for a CLI and the web application's own on 2026-11-10. They
   are in the bodies of `c0a6117` and of the commit that added this line.
-- **Unchecked:** Firefox and Safari, for what Chrome showed about a form's redirect, a
+- **Unchecked:** a recycled PID under the child process's deferred wait; the live-region
+  markup under a screen reader; Firefox and Safari, for what Chrome showed about a form's redirect, a
   cached page's socket and an owned file after sign-out; Linux, for every terminal run
   of the child process; whether the proxy's log holds a reset link's query string.
 - **Decisions left to Andy:**
+  - **The gate gates a tag, and projects read `main`.** The installed copy is a symlink
+    to this repository, so every rule of this run reached projects at its commit, read
+    or not, and a security pin tagged on top of `main` would carry the whole unread
+    branch. One sentence settles it either way: the installed branch is the last tag
+    and a run stays on its own branch until the gate passes; or the gate says what an
+    untagged commit may carry.
+  - Whether the freeze covers a new rule in an old document. Today it stops a new
+    pattern and nothing smaller, and this run added a section of tier-1 rules to
+    `patterns/go-cli.md` under it.
+  - What a decision does to a finding, and whether a medium under *Known* holds the tag
+    by being listed. Today it holds only if a pass finds it again, and four listed
+    mediums sit in no document a pass must read.
+  - Which read takes an entry off *Unread*: one whole read of that entry, as the lead
+    of this section says, or a pass.
+  - The unit of "a run over that diff" for a security pin, which by this file's own
+    definition of a pass counts for nothing.
+  - The gate's sentences are Claude's. Three changed what ships after the 2026-11-09
+    decision and were never confirmed: the freeze ends when *Unread* is empty, not when
+    *Owed* is; a pin that cannot go green without a rule ships with that rule; a change
+    that alters no rule skips the build.
+  - Smaller questions about the gate's wording: nothing ties the next tag to the last
+    release page; "wording" and "alters no rule" are two tests for one class, both
+    applied by whoever fixes; `SKILL.md` and the README answer differently what an agent
+    does with a rule that does not work, and `VERSIONS.md` and `SKILL.md` what it does
+    past 90 days.
+  - A CLI may serve the person who started it (2026-10-09). The run answered the
+    listener's defects with rules; taking the clause back out of the definition is the
+    other fix.
   - The two CLI boxes above: name both rules tier 1 in `patterns/go-cli.md` and the
     README, or drop the marks.
-  - Rules that meet the tier-1 test and that no document calls tier 1: no
-    `InsecureSkipVerify`; internal error text never reaching the browser; work that must
-    not be lost being a table; a secret never defaulted; the sent outbox row losing its
-    body; the proxy's `X-Forwarded-For`, which the rate limit keys on; the rehearsed
-    restore. And the headers of four tier-1 documents place only some of their rules:
-    `go-authorization.md`, `go-file-uploads.md`, `go-data-deletion.md`,
-    `security-headers.md`.
   - Whether a password reset deletes the user's machine tokens. Today it does not.
   - A rule for a URL a user supplies: no redirect followed, and no dial to this
     machine, is what the build ended on. It needs room `patterns/go-http-client.md` and
@@ -325,6 +379,12 @@ nothing here.
     an interrupted run for non-zero; the canonical `serve` returns nil.
   - Whether a tool's `go.mod` says `go 1.27.3`, so that `go install` on an older 1.27
     cannot build it below the security floor.
+  - The pass-1 rule changes, each open to a veto: no mutation on a GET and *Never log*
+    as tier 1; the session token hashed in the store, a deleted session row kept empty,
+    the limiter keyed on a /64; a password change asking for the current password; no
+    bcrypt fallback; `"defaultSettleDelay":0`; a snapshot written to a temporary name;
+    the client's `do` returning the response of a one-attempt request; a secret type
+    that stops at `main`.
   - The pass-2 rule changes, each open to a veto: an adapter's error carries no body
     and no URL; a password write is guarded by a counter; registration by email answers
     a taken address like a free one; a machine token is created after the password is
@@ -333,7 +393,7 @@ nothing here.
     `Origin` and forwards no `none` request; a tool that owns a child has no force-kill
     hatch.
   - The budgets. The web floor stands at 24,998 of 25,000, and `go-auth-sessions.md`,
-    `wasm-client.md` and `go-file-uploads.md` within 12 of 3,800. The next rule on any
+    `wasm-client.md`, `go-config.md` and `go-file-uploads.md` within 12 of 3,800. The next rule on any
     of them needs a number moved or text cut.
   - Scroll-driven animations are Baseline Newly since 2026-10-27;
     `patterns/css-motion.md` still keeps them out.
@@ -375,6 +435,10 @@ one settled before the tag that carries them:
 - The room map: the socket closed on `pagehide`; the `wasm-opt` that
   `tinygo env WASMOPT` names; the counter in the socket's re-check.
 - `gochat` against the CLI rules that changed.
+- Registration, against the sentence on registering by email; no `hx-trigger` filter; no
+  migration that drops a table others reference.
+
+The twelve entries the 2026-11-09 run listed here are settled on `sync-owed-run`.
 
 ## Why the CSP is what it is
 
