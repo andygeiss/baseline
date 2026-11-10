@@ -31,7 +31,7 @@ no extension, no state in the browser. The page renders the list with the sentin
 end:
 
 ```html
-<ul id="messages" role="list">
+<ul id="messages" role="list" aria-live="polite">
   <li>… message 411 …</li>
   <li>… message 412 …</li>
   <li id="poll" hidden
@@ -58,7 +58,7 @@ swapped content automatically, so nothing re-registers anything.
 
 **Nothing new? Answer `204 No Content`.** htmx does not swap a 204, so the old sentinel stays
 put and keeps polling with the cursor it has. The quiet case — most cases — costs one indexed
-lookup and an empty response.
+lookup and an empty response, plus what the session costs (*What this costs*).
 
 **Done for good? Answer the last rows with no sentinel after them.** htmx stops a poll only
 when its element leaves the page, and the swap takes the old sentinel out, so the final
@@ -75,9 +75,8 @@ over the sentinel, and the poll is gone for good.
 
 1. **The cursor is a monotonic number, never a timestamp.** Two messages written in the
    same second sort at random by time, so a time cursor either repeats a row or skips one.
-   On a list that number is a row id — the `INTEGER PRIMARY KEY AUTOINCREMENT` column from
-   [go-sqlite.md](go-sqlite.md). On a region it is a count of pieces the server has
-   appended.
+   On a list that number is a row id — an `INTEGER PRIMARY KEY AUTOINCREMENT` column. On
+   a region it is a count of pieces the server has appended.
 2. **The server decides the next cursor,** and sends it back inside whatever it swapped in.
    The browser never computes it.
 3. **The response is rows, in order, plus one sentinel.** A response that re-renders the
@@ -129,7 +128,7 @@ changes is the whole of it.
 **Then poll the region and swap the region.** The poller sits inside it and targets it:
 
 ```html
-<div id="job">
+<div id="job"> <!-- inside a role="status" element the swap does not replace -->
   <p>… 3 pieces so far …</p>
   <span hidden
         hx-get="/jobs/7?since=3" hx-target="#job"
@@ -218,6 +217,11 @@ One open tab is one request per interval. **A hundred readers at three seconds i
 requests a second**, almost all of them 204s — nothing for a Go binary in front of an
 indexed SQLite read, which is why the simple mechanism wins at this size.
 
+**A signed-in reader's poll is also a session read and a session write**, through the
+single-writer pool, because scs commits every loaded session under `IdleTimeout`. So a
+page that polls never idles out: it stays signed in until `Lifetime` ends
+([go-auth-sessions.md](go-auth-sessions.md)).
+
 Two numbers say the trade has flipped: the empty-response share stops being most of them
 (readers are getting stale views between polls), or the request rate starts to matter next
 to everything else the app serves. Both are arguments for server-sent events, and both
@@ -229,16 +233,17 @@ listening to at 1 s.
 
 ## What polling cannot do
 
-**It cannot scroll.** New rows arrive below the fold, and moving the viewport needs
-JavaScript. The usual workaround — a `column-reverse` flex list that pins itself to the
+**It cannot scroll only for a reader already at the bottom.** New rows arrive below the
+fold, and htmx's `show:` and `scroll:` move everyone, the reader scrolled up to read
+included. The usual workaround — a `column-reverse` flex list that pins itself to the
 bottom — buys that scroll by putting the newest message first in the markup, which is the
 order a screen reader then announces. **Correct reading order wins over automatic
 scrolling.** Do not take that trade without recording it as a waiver. The one free win:
-after a plain-form post, redirect to `/rooms/general#bottom` so the browser lands on the
-newest row by itself.
+after a plain-form post, redirect to the fragment of an element the page puts after the
+list (`/rooms/general#latest`), so the browser lands on the newest row by itself.
 
-**It cannot pause in a hidden tab.** The obvious guard is an htmx trigger filter,
-`every 3s [document.visibilityState==='visible']` — and htmx evaluates that expression, so
+**It cannot pause in a hidden tab.** The obvious guard is an htmx trigger filter on
+`document.visibilityState` — and a filter is JavaScript htmx has to evaluate, so
 it needs the `'unsafe-eval'` that [security-headers.md](security-headers.md) forbids
 outright. Background tabs keep polling; budget for it in the cost model above, because that
 is the whole mitigation.

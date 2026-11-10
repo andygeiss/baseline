@@ -62,7 +62,7 @@ is a template function from build info, not a data field (see
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="htmx-config" content='{"includeIndicatorCSS":false,"history":"reload"}'>
+  <meta name="htmx-config" content='{"includeIndicatorCSS":false,"history":"reload","defaultSettleDelay":0}'>
   <title>{{template "title" .}} · AppName</title>
   <link rel="stylesheet" href="/static/css/app.css?v={{version}}">
   <link rel="icon" href="/static/favicon.svg?v={{version}}" type="image/svg+xml">

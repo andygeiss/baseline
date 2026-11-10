@@ -3,8 +3,9 @@
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-10-27 · Pinned:
 htmx 4.0.0 ([VERSIONS.md](../VERSIONS.md))
 
-**Rule 8, Security, is tier 1 and never waived:** the policy, CSRF, escaping, and *Boost
-only pages*. Each one stops a stranger's markup or request from acting as the reader.
+**Rule 8, Security, is tier 1 and never waived:** escaping and *Boost only pages* are its
+own, and the policy and CSRF it points at are tier 1 where they are owned. So is rule 3's
+"GET never mutates" ([patterns/go-http-server.md](../patterns/go-http-server.md)).
 
 htmx is the *only* script on the page, but for a WebAssembly client's two
 ([patterns/wasm-client.md](../patterns/wasm-client.md)). It turns HTML into the application protocol:
@@ -53,8 +54,9 @@ link and form does too.
 | `hx-boost` | On `<body>`, as `hx-boost:inherited="transition:true"`: upgrades plain links/forms to AJAX with graceful fallback, and cross-fades them. `hx-boost="false"` opts out a link or form whose answer is not a page (rule 8), a link or form into a page whose `<head>` loads a script of its own, or into or out of one whose `<head>` loads a stylesheet the other does not, since a boosted request swaps only the body: a WebAssembly client's program page ([patterns/wasm-client.md](../patterns/wasm-client.md)). |
 | `hx-confirm` | For destructive actions. |
 
-Attributes not listed here (e.g. `hx-on`, `hx-vals` with JS expressions) SHOULD be
-avoided — if you need them, the design is probably drifting toward client-side logic.
+MUST NOT use `hx-on` or a `js:` value: htmx evaluates them, and the policy forbids that.
+Other attributes not listed here SHOULD be avoided — if you need them, the design is
+probably drifting toward client-side logic.
 `hx-status` lives only on the layout's `<body>` ([html.md](html.md)). MUST NOT add it to
 another element. For each code htmx tries the exact code, then its first two digits
 (`42x` for a 422), then its first (`4xx`), on the sending element and its ancestors, so
@@ -81,12 +83,15 @@ title, and pushes a URL wherever the element would — boosted, or carrying `hx-
    outside every cascade layer, so it beats each rule `app.css` writes, and its 200 ms
    fade ignores `prefers-reduced-motion`. The canonical layout's `htmx-config` meta sets
    `"includeIndicatorCSS":false`; `app.css` defines `.htmx-indicator` and
-   `.htmx-request` itself (see [css.md](css.md)).
+   `.htmx-request` itself (see [css.md](css.md)). It also sets `"defaultSettleDelay":0`:
+   while it settles, htmx 4.0.0 copies the old field's attributes onto the new one, and a
+   focused field comes back from a 422 empty. Nothing here animates on that delay.
 6. **Back and forward reload the page.** htmx 4 keeps no history cache. On back/forward
    it either re-fetches the page itself and swaps the body, or reloads. The canonical
-   `htmx-config` sets `"history":"reload"`, so back/forward are real page loads and no
-   handler ever answers a restore request. The server is the source of truth — there is
-   nothing client-side worth restoring.
+   `htmx-config` sets `"history":"reload"`, so back/forward onto an entry htmx pushed
+   are real page loads and no handler ever answers a restore request. The server is the
+   source of truth — there is nothing client-side worth restoring. A page reached by a
+   full load is the browser's own to bring back, from its back-forward cache if it likes.
 7. **htmx gives up at 60 s.** htmx 4 aborts any request still running after its
    `defaultTimeout`, 60 s, and an aborted request swaps nothing. The canonical server
    answers inside 30 s (`WriteTimeout`,
@@ -99,16 +104,15 @@ title, and pushes a URL wherever the element would — boosted, or carrying `hx-
    - CSP: htmx needs no policy change — it is self-hosted and writes no inline
      JS ([patterns/security-headers.md](../patterns/security-headers.md) owns
      the policy).
-   - CSRF: no tokens — the server uses stdlib `http.CrossOriginProtection`
-     (`Sec-Fetch-Site` based, Go 1.25+), which covers htmx requests automatically
-     because htmx sends real same-origin requests. See
-     [patterns/go-http-server.md](../patterns/go-http-server.md).
+   - CSRF: no tokens. [patterns/go-http-server.md](../patterns/go-http-server.md) owns
+     the check, and htmx passes it because it sends real same-origin requests.
    - All dynamic HTML goes through `html/template` (contextual auto-escaping). Never
-     concatenate user input into HTML.
+     concatenate user input into HTML, and never convert it to `template.HTML`.
    - **Boost only pages.** htmx parses a boosted answer as HTML whatever its type, and
-     acts on every htmx attribute in it. A link or form whose answer is not a page — a
-     file, an export — carries `hx-boost="false"`, and so does any link whose href a
-     user supplied ([patterns/go-file-uploads.md](../patterns/go-file-uploads.md)).
+     acts on every htmx attribute in it. A link or form whose answer, once any redirect
+     is followed, is not a page of this application — a file, an export, a redirect to
+     another origin, a 204 — carries `hx-boost="false"`, and so does any link whose href
+     a user supplied ([patterns/go-file-uploads.md](../patterns/go-file-uploads.md)).
 
 ## Litmus test
 

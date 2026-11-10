@@ -2,8 +2,8 @@
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-10-27
 
-One exception: never handing user data to `template.HTML` is tier 1, wherever a checklist
-files it.
+One exception: the escaping this document leans on is tier 1
+([stack/htmx.md](../stack/htmx.md) rule 8).
 
 The one mechanic that makes Go + htmx work: **every dynamic view is a named template
 block; a handler renders either the full page or just the block, depending on
@@ -28,7 +28,7 @@ block; a handler renders either the full page or just the block, depending on
     <li>
       <form method="post" action="/tasks/{{.ID}}/toggle"
             hx-post="/tasks/{{.ID}}/toggle" hx-target="#task-list" hx-swap="outerHTML">
-        <button class="task-toggle" aria-pressed="{{.Done}}">{{.Title}}</button>
+        <button id="toggle-{{.ID}}" class="task-toggle" aria-pressed="{{.Done}}">{{.Title}}</button>
       </form>
     </li>
   {{end}}
@@ -43,6 +43,9 @@ block; a handler renders either the full page or just the block, depending on
   progressive-enhancement MUST in [stack/htmx.md](../stack/htmx.md).
 - Fragment root carries the `id` that `hx-target` points at; `hx-swap="outerHTML"`
   makes the fragment self-replacing.
+- **A control inside the fragment it replaces carries an `id`.** The swap removes the
+  button that was pressed, and htmx puts focus back only on an element it finds by id:
+  without one, focus falls to `<body>` and the next Space does nothing.
 - The layout (`layout.html`, canonical version in [stack/html.md](../stack/html.md))
   invokes `{{template "title" .}}` and `{{template "main" .}}` — every page template
   MUST define both blocks.
@@ -67,6 +70,7 @@ func (a *App) render(w http.ResponseWriter, r *http.Request, status int, page, b
 		a.serverError(w, r, err)
 		return
 	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8") // or a fragment rooted at <li> is sniffed as text/plain
 	w.Header().Add("Vary", "HX-Request-Type") // Add, not Set — sessions.LoadAndSave already added "Vary: Cookie"
 	w.WriteHeader(status)
 	buf.WriteTo(w)
