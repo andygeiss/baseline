@@ -1,6 +1,6 @@
 # House Style: Writing for Humans
 
-**Last verified: 2026-08-17**
+**Last verified: 2026-11-09**
 
 This document governs everything we write for people: README files and docs, commit
 messages, Go source comments, and error messages. One bar applies to all of it:

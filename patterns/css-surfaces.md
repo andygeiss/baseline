@@ -1,6 +1,6 @@
 # Pattern: CSS Surfaces (Minimal, Neumorphic, Glass)
 
-**Tier 3** (taste — choosing is the rule, so no waiver is needed) · Last verified: 2026-08-13
+**Tier 3** (taste — choosing is the rule, so no waiver is needed) · Last verified: 2026-11-10
 
 That covers which of the three styles the project picks. Everything the chosen style
 then has to hold — the measured floors, and the ≥ 3:1 control boundary in every style —

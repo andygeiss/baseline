@@ -1,6 +1,6 @@
 # Pattern: CSS Icons (Mask, currentColor)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-09
 
 **One rule here is tier 1 and never waived:** the `img-src 'self' data:` these icons
 depend on. [security-headers.md](security-headers.md) owns that policy.
@@ -185,7 +185,7 @@ owns that policy; anyone tightening it starts here.
 - ❌ Two-tone or multi-color icons — a mask carries alpha only; color in the
   SVG is discarded, so the second tone silently disappears.
 
-## Facts verified (2026-08-13)
+## Facts verified (2026-11-09)
 
 - CSS masking Baseline **Widely available** 2026-06-07 — Chrome 120, Safari
   15.4, Firefox 53: https://webstatus.dev/features/masks

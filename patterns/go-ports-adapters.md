@@ -1,6 +1,6 @@
 # Pattern: Ports & Adapters (Go)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-09
 
 The one decision this document owns: **how your code meets somebody else's system.** A
 *port* is the small interface your code needs; an *adapter* is the package that speaks the

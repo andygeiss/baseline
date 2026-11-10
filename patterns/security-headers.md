@@ -1,6 +1,6 @@
 # Pattern: Security Headers
 
-**Tier 1** (safety — never waived) · Last verified: 2026-08-14
+**Tier 1** (safety — never waived) · Last verified: 2026-11-09
 
 The four headers, every directive in the policy, and the ban on `'unsafe-inline'` and
 `'unsafe-eval'` are tier 1 wherever a checklist files them. The single-owner rule and

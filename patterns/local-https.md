@@ -1,6 +1,6 @@
 # Pattern: Local HTTPS
 
-**Tier 3** (taste — choosing is the rule, so no waiver is needed) · Last verified: 2026-08-16
+**Tier 3** (taste — choosing is the rule, so no waiver is needed) · Last verified: 2026-11-09
 
 That covers whether a developer can reach the app over HTTPS at all. Once the project
 opts in, everything below is tier 2 — and **the binary never serving TLS is not a choice
@@ -160,11 +160,11 @@ header, and still worth knowing before it surprises someone.
   on iOS is the strictest implementation of every row in the table above, and usually the
   target.
 
-## Facts verified (2026-08-16)
+## Facts verified (2026-11-09)
 
 Checked by running it, not by reading about it:
 
-- Caddy **2.11.4** with the Caddyfile above serves `https://<name>.local:8443` —
+- Caddy **2.11.9** with the Caddyfile above serves `https://<name>.local:8443` —
   `curl --cacert <root>` reports `ssl_verify_result=0` — and proxies to a Go binary on
   `127.0.0.1:8080`. The same request through the machine's LAN address also answers 200,
   which is the path a phone takes.

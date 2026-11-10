@@ -1,6 +1,6 @@
 # Pattern: Times and Dates
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-10
 
 No JavaScript means no browser clock and no browser time zone. Every other stack reads
 both from the client; here **the server decides what time it is for the reader, and it has
@@ -137,7 +137,7 @@ which a fixed offset does not.
 - ❌ Guessing the zone from `Accept-Language` or the IP address. Both are wrong often
   enough to be worse than one honest app-wide zone.
 
-## Facts verified (2026-08-17)
+## Facts verified (2026-11-10)
 
 - `Format` renders in the time's own location, and `time.Unix` "returns the local Time
   corresponding to the given Unix time" — which is why the storage choice decides whether

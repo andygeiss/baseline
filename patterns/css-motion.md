@@ -1,6 +1,6 @@
 # Pattern: CSS Motion (Transitions, View Transitions, Reduced Motion)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-12
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-09
 
 The one rule that makes motion work: **motion is feedback, never decoration.** It has
 exactly three jobs — confirm a state change, connect old and new content across a swap,

@@ -1,6 +1,6 @@
 # Pattern: Glossary (GLOSSARY.md)
 
-**Tier 3** (taste — choosing is the rule, so no waiver is needed) · Last verified: 2026-08-16
+**Tier 3** (taste — choosing is the rule, so no waiver is needed) · Last verified: 2026-11-09
 
 Once a project keeps the file, how it is written is tier 2: that part is not a
 per-project choice.

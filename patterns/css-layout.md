@@ -1,6 +1,6 @@
 # Pattern: CSS Layout (Mobile-First, Grid)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-09
 
 The one mechanic that makes pure-CSS layout work: **base styles are the phone layout;
 wider screens only add to it.** Layout comes from CSS Grid and Flexbox with `gap` — never

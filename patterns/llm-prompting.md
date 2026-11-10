@@ -1,6 +1,6 @@
 # Pattern: LLM Prompting and the Visible Answer
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-09
 
 The text you send a model, and the text it sends back. The code around the model — the
 port, the adapter, the fake, the degenerate default — is

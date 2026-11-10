@@ -1,6 +1,6 @@
 # Pattern: Design System (DESIGN.md, Themes)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-15
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-09
 
 Every web application records its design system in one file: `DESIGN.md` at the repo root.
 It holds the theme — the token values, measured contrast, and component inventory that make
