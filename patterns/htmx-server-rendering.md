@@ -1,6 +1,6 @@
 # Pattern: htmx Server Rendering (Go html/template)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-10-27
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-10
 
 One exception: the escaping this document leans on is tier 1
 ([stack/htmx.md](../stack/htmx.md) rule 8).

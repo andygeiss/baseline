@@ -1,6 +1,6 @@
 # Pattern: Sending Mail (Go)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-10
 
 Building the link from `Config` rather than from the request, refusing a carriage
 return or newline in any header value, refusing the log transport in production, and an

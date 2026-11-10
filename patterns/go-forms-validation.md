@@ -1,6 +1,6 @@
 # Pattern: Forms & Validation (Go)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-27
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-10
 
 The `html/template` escaping the 422 re-render depends on is tier 1, wherever a checklist
 files it.

@@ -1,6 +1,6 @@
 # Stack: Go
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08 · Pinned:
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-10 · Pinned:
 Go 1.27.3 ([VERSIONS.md](../VERSIONS.md))
 
 The Go pin itself is tier 1: its note in [VERSIONS.md](../VERSIONS.md) names a security

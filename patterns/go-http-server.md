@@ -1,6 +1,6 @@
 # Pattern: Go HTTP Server
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-10
 
 **Four rules here are tier 1 and never waived:** the `http.CrossOriginProtection` wrap,
 no mutation on a GET, the 1 MiB request-body cap, and the ops listener staying

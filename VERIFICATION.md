@@ -175,48 +175,64 @@ not count.
 
 ### Unread, or read and never passed
 
-The 2026-11-10 run read whole, twice, the documents its first pass changed. Neither read
-was a pass as this file defines one: no library was built, and what the run changed in
-other documents was read where it changed. The first nine entries each had a high or a
-medium in the second read. Each is fixed, and no pass has read the fix. A third, narrow
-look at the fixes ran; it is a check, and counts for nothing here. It found two highs and
-eighteen mediums in them. Those are fixed in `52fc2e4`, `643225f`, `768e460`, `563a9b1`
-and `cfa7bf6`, which reach every entry below but the WebAssembly client's, and which
-nobody has read at all.
+Pass 4 of the 2026-11-10 run read whole, at `de60a00`, what this list held that evening,
+and built a library, a CLI and a web application from the documents alone: each build's
+`make check` and `make ci` exited 0. **Nine documents came back with nothing high or
+medium, are unchanged since that read, and carry its date:** `patterns/go-email.md`,
+`patterns/go-sqlite.md`, `patterns/go-ports-adapters.md`, `patterns/go-http-server.md`,
+`patterns/go-authorization.md`, `patterns/go-forms-validation.md`,
+`patterns/security-headers.md`, `patterns/htmx-server-rendering.md` and `stack/go.md`.
 
-- **`patterns/go-auth-sessions.md`, whole,** with its boxes. Rewritten on 2026-11-10,
-  and the second read found four highs in the rewrite (`a04de9c`, `eb27c42`).
-- **`patterns/wasm-client.md`, whole,** with *Re-resolving a long-lived connection*. New
-  in v5.2.0; eighteen reads, none passed. `patterns/go-authorization.md` rule 6 came
-  back clean.
-- **`patterns/go-email.md`, whole.** Six reads, a medium in each. Its date did not move.
-- **`patterns/go-sqlite.md`, `patterns/go-file-uploads.md`, and in
-  `patterns/go-data-deletion.md` rule 6,** a prohibition since `2a21420`, its header, the
-  two sentences `bd65def` added to *Testing*, and the password counter in its lookup
-  snippet and in the account's `DELETE`, added after the narrow look (`563a9b1`,
-  `39ad142`).
-- **`patterns/go-http-client.md`, `patterns/go-config.md`,
-  `patterns/go-errors-logging.md` and `patterns/go-forms-validation.md`** (`09561c4`,
-  `7793d93`, `eb27c42`).
-- **`stack/htmx.md` and `patterns/htmx-server-rendering.md`** (`9db3dcc`, `7793d93`).
-- **The three checklists and the README's tier-1 list,** as `a2abc66` restructured them
-  and `03bb4c3` corrected them.
-- **Changes made after a whole read that found nothing high or medium:** in
-  `patterns/security-headers.md` the test, the paragraph under it and the `form-action`
-  row (`7793d93`, `03bb4c3`); and the header of `patterns/htmx-live-updates.md`, which
-  names a tier-1 rule since `9db3dcc`.
-- **Two snippet lines of `patterns/go-ports-adapters.md`** (`09561c4`). The run did not
-  read that document whole.
+The entries below did not come back clean, or changed after their read. Each fix named
+here removed, tightened or corrected, and nobody has read one. **The three builds ran
+before those fixes.** Each snippet a fix changed was run on its own, as its commit's
+body says, and the reference carries them.
+
+- **`patterns/go-auth-sessions.md`, whole. Frozen on Andy's call, 2026-11-10:** it takes
+  no further rule, and the reference is its test. Its fourth read that day found one
+  high, the first entry under *Known*, and four mediums. Three were tightened in
+  `26f8f08`; the fourth is under *Known*.
+- **`patterns/wasm-client.md`, whole.** Nineteen reads, none passed; the last is the
+  first with no high. Of its three mediums one was a sentence of
+  `patterns/go-auth-sessions.md`, tightened in `26f8f08`, and two are under *Known*.
+- **`patterns/go-file-uploads.md`, whole.** Four mediums: two corrected in `26f8f08`,
+  two under *Known*.
+- **`patterns/go-data-deletion.md`, rule 6.** Its whole read was clean. The CLI's build
+  found a medium in rule 6 in the same pass, corrected in `c512e31`.
+- **`patterns/go-http-client.md`, `patterns/go-config.md` and
+  `patterns/go-errors-logging.md`,** each changed in `26f8f08`: a high the library's
+  build found in the client's errors, a medium in the parser, and the exception in
+  `serverError`, which is gone.
+- **`patterns/go-cli.md`, whole, as `4720091` cut it,** with
+  `project-types/cli-tool.md`, whose lead that commit put back, and
+  `checklists/cli-tool.md`.
+- **`stack/htmx.md`, `stack/html.md` and `patterns/htmx-live-updates.md`** (`26f8f08`):
+  two mediums, each closed by narrowing what a sentence claims.
+- **`patterns/go-library.md`, `project-types/library.md` and `checklists/library.md`.**
+  The first library built from them, on 2026-11-10, found seven lows around them; six
+  are fixed in `26f8f08` and `c512e31`. No reviewer has read the three whole.
+- **`operations/ci.md`** (`26f8f08`): one medium, a wrong recipe beside `go mod edit`.
+- **The three checklists and the README's tier-1 list** (`c512e31`). Their fourth read
+  found six mediums, five of them entries under *Known*.
 - **This file's *What a review run is*, *Grading a finding*, *The tag gate* and *Owed*,
-  and the README paragraphs that go with them.** Four reviews read earlier versions and
-  found 14, 16, 9 and 8 mediums. What the fourth found in the gate itself is under
-  *Decisions left to Andy*, and nobody has read the text since.
-- **Wording fixed after a whole read that found nothing high or medium:** `stack/html.md`
-  and `stack/go.md` in `03bb4c3`, `patterns/go-http-server.md` and `operations/ci.md` in
-  `0f20f36`.
+  and the README paragraphs that go with them,** rewritten in `cc760ef` for the bar
+  Andy set on 2026-11-10. Four reviews read earlier versions and found 14, 16, 9 and 8
+  mediums. Nobody has read this one.
+- **Changed since their date, with no whole read to move it:**
+  `patterns/go-project-layout.md`, `patterns/go-performance.md`, `patterns/pwa.md`,
+  `project-types/web-application.md`, `operations/web-application.md`, `SKILL.md` and
+  `VERSIONS.md`. Each last changed on 2026-10-27 or 2026-10-31.
 
 ### Known, not fixed
 
+- **High — `patterns/go-auth-sessions.md`: a machine token outlives a password reset.**
+  A reset ends the user's sessions and leaves their tokens. An outsider has to steal
+  nothing: they register an address they do not hold, sign in, create a token under
+  their own password, and wait. When the address's owner resets the password, the
+  outsider's session and password stop working, and the token still reads and writes
+  the owner's rows (run twice on 2026-11-10, in the reviewer's rig and in the web
+  build). Closing it takes a rule, and the document is frozen. **It holds the tag**
+  until the first decision below is taken.
 - **Retired on 2026-11-10, on Andy's call:** `patterns/go-child-process.md`, and
   `patterns/go-cli.md` *A tool that listens* with the clause of 2026-10-09 that let a CLI
   serve the person who started it. Neither ever passed a read: eight for the first, four
@@ -224,18 +240,33 @@ nobody has read at all.
   records both as its own deviations. The rule that a secret never travels on a child's
   command line moved to `patterns/go-cli.md` *Config precedence*. The text as it last
   stood is at `39ad142`.
+- **Medium — `patterns/go-auth-sessions.md`: an account works under an address nobody
+  proved.** Registration answers a taken address like a free one, and the next sign-in
+  tells the two apart. The free address then belongs to whoever registered it, and what
+  is sent to that address inside the application reaches them: in the web build, a
+  shelf shared by address (2026-11-10). The first decision below covers it.
+- **Medium — `patterns/wasm-client.md` says nothing of a socket the server closes.** A
+  deploy closes every socket with 1001. Built to the letter, the module then stays dead
+  until the reader reloads the page (2026-11-10). A decision, below.
+- **Medium — `patterns/wasm-client.md`: a file that imports `"C"` is built into the
+  module, and neither the digest nor the gate's `js/wasm` lines see it** (2026-11-10).
+- **Medium — `patterns/go-file-uploads.md`: the canonical handler holds an upload about
+  4.5 times in memory, and nothing bounds how many run at once.** Four uploads at the
+  canonical 32 MiB took 437 MiB to a directory and 494 MiB as blobs, beside a
+  `GOMEMLIMIT` of 450 MiB. At a 64 MiB cap one upload peaked at 287 MiB, and eight at
+  once at 1.2 GiB under `GOMEMLIMIT=200MiB` (two runs, 2026-11-10). A decision, below.
 - **Medium — two boxes of `checklists/cli-tool.md` are marked tier 1 with no rule behind
   the mark:** partial work being safe, and `-force` for a destructive action.
   `patterns/go-cli.md` and the README's list name neither. A decision, below.
-- **Medium — tier-1 rules that no box checks:** a child's secret, in
-  `checklists/web-application.md` (2026-10-04); and the patch a security pin sets, in
-  any checklist. `operations/ci.md` owns that rule now. `govulncheck` fails below
-  the current pin only where the code reaches the fixed symbol: a server with no
-  outbound client passes under Go 1.27.2 (run, 2026-11-10).
+- **Medium — `checklists/library.md` has no box for the `.env` limits of
+  `stack/makefile.md` rule 6,** which are tier 1. The rule hangs its duty on `run`'s
+  recipe, and a library deletes that target: the box needs the rule reworded first
+  (2026-11-10).
 - **Medium — no document rules a URL a user supplies.** A webhook sent through the
   canonical client reached the ops listener and its profiles, followed a redirect with
   its secret, and its "delivered" was an oracle for what the machine can reach (the
-  2026-11-10 build). A decision, below.
+  2026-11-10 build). Nor does one rule a redirect: Go's client carried `Authorization`
+  to another port of the same host (the library's build). A decision, below.
 - **Medium — no rule covers changing the address a reset link is mailed to.** In the
   reference a session alone sets it, and the reset then hands over the password: a
   stolen session becomes the account (the reference's sync, 2026-11-10).
@@ -243,12 +274,8 @@ nobody has read at all.
   typed.** No document says how it is held; a snapshot holds it in the clear.
 - **Medium — a deleted row's bytes stay in the database file,** and a sent outbox row's
   body with them: `secure_delete` is off under the canonical DSN.
-  `patterns/go-data-deletion.md` says so since 2026-11-10. A decision, below.
-- **Medium — `patterns/go-file-uploads.md`: a urlencoded post to an upload route loses
-  its 413 and its 400.** `ParseMultipartForm` returns `ErrNotMultipart` and drops the
-  error its own `ParseForm` hit, so an over-cap or malformed body reads as an empty form
-  and answers 422. A second `ParseForm` returns nil; calling it first finds both (run,
-  Go 1.27.3). Nothing is stored either way.
+  `patterns/go-data-deletion.md` says so since 2026-11-10. In the web build a deleted
+  account's address stood five times in `app.db` after a checkpoint. A decision, below.
 - **Medium — over the upload cap, the htmx path shows the reader nothing.**
   `patterns/htmx-server-rendering.md` keeps every error but a 422 off the page, on
   purpose. A decision, below.
@@ -257,23 +284,23 @@ nobody has read at all.
   a writable directory.
 - **Medium — `stack/htmx.md` asks every request over 100 ms for an indicator,** and its
   box checks that. No canonical snippet carries one, and on a boosted link or the
-  *Show older* control nothing can: `.htmx-request` lands on the link itself (the
-  2026-11-09 and 2026-11-10 builds).
+  *Show older* control `.htmx-request` lands on the link itself. Whether an inherited
+  `hx-indicator` reaches them is untested (the 2026-11-09 and 2026-11-10 builds).
 - **Medium — `patterns/time-and-dates.md` bans `time.Local` everywhere.** A CLI runs on
   the reader's machine and has no other zone, and `checklists/cli-tool.md` has no
   section that sends a tool that prints a time to that document.
 - **Medium — rules that meet the README's tier-1 test and that no document calls
   tier 1:** no `InsecureSkipVerify`; internal error text never reaching the browser;
   work that must not be lost being a table; the sent outbox row losing its body; the
-  proxy's `X-Forwarded-For`, which the rate limit keys on; the rehearsed restore; and
-  three written on 2026-11-10: the session janitor's hour, `no-store` on an owned file,
-  which only a snippet's comment states, and the child's port being free before `Start`.
-  And
-  the headers of four tier-1 documents place only some of their rules:
-  `go-authorization.md`, `go-file-uploads.md`, `go-data-deletion.md`,
-  `security-headers.md` (2026-11-10).
-- **Medium — a password reset leaves the user's machine tokens,** and a token minted
-  from a stolen session outlives it (2026-11-10). A decision, below.
+  proxy's `X-Forwarded-For`, which the rate limit keys on; the rehearsed restore;
+  `no-store` on an owned file, which only a snippet's comment states; nothing but the
+  proxy reaching the app (`operations/web-application.md`); a root certificate's key
+  never committed (`patterns/local-https.md`); a secret with a default
+  (`patterns/go-config.md`); and `errors.ErrUnsupported` in a marshaler's error, which
+  makes one written to redact fail open (`stack/go.md`). The box for `_txlock=immediate`
+  carries a mark its document's header does not. And the headers of four tier-1
+  documents place only some of their rules: `go-authorization.md`, `go-file-uploads.md`,
+  `go-data-deletion.md`, `security-headers.md` (2026-11-10).
 - **Medium — `patterns/go-config.md` makes `DATABASE_URL` a flag, an environment
   variable and a logged field.** A Postgres URL, which `project-types/web-application.md`
   allows, holds a password (2026-11-10).
@@ -285,18 +312,31 @@ nobody has read at all.
     of what an emptied row is.
   - One rate-limit budget or one per route, and where password hashing sits, are
     unstated.
+  - "No row changed is a refusal" does not say what a rehash at sign-in refuses, and a
+    reset that reads its link inside the writing transaction can never be refused by it.
+  - A reset request answers a known address 52 µs later than an unknown one, and the
+    dummy hash evens out a sign-in only while every stored hash has today's parameters.
+  - The janitor's hour holds while no request lasts an hour.
+  - The counter's Go type is stated in `patterns/go-data-deletion.md`'s lookup alone:
+    `GetInt` answers 0 for an `int64`.
+  - That a token acts as its user and never wider is stated in
+    `patterns/go-authorization.md` alone, under *Roles*.
 - **Low — `patterns/go-authorization.md`: in the second-mux shape, a route registered
   on the public mux under the mounted prefix is public, and nothing says so.** A
   decision, below.
-- **Low, in `patterns/go-cli.md`:** *Logging* says a tool does not log, and a tool that
-  listens must build a logger; the box "Nothing a user installs reads it" states a
-  condition `stack/makefile.md` rule 6 does not.
+- **Low, in `patterns/go-cli.md`:** the box "Nothing a user installs reads it" states a
+  condition `stack/makefile.md` rule 6 does not; a token file that is empty yields an
+  empty secret and no error.
 - **Low, in `patterns/go-config.md`:** the canonical parser has no check for the log
   transport, which `patterns/go-email.md` makes tier 1, and describes `ENV` as the log
-  format only;
-  `readCredential` says nothing about a missing file; a
-  non-string verb (`%d`) prints a `Secret`, which `go vet` catches only for a constant
-  format.
+  format only; `readCredential` says nothing about a missing file; a non-string verb
+  (`%d`) prints a `Secret`, which `go vet` catches only for a constant format; a control
+  character in a secret is refused for a tool and not for a service.
+- **Low, in `patterns/go-http-client.md`:** `do` retries failures no repeat can mend, a
+  certificate that does not verify among them; since `26f8f08` its transport error names
+  the cause's type and not its words, so a refused connection reads
+  `no usable answer (*net.OpError)`; a library handed a key prints it under `%+v`, and
+  no library section leads to the secret type.
 - **Low, in `patterns/go-sqlite.md`:**
   - An empty database path is refused nowhere at the config edge.
   - A `..` through a symlink puts the snapshot elsewhere.
@@ -304,18 +344,21 @@ nobody has read at all.
   - The prune matches `app-*.db`, which a database named that way also is.
   - Two snapshot runs at once can leave a half-written file under the day's name.
   - The first open of a new file answered `database is locked` in 8 boots of 480, and
-    in 29 when three reads raced the migration.
+    in 29 and in 94 of 480 when three reads raced the migration (two runs).
   - `openDB` is unexported, and three packages need it (the 2026-11-09 build).
-- **Low, in the server documents:** an error from `net/http` or the JSON decoder can
-  still quote a broken peer's header line, or a member name of its body, into
-  `patterns/go-http-client.md`'s wraps; the security-headers test reads one GET of `/`,
-  so a middleware that sends the policy on that request alone passes it; "above
-  `ReadTimeout` + the budget" and "ceiling the
-  budget at 20 s" do not say the same thing; `make run` leaves `app.db` unignored;
-  `main.go` under about 100 lines does not fit two servers; a panic in a background job
-  ends the process and the requests in flight with it, which
-  `patterns/go-background-work.md` describes as losing the jobs.
-- **Low, from the 2026-11-10 web build:** `wasm-opt`'s version is to be named and
+- **Low, in the server documents:** the security-headers test reads one GET of `/`, so
+  a middleware that sends the policy on that request alone passes it, and its keyword
+  checks read the constant, not the header that was sent; "above `ReadTimeout` + the
+  budget" and "ceiling the budget at 20 s" do not say the same thing; `make run` leaves
+  `app.db` unignored; `main.go` under about 100 lines does not fit two servers; a panic
+  in a background job ends the process and the requests in flight with it, which
+  `patterns/go-background-work.md` describes as losing the jobs; the canonical `serve`
+  returns the drain's error, so a request that outlasts the grace turns an orderly stop
+  into exit 1; a request its reader abandoned is an error line and a 500 written to
+  nobody, again, since `26f8f08`; on a failed session commit `serverError` writes the
+  500 page into a response already under way; the forms and server documents do not say
+  which of `recoverPanic` and `serverError` renders the 500 page.
+- **Low, from the 2026-11-10 web builds:** `wasm-opt`'s version is to be named and
   checked and has no `VERSIONS.md` row, and the `.build`, `.sum` and `make wasm`
   contract is prose only; raising `ReadTimeout` for an upload is prescribed in one
   document and a waiver in another, with no number; the cap-site line cannot name a
@@ -323,81 +366,83 @@ nobody has read at all.
   `patterns/go-background-work.md` says the errgroup cancels at `Wait`, and it cancels at
   the signal; "one test per enhancement failure" meets "never fake what you own" when
   the dependency is the store; `patterns/go-performance.md`'s middle case is not what a
-  checkout build reaches.
+  checkout build reaches; a page on another port of the same host shows a member's file
+  in an `<img>`, because a cookie carries no port and no header forbids the load; htmx
+  4.0.0 throws `InvalidStateError` from a boosted swap under `transition:true` in a
+  hidden tab, and the swap still lands.
 - **Low, in the htmx documents:** `hx-post` and `action` escape a non-numeric id
   differently; the validator warns on `role="list"`; the `hx-confirm` box and
-  `patterns/go-data-deletion.md` disagree; `patterns/css-typography.md` calls
-  `text-wrap: balance` Baseline Newly, and it turns Widely on 2026-11-13.
+  `patterns/go-data-deletion.md` disagree, and with scripts off a delete asks nothing;
+  `javascript:` in a value is evaluated as `js:` is, and the MUST NOT names only the
+  second; a jump of two or more history entries onto an in-page fragment does not
+  reload, and the new URL then sits over the old content; `patterns/css-typography.md`
+  calls `text-wrap: balance` Baseline Newly, and it turns Widely on 2026-11-13.
 - **Low, from the 2026-11-09 build and still standing:** `operations/web-application.md`
   says the binary is configured by exactly its list, and four patterns each need a knob
   outside it; `patterns/css-icons.md` asks for the Lucide notice and does not print it;
   `stack/go.md` asks for interfaces of one to three methods, and a store has more;
   `no-store` on authenticated pages (`patterns/go-performance.md`) has no box.
-- **Low, left by the narrow look and the reference's sync:** "no row changed is a
-  refusal" does not say what a rehash at sign-in refuses, and a reset that reads its
-  link inside the writing transaction can never be refused by it; a `Commit` after the
-  client left returns `sql.ErrTxDone`, which `serverError`'s exception does not cover, so
-  that request logs an error and writes a 500 to nobody; the forms and server documents
-  do not say which of `recoverPanic` and `serverError` renders the 500 page; an
-  abandoned request is "answered with nothing", and its access-log line then shows a
-  status nobody sent; Chrome keeps a `no-store` document in its back/forward cache until
-  the session cookie changes, so a session ended on the server alone still shows an owned
+- **Low, in the library documents:** none of the gates is a compatibility check. A
+  renamed export, a changed error text and an aliased sentinel all pass (the
+  2026-11-10 build).
+- **Low — Chrome keeps a `no-store` document in its back/forward cache until the
+  session cookie changes,** so a session ended on the server alone still shows an owned
   file on Back (2026-11-10).
-- **Low — a serving tool's exit code after Ctrl-C.** `checklists/cli-tool.md` asks an
-  interrupted run for non-zero; the canonical `serve` returns nil. A decision, below.
-- **Low — dates older than the text under them.** `patterns/go-data-deletion.md` says
-  2026-11-10 and its rule 6 was rewritten that afternoon; `patterns/security-headers.md`
-  and `patterns/go-ports-adapters.md` say 2026-11-09 over the changes listed above. The
-  README has no answer for a document changed after its date.
+- **Low — dates older than the text under them.** `patterns/go-data-deletion.md` and
+  `project-types/cli-tool.md` say 2026-11-10 and changed that evening, after the read
+  that dated them (`c512e31`, `4720091`). Every other document under *Unread* is dated
+  before its last change. *Grading a finding* says what such a date certifies.
 - **Low — checklist boxes that hold several checks,** against the README's *Writing a
-  checklist*; and a tier-1 box whose subject a project lacks has no answer but
-  `SKILL.md`'s full protocol.
+  checklist*; a tier-1 box whose subject a project lacks has no answer but `SKILL.md`'s
+  full protocol; and the box for a user's id fires under *Deleting a person*, after
+  the id was chosen.
 - **Low — `govulncheck` reported GO-2026-5932** in `golang.org/x/crypto` v0.58.0 on
   2026-10-31 and again on 2026-11-10: no fix released, and not called.
 - **Low — commit subjects.** `STYLE.md` asks for the imperative; most of this
   repository's subjects are noun phrases.
 - **Low — what the builds from the documents had to invent:** twenty decisions on
-  2026-11-09, twenty-nine for a CLI and the web application's own on 2026-11-10. They
-  are in the bodies of `c0a6117` and of the commit that added this line.
-- **Unchecked:** a recycled PID under the child process's deferred wait; the live-region
-  markup under a screen reader; Firefox and Safari for the two things
-  `patterns/go-cli.md` says of every browser, a handshake with no `Sec-Fetch-Site` and
-  `none`; Firefox and Safari, for what Chrome showed about a form's redirect, a
-  cached page's socket and an owned file after sign-out; Linux, for every terminal run
-  of the child process; whether the proxy's log holds a reset link's query string.
+  2026-11-09; on 2026-11-10 twenty-nine for a CLI and eighteen for a web application in
+  pass 2, then twenty for a library, twenty-four for a CLI and twenty-seven for a web
+  application in pass 4. They are in the bodies of `c0a6117`, of `bd65def`, and of the
+  commit that added this sentence.
+- **Unchecked:** the live-region markup under a screen reader; Firefox and Safari, for
+  what Chrome showed about a form's redirect, a cached page's socket and an owned file
+  after sign-out; whether the proxy's log holds a reset link's query string; SMTP
+  against a real relay; the Nu validator in the last web build, whose upload that
+  session's permissions refused.
+- **For baseline-ops, not for this corpus:** a snapshot copied over `app.db` after a
+  kill, beside a stale `-wal` and `-shm`, comes back with the old rows: 500 where the
+  snapshot held 200, `integrity_check` ok (run, 2026-11-10). Its `runbooks/restore.md`
+  empties the volume on the archive path; the replica path says "move it into place".
 - **Decisions left to Andy:**
+  - **The high: what ends a machine token.** Either a password reset deletes the
+    user's tokens in its transaction, which is one sentence and one statement. Or an
+    account does nothing until a mailed link is followed, which also closes the medium
+    about an unproved address, and changes how registration works.
+    `patterns/go-auth-sessions.md` is frozen, and 10 tokens under its budget.
+  - **The freeze, under the gate of 2026-11-10.** The README bars a new pattern while
+    *Unread* lists anything, and a tag no longer needs *Unread* empty. Whether the
+    freeze follows the gate, or stays as it is.
   - **The gate gates a tag, and projects read `main`.** The installed copy is a symlink
-    to this repository, so every rule of this run reached projects at its commit, read
-    or not, and a security pin tagged on top of `main` would carry the whole unread
-    branch. One sentence settles it either way: the installed branch is the last tag
-    and a run stays on its own branch until the gate passes; or the gate says what an
-    untagged commit may carry.
-  - Whether the freeze covers a new rule in an old document. Today it stops a new
-    pattern and nothing smaller, and this run added a section of tier-1 rules to
-    `patterns/go-cli.md` under it.
-  - What a decision does to a finding, and whether a medium under *Known* holds the tag
-    by being listed. Today it holds only if a pass finds it again, and four listed
-    mediums sit in no document a pass must read.
-  - Which read takes an entry off *Unread*: one whole read of that entry, as the lead
-    of this section says, or a pass.
-  - The unit of "a run over that diff" for a security pin, which by this file's own
-    definition of a pass counts for nothing.
-  - The gate's sentences are Claude's. Three changed what ships after the 2026-11-09
-    decision and were never confirmed: the freeze ends when *Unread* is empty, not when
-    *Owed* is; a pin that cannot go green without a rule ships with that rule; a change
-    that alters no rule skips the build.
+    to this repository's checkout, so whatever is merged reaches projects untagged. One
+    sentence settles it either way: the installed branch is the last tag and a run
+    stays on its own branch until the gate passes; or the gate says what an untagged
+    commit may carry.
+  - **Whether condition 1 asks for a build after the last fix.** The three builds of
+    2026-11-10 ran before the fixes of that evening.
+  - The gate's sentences are Claude's. Andy set the bar on 2026-11-10: no known high,
+    every known medium listed, `verify.sh` as the hard gate, a date for each document
+    that comes back clean. Never confirmed: a fix removes, tightens or corrects, and
+    what adds a rule waits for him; a document a fix touches is unread from that commit
+    on; a security pin that needs a rule ships after a whole read of that rule's
+    document; a change that alters no rule skips the build.
   - Smaller questions about the gate's wording: nothing ties the next tag to the last
-    release page; "wording" and "alters no rule" are two tests for one class, both
-    applied by whoever fixes; `SKILL.md` and the README answer differently what an agent
-    does with a rule that does not work, and `VERSIONS.md` and `SKILL.md` what it does
-    past 90 days; this file calls any pin with a security note tier 1 where the README now
-    says the Go pin.
-  - A CLI may serve the person who started it (2026-10-09). The run answered the
-    listener's defects with rules; taking the clause back out of the definition is the
-    other fix.
+    release page; `SKILL.md` and the README answer differently what an agent does with
+    a rule that does not work, and `VERSIONS.md` and `SKILL.md` what it does past 90
+    days; this file calls any pin with a security note tier 1 where the README says
+    the Go pin.
   - The two CLI boxes above: name both rules tier 1 in `patterns/go-cli.md` and the
     README, or drop the marks.
-  - Whether a password reset deletes the user's machine tokens. Today it does not.
   - A rule for a URL a user supplies: no redirect followed, and no dial to this
     machine, is what the build ended on. It needs room `patterns/go-http-client.md` and
     the web floor do not have.
@@ -405,9 +450,20 @@ nobody has read at all.
     pragma in every project.
   - Whether an upload form may carry one `hx-status:413` line, or its label carries
     the cap.
+  - Uploads in memory: a bound on uploads in flight, a write that streams, or a ceiling
+    on what a route may raise its cap to.
+  - What a WebAssembly client does when the server closes its socket: connect again
+    after a wait, or tell the reader to reload.
+  - Whether a file that imports `"C"` may sit in a module's directories at all.
+  - Whether a library that is handed a secret takes `patterns/go-config.md`'s type for
+    it, and whether a service refuses a control character in one, as a tool does.
+  - Whether a page that polls may stay signed in until `Lifetime` ends.
+    `patterns/htmx-live-updates.md` says it does; `patterns/go-auth-sessions.md` treats
+    an idle timeout that never fires as a failure.
+  - Whether an owned file carries a header that keeps another origin's page from
+    loading it.
+  - Which of the undeclared rules above are tier 1.
   - Whether `patterns/go-authorization.md` keeps the second-mux shape.
-  - Whether a tool that only serves exits 0 after Ctrl-C. `checklists/cli-tool.md` asks
-    an interrupted run for non-zero; the canonical `serve` returns nil.
   - Whether a tool's `go.mod` says `go 1.27.3`, so that `go install` on an older 1.27
     cannot build it below the security floor.
   - The pass-1 rule changes, each open to a veto: no mutation on a GET and *Never log*
@@ -418,20 +474,27 @@ nobody has read at all.
     that stops at `main`.
   - The pass-2 rule changes, each open to a veto: an adapter's error carries no body
     and no URL, so a CLI cannot say why a server refused (the reference's prints
-    `refused: status 422`); a password write is guarded by a counter; registration by email answers
-    a taken address like a free one; a machine token is created after the password is
-    asked for; no migration drops a referenced table; the upload janitor's limits are
-    tier 1 and an owned file is `no-store`; a tool that listens refuses a foreign
-    `Origin` and forwards no `none` request; a tool that owns a child has no force-kill
-    hatch.
+    `refused: status 422`); a password write is guarded by a counter; registration by
+    email answers a taken address like a free one; a machine token is created after the
+    password is asked for; no migration drops a referenced table; the upload janitor's
+    limits are tier 1 and an owned file is `no-store`.
   - The narrow look's rule changes, each open to a veto: every statement a password or
     a reset link allowed names the counter; a blob only for what fits the blanket 1 MiB
-    cap; the upload janitor waits an hour; `INSERT OR REPLACE` is barred on a table a
-    foreign key names; a `none` request goes to the tool's own handler.
-  - The budgets. The web floor stands at 24,986 of 25,000, and `wasm-client.md`,
-    `go-auth-sessions.md`, `go-data-deletion.md`, `go-file-uploads.md`, `go-http-client.md`
-    and `go-config.md` within 11 of 3,800. The next rule on any of them needs a number
-    moved or text cut.
+    cap; the upload janitor waits an hour; any `OR REPLACE` is barred on a table a
+    foreign key names.
+  - What pass 4 changed while removing and tightening, each open to a veto: the
+    canonical client's error names its cause's type and never its text; a library sends
+    each request once and takes an `*http.Client`, nothing else; `serverError` has no
+    exception for a reader who left; a parser refuses a stray argument; a token from the
+    environment is trimmed and checked like one from a file; the table's row decides,
+    per route, where an upload's bytes live; a change `ALTER TABLE` cannot make stops
+    the migration; a machine token is shown in the answer to the request that made it,
+    on a rate-limited route; the `make ci` box asks for the pinned `go version` line
+    and is tier 1.
+  - The budgets. The web floor stands at 24,992 of 25,000, and `wasm-client.md`,
+    `go-data-deletion.md`, `go-file-uploads.md`, `go-config.md`, `go-http-client.md` and
+    `go-auth-sessions.md` within 10 of 3,800. The next rule on any of them needs a
+    number moved or text cut.
   - Scroll-driven animations are Baseline Newly since 2026-10-27;
     `patterns/css-motion.md` still keeps them out.
   - `stack/css.md` exempts a `font-family` name from the feature rule, to keep
@@ -449,25 +512,20 @@ nobody has read at all.
 - **Pins behind upstream on 2026-11-10:** htmx 4.0.1 is npm's `next` since 2026-11-01,
   and `modernc.org/sqlite` v1.62.0 shipped on 2026-11-07. `VERSIONS.md` pins 4.0.0 and
   v1.61.0. Go 1.27.3, scs v2.9.0 and TinyGo 0.44.0 are current.
-- **Low — dates that did not move on 2026-11-10.** `32d4dd5` moved five. Five more were
-  clean in the second read and kept theirs: `stack/html.md`, `stack/go.md`,
-  `patterns/go-http-server.md` and `operations/ci.md` took a sentence afterwards, and
-  `patterns/go-authorization.md` was read in two halves by two reviewers. No date has
-  moved since v5.1.0 for `patterns/go-project-layout.md`,
-  `project-types/web-application.md`, `operations/web-application.md`, `SKILL.md` and
-  `VERSIONS.md`, read only where they changed, or for any document under *Unread*.
 
 ### The reference, behind this corpus
 
-The reference follows `39ad142`, the last commit of the 2026-11-10 run that changes
-anything a project reads: its `SPEC.md` pins that commit on the branch `sync-owed-run`,
-and `./verify.sh` exits 0 against it (94 steps). One thing is behind, and condition 2
-needs it settled before the tag that carries this run:
+The reference's `SPEC.md` pins `39ad142` on its branch `sync-owed-run`, and
+`./verify.sh` exits 0 against that commit (94 steps). Behind it, and condition 2 needs
+each settled before the tag that carries this run:
 
+- **The retirement and the fixes of pass 4:** `4720091`, `26f8f08`, `c512e31`.
 - **Attachments are blobs under a 3 MiB cap.** `patterns/go-file-uploads.md` keeps a
   blob for what fits the blanket 1 MiB cap since `768e460`. The reference's README lists
   it as not followed and not waived: lowering the cap, moving the bytes to a directory,
   or a waiver is a decision.
+- **The high above.** The reference follows the rule as written: its reset leaves the
+  tokens table alone (read, not run there).
 
 Found in the reference beside the rules it was held against, and not fixed there:
 `gochat` validates its `-addr` at the first request, not when it parses, so a bad one

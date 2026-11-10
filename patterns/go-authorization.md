@@ -1,6 +1,6 @@
 # Pattern: Authorization (Go)
 
-**Tier 1** (safety — never waived) · Last verified: 2026-09-05
+**Tier 1** (safety — never waived) · Last verified: 2026-11-10
 
 The actor in the store signature, the predicate in the SQL (a membership held only in
 memory: rule 6), the two answers being indistinguishable, and a route's protection not

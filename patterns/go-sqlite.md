@@ -1,6 +1,6 @@
 # Pattern: SQLite in Production (Go)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08 · Driver: `modernc.org/sqlite` (pure Go)
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-10 · Driver: `modernc.org/sqlite` (pure Go)
 
 **The pragmas, the single-writer pool, closing what it hands out, parameterized
 queries, and rule 10's path guard are tier 1 and never waived.** Dropping any of the
