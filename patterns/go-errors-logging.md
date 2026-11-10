@@ -102,8 +102,12 @@ logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
   If everything is Info, nothing is.
 - **Request logging** in middleware only — handlers don't log successes.
 - **Never log** — tier 1: passwords, tokens, session IDs, full request bodies, a URL's
-  query string (a reset token rides there), or a person's name or address: a log is a
-  copy no account deletion reaches, so it names people by id.
+  query string (a reset token rides there), or a person's name, email or postal address:
+  a log is a copy no account deletion reaches, so it names people by id. An error's text
+  counts, because `serverError` logs the chain: no error wraps one of these, a URL with
+  its query, or what another system answered about them
+  ([go-http-client.md](go-http-client.md), [go-email.md](go-email.md)). The one
+  exception is the development mail transport, which config refuses in production.
 - Log to stdout only (server processes; a CLI logs to stderr because its stdout
   carries data — see [go-cli.md](go-cli.md)). Whatever runs the binary owns
   shipping and rotation — the app does not open log files, and does not rotate

@@ -54,7 +54,8 @@ link and form does too.
 | `hx-boost` | On `<body>`, as `hx-boost:inherited="transition:true"`: upgrades plain links/forms to AJAX with graceful fallback, and cross-fades them. `hx-boost="false"` opts out a link or form whose answer is not a page (rule 8), a link or form into a page whose `<head>` loads a script of its own, or into or out of one whose `<head>` loads a stylesheet the other does not, since a boosted request swaps only the body: a WebAssembly client's program page ([patterns/wasm-client.md](../patterns/wasm-client.md)). |
 | `hx-confirm` | For destructive actions. |
 
-MUST NOT use `hx-on` or a `js:` value: htmx evaluates them, and the policy forbids that.
+MUST NOT use `hx-on`, a `js:` value, or an `hx-trigger` filter: htmx evaluates them, and
+the policy forbids that.
 Other attributes not listed here SHOULD be avoided — if you need them, the design is
 probably drifting toward client-side logic.
 `hx-status` lives only on the layout's `<body>` ([html.md](html.md)). MUST NOT add it to

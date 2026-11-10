@@ -47,6 +47,7 @@ required reading, not a trigger.
 - [ ] `secureHeaders` sends the full policy — CSP, HSTS, nosniff, referrer
 - [ ] The test pinning all four is green
 - [ ] CSP carries `img-src 'self' data:`
+- [ ] No page, used once, prints a CSP violation in the console
 - [ ] `http.CrossOriginProtection` wraps the mux (CSRF)
 - [ ] No GET route changes anything
 - [ ] Request bodies capped at 1 MiB; an upload route sets its own cap
@@ -190,7 +191,6 @@ the tokens layer and dark mode.
 - [ ] `aria-hidden` on every icon
 - [ ] Accessible name on the control
 - [ ] No icon font, and no meaning carried by icon alone
-- [ ] The console of a page with icons shows no CSP violation (`patterns/security-headers.md`) — tier 1
 
 ## Animating or transitioning anything
 

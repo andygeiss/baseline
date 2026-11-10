@@ -132,7 +132,7 @@ a fragment through the same `a.render` dual-mode split:
   <input id="name" name="name" value="{{.Name}}" required maxlength="60"
          {{with .FieldErrors.name}}aria-invalid="true" aria-describedby="name-error"{{end}}>
   {{with .FieldErrors.name}}<p id="name-error" class="field-error">{{.}}</p>{{end}}
-  <button>Create game</button>
+  <button id="game-submit">Create game</button>
 </form>
 {{end}}
 ```
@@ -170,6 +170,9 @@ type view struct {
 }
 
 func (a *App) view(r *http.Request) view {
+	if isFragment(r) {
+		return view{} // a fragment has no layout to show the flash: leave it for the page
+	}
 	return view{Flash: a.sessions.PopString(r.Context(), "flash")}
 }
 ```
@@ -213,7 +216,9 @@ Three rules keep it honest:
    the moment the layout reads `.Flash`, so adopting flash means wrapping it
    (`gamePage{view: a.view(r), Game: game}`) too. `html/template` fails on a
    missing field at execute time; the buffer-first render turns that into a
-   500 instead of a torn page, but it is still a bug.
+   500 instead of a torn page, but it is still a bug. The 500 page itself embeds
+   a zero `view{}`, never `a.view(r)`: `serverError` also runs where no session
+   was loaded — a panic, a session-store error — and `PopString` panics there.
 3. **One string, not a queue.** Needing two flash messages in one request is a
    design smell — say the one thing that changed.
 

@@ -49,7 +49,7 @@ called `WriteHeader` is silently dropped — the status line is already on the w
 | `img-src` | `'self' data:` | `data:` is **required**: mask icons are `data:image/svg+xml` URLs ([css-icons.md](css-icons.md)), and CSS image loads are checked against `img-src`. Without it every icon in the app disappears. |
 | `frame-ancestors` | `'none'` | Clickjacking. Has no `default-src` fallback, so it MUST be written out. |
 | `base-uri` | `'none'` | No fallback either. An injected `<base href="https://evil.example/">` re-points every root-relative URL on the page, including `/static/js/htmx.min.js`. The app never uses `<base>`. |
-| `form-action` | `'self'` | No fallback. Stops an injected form from posting credentials off-origin. |
+| `form-action` | `'self'` | No fallback. Stops an injected form from posting credentials off-origin. Chrome holds a form's redirect to it too: a form never ends on another origin; a link can. |
 
 MUST NOT add `'unsafe-inline'` or `'unsafe-eval'` to any directive. Both undo the reason
 the policy exists, and no baseline pattern needs either.
@@ -116,8 +116,10 @@ test of the bare middleware stays green when the chain stops calling it.
 ```go
 func TestSecureHeaders(t *testing.T) {
 	t.Parallel()
+	// The policy is written out a second time, not read from csp: compared with
+	// the constant, the header passes whatever the constant says.
 	want := map[string]string{
-		"Content-Security-Policy":   csp,
+		"Content-Security-Policy":   "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
 		"Strict-Transport-Security": "max-age=31536000",
 		"X-Content-Type-Options":    "nosniff",
 		"Referrer-Policy":           "same-origin",
@@ -137,12 +139,6 @@ func TestSecureHeaders(t *testing.T) {
 		}
 	}
 
-	// Not a tautology, unlike the line above. It fails if somebody "tidies" the
-	// policy and takes the mask icons down with it, and if somebody widens it.
-	if !slices.Contains(strings.Split(csp, "; "), "img-src 'self' data:") {
-		t.Error("CSP's img-src is not exactly 'self' data: — every mask icon is blocked, or any host is allowed")
-	}
-
 	// Browsers match keywords case-folded, and with both quotes:
 	// 'wasm-unsafe-eval' contains unsafe-eval'.
 	p := strings.ToLower(csp)
@@ -155,12 +151,12 @@ func TestSecureHeaders(t *testing.T) {
 }
 ```
 
-Comparing the CSP against the `csp` constant only proves the header is *sent*. The
-explicit `img-src` check has teeth, because that directive is the one a future
-tightening pass would remove without knowing its cost, and the one a loosening pass
-widens for an avatar host; the keyword checks catch the two banned keywords. The rest of
-the policy is reviewed against the feature map above, and by eye: a page of each kind,
-opened once with the browser's console showing, prints no CSP violation.
+Whoever changes the policy changes it twice, here and in the constant: a tightening pass
+that drops `data:` without knowing its cost fails this test, and so does a loosening
+pass that adds an avatar host. The keyword checks hold the two banned keywords out of
+both copies. What no test sees is a feature the policy breaks: every page, used once
+with the browser's console showing, prints no CSP violation. A file opened in a tab of
+its own is not a page — Chrome's viewer trips `style-src-attr` by itself.
 
 ## Anti-patterns
 
