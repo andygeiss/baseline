@@ -156,7 +156,7 @@ that drops `data:` without knowing its cost fails this test, and so does a loose
 pass that adds an avatar host. The keyword checks hold the two banned keywords out of
 both copies. What no test sees is a feature the policy breaks: every page, used once
 with the browser's console showing, prints no CSP violation. A file opened in a tab of
-its own is not a page — Chrome's viewer trips `style-src-attr` by itself.
+its own is not a page: Chrome's viewer trips the policy by itself.
 
 ## Anti-patterns
 

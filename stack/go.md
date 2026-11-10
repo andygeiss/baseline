@@ -119,7 +119,7 @@ Everything else requires an explicit, written justification in the project READM
 | `modernc.org/sqlite` | SQLite driver, pure Go (CGO-free static binaries) |
 | `github.com/jackc/pgx/v5` | Postgres, when SQLite is outgrown |
 | `github.com/alexedwards/scs/v2` | server-side sessions — with a hand-written `CtxStore` against the app's two DB pools, **not** the bundled `sqlite3store` (single-pool API). See [patterns/go-auth-sessions.md](../patterns/go-auth-sessions.md) |
-| `golang.org/x/crypto` | argon2/bcrypt for password hashing — stdlib has pbkdf2, hkdf and sha3, and no password hash |
+| `golang.org/x/crypto` | argon2id for password hashing — stdlib has pbkdf2, hkdf and sha3, and no password hash |
 | `golang.org/x/sync` | errgroup — `WaitGroup.Go` returns no error and cancels no sibling; shutdown needs both |
 | `golang.org/x/time` | rate limiting (auth endpoints) |
 | `golang.org/x/tools` (goimports) | import management, dev-only — `gofmt` never adds or removes an import (run via `go run`, not a module dependency) |

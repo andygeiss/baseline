@@ -8,8 +8,9 @@ you call the work complete. A section with no box is the honest answer where the
 rules something no milestone can verify. Paths are from the repository root.
 
 Every unchecked box is either fixed or waived on the record — the waiver format lives in
-`README.md` under *Which rules can be waived*. The compatibility promises are not
-waivable: after v1.0.0 they are a promise to every consumer, not a preference.
+`README.md` under *Which rules can be waived*. A box marked tier 1 has no waiver; there
+is a fix. After v1.0.0 the compatibility promises are a promise to every consumer, not a
+preference.
 
 ## Every library
 

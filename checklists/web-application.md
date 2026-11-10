@@ -8,8 +8,8 @@ you call the work complete. Paths are from the repository root.
 
 Every unchecked box is either fixed or waived on the record — the format is in `README.md`
 *Which rules can be waived*. **Tier 1 is decided by what a rule protects, not by which
-section it landed in**: a wholly tier-1 section says so in its heading, and anywhere else
-a tier-1 box says so itself. No waiver for any of those; there is a fix.
+section it landed in**: a section's heading, a group's lead line, or the box itself says
+so. No waiver for any of those; there is a fix.
 
 ## Every web application
 
@@ -216,7 +216,7 @@ the tokens layer and dark mode.
   - [ ] Writes on a single connection: `SetMaxOpenConns(1)` + `_txlock=immediate` — tier 1
 - [ ] Migrations embedded and forward-only
 - [ ] Migrations applied at boot inside a transaction
-- [ ] A migration that rebuilds a referenced table follows `patterns/go-data-deletion.md` rule 6 — tier 1
+- [ ] No migration drops a table others reference (`patterns/go-data-deletion.md` rule 6) — tier 1
 - [ ] `newTestDB` fails a test that leaves a pool in use (rule 8) — tier 1
 - [ ] The off-box question is answered on purpose, with the matching row running
 - [ ] Snapshots the binary writes are pruned to the number the README names (`patterns/go-data-deletion.md`)
@@ -231,11 +231,11 @@ the tokens layer and dark mode.
   - [ ] `Secure` tied to `ENV`, so production sets it and dev does not
   - [ ] `RenewToken` on login and on password change
   - [ ] `Destroy` on logout
-- [ ] The session store: token hashed, expired rows not found, a deleted row kept empty
-- [ ] A password change asks for the current password and ends the user's other sessions
-- [ ] Reset tokens: only the SHA-256 stored, one hour, deleted on use; a reset ends all sessions
+- [ ] The session store hashes the token and keeps its two MUSTs
+- [ ] A password change asks for the current one, and ends and writes as rule 1 says
+- [ ] The reset token keeps every condition of *Password reset*
 - [ ] Auth endpoints rate limited per client IP, IPv6 by its /64
-- [ ] Unknown user and wrong password: same message, same time
+- [ ] No enumeration: login, reset, and registration by email (rule 2)
 - [ ] Passwords (if any) hashed with argon2id (OWASP params, PHC-encoded)
 
 ## Letting a program sign in — a CLI, a script — tier 1, not waivable
@@ -244,13 +244,13 @@ the tokens layer and dark mode.
 
 - [ ] Made by `rand.Text()`
 - [ ] Only its SHA-256 stored
-- [ ] Shown once
+- [ ] Created after the password is asked for, shown once
 - [ ] Read from `Authorization: Bearer`, never from the query string
 - [ ] Revoked by deleting its row
 - [ ] One function resolves either credential to the user row; a refused token answers 401
 - [ ] A token acts as its user, never wider (`patterns/go-authorization.md`)
 
-## Reading or writing a row somebody owns — tier 1, not waivable
+## Reading or writing a row behind a sign-in — tier 1, not waivable
 
 `patterns/go-authorization.md` — the actor in the signature, the predicate in the SQL.
 
@@ -283,6 +283,7 @@ the tokens layer and dark mode.
 - [ ] Downloads go through a handler, never a file server
 - [ ] Anything not rendered inline is sent `Content-Disposition: attachment`
 - [ ] File links carry `hx-boost="false"`
+- [ ] The janitor keeps its two limits
 - [ ] The upload-that-lies test pins what those bytes are never served as
 
 ## Sending an email — a reset link, a verification, any notification
@@ -300,11 +301,11 @@ the tokens layer and dark mode.
 
 `patterns/go-data-deletion.md` — what the delete reaches, and what stops authenticating.
 
-- [ ] Every table holding the person's rows declares an `ON DELETE` action, bar the rule's two
+- [ ] Every table holding the person's rows declares an `ON DELETE` action
 - [ ] Each table's answer — erase, anonymize, refuse — is written where the shared rows are — tier 2
 - [ ] The credential middleware loads the user row, so a deleted account is signed out
 - [ ] A user id is never handed out twice
-- [ ] A self-service delete asks for the password again
+- [ ] Deleting the account asks for the password again
 - [ ] That check is rate limited like the login
 - [ ] Outbox rows carrying their address go with the account
 - [ ] Bytes on disk are unlinked after the commit, from names collected inside it
@@ -338,7 +339,7 @@ boxes are tier 1.
 - [ ] Under `web/static/js/`: htmx, an unedited `wasm_exec.js`, one loader, nothing else
 - [ ] Both scripts load deferred in `<head>`, on the module's page only
 - [ ] A link or form whose answer is that page carries `hx-boost="false"`
-- [ ] The module stops once its canvas leaves the document, and reloads on a persisted `pageshow`
+- [ ] The module stops once its canvas leaves the document, closes its socket on `pagehide`, and reloads on a persisted `pageshow`
 - [ ] CSP adds `script-src 'self' 'wasm-unsafe-eval'` and nothing more — `patterns/security-headers.md`
 - [ ] Every recipe that runs `tinygo` names its version and `wasm-opt`'s, and refuses another
 - [ ] A test recomputes each module's input digest and holds its `.build` to the Makefile
@@ -354,7 +355,7 @@ boxes are tier 1.
   - [ ] Credential: it closes once it, its user, or its access is gone (rule 6)
   - [ ] Credential: it closes on a store error or a missed deadline (rule 6)
   - [ ] Handler return: right after the handshake (rule 8)
-  - [ ] The socket runs on a goroutine the app tracks
+  - [ ] The socket's goroutine is tracked, counted before `Hijack` (rule 8)
   - [ ] Message size: a message and a control frame are capped as rule 7 says
   - [ ] Frames a second and the outbound queue are capped; past a cap the close code names it (1009, 1008, 1002, 1013)
   - [ ] Read and write deadlines set after `Hijack`, before the first read

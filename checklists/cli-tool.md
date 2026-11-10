@@ -9,9 +9,8 @@ rules something no milestone can verify. Paths are from the repository root.
 
 Every unchecked box is either fixed or waived on the record — the waiver format lives in
 `README.md` under *Which rules can be waived*. **Tier 1 is decided by what a rule
-protects, not by which section it landed in**: a wholly tier-1 section says so in its
-heading, and anywhere else a tier-1 box says so itself. There is no waiver for any of
-them; there is a fix.
+protects, not by which section it landed in**: a section's heading, a group's lead line,
+or the box itself says so. There is no waiver for any of them; there is a fix.
 
 ## Every CLI tool
 
@@ -28,7 +27,7 @@ are ruled by `patterns/go-cli.md`, which is required reading.
 - [ ] The binary's name is free: `command -v <name>` finds nothing on a stock macOS and Linux box — a collision means the tool that runs is not the tool that was installed (`project-types/cli-tool.md`)
 - [ ] `run(ctx, args, stdout, stderr)` pattern, plus a `stdin io.Reader` where the tool reads stdin
 - [ ] `os.Exit` in `main` only
-- [ ] Every failure surfaces as `tool: <cause>` on stderr
+- [ ] Every failure of the work itself surfaces as `tool: <cause>` on stderr
 - [ ] Ctrl-C/SIGTERM cancels the context
 - [ ] In-flight work finishes or rolls back
 - [ ] Interrupted runs exit non-zero
@@ -75,10 +74,10 @@ runners-up under *Avoid*.
 - [ ] Config parsed and validated before any work starts
 - [ ] A bad value exits 2 with one line, never a half-done run
 - **Any secret (API token, key)** — §A CLI holds its secret differently, all tier 1:
-  - [ ] It is read from a file named by a `-<secret>-file` flag or its `$MYTOOL_…_FILE`
+  - [ ] It is read from a file a flag names, or its `$MYTOOL_…_FILE`
   - [ ] Its environment variable is documented as the leaky fallback
   - [ ] It is **never** taken from the command line
-  - [ ] It is `patterns/go-config.md`'s `Secret` from the line that reads it
+  - [ ] It is `patterns/go-config.md`'s `Secret`, and one that holds a control character is refused
   - [ ] Handed to a program the tool starts, it never travels on that program's command line — `patterns/go-child-process.md`
 - **If the tool reads no environment variable:**
   - [ ] `-h` names every input — it is the whole contract
@@ -92,6 +91,7 @@ runners-up under *Avoid*.
 `patterns/go-errors-logging.md` — wrapping, sentinels, and slog.
 
 - [ ] Errors wrapped with `%w`
+- [ ] Nothing *Never log* names reaches stderr or a log — tier 1
 
 ## Writing a comment, a README, a commit message, an error message, or a prompt
 
@@ -141,12 +141,14 @@ the API is integrated.
 `patterns/go-cli.md` *A tool that listens* — a browser on this machine reaches a loopback
 port from every page it has open.
 
-- [ ] The listener binds `127.0.0.1`, and the tool prints the address it bound
+- [ ] The listener is `net.Listen` on `127.0.0.1`, opened before anything slow, and the tool prints its address
 - [ ] A request whose `Host` is not that address is refused
-- [ ] A request whose `Sec-Fetch-Site` is `cross-site` or `same-site` is refused, whatever its method
+- [ ] A request whose `Sec-Fetch-Site` is `cross-site` or `same-site`, or whose `Origin` is not the tool's own, is refused, whatever its method
+- [ ] A request whose `Sec-Fetch-Site` is `none` is never forwarded
 - [ ] `http.CrossOriginProtection` wraps the handler, and bodies are capped at 1 MiB
 - [ ] The server sets its four timeouts and shuts down through `serve`
-- [ ] A test sends a cross-site POST, a cross-site GET and a foreign `Host`, and each is refused
+- [ ] A tool that forwards holds `patterns/go-http-client.md`'s ladder, and an answer that reaches the cap is an error
+- [ ] The cases *Testing* names are green, each but one with the bound address as `Host`
 
 ## Starting a program the tool keeps running — a server it fronts, an engine, a database
 
@@ -154,11 +156,11 @@ port from every page it has open.
 
 - [ ] The child runs in a process group of its own (`Setpgid`)
 - [ ] That code sits behind `//go:build unix`
-- [ ] SIGTTOU, SIGTSTP and SIGPIPE are ignored before the child starts
+- [ ] SIGTTOU, SIGTTIN and SIGTSTP are ignored before the child starts, and SIGPIPE is caught, never ignored
 - [ ] It is not started with `exec.CommandContext`, whose cancel kills it
 - [ ] Its output goes to the tool's stderr
 - [ ] Its `Stdout` and `Stderr` are `*os.File`s, never another writer
-- [ ] Everything that can fail fast is checked before it starts
+- [ ] Everything that can fail fast is checked before it starts, the child's own port included
 - [ ] Ready means a 2xx, and the first other status is printed once
 - [ ] The readiness wait ends when the child exits, too
 - [ ] The stop signal goes to the child's whole process group
@@ -170,7 +172,7 @@ port from every page it has open.
 - [ ] A child that exits on its own stops the tool
 - [ ] That stop's error names the child's exit
 - [ ] SIGHUP stops the tool, unless it was started ignored
-- [ ] The force-kill hatch ignores SIGHUP before it unregisters the rest
+- [ ] The tool has no force-kill hatch
 - [ ] Its secret never travels on its command line (*The child's secret*) — tier 1
 - [ ] Tests run the test binary as the fake child
 - [ ] The fake registers for its signals before it logs its PID
@@ -215,6 +217,7 @@ the reasoning that leaks into the visible answer.
 - [ ] Writes on a single connection: `SetMaxOpenConns(1)` + `_txlock=immediate` — tier 1
 - [ ] `newTestDB` fails a test that leaves a pool in use (rule 8) — tier 1
 - [ ] Migrations embedded and forward-only
+- [ ] No migration drops a table others reference (`patterns/go-data-deletion.md` rule 6) — tier 1
 
 ## Setting up the repo's commands or CI
 

@@ -187,7 +187,7 @@ left is in [VERIFICATION.md](VERIFICATION.md) *Owed*.
   its handler's return ([patterns/wasm-client.md](patterns/wasm-client.md) rules 5 and
   6, and the parts rules 7 and 8 mark).
 - Who is signed in: the session cookie and what its store must do, renewal and logout,
-  ending a user's other sessions when the password changes, no enumeration, password
+  what a password change asks for and ends, no enumeration, password
   hashing, the rate limits, the reset token, every machine-token rule, and re-resolving
   a long-lived connection ([patterns/go-auth-sessions.md](patterns/go-auth-sessions.md)).
 - Parameterized SQL, the SQLite pragmas and the guard on the DSN that carries them
@@ -199,22 +199,23 @@ left is in [VERIFICATION.md](VERIFICATION.md) *Owed*.
   it is registered ([patterns/go-authorization.md](patterns/go-authorization.md)).
 - A file a user handed you: the generated stored name, the type decided by sniffing the
   bytes, the download served by a handler rather than a file server, the attachment
-  default, and no boost on a link to it
+  default, no boost on a link to it, and the janitor's two limits
   ([patterns/go-file-uploads.md](patterns/go-file-uploads.md)).
 - What a delete reaches, and what still authenticates once it has: an `ON DELETE` action
   on the tables holding a person's rows, their queued mail and their bytes going with
   them, a credential resolving to a row rather than to an id, a user id never handed out
-  twice, and a table rebuild that keeps its children
+  twice, and no migration dropping a table others reference
   ([patterns/go-data-deletion.md](patterns/go-data-deletion.md)).
 - A link in an outgoing email built from `Config` and never from the request, a
-  header value refused when it holds CR or LF, and the log transport refused in production
+  header value refused when it holds CR or LF, the log transport refused in production,
+  and an answer that never changes with the send's outcome
   ([patterns/go-email.md](patterns/go-email.md)) — the first two resting on the boot
   checks of [patterns/go-config.md](patterns/go-config.md) rules 8 and 9.
 - What never reaches a log ([patterns/go-errors-logging.md](patterns/go-errors-logging.md)
   *Never log*).
 - A test never sending a request off this machine
   ([patterns/go-testing.md](patterns/go-testing.md) *Idioms*).
-- Any version pin whose note names a security fix
+- The Go pin, when its note names a security fix
   ([operations/ci.md](operations/ci.md) *The Go version*).
 - Every rule about how a secret is handled: a service's secret arrives as a file and its
   own type keeps it out of the logs ([patterns/go-config.md](patterns/go-config.md)
@@ -226,7 +227,8 @@ left is in [VERIFICATION.md](VERIFICATION.md) *Owed*.
   ([patterns/go-cli.md](patterns/go-cli.md) *A tool that listens*).
 
 **The checklists mark this, they do not imply it.** A trigger section that is wholly
-tier 1 says so under its heading; anywhere else a tier-1 box says so itself. Nothing is
+tier 1 says so in its heading; anywhere else the box, or the line that introduces its
+group, says so. Nothing is
 tier 1 because of the section it landed in —
 that positional definition died when routing and the definition of done became one file
 and the security boxes scattered across the topics that fire them.
