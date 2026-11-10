@@ -115,7 +115,7 @@ if id == "" {
 	a.redirectToLogin(w, r)
 	return
 }
-// With the session's password counter: a row whose counter differs is not found.
+// With the session's counter, put there as an int: GetInt answers 0 for an int64.
 u, err := a.users.User(r.Context(), id, a.sessions.GetInt(r.Context(), "passwordVersion"))
 if errors.Is(err, domain.ErrNotFound) {
 	// The row is gone, so the cookie goes too. A failed destroy is tried again by
