@@ -1,6 +1,6 @@
 # Pattern: Deleting Data (Go)
 
-**Tier 1** (safety — never waived) · Last verified: 2026-08-18
+**Tier 1** (safety — never waived) · Last verified: 2026-11-10
 
 What a delete reaches, a credential resolving to a row rather than to an id, a user id
 never handed out twice, and the actor predicate on the delete itself are tier 1. Which
@@ -251,7 +251,7 @@ which is what the next test is for.
 - ❌ Keeping "just the email" of a deleted account for a mailing list. That is the one
   field they asked you to lose.
 
-## Facts verified (2026-08-18)
+## Facts verified (2026-11-10)
 
 - Foreign keys are off by default and enabled per connection; `ON DELETE` actions are
   enforcement, so they do nothing without the pragma:

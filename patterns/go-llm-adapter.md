@@ -1,6 +1,6 @@
 # Pattern: LLM Adapter (Go)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-10
 
 A language model is somebody else's system reached over HTTP, so
 [go-ports-adapters.md](go-ports-adapters.md) already governs the shape: a small port the

@@ -1,6 +1,6 @@
 # Pattern: Long Lists (htmx)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-08-17
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-10
 
 Every project renders a list, and every project re-decides the same two things: how the
 page asks for more, and how the query finds it. Both are settled here.
