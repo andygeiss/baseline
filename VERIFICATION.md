@@ -202,7 +202,7 @@ body says, and the reference carries them.
 - **`patterns/go-http-client.md`, `patterns/go-config.md` and
   `patterns/go-errors-logging.md`,** each changed in `26f8f08`: a high the library's
   build found in the client's errors, a medium in the parser, and the exception in
-  `serverError`, which is gone.
+  `serverError`, which is gone. The client's decode wrap changed again in `b2f040a`.
 - **`patterns/go-cli.md`, whole, as `4720091` cut it,** with
   `project-types/cli-tool.md`, whose lead that commit put back, and
   `checklists/cli-tool.md`.
@@ -212,8 +212,8 @@ body says, and the reference carries them.
   The first library built from them, on 2026-11-10, found seven lows around them; six
   are fixed in `26f8f08` and `c512e31`. No reviewer has read the three whole.
 - **`operations/ci.md`** (`26f8f08`): one medium, a wrong recipe beside `go mod edit`.
-- **The three checklists and the README's tier-1 list** (`c512e31`). Their fourth read
-  found six mediums, five of them entries under *Known*.
+- **The three checklists and the README's tier-1 list** (`c512e31`, `b2f040a`). Their
+  fourth read found six mediums, five of them entries under *Known*.
 - **This file's *What a review run is*, *Grading a finding*, *The tag gate* and *Owed*,
   and the README paragraphs that go with them,** rewritten in `cc760ef` for the bar
   Andy set on 2026-11-10. Four reviews read earlier versions and found 14, 16, 9 and 8
@@ -235,7 +235,7 @@ body says, and the reference carries them.
   until the first decision below is taken.
 - **Retired on 2026-11-10, on Andy's call:** `patterns/go-child-process.md`, and
   `patterns/go-cli.md` *A tool that listens* with the clause of 2026-10-09 that let a CLI
-  serve the person who started it. Neither ever passed a read: eight for the first, four
+  serve the person who started it. Neither ever passed a read: nine for the first, four
   in one day for the second. Their one live user is baton, which keeps its code and
   records both as its own deviations. The rule that a secret never travels on a child's
   command line moved to `patterns/go-cli.md` *Config precedence*. The text as it last
@@ -245,6 +245,18 @@ body says, and the reference carries them.
   tells the two apart. The free address then belongs to whoever registered it, and what
   is sent to that address inside the application reaches them: in the web build, a
   shelf shared by address (2026-11-10). The first decision below covers it.
+- **Medium — two rules do not compose on the request that makes a machine token.**
+  `patterns/go-auth-sessions.md` shows the secret in the answer to that request, since
+  `26f8f08`. `patterns/htmx-server-rendering.md` and `patterns/go-forms-validation.md`
+  answer every valid POST with a 303 and a flash, and neither says how this one answers.
+  The reference sends htmx the region and a plain form the whole page, both at 200
+  (its sync, 2026-11-10). A decision, below.
+- **Medium — a failed session commit writes a second answer.**
+  `patterns/go-auth-sessions.md` sets `ErrorFunc` to `serverError`, which then writes the
+  500 page into a response already under way. The reader got a 500 that carried the
+  handler's `Location`, and a request log that keeps the last status recorded 303. No
+  document prints `logRequests` (the reference's sync, 2026-11-10, after
+  `patterns/go-http-server.md` was dated).
 - **Medium — `patterns/wasm-client.md` says nothing of a socket the server closes.** A
   deploy closes every socket with 1001. Built to the letter, the module then stays dead
   until the reader reloads the page (2026-11-10). A decision, below.
@@ -326,7 +338,8 @@ body says, and the reference carries them.
   decision, below.
 - **Low, in `patterns/go-cli.md`:** the box "Nothing a user installs reads it" states a
   condition `stack/makefile.md` rule 6 does not; a token file that is empty yields an
-  empty secret and no error.
+  empty secret and no error; no prescribed test fails when a secret is put on a child's
+  command line.
 - **Low, in `patterns/go-config.md`:** the canonical parser has no check for the log
   transport, which `patterns/go-email.md` makes tier 1, and describes `ENV` as the log
   format only; `readCredential` says nothing about a missing file; a non-string verb
@@ -335,7 +348,8 @@ body says, and the reference carries them.
 - **Low, in `patterns/go-http-client.md`:** `do` retries failures no repeat can mend, a
   certificate that does not verify among them; since `26f8f08` its transport error names
   the cause's type and not its words, so a refused connection reads
-  `no usable answer (*net.OpError)`; a library handed a key prints it under `%+v`, and
+  `no usable answer (*net.OpError)`, and `Client.Timeout` and `ResponseHeaderTimeout`,
+  which the document's ladder tells apart, read alike; a library handed a key prints it under `%+v`, and
   no library section leads to the secret type.
 - **Low, in `patterns/go-sqlite.md`:**
   - An empty database path is refused nowhere at the config edge.
@@ -354,9 +368,8 @@ body says, and the reference carries them.
   in a background job ends the process and the requests in flight with it, which
   `patterns/go-background-work.md` describes as losing the jobs; the canonical `serve`
   returns the drain's error, so a request that outlasts the grace turns an orderly stop
-  into exit 1; a request its reader abandoned is an error line and a 500 written to
-  nobody, again, since `26f8f08`; on a failed session commit `serverError` writes the
-  500 page into a response already under way; the forms and server documents do not say
+  into exit 1; a request its reader abandoned is two error lines and a 500 written to
+  nobody, again, since `26f8f08`; the forms and server documents do not say
   which of `recoverPanic` and `serverError` renders the 500 page.
 - **Low, from the 2026-11-10 web builds:** `wasm-opt`'s version is to be named and
   checked and has no `VERSIONS.md` row, and the `.build`, `.sum` and `make wasm`
@@ -385,6 +398,12 @@ body says, and the reference carries them.
 - **Low, in the library documents:** none of the gates is a compatibility check. A
   renamed export, a changed error text and an aliased sentinel all pass (the
   2026-11-10 build).
+- **Low — `patterns/go-data-deletion.md` rule 6 names a statement's spelling.** A column
+  declared `ON CONFLICT REPLACE` makes a plain `INSERT` replace a row, and its children
+  go with it (the reference's sync, 2026-11-10).
+- **Low — the `make ci` box is read by eye.** No gate compares the run's `go version`
+  line with the pin, and the box says "a security pin", which no document defines: the
+  rule's own words did not fit the web floor.
 - **Low — Chrome keeps a `no-store` document in its back/forward cache until the
   session cookie changes,** so a session ended on the server alone still shows an owned
   file on Back (2026-11-10).
@@ -450,6 +469,8 @@ body says, and the reference carries them.
     pragma in every project.
   - Whether an upload form may carry one `hx-status:413` line, or its label carries
     the cap.
+  - How the request that makes a machine token answers: in place, which is an exception
+    to the 303 every other valid POST gets, or some other way to show a secret once.
   - Uploads in memory: a bound on uploads in flight, a write that streams, or a ceiling
     on what a route may raise its cap to.
   - What a WebAssembly client does when the server closes its socket: connect again
@@ -491,8 +512,8 @@ body says, and the reference carries them.
     the migration; a machine token is shown in the answer to the request that made it,
     on a rate-limited route; the `make ci` box asks for the pinned `go version` line
     and is tier 1.
-  - The budgets. The web floor stands at 24,992 of 25,000, and `wasm-client.md`,
-    `go-data-deletion.md`, `go-file-uploads.md`, `go-config.md`, `go-http-client.md` and
+  - The budgets. The web floor stands at 24,999 of 25,000, and `wasm-client.md`,
+    `go-data-deletion.md`, `go-http-client.md`, `go-file-uploads.md`, `go-config.md` and
     `go-auth-sessions.md` within 10 of 3,800. The next rule on any of them needs a
     number moved or text cut.
   - Scroll-driven animations are Baseline Newly since 2026-10-27;
@@ -515,22 +536,27 @@ body says, and the reference carries them.
 
 ### The reference, behind this corpus
 
-The reference's `SPEC.md` pins `39ad142` on its branch `sync-owed-run`, and
-`./verify.sh` exits 0 against that commit (94 steps). Behind it, and condition 2 needs
-each settled before the tag that carries this run:
+The reference follows `b2f040a`, the last commit of the 2026-11-10 run that changes
+anything a project reads: its `SPEC.md` pins that commit on the branch `sync-owed-run`,
+and `make check`, `make ci` and `./verify.sh` exit 0 against it (96 steps). Three things
+are behind, and condition 2 needs each settled before the tag that carries this run:
 
-- **The retirement and the fixes of pass 4:** `4720091`, `26f8f08`, `c512e31`.
+- **The high above.** The reference follows the rule as written: its reset leaves the
+  tokens table alone (read, not run there).
 - **Attachments are blobs under a 3 MiB cap.** `patterns/go-file-uploads.md` keeps a
   blob for what fits the blanket 1 MiB cap since `768e460`. The reference's README lists
   it as not followed and not waived: lowering the cap, moving the bytes to a directory,
   or a waiver is a decision.
-- **The high above.** The reference follows the rule as written: its reset leaves the
-  tokens table alone (read, not run there).
+- **Making a token answers its POST at 200,** the medium above. Its README lists that
+  too, as not waived.
 
 Found in the reference beside the rules it was held against, and not fixed there:
 `gochat` validates its `-addr` at the first request, not when it parses, so a bad one
-exits 1 where the checklist asks for 2; and its recovery address is the entry under
-*Known* above.
+exits 1 where the checklist asks for 2, and it reads `os.Stdin` inside `run`, where
+`patterns/go-cli.md` hands it in; its chat client retries a 500, waits without jitter
+and ignores `Retry-After`, against `patterns/go-http-client.md`; its request log keeps
+the last status written, which is the medium above; and its recovery address is the
+entry under *Known*.
 
 The twelve entries the 2026-11-09 run listed here are settled on `sync-owed-run`.
 
