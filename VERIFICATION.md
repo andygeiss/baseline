@@ -190,7 +190,8 @@ nobody has read at all.
 - **`patterns/go-sqlite.md`, `patterns/go-file-uploads.md`, and in
   `patterns/go-data-deletion.md` rule 6,** a prohibition since `2a21420`, its header, the
   two sentences `bd65def` added to *Testing*, and the password counter in its lookup
-  snippet and in the account's `DELETE`, added after the narrow look.
+  snippet and in the account's `DELETE`, added after the narrow look (`563a9b1`,
+  `39ad142`).
 - **`patterns/go-http-client.md`, `patterns/go-config.md`,
   `patterns/go-errors-logging.md` and `patterns/go-forms-validation.md`** (`09561c4`,
   `7793d93`, `eb27c42`).
@@ -225,6 +226,9 @@ nobody has read at all.
   canonical client reached the ops listener and its profiles, followed a redirect with
   its secret, and its "delivered" was an oracle for what the machine can reach (the
   2026-11-10 build). A decision, below.
+- **Medium — no rule covers changing the address a reset link is mailed to.** In the
+  reference a session alone sets it, and the reset then hands over the password: a
+  stolen session becomes the account (the reference's sync, 2026-11-10).
 - **Medium — a secret a user typed, which the application must send later, is stored as
   typed.** No document says how it is held; a snapshot holds it in the clear.
 - **Medium — a deleted row's bytes stay in the database file,** and a sent outbox row's
@@ -325,7 +329,10 @@ nobody has read at all.
   `stack/go.md` asks for interfaces of one to three methods, and a store has more;
   `no-store` on authenticated pages (`patterns/go-performance.md`) has no box.
 - **Low, left by the narrow look and the reference's sync:** "no row changed is a
-  refusal" does not say what a rehash at sign-in refuses; the forms and server documents
+  refusal" does not say what a rehash at sign-in refuses, and a reset that reads its
+  link inside the writing transaction can never be refused by it; a `Commit` after the
+  client left returns `sql.ErrTxDone`, which `serverError`'s exception does not cover, so
+  that request logs an error and writes a 500 to nobody; the forms and server documents
   do not say which of `recoverPanic` and `serverError` renders the 500 page; an
   abandoned request is "answered with nothing", and its access-log line then shows a
   status nobody sent; Chrome keeps a `no-store` document in its back/forward cache until
@@ -447,24 +454,20 @@ nobody has read at all.
 
 ### The reference, behind this corpus
 
-The reference follows the 2026-11-10 run's first pass (`sync-owed-run`, `verify.sh`
-green). Nobody has held it against the second pass's changes. Condition 2 needs each
-one settled before the tag that carries them:
+The reference follows `39ad142`, the last commit of the 2026-11-10 run that changes
+anything a project reads: its `SPEC.md` pins that commit on the branch `sync-owed-run`,
+and `./verify.sh` exits 0 against it (94 steps). One thing is behind, and condition 2
+needs it settled before the tag that carries this run:
 
-- Sessions: the password counter and the write that names it; reset tokens deleted by any
-  password write; `CommitCtx` leaving an expired row alone; the janitor an hour behind;
-  `Unmap` before the /64 key; a machine token created after the password is asked for.
-- `serverError` and a request the client abandoned; the 500 page and `a.view`; `a.view`
-  on a fragment.
-- The outbound clients' errors: no `*url.Error`, no body; `Quit`'s error dropped.
-- Uploads: a directory of their own, the janitor's two limits, `no-store` on an owned
-  file.
-- `newTestDB` on both pools; the security-headers test against a literal.
-- The room map: the socket closed on `pagehide`; the `wasm-opt` that
-  `tinygo env WASMOPT` names; the counter in the socket's re-check.
-- `gochat` against the CLI rules that changed.
-- Registration, against the sentence on registering by email; no `hx-trigger` filter; no
-  migration that drops a table a foreign key names; no `INSERT OR REPLACE` on one.
+- **Attachments are blobs under a 3 MiB cap.** `patterns/go-file-uploads.md` keeps a
+  blob for what fits the blanket 1 MiB cap since `768e460`. The reference's README lists
+  it as not followed and not waived: lowering the cap, moving the bytes to a directory,
+  or a waiver is a decision.
+
+Found in the reference beside the rules it was held against, and not fixed there:
+`gochat` validates its `-addr` at the first request, not when it parses, so a bad one
+exits 1 where the checklist asks for 2; and its recovery address is the entry under
+*Known* above.
 
 The twelve entries the 2026-11-09 run listed here are settled on `sync-owed-run`.
 
