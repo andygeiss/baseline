@@ -69,13 +69,13 @@ defer func() { // every return waits for the child, and for its group until grac
   tool alone, leaving the child running with nobody to stop it — and on macOS a stopped
   Go program that leaves SIGCONT at its default misses the `kill %1` meant to end it. A
   tool that reads the terminal, started with `&`, is stopped the same way at its first
-  read. The child inherits all three: an ignored signal stays ignored across `exec`.
+  read; ignored, that read fails with EIO: return it. The child inherits all three: an ignored signal stays ignored across `exec`.
 - **SIGPIPE caught, not ignored.** Go ends a program that writes to a closed pipe on
   stdout or stderr, so `tool | head`, or a `tee` that dies on the same Ctrl-C, would end
   the tool before it has stopped its child. Caught, the write fails: return that error,
   and the stop path runs. Ignored, it would stay ignored in the child and in everything
-  the child starts, where a pipeline's writer then never ends. Not in `NotifyContext`: a
-  client that hangs up on a tool that serves would stop it.
+  the child starts, where a pipeline's writer then never ends. Not in `NotifyContext`: on
+  Linux a client that hangs up on a tool that serves would stop it.
 - **Unix only.** `Setpgid` and `syscall.Kill` do not exist on Windows: keep this code
   behind `//go:build unix`. A tool that must also run there gives Windows a file of its
   own, which `GOOS=windows go vet` then checks ([operations/ci.md](../operations/ci.md)).
@@ -101,8 +101,10 @@ deadline.
 
 **Check what can fail fast before `Start`:** the flags, the files, and the port the tool
 itself listens on — take it first. A start that costs minutes must not end on a typo or a
-port already in use. The child's own port must be free too: whatever already listens
-there answers the readiness ask, and is handed the key.
+port already in use. The child's readiness address must refuse a connection too: dial
+it, since a `net.Listen` there succeeds on macOS beside a listener on every interface.
+Whatever already listens there answers the readiness ask, and is handed the key. The
+dial narrows that window and does not close it.
 
 ## Stop it first, once, and wait
 
@@ -123,7 +125,8 @@ return failed // the deferred wait holds this until the child is gone, and its g
   runs meanwhile, not after it. **A tool that owns a child takes no force-kill hatch**
   ([go-cli.md](go-cli.md)): a second Ctrl-C would end the tool before a child that
   ignores its stop signal, and leave it running with nobody to stop it. The stop is
-  bounded without one: `grace`, then SIGKILL.
+  bounded without one — `grace`, then SIGKILL — once the tool's own shutdown has
+  returned: bound that too.
 - **One stop signal to the whole group**, SIGTERM unless the child documents another as
   its graceful stop. Every process in the group gets it once, as a Ctrl-C would have
   reached them, so a helper the child started stops with it. `sync.Once` keeps it at one
@@ -174,8 +177,8 @@ test then blames the tool. Once `run` has returned, the test reads that file:
   Two runs pin where the deadline counts from. In one the tool's own shutdown lasts
   several times `grace` — a function the test passes in, and checks did last — and `run`
   returns less than `grace` after it ended: not from the shutdown's end. In the other
-  the tool is stopped only once `grace` has passed since the fake was ready, and the fake
-  still logs SIGTERM: not from the start.
+  the tool is stopped only once `grace` has passed since the fake was ready, and `run`
+  still returns no sooner than `grace` after the stop: not from the start.
 - For the fake that leaves its helper behind: a helper that stops a little late still
   logs `complete`, and `run` returns less than `grace` after the stop; one that stays is
   gone, polled for by its PID.

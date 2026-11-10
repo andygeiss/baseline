@@ -53,8 +53,6 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
   [go-config.md](go-config.md)'s `parseConfig`: `flag.ErrHelp` returns `nil`, a
   `FlagSet` error returns `errUsage`, and any other one is printed and returns
   `errUsage` too — or `-h` and a bad value both exit 1 through the `default` above.
-  A command that takes no arguments refuses `fs.NArg() != 0` the same way: `flag` stops
-  at the first argument, and every flag after it is ignored in silence.
 - **Exit codes:** `0` success, `1` failure, `2` usage error (the `flag` package's
   own convention). Scripts branch on these; don't invent more without documenting
   them in `-h`.
@@ -75,6 +73,10 @@ func runFetch(ctx context.Context, args []string, stdout, stderr io.Writer) erro
 			return nil // -h: usage already printed, exit 0
 		}
 		return errUsage // bad flag: message already printed by fs, exit 2
+	}
+	if fs.NArg() != 0 { // flag stops at the first argument: every flag after it was ignored
+		fmt.Fprintf(stderr, "fetch takes no arguments: %q\n", fs.Arg(0))
+		return errUsage
 	}
 	// ...
 }
@@ -152,7 +154,11 @@ func token(path string) (Secret, error) {
 	if err != nil {
 		return "", fmt.Errorf("read token file: %w", err)
 	}
-	return Secret(strings.TrimSpace(string(b))), nil // the file usually ends in a newline
+	s := strings.TrimSpace(string(b)) // the file usually ends in a newline
+	if strings.ContainsFunc(s, unicode.IsControl) {
+		return "", errors.New("token file: the token holds a control character")
+	}
+	return Secret(s), nil
 }
 ```
 
@@ -160,7 +166,7 @@ MUST NOT take a secret on the command line, as a flag's value or as an argument:
 shows up in `ps` and in shell history. A missing token file is an error, never a
 silent fall-through to no token — that answers "not signed in" and sends the reader
 looking in the wrong place. So is a secret that holds a control character: a second
-line in the file makes `net/http` refuse the header on every request.
+line in the file would make `net/http` refuse the header on every request.
 
 ## Streams
 
@@ -253,27 +259,32 @@ MUST:
    (*Middleware* items 4 and 6), **its four timeouts, its `ErrorLog`** — over a `slog`
    text handler on stderr — **and its `serve`** (*Server lifecycle*), with `srv.Serve(ln)`
    where that has `ListenAndServe`.
-4. **Refuse a request whose `Sec-Fetch-Site` is `cross-site` or `same-site`, or whose
-   `Origin` is not its own,** whatever its method. The wrap lets every GET through, and a
-   tool that forwards cannot promise that a GET changes nothing behind it. A WebSocket
-   handshake is a GET that carries no `Sec-Fetch-Site` at all; its `Origin` is what
-   refuses it.
+4. **Refuse a request whose `Sec-Fetch-Site` is `cross-site` or `same-site`, or which
+   carries none and an `Origin` that is not its own,** whatever its method. The wrap lets
+   every GET through, and a tool that forwards cannot promise that a GET changes nothing
+   behind it. A WebSocket handshake is a GET that carries no `Sec-Fetch-Site` at all; its
+   `Origin` is what refuses it.
 5. **Never forward a request whose `Sec-Fetch-Site` is `none`.** That is a navigation
-   somebody typed, or a link that redirected here with a path of its choosing: the tool
-   answers it from its own pages.
+   somebody typed, a prefetch a page on any site asked for, or a link that redirected
+   here with a path of its choosing. The tool's own handler answers it: a page of the
+   tool's, or one line saying what listens here.
 
 ```go
-// local wraps the tool's own listener; addr is the address it bound.
-func local(addr string, next http.Handler) http.Handler {
+// local wraps the tool's own listener. addr is the address it bound, own answers
+// a none request, and next, the forwarder or anything else, gets the rest.
+func local(addr string, own, next http.Handler) http.Handler {
 	csrf := http.NewCrossOriginProtection()
 	h := csrf.Handler(http.MaxBytesHandler(next, 1<<20))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		s, o := r.Header.Get("Sec-Fetch-Site"), r.Header.Get("Origin")
-		if r.Host != addr || s == "cross-site" || s == "same-site" || o != "" && o != "http://"+addr {
+		switch {
+		case r.Host != addr || s == "cross-site" || s == "same-site" || s == "" && o != "" && o != "http://"+addr:
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-			return
+		case s == "none":
+			own.ServeHTTP(w, r)
+		default:
+			h.ServeHTTP(w, r)
 		}
-		h.ServeHTTP(w, r)
 	})
 }
 ```
@@ -299,7 +310,7 @@ func TestRun_Fetch(t *testing.T) {
 
 Table-test the argument surface: happy path per subcommand (or the single
 command), unknown command and top-level `-h` where dispatch exists, bad flag
-(expect `errUsage`), and — where `-json` exists — that each line of the output
+and a stray argument before a flag (expect `errUsage`), and — where `-json` exists — that each line of the output
 parses back with `encoding/json/v2`. Strategy and coverage bar per
 [go-testing.md](go-testing.md).
 
@@ -307,4 +318,4 @@ A tool that listens tests `local` with the bound address as `Host` in every case
 one — a request `httptest.NewRequest` builds is refused on its `Host` alone, and proves
 nothing else. A cross-site GET, a same-site GET and a handshake with a foreign `Origin`
 are refused; a foreign `Host` with nothing else is refused; a plain request is answered;
-and a tool that forwards answers a request marked `none` without forwarding it.
+and a request marked `none` reaches `own` and never `next`.

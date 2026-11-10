@@ -217,8 +217,8 @@ Three rules keep it honest:
    (`gamePage{view: a.view(r), Game: game}`) too. `html/template` fails on a
    missing field at execute time; the buffer-first render turns that into a
    500 instead of a torn page, but it is still a bug. The 500 page itself embeds
-   a zero `view{}`, never `a.view(r)`: `serverError` also runs where no session
-   was loaded — a panic, a session-store error — and `PopString` panics there.
+   a zero `view{}`, never `a.view(r)`: it is also rendered where no session was
+   loaded — after a panic, on a session-store error — and `PopString` panics there.
 3. **One string, not a queue.** Needing two flash messages in one request is a
    design smell — say the one thing that changed.
 

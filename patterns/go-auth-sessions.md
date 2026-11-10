@@ -71,7 +71,8 @@ store:
   disabling `IdleTimeout`. `expiry` is an INTEGER holding Unix time on both sides of that
   comparison: a bound `time.Time` is stored as text in the local zone, and compares
   wrong everywhere but UTC.
-- **`DeleteCtx` empties the row and keeps it. `CommitCtx` changes neither an emptied row
+- **`DeleteCtx` empties the row — `data = NULL`, a nullable column — and keeps it.
+  `CommitCtx` changes neither an emptied row
   nor an expired one, in the statement that writes** (`… ON CONFLICT (token) DO UPDATE …
   WHERE sessions.data IS NOT NULL AND sessions.expiry > ?`)**, and `FindCtx` finds no
   emptied row.** A request still in flight when a logout or `RenewToken` lands commits

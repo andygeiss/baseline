@@ -338,7 +338,9 @@ look at the fixes ran; it is a check, and counts for nothing here.
   2026-11-09, twenty-nine for a CLI and the web application's own on 2026-11-10. They
   are in the bodies of `c0a6117` and of the commit that added this line.
 - **Unchecked:** a recycled PID under the child process's deferred wait; the live-region
-  markup under a screen reader; Firefox and Safari, for what Chrome showed about a form's redirect, a
+  markup under a screen reader; Firefox and Safari for the two things
+  `patterns/go-cli.md` says of every browser, a handshake with no `Sec-Fetch-Site` and
+  `none`; Firefox and Safari, for what Chrome showed about a form's redirect, a
   cached page's socket and an owned file after sign-out; Linux, for every terminal run
   of the child process; whether the proxy's log holds a reset link's query string.
 - **Decisions left to Andy:**

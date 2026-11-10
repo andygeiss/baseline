@@ -144,8 +144,8 @@ port from every page it has open.
 
 - [ ] The listener is `net.Listen` on `127.0.0.1`, opened before anything slow, and the tool prints its address
 - [ ] A request whose `Host` is not that address is refused
-- [ ] A request whose `Sec-Fetch-Site` is `cross-site` or `same-site`, or whose `Origin` is not the tool's own, is refused, whatever its method
-- [ ] A request whose `Sec-Fetch-Site` is `none` is never forwarded
+- [ ] A request whose `Sec-Fetch-Site` is `cross-site` or `same-site`, or which carries none and a foreign `Origin`, is refused, whatever its method
+- [ ] A request whose `Sec-Fetch-Site` is `none` goes to the tool's own handler, never to the forwarder
 - [ ] `http.CrossOriginProtection` wraps the handler, and bodies are capped at 1 MiB
 - [ ] The server sets its four timeouts and shuts down through `serve`
 - [ ] A tool that forwards holds `patterns/go-http-client.md`'s ladder, and an answer that reaches the cap is an error
@@ -161,7 +161,7 @@ port from every page it has open.
 - [ ] It is not started with `exec.CommandContext`, whose cancel kills it
 - [ ] Its output goes to the tool's stderr
 - [ ] Its `Stdout` and `Stderr` are `*os.File`s, never another writer
-- [ ] Everything that can fail fast is checked before it starts, the child's own port included
+- [ ] Everything that can fail fast is checked before it starts, and a dial to the child's address is refused
 - [ ] Ready means a 2xx, and the first other status is printed once
 - [ ] The readiness wait ends when the child exits, too
 - [ ] The stop signal goes to the child's whole process group
