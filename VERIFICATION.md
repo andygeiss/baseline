@@ -296,7 +296,11 @@ look at the fixes ran; it is a check, and counts for nothing here.
   - Two snapshot runs at once can leave a half-written file under the day's name.
   - The first open of a new file answered `database is locked` in 8 boots of 480.
   - `openDB` is unexported, and three packages need it (the 2026-11-09 build).
-- **Low, in the server documents:** "above `ReadTimeout` + the budget" and "ceiling the
+- **Low, in the server documents:** an error from `net/http` or the JSON decoder can
+  still quote a broken peer's header line, or a member name of its body, into
+  `patterns/go-http-client.md`'s wraps; the security-headers test reads one GET of `/`,
+  so a middleware that sends the policy on that request alone passes it; "above
+  `ReadTimeout` + the budget" and "ceiling the
   budget at 20 s" do not say the same thing; `make run` leaves `app.db` unignored;
   `main.go` under about 100 lines does not fit two servers; a panic in a background job
   ends the process and the requests in flight with it, which

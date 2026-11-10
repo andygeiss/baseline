@@ -111,7 +111,7 @@ func (c *Client) Forecast(ctx context.Context, city string) (domain.Forecast, er
 	endpoint := c.baseURL + "/forecast?city=" + url.QueryEscape(city)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
-		return domain.Forecast{}, fmt.Errorf("weather: build request: %w", err)
+		return domain.Forecast{}, errors.New("weather: build request: the base URL does not parse") // its error quotes the URL
 	}
 	req.Header.Set("Authorization", "Bearer "+c.key)
 	req.Header.Set("Accept", "application/json")

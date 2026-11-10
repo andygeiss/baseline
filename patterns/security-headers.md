@@ -57,8 +57,8 @@ the policy exists, and no baseline pattern needs either.
 **A WebAssembly client adds one directive, and only an app that has one:**
 `"script-src 'self' 'wasm-unsafe-eval'; "` after `default-src`. Browsers refuse to
 compile WebAssembly without it, and it allows nothing for JavaScript — `eval` stays
-blocked ([wasm-client.md](wasm-client.md)). It goes into the one `csp` constant, so every
-page of that app carries it, and the test that pins the policy also pins that neither
+blocked ([wasm-client.md](wasm-client.md)). It goes into the `csp` constant and the
+test's copy, so every page carries it, and the test that pins the policy also pins that neither
 banned keyword appears, matched with both quotes, case-folded: browsers match keywords
 regardless of case, and `'wasm-unsafe-eval'` contains `unsafe-eval'`.
 
@@ -109,7 +109,8 @@ rules are [go-file-uploads.md](go-file-uploads.md).
 
 ## Testing
 
-One table test pins the whole contract, so a future edit cannot quietly drop a header.
+One table test pins the four values a page carries, so a future edit cannot quietly drop
+one.
 It goes through `Routes()`, like every handler test ([go-testing.md](go-testing.md)): a
 test of the bare middleware stays green when the chain stops calling it.
 

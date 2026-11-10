@@ -212,7 +212,7 @@ redaction blocklist forgets the field somebody adds next year.
 
 **`LogValue` alone protects one shape, so a secret is also its own type.** It fires only
 when the `Config` *is* the value logged: nested in a struct, in a slice, as a map's value, or
-under one of `fmt`'s string verbs, slog and fmt print the fields themselves. The type holds in all four:
+under `%v`, slog and fmt print the fields themselves. The type holds in all four:
 
 ```go
 // Secret is a value that must never reach a log line. The four methods are the
