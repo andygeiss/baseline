@@ -159,8 +159,8 @@ const SystemPrompt = `...`
 
    Where the vendor offers a **server-side fallback** — a declined request answered by
    another model in the same call — prefer it to your own retry: one round trip, no state.
-   Take the parameter and its beta header from the skill together; they are a matched pair,
-   and mixing one form's header with another's body is a 400.
+   Take the parameter and its beta header from the skill together; it says which header
+   takes which form.
 
 9. **Everything else is transient.** Wrap it with what you were doing and let the caller
    decide ([go-errors-logging.md](go-errors-logging.md)). Transport, the `statusError`
@@ -168,10 +168,11 @@ const SystemPrompt = `...`
    [go-http-client.md](go-http-client.md)'s job and do not change here; rule 16 sizes a
    stream's cap. **Its two canonical timeouts do change.** A model takes seconds to
    minutes, so set the budget for the model first and every row of its *The timeout
-   ladder* from it, `WriteTimeout` and htmx's timeout included. Without a stream the
-   status line arrives only when the whole answer is written, so `ResponseHeaderTimeout`
-   sits at the budget, not at 5 s, and `Timeout` above it. On a stream `Timeout` covers
-   reading the body, so it sits at or above the budget.
+   ladder* from it, `WriteTimeout` and htmx's timeout included. The status line arrives
+   only when the whole answer is written, or on a stream when its first piece is — a
+   local server loads its model first. So with or without a stream
+   `ResponseHeaderTimeout` sits at the budget, not at 5 s, and `Timeout`, which on a
+   stream also covers reading the body, above it.
 
    The request is a POST, so that document's `do` gives it one attempt: after a timeout
    or a cut stream, a repeat can be a second paid answer. A vendor SDK repeats on its

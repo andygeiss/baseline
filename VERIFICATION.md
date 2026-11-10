@@ -275,6 +275,9 @@ grade is a decision or a note.
 - **Pins behind upstream on 2026-11-09:** htmx 4.0.1 is npm's `next` since 2026-11-01,
   and `modernc.org/sqlite` v1.62.0 shipped on 2026-11-07. `VERSIONS.md` pins 4.0.0 and
   v1.61.0. Go 1.27.3, scs v2.9.0 and TinyGo 0.44.0 are current.
+- **Low — `patterns/security-headers.md`'s `img-src` check reads the constant as text.**
+  A second `img-src` directive ahead of the right one passes it, and a policy written
+  with other spacing fails it (pass 3, 2026-11-10).
 - **Low — commit subjects.** `STYLE.md` asks for the imperative; 65 of this
   repository's last 100 subjects are noun phrases.
 - **Low — fifteen findings from the 2026-11-09 build, and the twenty decisions it had
@@ -295,6 +298,11 @@ carries that run's changes:
 - `internal/store/users.go` deletes the account in one statement, with no delete of
   outbox rows by address.
 - `internal/store/outbox.go` keeps the body of a row it has sent or given up on.
+- `web/templates/room.html`: the "Show older messages" control has no `id`, and no end
+  marker takes its place on the last page.
+- `internal/anthropic/anthropic.go` has no check for an answer cut short, and its
+  header timeout sits below the budget.
+- `internal/app/middleware_test.go` checks `img-src` by prefix.
 - `cmd/server/main.go` removes only today's snapshot; older ones are never pruned.
 - `web/static/css/app.css:438` and `:461` use `var(--step--1)`, which nothing defines.
 - `web/static/css/app.css:490` and `:471` use `user-select: all` and `resize: vertical`,

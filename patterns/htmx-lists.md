@@ -15,7 +15,8 @@ in the data instead — the last row already on the page:
 ```sql
 -- The actor predicate is not optional here (go-authorization.md rule 5). The
 -- row-value comparison is one operation, so SQLite can walk the index straight
--- to the cursor instead of filtering after it.
+-- to the cursor's created_at — and to its id too, when id is not the table's
+-- integer primary key — instead of counting rows up to it.
 SELECT id, title, created_at
 FROM items
 WHERE user_id = ?
@@ -77,8 +78,10 @@ the poller there as the last row — so the control is the **first** item, and t
 the fresh control **followed by** the older rows, which is again the list's own order.
 Both cannot be the last row, and a list that tries loses one of them.
 
-**The list ends when the control does not come back.** The last page answers with rows
-alone; there is nothing to remove and nothing to disable.
+**The list ends when the control does not come back.** The last page answers with its
+rows and, where the control was, an end marker that carries the control's id —
+`<li id="items-more" tabindex="-1">No older items</li>` — so the focus the swap took has
+somewhere to land. There is nothing to remove and nothing to disable.
 
 **It works with htmx switched off.** The control is an `<a href>` with the same URL, so a
 plain click navigates to a full page of that slice — the handler is dual-mode like any
@@ -115,8 +118,8 @@ that comes back carries them all, or the second page quietly loses them.
 and write that one value into both `href` and `hx-get`. `html/template` escapes a value
 as a URL only in an attribute it knows holds one, and `hx-get` is not one. A filter
 interpolated there arrives unescaped: an `&` cuts its value short, a `#` drops everything
-after it, the cursor included, a `+` arrives as a space, and a `%` can make the pair
-unreadable.
+after it — the cursor too, where it follows — a `+` arrives as a space, and a `%` can make
+the pair unreadable.
 
 ## Anti-patterns
 
