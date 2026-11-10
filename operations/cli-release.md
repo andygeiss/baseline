@@ -1,6 +1,6 @@
 # Operations: CLI Release
 
-**Last verified: 2026-08-25**
+**Last verified: 2026-11-10**
 
 How a [CLI tool](../project-types/cli-tool.md) reaches its users. For a CLI the
 release *is* the deployment — and the release is a tag. There is no build server and

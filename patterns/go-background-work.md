@@ -1,6 +1,6 @@
 # Pattern: Go Background Work
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-10
 
 Anything the process runs outside a request. Two shapes, and both owe the same answer to
 "how does this stop?" from [stack/go.md](../stack/go.md): **work on a schedule**, which

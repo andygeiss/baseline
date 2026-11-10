@@ -1,6 +1,6 @@
 # Stack: Make
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-10
 
 **Two of rule 6's four limits are tier 1 and never waived:** `.env` is gitignored in the
 same commit that adds the recipe, and production never uses it. A committed `.env` leaks

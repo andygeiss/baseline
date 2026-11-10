@@ -1,6 +1,6 @@
 # Project Type: CLI Tool
 
-**Last verified: 2026-09-05**
+**Last verified: 2026-11-10**
 
 Command-line tool: starts, does one job, exits — or, in the foreground, serves the person
 who started it until Ctrl-C, like a local proxy, under

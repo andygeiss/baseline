@@ -1,6 +1,6 @@
 # Pattern: Testing (Go)
 
-**Tier 2** (shape — waived only on the record) · Last verified: 2026-09-08
+**Tier 2** (shape — waived only on the record) · Last verified: 2026-11-10
 
 **One rule here is tier 1: a test never sends a request off this machine** (*Idioms*).
 
