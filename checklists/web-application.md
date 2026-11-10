@@ -233,7 +233,7 @@ the tokens layer and dark mode.
   - [ ] `Destroy` on logout
 - [ ] The token is hashed in the store, which keeps its two MUSTs
 - [ ] A password change asks for the current one, and ends and writes as *Login / logout flow* rule 1 says
-- [ ] The reset token keeps every condition of *Password reset*
+- [ ] A reset keeps every condition of *Password reset*
 - [ ] Auth endpoints rate limited per client IP, IPv6 by its /64
 - [ ] No enumeration: login, reset, and registration by email
 - [ ] Passwords (if any) hashed with argon2id (OWASP params, PHC-encoded)
@@ -246,7 +246,7 @@ the tokens layer and dark mode.
 - [ ] Only its SHA-256 stored
 - [ ] Created after the password is asked for, shown once
 - [ ] Read from `Authorization: Bearer`, never from the query string
-- [ ] Revoked by deleting its row
+- [ ] Deleted on revoke or password reset
 - [ ] One function resolves either credential to the user row; a refused token answers 401
 - [ ] A token acts as its user, never wider (`patterns/go-authorization.md`)
 

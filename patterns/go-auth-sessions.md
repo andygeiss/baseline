@@ -171,8 +171,8 @@ Single-use token from `rand.Text()`, **store only its SHA-256 hash**, 1-hour exp
 deleted with the user's other reset tokens in the transaction that writes the new hash,
 a password change's too; the plaintext token goes in the emailed link once. A known and an
 unknown address get the same answer to the request, and a used, an expired and a
-never-issued link the same answer to the link (no enumeration). A successful reset ends
-that user's sessions (rule 1).
+never-issued link the same answer to the link (no enumeration). A reset ends that user's
+sessions (rule 1) and machine tokens (*Machine tokens* rule 5).
 
 **How that link leaves the building is [go-email.md](go-email.md)**: the base URL it is
 built from, the outbox it waits in, and why nothing is sent inside the handler.
@@ -210,12 +210,12 @@ MUST rules:
    shell history.
 5. **Look it up by hash** (`WHERE token_hash = ?`, indexed and unique), and let
    the row carry a human label and a `last_used_at` the handler touches. Both
-   exist so a person can tell which token to revoke. **Revocation is a DELETE.**
+   exist so a person can tell which token to revoke. **Revocation is a DELETE, and a
+   password reset's transaction deletes the user's tokens.**
 6. **One function resolves either credential** — a bearer token or a session —
    and puts the same user *row* in the request context, never just the id it came
-   from. Everything downstream stops
-   caring which one arrived. A long-lived connection's re-check makes the same lookup
-   but only reads (*Re-resolving a long-lived connection* below).
+   from. A long-lived connection's re-check makes the same lookup but only reads
+   (*Re-resolving a long-lived connection* below).
 
    What it MUST NOT do is decide the answer when there is no user, because the
    two surfaces disagree. A browser is sent to the sign-in page; a program gets
