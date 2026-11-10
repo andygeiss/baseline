@@ -179,7 +179,7 @@ gate.
 - [ ] Targets alphabetical
 - [ ] `check` named as `.DEFAULT_GOAL`
 - [ ] `make check` is green
-- [ ] `make ci` is green on the commit being pushed, its `go version` line at the pin or later — tier 1
+- [ ] `make ci` is green on the commit being pushed, its `go version` line at the pin or a later patch — tier 1 for a security pin
 - [ ] Nothing under `.github/workflows/`
 - [ ] No `.github/dependabot.yml`
 - [ ] No `export-ignore` in `.gitattributes`

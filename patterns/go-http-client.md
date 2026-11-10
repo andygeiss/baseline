@@ -128,7 +128,7 @@ func (c *Client) Forecast(ctx context.Context, city string) (domain.Forecast, er
 
 	var out domain.Forecast
 	if err := json.UnmarshalRead(io.LimitReader(resp.Body, 1<<20), &out); err != nil {
-		return domain.Forecast{}, errors.New("weather: decode forecast") // the decoder's text quotes the answer
+		return domain.Forecast{}, cmp.Or(ctx.Err(), errors.New("weather: decode forecast")) // the decoder's text quotes the answer
 	}
 	return out, nil
 }
