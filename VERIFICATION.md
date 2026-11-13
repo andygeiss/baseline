@@ -145,6 +145,10 @@ the reference's binary and could not. The same check found the high now first un
 No build from the documents alone ran for the rule, and the reference's list held two
 entries: the eighth release to go out with the gate not met.
 
+**v6.0.2 moved only the Go pin, to 1.27.4** (`0f22ef3`), on Andy's word: GO-2026-6859
+fails `govulncheck` for every `net/http` program below it. No pass read the change, and
+the reset-address high still stands: the ninth release to go out with the gate not met.
+
 **Conditions 2 and 4 were one sentence until 2026-08-18, and it was one no release
 could meet.** It read "`./verify.sh` exits 0 against the exact baseline commit
 being tagged" — but the run record then lived in this file and named the reference
@@ -557,11 +561,11 @@ body says, and the reference carries them.
     v5.2.0's pass 8 as Claude's decision, and never confirmed.
 - **Pins behind upstream on 2026-11-10:** htmx 4.0.1 is npm's `next` since 2026-11-01,
   and `modernc.org/sqlite` v1.62.0 shipped on 2026-11-07. `VERSIONS.md` pins 4.0.0 and
-  v1.61.0. Go 1.27.3, scs v2.9.0 and TinyGo 0.44.0 are current.
+  v1.61.0. Go 1.27.4 (pinned 2026-11-13), scs v2.9.0 and TinyGo 0.44.0 are current.
 
 ### The reference, behind this corpus
 
-The reference follows `c18771c`, the last commit that changes anything a project reads:
+The reference follows `0f22ef3`, the last commit that changes anything a project reads:
 its `SPEC.md` pins that commit, and `make check`, `make ci` and `./verify.sh` exit 0
 against it (97 steps). Two things are behind, and condition 2 needs each settled:
 
