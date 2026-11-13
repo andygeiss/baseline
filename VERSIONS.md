@@ -22,7 +22,7 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 
 | Component | Pinned version | Released | Notes |
 |---|---|---|---|
-| Go | **1.27.3** | 2026-10-19 | A security release, so 1.27.3 is the floor: below it, `govulncheck` fails every program that can use TLS, as every `net/http` client can. It fixes one advisory, GO-2026-6809, in `crypto/x509`. Re-verify at 1.28.1, about March 2027. |
+| Go | **1.27.4** | 2026-11-10 | A security release, so 1.27.4 is the floor: below it, `govulncheck` fails every program that uses `net/http`, server or client. It fixes GO-2026-6859 in `net/http` and eleven in cgo builds. Re-verify at 1.28.1, about March 2027. |
 | htmx | **4.0.0** | 2026-08-28 | Stable; a breaking, fetch-based rewrite of 2.x, adopted at 4.0.0 on Andy's call. npm's `latest` still names 2.x; read `next`. |
 | SQLite driver | **v1.61.0** | 2026-10-21 | `modernc.org/sqlite`. The tier-1 pragmas are only as good as the driver: v1.42.1 cancelled unrelated queries. [patterns/go-sqlite.md](patterns/go-sqlite.md) rule 7 needs v1.61.0, rule 10's `StrictPragmas` v1.60.0. |
 | scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
