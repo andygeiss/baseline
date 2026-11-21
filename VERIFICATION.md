@@ -559,9 +559,10 @@ body says, and the reference carries them.
     a tool fed the 8-bit colors reads 6.19 and 3.29.
   - "The re-check only reads" (`patterns/wasm-client.md` rule 6) was recorded in
     v5.2.0's pass 8 as Claude's decision, and never confirmed.
-- **Pins behind upstream on 2026-11-10:** htmx 4.0.1 is npm's `next` since 2026-11-01,
-  and `modernc.org/sqlite` v1.62.0 shipped on 2026-11-07. `VERSIONS.md` pins 4.0.0 and
-  v1.61.0. Go 1.27.4 (pinned 2026-11-13), scs v2.9.0 and TinyGo 0.44.0 are current.
+- **`stack/htmx.md` rule 5 gives a 4.0.0 reason for `"defaultSettleDelay":0`.** From
+  4.0.1 (`17eca0e7`) the settle copies only `class`, `style`, `width` and `height` onto
+  the new element, read in 4.0.2's `dist/htmx.js` (2026-11-21). Whether a focused field
+  still comes back from a 422 empty is not checked in a browser; the setting stays.
 
 ### The reference, behind this corpus
 
