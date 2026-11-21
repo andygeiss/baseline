@@ -73,8 +73,8 @@ The rules behind it — all MUST:
    so do a wait for a pooled connection and a wait for SQLite's write lock: from driver
    v1.61.0 the busy handler gives up once the context is done and returns the context's
    error. Rule 2's number still caps every wait for the lock; a context that ends sooner
-   ends it sooner. Once started, `Commit` and `Rollback` ignore the context; only rule 2's
-   number bounds them.
+   ends it sooner. From v1.61.1, `Commit` stops waiting once `BeginTx`'s context is done;
+   `Rollback` ignores the context, and only rule 2's number bounds it.
 8. **Every `Rows`, `Stmt` and `Tx` is closed on every path** — `defer rows.Close()`, and
    `defer tx.Rollback()` after a successful `BeginTx`. On a one-connection write pool a
    leaked `Rows` or `Tx` is not a slow leak: it holds the connection until its context

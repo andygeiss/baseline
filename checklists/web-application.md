@@ -14,7 +14,7 @@ so. No waiver for any of those; there is a fix.
 ## Every web application
 
 - [ ] `go.mod` says `go 1.27`, matching `VERSIONS.md`, and has no `toolchain` line
-- [ ] The vendored htmx is 4.0.0, matching `VERSIONS.md`
+- [ ] The vendored htmx is 4.0.2, matching `VERSIONS.md`
 - [ ] No dependency outside `stack/go.md`'s approved list, or the README justifies it
 - [ ] Zero hand-written JavaScript, but `patterns/wasm-client.md`'s loader
 - [ ] htmx is the only `<script>`, but that pattern's two

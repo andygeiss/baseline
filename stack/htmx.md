@@ -1,7 +1,7 @@
 # Stack: htmx
 
 **Tier 2** (shape — waived only on the record) · Last verified: 2026-10-27 · Pinned:
-htmx 4.0.0 ([VERSIONS.md](../VERSIONS.md))
+htmx 4.0.2 ([VERSIONS.md](../VERSIONS.md))
 
 **Rule 8, Security, is tier 1 and never waived:** escaping and *Boost only pages* are its
 own, and the policy and CSRF it points at are tier 1 where they are owned. So is rule 3's

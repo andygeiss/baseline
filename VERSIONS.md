@@ -1,6 +1,6 @@
 # Pinned Versions
 
-**Last verified: 2026-09-08.** These are the versions all new projects MUST use.
+**Last verified: 2026-11-21.** These are the versions all new projects MUST use.
 If your training data disagrees, this file wins. Verify against the source links
 when updating this file.
 
@@ -23,8 +23,8 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
 | Component | Pinned version | Released | Notes |
 |---|---|---|---|
 | Go | **1.27.4** | 2026-11-10 | A security release, so 1.27.4 is the floor: below it, `govulncheck` fails every program that uses `net/http`, server or client. It fixes GO-2026-6859 in `net/http` and eleven in cgo builds. Re-verify at 1.28.1, about March 2027. |
-| htmx | **4.0.0** | 2026-08-28 | Stable; a breaking, fetch-based rewrite of 2.x, adopted at 4.0.0 on Andy's call. npm's `latest` still names 2.x; read `next`. |
-| SQLite driver | **v1.61.0** | 2026-10-21 | `modernc.org/sqlite`. The tier-1 pragmas are only as good as the driver: v1.42.1 cancelled unrelated queries. [patterns/go-sqlite.md](patterns/go-sqlite.md) rule 7 needs v1.61.0, rule 10's `StrictPragmas` v1.60.0. |
+| htmx | **4.0.2** | 2026-11-18 | Stable; a breaking, fetch-based rewrite of 2.x, adopted at 4.0.0 on Andy's call. npm's `latest` still names 2.x; read `next`. |
+| SQLite driver | **v1.62.0** | 2026-11-07 | `modernc.org/sqlite`. The tier-1 pragmas are only as good as the driver: v1.42.1 cancelled unrelated queries. [patterns/go-sqlite.md](patterns/go-sqlite.md) rule 7 needs v1.61.1, rule 10's `StrictPragmas` v1.60.0. |
 | scs (sessions) | **v2.9.0** | 2025 | `alexedwards/scs/v2`. Bundled `sqlite3store` not used (single-pool API defeats the read/write pool split) — see [patterns/go-auth-sessions.md](patterns/go-auth-sessions.md). |
 | TinyGo | **0.44.0** | 2026-10-28 | Only for a [WebAssembly client](patterns/wasm-client.md). Builds Go 1.25 through 1.27; the Go row stays in that range. |
 | Make | system default | — | Command runner only, and the only gate: `make check` against the tree, `make ci` against the commit. Makefile MUST stay runnable by GNU Make 3.81, the version macOS's Command Line Tools ship — portable subset, see [stack/makefile.md](stack/makefile.md). |
@@ -47,11 +47,10 @@ model request. See [patterns/go-llm-adapter.md](patterns/go-llm-adapter.md).
   [operations/ci.md](operations/ci.md), with the `make ci` re-scan of every live
   repository that goes with it. No bot, no CI server.
 
-## Sources checked (2026-09-08)
+## Sources checked (2026-11-21)
 
 Every row above was checked against its source on this date, not only the ones that
-moved; Go again on 2026-10-21, htmx on 2026-10-27, and Go, htmx, SQLite and scs again
-on 2026-10-31, when TinyGo got its row.
+moved.
 
 - Go releases: https://go.dev/doc/devel/release
 - Go 1.27 notes: https://go.dev/doc/go1.27 — and https://go.dev/doc/go1.28 for the
