@@ -566,7 +566,7 @@ body says, and the reference carries them.
 
 ### The reference, behind this corpus
 
-The reference follows `0f22ef3`, the last commit that changes anything a project reads:
+The reference follows `6e5f736`, the last commit that changes anything a project reads:
 its `SPEC.md` pins that commit, and `make check`, `make ci` and `./verify.sh` exit 0
 against it (97 steps). Two things are behind, and condition 2 needs each settled:
 
